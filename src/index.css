@@ -1,0 +1,237 @@
+@import "tailwindcss";
+
+body {
+  font-family: 'Cairo', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* ==========================================================================
+   Day Mode (Light Theme) Overrides for Central Oil Company System
+   ========================================================================== */
+
+html.light,
+.light {
+  color-scheme: light;
+}
+
+/* Backgrounds, Gradients & Panels */
+.light {
+  background-color: #f8fafc;
+  color: #0f172a;
+}
+
+.light header.bg-slate-900,
+.light aside.bg-slate-900,
+.light div.bg-slate-900 {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 4px 12px -2px rgba(15, 23, 42, 0.04) !important;
+}
+
+/* Ensure background gradients turn into clean light gradients in day mode */
+.light .bg-gradient-to-r,
+.light .bg-gradient-to-br,
+.light .bg-gradient-to-b,
+.light .bg-gradient-to-t,
+.light .bg-gradient-to-bl,
+.light .bg-gradient-to-l {
+  background-image: linear-gradient(to right, #ffffff, #f8fafc, #ffffff) !important;
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+}
+
+.light .bg-slate-950,
+.light .bg-slate-950\/80,
+.light .bg-slate-950\/90 {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+
+.light .bg-slate-900\/80,
+.light .bg-slate-900\/90 {
+  background-color: rgba(255, 255, 255, 0.9) !important;
+  border-color: #e2e8f0 !important;
+}
+
+.light .bg-slate-800 {
+  background-color: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+  color: #1e293b !important;
+}
+
+.light .bg-slate-800\/40,
+.light .bg-slate-800\/50,
+.light .bg-slate-800\/60 {
+  background-color: rgba(241, 245, 249, 0.8) !important;
+  border-color: #e2e8f0 !important;
+}
+
+.light .hover\:bg-slate-800:hover,
+.light .hover\:bg-slate-800\/60:hover {
+  background-color: #e2e8f0 !important;
+}
+
+.light .hover\:bg-slate-700:hover {
+  background-color: #cbd5e1 !important;
+}
+
+/* Borders */
+.light .border-slate-800,
+.light .border-slate-800\/80 {
+  border-color: #e2e8f0 !important;
+}
+
+.light .border-slate-700,
+.light .border-slate-700\/60 {
+  border-color: #cbd5e1 !important;
+}
+
+.light .border-slate-600 {
+  border-color: #94a3b8 !important;
+}
+
+.light .divide-slate-800 > :not([hidden]) ~ :not([hidden]) {
+  border-color: #e2e8f0 !important;
+}
+
+/* Typography & Contrast */
+.light .text-white,
+.light .text-slate-100,
+.light .text-slate-200 {
+  color: #0f172a !important;
+}
+
+.light .text-slate-300 {
+  color: #334155 !important;
+}
+
+.light .text-slate-400 {
+  color: #475569 !important;
+}
+
+.light .text-slate-500 {
+  color: #64748b !important;
+}
+
+/* Amber Accents in Light Mode */
+.light .text-amber-400 {
+  color: #d97706 !important;
+}
+
+.light .text-amber-300 {
+  color: #b45309 !important;
+}
+
+.light .bg-amber-500\/10,
+.light .bg-amber-500\/15,
+.light .bg-amber-500\/20 {
+  background-color: rgba(245, 158, 11, 0.12) !important;
+  border-color: rgba(245, 158, 11, 0.3) !important;
+}
+
+/* Form Controls */
+.light input,
+.light select,
+.light textarea {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
+.light input::placeholder,
+.light textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
+.light input:focus,
+.light select:focus,
+.light textarea:focus {
+  border-color: #f59e0b !important;
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2) !important;
+}
+
+/* Modal Backdrops */
+.light .fixed.inset-0.bg-slate-950\/80 {
+  background-color: rgba(15, 23, 42, 0.4) !important;
+}
+
+/* Scrollbars */
+.light ::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+.light ::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+.light ::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* ==========================================================================
+   A4 Landscape Print Styles for Official Reports
+   ========================================================================== */
+@media print {
+  @page {
+    size: A4 landscape;
+    margin: 8mm;
+  }
+
+  html, body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-size: 10pt !important;
+    font-family: 'Cairo', system-ui, -apple-system, sans-serif !important;
+    direction: rtl !important;
+    width: 100% !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+
+  /* Hide non-printable elements */
+  nav, aside, header, .no-print, .print\:hidden, button, input, select {
+    display: none !important;
+  }
+
+  /* Ensure print containers display properly */
+  .print\:block {
+    display: block !important;
+  }
+
+  .print\:flex {
+    display: flex !important;
+  }
+
+  .print\:inline-block {
+    display: inline-block !important;
+  }
+
+  /* Tables in print */
+  table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    margin-top: 10px !important;
+    font-size: 8.5pt !important;
+  }
+
+  th, td {
+    border: 1px solid #94a3b8 !important;
+    padding: 5px 7px !important;
+    color: #0f172a !important;
+    text-align: right !important;
+    background-color: transparent !important;
+  }
+
+  th {
+    background-color: #e2e8f0 !important;
+    font-weight: 800 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  tr {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+}
+
