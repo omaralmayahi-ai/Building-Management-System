@@ -1,15 +1,18 @@
 import React, { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
+import markerIcon from 'leaflet/dist/images/marker-icon.png';
+import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 import { UnitAsset, SiteHierarchyItem } from '../types';
-import { Layers, Maximize2, MapPin, Eye, Compass, ShieldCheck } from 'lucide-react';
+import { Layers, Maximize2, MapPin, Eye, Compass, ShieldCheck, AlertTriangle } from 'lucide-react';
 
-// Fix Leaflet default icon path issues in Vite
+// Fix Leaflet default icon path issues in Vite using locally bundled assets
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+  iconRetinaUrl: markerIcon2x,
+  iconUrl: markerIcon,
+  shadowUrl: markerShadow,
 });
 
 interface InteractiveGISMapProps {
@@ -31,6 +34,7 @@ export const InteractiveGISMap: React.FC<InteractiveGISMapProps> = ({
   const [mapType, setMapType] = useState<'satellite' | 'streets'>('satellite');
   const [cursorCoords, setCursorCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [selectedUnitOnMap, setSelectedUnitOnMap] = useState<UnitAsset | null>(null);
+  const [tileError, setTileError] = useState<boolean>(false);
 
   // Coordinate defaults for oilfield sites
   const centerLat = site?.coordinates?.lat || 32.6189;
@@ -67,11 +71,17 @@ export const InteractiveGISMap: React.FC<InteractiveGISMapProps> = ({
 
     mapInstanceRef.current = map;
 
-    // Add Tile Layer
+    // Add Tile Layer with error monitoring
     const activeTileConfig = tileLayers[mapType];
     const tileLayer = L.tileLayer(activeTileConfig.url, {
       attribution: activeTileConfig.attribution,
       maxZoom: 19,
+    });
+    tileLayer.on('tileerror', () => {
+      setTileError(true);
+    });
+    tileLayer.on('tileload', () => {
+      setTileError(false);
     });
     tileLayer.addTo(map);
 
@@ -105,10 +115,17 @@ export const InteractiveGISMap: React.FC<InteractiveGISMapProps> = ({
     });
 
     const activeTileConfig = tileLayers[mapType];
-    L.tileLayer(activeTileConfig.url, {
+    const tileLayer = L.tileLayer(activeTileConfig.url, {
       attribution: activeTileConfig.attribution,
       maxZoom: 19,
-    }).addTo(map);
+    });
+    tileLayer.on('tileerror', () => {
+      setTileError(true);
+    });
+    tileLayer.on('tileload', () => {
+      setTileError(false);
+    });
+    tileLayer.addTo(map);
   }, [mapType]);
 
   // Update Markers and Polygons on the map
@@ -288,6 +305,19 @@ export const InteractiveGISMap: React.FC<InteractiveGISMapProps> = ({
       {/* Leaflet Map Canvas Container */}
       <div className="relative w-full h-[380px] rounded-xl overflow-hidden border border-slate-800 shadow-inner z-0">
         <div ref={mapContainerRef} className="w-full h-full z-0" />
+
+        {/* Tile Error / Offline Server Notice */}
+        {tileError && (
+          <div className="absolute top-3 left-3 z-[400] max-w-xs bg-slate-950/95 border border-amber-500/50 backdrop-blur-md text-amber-300 p-2.5 rounded-xl text-[11px] shadow-2xl flex items-start gap-2">
+            <AlertTriangle className="w-4 h-4 shrink-0 text-amber-400 mt-0.5" />
+            <div className="space-y-0.5">
+              <div className="font-bold text-slate-100">تنبيه اتصال طبقات الخريطة</div>
+              <div className="text-[10px] text-slate-300 leading-tight">
+                تعذّر تحميل بلاطات الخريطة — تحقق من الاتصال بالشبكة الداخلية أو أضف خادم بلاطات محلي (TileServer GL / Offline Map Server).
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Live GPS Cursor Bar Overlay */}
         <div className="absolute bottom-3 right-3 z-[400] bg-slate-950/90 backdrop-blur-sm border border-slate-800 px-3 py-1.5 rounded-lg text-[11px] font-mono text-slate-300 flex items-center gap-2 shadow-lg">

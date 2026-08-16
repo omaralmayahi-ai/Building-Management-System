@@ -60,6 +60,10 @@ import {
 } from './types';
 import { toArabicDigits } from './utils/arabicUtils';
 import { safeParse, safeSetItem } from './utils/storageUtils';
+import * as api from './services/apiClient';
+
+// Flag to control initial demo dataset seeding on empty storage
+const SEED_WITH_DEMO_DATA = false;
 
 export function App() {
   const [activeTab, setActiveTab] = useState<NavTab>('dashboard');
@@ -106,54 +110,89 @@ export function App() {
     setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
   };
 
-  // Datasets with LocalStorage Persistence
+  // Datasets with LocalStorage Persistence & API Synchronization
   const [units, setUnits] = useState<UnitAsset[]>(() =>
-    safeParse('app_units', INITIAL_UNITS)
+    safeParse('app_units', SEED_WITH_DEMO_DATA ? INITIAL_UNITS : [])
   );
 
   useEffect(() => {
     safeSetItem('app_units', units);
+    api.saveUnits(units).catch((err) => console.warn('API sync units error:', err));
   }, [units]);
 
   const [selectedUnitCode, setSelectedUnitCode] = useState<string>('');
   const [maintenanceRequests, setMaintenanceRequests] = useState<MaintenanceRequest[]>(() =>
-    safeParse('app_maintenance_requests', INITIAL_MAINTENANCE_REQUESTS)
+    safeParse('app_maintenance_requests', SEED_WITH_DEMO_DATA ? INITIAL_MAINTENANCE_REQUESTS : [])
   );
 
   useEffect(() => {
     safeSetItem('app_maintenance_requests', maintenanceRequests);
+    api.saveMaintenanceRequests(maintenanceRequests).catch((err) => console.warn('API sync maintenance error:', err));
   }, [maintenanceRequests]);
 
   const [occupancyRecords, setOccupancyRecords] = useState<OccupancyRecord[]>(() =>
-    safeParse('app_occupancy_records', INITIAL_OCCUPANCY_RECORDS)
+    safeParse('app_occupancy_records', SEED_WITH_DEMO_DATA ? INITIAL_OCCUPANCY_RECORDS : [])
   );
 
   useEffect(() => {
     safeSetItem('app_occupancy_records', occupancyRecords);
+    api.saveOccupancyRecords(occupancyRecords).catch((err) => console.warn('API sync occupancy error:', err));
   }, [occupancyRecords]);
 
   const [periodicInspections, setPeriodicInspections] = useState<PeriodicInspectionSchedule[]>(() => {
     const saved = localStorage.getItem('app_periodic_inspections');
-    if (!saved) return INITIAL_PERIODIC_INSPECTIONS;
+    if (!saved) return SEED_WITH_DEMO_DATA ? INITIAL_PERIODIC_INSPECTIONS : [];
     try {
       const parsed = JSON.parse(saved);
       return parsed.filter((item: PeriodicInspectionSchedule) => !item.id?.startsWith('INS-2026-00'));
     } catch {
-      return INITIAL_PERIODIC_INSPECTIONS;
+      return SEED_WITH_DEMO_DATA ? INITIAL_PERIODIC_INSPECTIONS : [];
     }
   });
 
   useEffect(() => {
     safeSetItem('app_periodic_inspections', periodicInspections);
+    api.savePeriodicInspections(periodicInspections).catch((err) => console.warn('API sync inspections error:', err));
   }, [periodicInspections]);
 
   const [auditLogs, setAuditLogs] = useState<AuditLogItem[]>(() =>
-    safeParse('app_audit_logs', INITIAL_AUDIT_LOGS)
+    safeParse('app_audit_logs', SEED_WITH_DEMO_DATA ? INITIAL_AUDIT_LOGS : [])
   );
 
   useEffect(() => {
     safeSetItem('app_audit_logs', auditLogs);
+    api.saveAuditLogs(auditLogs).catch((err) => console.warn('API sync audit-logs error:', err));
   }, [auditLogs]);
+
+  // Initial Load from Central API / Database on Component Mount
+  useEffect(() => {
+    let isMounted = true;
+    async function loadDataFromApi() {
+      try {
+        const [apiUnits, apiMaint, apiOcc, apiInsp, apiLogs, apiEntities] = await Promise.all([
+          api.getUnits(),
+          api.getMaintenanceRequests(),
+          api.getOccupancyRecords(),
+          api.getPeriodicInspections(),
+          api.getAuditLogs(),
+          api.getOrgEntities(),
+        ]);
+        if (!isMounted) return;
+        if (apiUnits && apiUnits.length > 0) setUnits(apiUnits);
+        if (apiMaint && apiMaint.length > 0) setMaintenanceRequests(apiMaint);
+        if (apiOcc && apiOcc.length > 0) setOccupancyRecords(apiOcc);
+        if (apiInsp && apiInsp.length > 0) setPeriodicInspections(apiInsp);
+        if (apiLogs && apiLogs.length > 0) setAuditLogs(apiLogs);
+        if (apiEntities && apiEntities.length > 0) setOrgEntities(apiEntities);
+      } catch (err) {
+        console.warn('Initial API data fetch note:', err);
+      }
+    }
+    loadDataFromApi();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // System Branding State
   const [branding, setBranding] = useState<SystemBranding>(() =>
@@ -212,7 +251,7 @@ export function App() {
     });
   });
 
-  // Sync reference tables to LocalStorage
+  // Sync reference tables to LocalStorage & API
   useEffect(() => {
     safeSetItem('app_ref_unit_types', unitTypes);
     safeSetItem('app_ref_governorates', governorates);
@@ -221,6 +260,7 @@ export function App() {
     safeSetItem('app_ref_room_types', roomTypes);
     safeSetItem('app_ref_equipment_types', equipmentTypes);
     safeSetItem('app_ref_org_entities', orgEntities);
+    api.saveOrgEntities(orgEntities).catch((err) => console.warn('API sync orgEntities error:', err));
   }, [unitTypes, governorates, oilfields, sites, roomTypes, equipmentTypes, orgEntities]);
 
   const handleAddOrgEntity = (newEntity: OrgEntity) => {
@@ -230,8 +270,8 @@ export function App() {
         id: `LOG-${Date.now()}`,
         timestamp: toArabicDigits(new Date().toLocaleString('ar-IQ')),
         action: 'إضافة تشكيل تنظيمـي',
-        user: 'أحمد كريم',
-        userInitials: 'AK',
+        user: currentUser?.name || 'غير معروف',
+        userInitials: currentUser?.name ? currentUser.name.split(' ').map((w) => w[0]).join('').slice(0, 2) : '—',
         affectedField: 'الهيكل التنظيمي',
         previousValue: '-',
         newValue: newEntity.nameAr,
@@ -249,8 +289,8 @@ export function App() {
         id: `LOG-${Date.now()}`,
         timestamp: toArabicDigits(new Date().toLocaleString('ar-IQ')),
         action: 'تعديل تشكيل تنظيمـي',
-        user: 'أحمد كريم',
-        userInitials: 'AK',
+        user: currentUser?.name || 'غير معروف',
+        userInitials: currentUser?.name ? currentUser.name.split(' ').map((w) => w[0]).join('').slice(0, 2) : '—',
         affectedField: 'الهيكل التنظيمي',
         previousValue: 'بيانات سابقة',
         newValue: updatedEntity.nameAr,
@@ -268,8 +308,8 @@ export function App() {
           id: `LOG-${Date.now()}`,
           timestamp: toArabicDigits(new Date().toLocaleString('ar-IQ')),
           action: 'حذف تشكيل تنظيمـي',
-          user: 'أحمد كريم',
-          userInitials: 'AK',
+          user: currentUser?.name || 'غير معروف',
+          userInitials: currentUser?.name ? currentUser.name.split(' ').map((w) => w[0]).join('').slice(0, 2) : '—',
           affectedField: 'الهيكل التنظيمي',
           previousValue: entity.nameAr,
           newValue: 'تم الحذف',
@@ -320,8 +360,8 @@ export function App() {
       unitCode: code,
       timestamp: toArabicDigits(new Date().toLocaleString('ar-IQ')),
       action: 'تحديث درجة التقييم الهندسي',
-      user: 'أحمد كريم',
-      userInitials: 'AK',
+      user: currentUser?.name || 'غير معروف',
+      userInitials: currentUser?.name ? currentUser.name.split(' ').map((w) => w[0]).join('').slice(0, 2) : '—',
       affectedField: 'درجة التقييم',
       previousValue: 'الدرجة السابقة',
       newValue: newGrade,
@@ -337,8 +377,8 @@ export function App() {
         id: `LOG-${Date.now()}`,
         timestamp: toArabicDigits(new Date().toLocaleString('ar-IQ')),
         action: 'إضافة حساب مستخدم جديد',
-        user: currentUser?.name || 'مدير النظام',
-        userInitials: currentUser ? currentUser.name.slice(0, 2) : 'AD',
+        user: currentUser?.name || 'غير معروف',
+        userInitials: currentUser?.name ? currentUser.name.split(' ').map((w) => w[0]).join('').slice(0, 2) : '—',
         affectedField: 'المستخدمين',
         previousValue: '-',
         newValue: `${newUser.name} (${newUser.role})`,
@@ -357,8 +397,8 @@ export function App() {
         id: `LOG-${Date.now()}`,
         timestamp: toArabicDigits(new Date().toLocaleString('ar-IQ')),
         action: 'تعديل حساب وصلاحيات مستخدم',
-        user: currentUser?.name || 'مدير النظام',
-        userInitials: currentUser ? currentUser.name.slice(0, 2) : 'AD',
+        user: currentUser?.name || 'غير معروف',
+        userInitials: currentUser?.name ? currentUser.name.split(' ').map((w) => w[0]).join('').slice(0, 2) : '—',
         affectedField: 'المستخدمين',
         previousValue: 'بيانات سابقة',
         newValue: `${updatedUser.name} (${updatedUser.role})`,
@@ -379,8 +419,8 @@ export function App() {
           id: `LOG-${Date.now()}`,
           timestamp: toArabicDigits(new Date().toLocaleString('ar-IQ')),
           action: 'حذف حساب مستخدم نهائياً',
-          user: currentUser?.name || 'مدير النظام',
-          userInitials: currentUser ? currentUser.name.slice(0, 2) : 'AD',
+          user: currentUser?.name || 'غير معروف',
+          userInitials: currentUser?.name ? currentUser.name.split(' ').map((w) => w[0]).join('').slice(0, 2) : '—',
           affectedField: 'المستخدمين',
           previousValue: usr.name,
           newValue: 'تم الحذف',
@@ -436,8 +476,8 @@ export function App() {
         id: `LOG-${Date.now()}`,
         timestamp: toArabicDigits(new Date().toLocaleString('ar-IQ')),
         action: 'تغيير كلمة المرور الشخصية',
-        user: currentUser.name,
-        userInitials: currentUser.name.slice(0, 2),
+        user: currentUser?.name || 'غير معروف',
+        userInitials: currentUser?.name ? currentUser.name.split(' ').map((w) => w[0]).join('').slice(0, 2) : '—',
         affectedField: 'كلمة المرور',
         previousValue: '••••••',
         newValue: '••••••',
@@ -513,16 +553,17 @@ export function App() {
     localStorage.clear();
     setBranding(INITIAL_BRANDING);
     setUsers(INITIAL_USERS);
-    setUnits(INITIAL_UNITS);
+    setUnits(SEED_WITH_DEMO_DATA ? INITIAL_UNITS : []);
     setUnitTypes(INITIAL_REFERENCE_UNIT_TYPES);
     setGovernorates(INITIAL_GOVERNORATES);
     setOilfields(INITIAL_OILFIELDS);
     setSites(INITIAL_SITES);
     setRoomTypes(INITIAL_ROOM_TYPES);
     setEquipmentTypes(INITIAL_EQUIPMENT_TYPES);
-    setMaintenanceRequests(INITIAL_MAINTENANCE_REQUESTS);
-    setOccupancyRecords(INITIAL_OCCUPANCY_RECORDS);
-    setAuditLogs(INITIAL_AUDIT_LOGS);
+    setMaintenanceRequests(SEED_WITH_DEMO_DATA ? INITIAL_MAINTENANCE_REQUESTS : []);
+    setOccupancyRecords(SEED_WITH_DEMO_DATA ? INITIAL_OCCUPANCY_RECORDS : []);
+    setPeriodicInspections(SEED_WITH_DEMO_DATA ? INITIAL_PERIODIC_INSPECTIONS : []);
+    setAuditLogs(SEED_WITH_DEMO_DATA ? INITIAL_AUDIT_LOGS : []);
   };
 
   // Add new unit handler from Wizard
@@ -542,8 +583,8 @@ export function App() {
       unitCode: updatedUnit.code,
       timestamp: toArabicDigits(new Date().toLocaleString('ar-IQ')),
       action: 'تحديث بيانات الأصل والمبنى الـ 3D',
-      user: 'أحمد كريم',
-      userInitials: 'AK',
+      user: currentUser?.name || 'غير معروف',
+      userInitials: currentUser?.name ? currentUser.name.split(' ').map((w) => w[0]).join('').slice(0, 2) : '—',
       affectedField: 'تصميم وهيكلية الـ 3D والبيانات العامة',
       previousValue: 'البيانات السابقة',
       newValue: `تم تحديث المبنى (${updatedUnit.name})`,
@@ -567,8 +608,8 @@ export function App() {
       unitCode: unitCode,
       timestamp: toArabicDigits(new Date().toLocaleString('ar-IQ')),
       action: 'حذف وحدة نهائياً من قاعدة البيانات',
-      user: 'أحمد كريم',
-      userInitials: 'AK',
+      user: currentUser?.name || 'غير معروف',
+      userInitials: currentUser?.name ? currentUser.name.split(' ').map((w) => w[0]).join('').slice(0, 2) : '—',
       affectedField: 'قائمة المباني والأصول',
       previousValue: targetUnit?.name || unitCode,
       newValue: 'تم الحذف النهائي وإزالة كافة سجلات المنشأة',
@@ -599,8 +640,8 @@ export function App() {
       unitCode: unitCode,
       timestamp: toArabicDigits(new Date().toLocaleString('ar-IQ')),
       action: 'شطب وتجميد المنشأة',
-      user: 'أحمد كريم',
-      userInitials: 'AK',
+      user: currentUser?.name || 'غير معروف',
+      userInitials: currentUser?.name ? currentUser.name.split(' ').map((w) => w[0]).join('').slice(0, 2) : '—',
       affectedField: 'حالة التفعيل التشغيلي',
       previousValue: 'نشطة / تشغيلية',
       newValue: `مشطوبة ومجمدة (السبب: ${reason})`,
@@ -630,8 +671,8 @@ export function App() {
       unitCode: unitCode,
       timestamp: toArabicDigits(new Date().toLocaleString('ar-IQ')),
       action: 'إعادة تفعيل منشأة مشطوبة',
-      user: 'أحمد كريم',
-      userInitials: 'AK',
+      user: currentUser?.name || 'غير معروف',
+      userInitials: currentUser?.name ? currentUser.name.split(' ').map((w) => w[0]).join('').slice(0, 2) : '—',
       affectedField: 'حالة التفعيل التشغيلي',
       previousValue: 'مشطوبة ومجمدة',
       newValue: 'نشطة / تشغيلية',

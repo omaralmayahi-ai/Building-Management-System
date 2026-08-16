@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import * as pdfjsLib from 'pdfjs-dist';
+import pdfjsWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import {
   X,
   Download,
@@ -24,6 +26,9 @@ import {
 } from 'lucide-react';
 import { downloadAttachment } from '../utils/fileUtils';
 import { toArabicDigits } from '../utils/arabicUtils';
+
+// Configure local PDF.js worker from bundled package
+pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker;
 
 interface PdfCanvasViewerProps {
   url?: string;
@@ -62,46 +67,17 @@ const PdfCanvasViewer: React.FC<PdfCanvasViewerProps> = ({
       return;
     }
 
-    const loadPdfJs = async () => {
+    const loadPdfDoc = async () => {
       try {
         setLoading(true);
         setError(false);
 
-        if (!(window as any).pdfjsLib) {
-          await new Promise((resolve, reject) => {
-            const script = document.createElement('script');
-            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
-            script.onload = resolve;
-            script.onerror = reject;
-            document.head.appendChild(script);
-          });
-        }
-
-        const pdfjsLib = (window as any).pdfjsLib;
-        if (pdfjsLib) {
-          if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
-            try {
-              const workerBlob = new Blob(
-                [`importScripts('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js');`],
-                { type: 'application/javascript' }
-              );
-              pdfjsLib.GlobalWorkerOptions.workerSrc = URL.createObjectURL(workerBlob);
-            } catch {
-              pdfjsLib.GlobalWorkerOptions.workerSrc =
-                'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-            }
-          }
-
-          const loadingTask = pdfjsLib.getDocument(url);
-          loadingTask.promise.catch(() => {});
-          const pdf = await loadingTask.promise;
-          if (isMounted) {
-            setPdfDoc(pdf);
-            onTotalPagesChange(pdf.numPages);
-            setLoading(false);
-          }
-        } else {
-          throw new Error('PDFJS not available');
+        const loadingTask = pdfjsLib.getDocument(url);
+        const pdf = await loadingTask.promise;
+        if (isMounted) {
+          setPdfDoc(pdf);
+          onTotalPagesChange(pdf.numPages);
+          setLoading(false);
         }
       } catch (err) {
         console.warn('PDFJS loading failed, falling back to official document view:', err);
@@ -112,7 +88,7 @@ const PdfCanvasViewer: React.FC<PdfCanvasViewerProps> = ({
       }
     };
 
-    loadPdfJs();
+    loadPdfDoc();
 
     return () => {
       isMounted = false;

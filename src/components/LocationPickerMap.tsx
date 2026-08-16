@@ -1,14 +1,17 @@
 import React, { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { Search, Globe, Loader2 } from 'lucide-react';
+import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
+import markerIcon from 'leaflet/dist/images/marker-icon.png';
+import markerShadow from 'leaflet/dist/images/marker-shadow.png';
+import { Search, Globe, Loader2, AlertTriangle } from 'lucide-react';
 
-// Fix Leaflet default icon path issues in Vite
+// Fix Leaflet default icon path issues in Vite using locally bundled assets
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+  iconRetinaUrl: markerIcon2x,
+  iconUrl: markerIcon,
+  shadowUrl: markerShadow,
 });
 
 interface LocationPickerMapProps {
@@ -29,6 +32,7 @@ export const LocationPickerMap: React.FC<LocationPickerMapProps> = ({
   const [mapType, setMapType] = useState<'satellite' | 'streets'>('satellite');
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
+  const [tileError, setTileError] = useState<boolean>(false);
 
   // Map Tile Layers Configuration
   const tileLayers = {
@@ -92,11 +96,17 @@ export const LocationPickerMap: React.FC<LocationPickerMapProps> = ({
 
     mapInstanceRef.current = map;
 
-    // Add Tile Layer
+    // Add Tile Layer with error monitoring
     const tileConfig = tileLayers[mapType];
     const tileLayer = L.tileLayer(tileConfig.url, {
       attribution: tileConfig.attribution,
       maxZoom: 19,
+    });
+    tileLayer.on('tileerror', () => {
+      setTileError(true);
+    });
+    tileLayer.on('tileload', () => {
+      setTileError(false);
     });
     tileLayer.addTo(map);
 
@@ -157,6 +167,12 @@ export const LocationPickerMap: React.FC<LocationPickerMapProps> = ({
       attribution: tileConfig.attribution,
       maxZoom: 19,
     });
+    tileLayer.on('tileerror', () => {
+      setTileError(true);
+    });
+    tileLayer.on('tileload', () => {
+      setTileError(false);
+    });
     tileLayer.addTo(mapInstanceRef.current);
   }, [mapType]);
 
@@ -184,8 +200,8 @@ export const LocationPickerMap: React.FC<LocationPickerMapProps> = ({
         alert(`لم يتم العثور على نتائج للبحث عن: "${queryToSearch}"`);
       }
     } catch (err) {
-      console.error(err);
-      alert('حدث خطأ أثناء البحث عن الموقع الجغرافي.');
+      console.warn('Geocoding search failed (possibly offline):', err);
+      alert('تعذّر الاتصال بخدمة البحث الجغرافي. يتطلب البحث اتصالاً بالإنترنت أو توفير خادم بحث جغرافي محلي.');
     } finally {
       setIsSearching(false);
     }
@@ -271,6 +287,19 @@ export const LocationPickerMap: React.FC<LocationPickerMapProps> = ({
       {/* Map Canvas Frame */}
       <div className="relative rounded-2xl overflow-hidden border border-slate-800 shadow-xl bg-slate-950">
         <div ref={mapContainerRef} className="w-full h-[480px] z-0" />
+
+        {/* Tile Error / Offline Server Notice */}
+        {tileError && (
+          <div className="absolute top-4 left-4 z-10 max-w-xs bg-slate-950/95 border border-amber-500/50 backdrop-blur-md text-amber-300 p-3 rounded-xl text-xs shadow-2xl flex items-start gap-2.5">
+            <AlertTriangle className="w-4 h-4 shrink-0 text-amber-400 mt-0.5" />
+            <div className="space-y-1">
+              <div className="font-bold text-slate-100 text-xs">تنبيه اتصال طبقات الخريطة</div>
+              <div className="text-[11px] text-slate-300 leading-tight">
+                تعذّر تحميل بلاطات الخريطة — تحقق من الاتصال بالشبكة الداخلية أو أضف خادم بلاطات محلي (TileServer GL / Offline Map Server).
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Live Active Pin Floating Coordinates Badge */}
         <div className="absolute bottom-4 right-4 z-10 bg-slate-950/90 backdrop-blur border border-amber-500/40 text-slate-100 px-3.5 py-2 rounded-xl shadow-2xl flex items-center gap-3 text-xs font-mono">

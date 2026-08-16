@@ -336,8 +336,10 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
   const handleCreateScheduleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const unitObj = units.find((u) => u.code === newUnitCode);
+    const year = new Date().getFullYear();
+    const uniqueSuffix = Date.now().toString(36).slice(-6).toUpperCase();
     const schedule: PeriodicInspectionSchedule = {
-      id: `INS-2026-${Math.floor(100 + Math.random() * 900)}`,
+      id: `INS-${year}-${uniqueSuffix}`,
       unitCode: newUnitCode,
       unitName: unitObj?.name || newUnitCode,
       field: unitObj?.field || 'عام',

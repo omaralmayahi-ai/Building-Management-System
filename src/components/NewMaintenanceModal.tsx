@@ -44,6 +44,7 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
   const [issue, setIssue] = useState('');
   const [priority, setPriority] = useState<MaintenancePriority>('normal');
   const [assignedTo, setAssignedTo] = useState('فريق الصيانة الميدانية بالموقع');
+  const [validationError, setValidationError] = useState('');
 
   // Group units by governorate -> field
   const groupedUnits = useMemo(() => {
@@ -74,14 +75,31 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!issue.trim()) return;
+    setValidationError('');
+
+    if (!unitCode || !unitCode.trim()) {
+      setValidationError('يرجى تحديد الوحدة الهندسية / الأصل المطلوب فتح طلب الصيانة له.');
+      return;
+    }
 
     const selectedAsset = units.find((u) => u.code === unitCode);
+    if (!selectedAsset) {
+      setValidationError('لم يتم العثور على الوحدة المحددة في قاعدة البيانات. يرجى اختيار وحدة صالحة.');
+      return;
+    }
+
+    if (!issue.trim()) {
+      setValidationError('يرجى كتابة وصف المشكلة أو الأعمال المطلوبة.');
+      return;
+    }
+
+    const year = new Date().getFullYear();
+    const uniqueSuffix = Date.now().toString(36).slice(-6).toUpperCase();
 
     const newReq: MaintenanceRequest = {
-      id: `MR-2026-${Math.floor(100 + Math.random() * 900)}`,
-      unitCode: unitCode || 'WS-AHD-BLD-014',
-      field: selectedAsset?.field || 'Ahdab',
+      id: `MR-${year}-${uniqueSuffix}`,
+      unitCode: selectedAsset.code,
+      field: selectedAsset.field,
       issue,
       priority,
       slaDeadline: new Date(Date.now() + 86400000 * 2).toISOString(),
@@ -647,6 +665,14 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
               </div>
             </div>
           </div>
+
+          {/* VALIDATION ERROR MESSAGE */}
+          {validationError && (
+            <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-500 font-bold text-xs flex items-center gap-2">
+              <X className="w-4 h-4 shrink-0 text-red-500" />
+              <span>{validationError}</span>
+            </div>
+          )}
 
           {/* FOOTER ACTIONS */}
           <div className="flex flex-col-reverse sm:flex-row items-center justify-end gap-2.5 sm:gap-3 pt-2 shrink-0">
