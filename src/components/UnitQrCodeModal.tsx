@@ -3,17 +3,11 @@ import QRCode from 'qrcode';
 import {
   X,
   QrCode,
-  MapPin,
-  ExternalLink,
   Download,
   Printer,
-  Copy,
-  Check,
   Building,
   ShieldCheck,
   Compass,
-  Box,
-  Share2,
 } from 'lucide-react';
 import { UnitAsset } from '../types';
 import { toArabicDigits } from '../utils/arabicUtils';
@@ -31,7 +25,6 @@ export const UnitQrCodeModal: React.FC<UnitQrCodeModalProps> = ({
 }) => {
   const isLight = theme === 'light';
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
-  const [copied, setCopied] = useState<boolean>(false);
 
   // Payload encoded inside the Quick Access QR Code
   const mapsUrl = `https://maps.google.com/?q=${unit.coordinates.lat},${unit.coordinates.lng}`;
@@ -73,14 +66,6 @@ export const UnitQrCodeModal: React.FC<UnitQrCodeModalProps> = ({
       isMounted = false;
     };
   }, [qrPayload]);
-
-  const handleCopyPayload = () => {
-    navigator.clipboard.writeText(
-      `رمز الوحدة: ${unit.code}\nاسم المنشأة: ${unit.name}\nالحقل والمحافظة: ${unit.field} - ${unit.governorate}\nالإحداثيات: ${unit.coordinates.lat}, ${unit.coordinates.lng}\nرابط الخريطة: ${mapsUrl}\nشركة نفط الوسط`
-    );
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
 
   const handleDownloadQr = () => {
     if (!qrDataUrl) return;
@@ -137,64 +122,111 @@ export const UnitQrCodeModal: React.FC<UnitQrCodeModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-5 animate-fadeIn">
+    <div
+      id="modal-qr-code"
+      className={`fixed inset-0 z-50 backdrop-blur-md flex items-center justify-center p-3 sm:p-5 animate-fadeIn ${
+        isLight ? 'bg-slate-900/60' : 'bg-slate-950/85'
+      }`}
+    >
       <div
         className={`border rounded-3xl max-w-xl w-full flex flex-col max-h-[90vh] shadow-2xl overflow-hidden transition-all ${
-          isLight ? 'bg-white border-slate-200 text-slate-900' : 'bg-slate-900 border-slate-800 text-white'
+          isLight ? 'bg-white border-slate-200 text-slate-900 shadow-slate-300/50' : 'bg-slate-900 border-slate-800 text-white'
         }`}
       >
         {/* Header */}
-        <div className="p-4 sm:p-5 border-b border-slate-800/80 flex items-center justify-between bg-slate-950/50 shrink-0">
+        <div
+          className={`p-4 sm:p-5 border-b flex items-center justify-between shrink-0 transition-colors ${
+            isLight
+              ? 'bg-slate-50 border-slate-200 text-slate-900'
+              : 'bg-slate-950/50 border-slate-800/80 text-slate-100'
+          }`}
+        >
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-amber-500 text-slate-950 font-black flex items-center justify-center shadow-lg">
+            <div className="w-10 h-10 rounded-2xl bg-amber-500 text-slate-950 font-black flex items-center justify-center shadow-lg shrink-0">
               <QrCode className="w-6 h-6" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="font-extrabold text-base text-slate-100">رمز الوصول السريع (Quick Access QR)</h3>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                <h3 className={`font-extrabold text-base ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                  رمز الوصول السريع (Quick Access QR)
+                </h3>
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                  isLight
+                    ? 'bg-amber-100 text-amber-900 border-amber-300'
+                    : 'bg-amber-500/20 text-amber-400 border-amber-500/30'
+                }`}>
                   {toArabicDigits(unit.code)}
                 </span>
               </div>
-              <p className="text-xs text-slate-400">بطاقة التثبيت الميداني والإحداثيات الجغرافية الموثقة</p>
+              <p className={`text-xs ${isLight ? 'text-slate-500 font-medium' : 'text-slate-400'}`}>
+                بطاقة التثبيت الميداني والإحداثيات الجغرافية الموثقة
+              </p>
             </div>
           </div>
 
           <button
             onClick={onClose}
-            className="p-2 text-slate-400 hover:text-white bg-slate-800/80 hover:bg-slate-800 rounded-xl transition cursor-pointer"
+            className={`p-2 rounded-xl transition cursor-pointer ${
+              isLight
+                ? 'text-slate-500 hover:text-slate-900 bg-slate-200/70 hover:bg-slate-200'
+                : 'text-slate-400 hover:text-white bg-slate-800/80 hover:bg-slate-800'
+            }`}
+            title="إغلاق"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Content Body */}
-        <div className="p-4 sm:p-6 overflow-y-auto space-y-5 bg-slate-950/60">
+        <div
+          className={`p-4 sm:p-6 overflow-y-auto space-y-5 transition-colors ${
+            isLight ? 'bg-slate-100/70' : 'bg-slate-950/60'
+          }`}
+        >
           {/* Metallic / Digital Badge Mockup */}
-          <div className="bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900 border-2 border-amber-500/50 rounded-2xl p-5 shadow-2xl text-center space-y-4 relative overflow-hidden">
-            <div className="flex items-center justify-between text-[10px] text-amber-400 font-bold border-b border-slate-800 pb-2">
+          <div
+            className={`border-2 rounded-2xl p-4 sm:p-5 shadow-xl text-center space-y-4 relative overflow-hidden transition-all ${
+              isLight
+                ? 'bg-gradient-to-br from-amber-50/40 via-white to-slate-50 border-amber-500/60 shadow-slate-300/40'
+                : 'bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900 border-amber-500/50 shadow-2xl'
+            }`}
+          >
+            {/* Badge Header */}
+            <div
+              className={`flex items-center justify-between text-[10px] font-bold border-b pb-2 ${
+                isLight
+                  ? 'text-amber-800 border-slate-200'
+                  : 'text-amber-400 border-slate-800'
+              }`}
+            >
               <span className="flex items-center gap-1">
                 <Building className="w-3.5 h-3.5" />
                 <span>وزارة النفط - شركة نفط الوسط</span>
               </span>
-              <span className="font-mono">MIDLAND OIL COMPANY</span>
+              <span className="font-mono text-slate-500">MIDLAND OIL COMPANY</span>
             </div>
 
             {/* Code Box */}
             <div className="space-y-1">
-              <span className="text-[10px] font-bold text-slate-400 block uppercase tracking-wider">
+              <span className={`text-[10px] font-bold block uppercase tracking-wider ${
+                isLight ? 'text-slate-600' : 'text-slate-400'
+              }`}>
                 الرمز الموحد للمنشأة (Structural Unit Code)
               </span>
-              <div className="bg-slate-950 border-2 border-amber-500/70 rounded-xl py-2 px-4 font-mono text-2xl font-black text-amber-400 tracking-widest shadow-inner inline-block min-w-[220px]">
+              <div className="bg-slate-950 border-2 border-amber-500 rounded-xl py-2 px-4 font-mono text-2xl font-black text-amber-400 tracking-widest shadow-inner inline-block min-w-[220px]">
                 {toArabicDigits(unit.code)}
               </div>
             </div>
 
             {/* QR Image Display */}
             <div className="flex justify-center my-2">
-              <div className="bg-white p-3 rounded-2xl border-4 border-amber-500/60 shadow-xl relative group">
+              <div className="bg-white p-3 rounded-2xl border-4 border-amber-500/60 shadow-lg relative group">
                 {qrDataUrl ? (
-                  <img src={qrDataUrl} alt={`QR Code for ${unit.code}`} className="w-44 h-44 sm:w-48 sm:h-48 rounded-lg" />
+                  <img
+                    src={qrDataUrl}
+                    alt={`QR Code for ${unit.code}`}
+                    className="w-44 h-44 sm:w-48 sm:h-48 rounded-lg"
+                  />
                 ) : (
                   <div className="w-44 h-44 flex items-center justify-center text-slate-500 font-bold text-xs">
                     جاري توليد الرمز...
@@ -213,44 +245,71 @@ export const UnitQrCodeModal: React.FC<UnitQrCodeModalProps> = ({
             </div>
 
             {/* Unit Details Box inside Plate */}
-            <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-3.5 text-right text-xs space-y-2">
-              <div className="flex items-center justify-between border-b border-slate-800/80 pb-2">
-                <span className="font-extrabold text-slate-100 text-sm truncate">{unit.name}</span>
-                <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-bold shrink-0">
+            <div
+              className={`rounded-xl p-3.5 text-right text-xs space-y-2.5 border transition-colors ${
+                isLight
+                  ? 'bg-white border-slate-200 text-slate-800 shadow-xs'
+                  : 'bg-slate-900/90 border-slate-800 text-slate-300'
+              }`}
+            >
+              <div
+                className={`flex items-center justify-between border-b pb-2 ${
+                  isLight ? 'border-slate-200' : 'border-slate-800/80'
+                }`}
+              >
+                <span className={`font-extrabold text-sm truncate ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                  {unit.name}
+                </span>
+                <span className={`text-[10px] px-2 py-0.5 rounded font-bold shrink-0 border ${
+                  isLight
+                    ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                    : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                }`}>
                   Grade {unit.conditionGrade}
                 </span>
               </div>
 
-              <div className="grid grid-cols-2 gap-2 text-[11px] text-slate-300">
+              <div className="grid grid-cols-2 gap-2.5 text-[11px]">
                 <div>
-                  <span className="text-slate-500 block text-[10px]">الموقع الميداني:</span>
-                  <span className="font-bold text-amber-400">{unit.governorate} • {unit.field}</span>
+                  <span className={`block text-[10px] ${isLight ? 'text-slate-500 font-medium' : 'text-slate-500'}`}>
+                    الموقع الميداني:
+                  </span>
+                  <span className={`font-bold ${isLight ? 'text-amber-800' : 'text-amber-400'}`}>
+                    {unit.governorate} • {unit.field}
+                  </span>
                 </div>
 
                 <div>
-                  <span className="text-slate-500 block text-[10px]">المساحة والطوابق:</span>
-                  <span className="font-bold">{toArabicDigits(unit.totalAreaSqM)} م² ({toArabicDigits(unit.floorsCount)} طابق)</span>
+                  <span className={`block text-[10px] ${isLight ? 'text-slate-500 font-medium' : 'text-slate-500'}`}>
+                    المساحة والطوابق:
+                  </span>
+                  <span className={`font-bold ${isLight ? 'text-slate-900' : 'text-slate-200'}`}>
+                    {toArabicDigits(unit.totalAreaSqM)} م² ({toArabicDigits(unit.floorsCount)} طابق)
+                  </span>
                 </div>
 
-                <div className="col-span-2 pt-1 border-t border-slate-800/60 flex items-center justify-between">
-                  <span className="text-slate-500 text-[10px] flex items-center gap-1">
-                    <Compass className="w-3 h-3 text-amber-500" />
+                <div
+                  className={`col-span-2 pt-2 border-t flex items-center justify-between ${
+                    isLight ? 'border-slate-200' : 'border-slate-800/60'
+                  }`}
+                >
+                  <span className={`text-[10px] flex items-center gap-1 ${isLight ? 'text-slate-500 font-medium' : 'text-slate-500'}`}>
+                    <Compass className={`w-3 h-3 ${isLight ? 'text-amber-600' : 'text-amber-500'}`} />
                     <span>الإحداثيات الجغرافية (GPS):</span>
                   </span>
-                  <a
-                    href={mapsUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="font-mono text-amber-400 font-bold hover:underline flex items-center gap-1 text-[11px]"
-                  >
-                    <span>{toArabicDigits(unit.coordinates.lat)}°, {toArabicDigits(unit.coordinates.lng)}°</span>
-                    <ExternalLink className="w-3 h-3" />
-                  </a>
+                  <span className={`font-mono font-bold text-[11px] ${isLight ? 'text-amber-800' : 'text-amber-400'}`}>
+                    {toArabicDigits(unit.coordinates.lat)}°, {toArabicDigits(unit.coordinates.lng)}°
+                  </span>
                 </div>
               </div>
             </div>
 
-            <div className="flex items-center justify-center gap-1.5 text-[10px] text-emerald-400 font-bold pt-1">
+            {/* Bottom Certification Badge */}
+            <div
+              className={`flex items-center justify-center gap-1.5 text-[10px] font-bold pt-1 ${
+                isLight ? 'text-emerald-700' : 'text-emerald-400'
+              }`}
+            >
               <ShieldCheck className="w-3.5 h-3.5" />
               <span>رمز وصول سريع موثق إلكترونياً ومربوط بالدليل الجغرافي MOC</span>
             </div>
@@ -258,45 +317,42 @@ export const UnitQrCodeModal: React.FC<UnitQrCodeModalProps> = ({
         </div>
 
         {/* Action Buttons Toolbar */}
-        <div className="p-4 border-t border-slate-800 bg-slate-950 flex flex-wrap items-center justify-between gap-2 shrink-0">
-          <a
-            href={mapsUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="bg-sky-600 hover:bg-sky-500 text-white font-bold px-3.5 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow transition cursor-pointer"
+        <div
+          className={`p-3 sm:p-4 border-t flex flex-wrap items-center justify-end gap-2.5 shrink-0 transition-colors ${
+            isLight
+              ? 'border-slate-200 bg-slate-50'
+              : 'border-slate-800 bg-slate-950'
+          }`}
+        >
+          <button
+            onClick={onClose}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+              isLight
+                ? 'bg-slate-200 hover:bg-slate-300 text-slate-700'
+                : 'bg-slate-800 hover:bg-slate-700 text-slate-300'
+            }`}
           >
-            <MapPin className="w-4 h-4" />
-            <span>فتح الخريطة (GPS)</span>
-          </a>
+            إغلاق
+          </button>
 
-          <div className="flex items-center gap-2">
-            <button
-              onClick={handleCopyPayload}
-              className="bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold px-3 py-2 rounded-xl text-xs flex items-center gap-1.5 transition cursor-pointer"
-              title="نسخ معلومات رمز الوصول السريع"
-            >
-              {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
-              <span>{copied ? 'تم النسخ' : 'نسخ البيانات'}</span>
-            </button>
+          <button
+            onClick={handleDownloadQr}
+            className="flex-1 sm:flex-none bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center justify-center gap-1.5 shadow transition cursor-pointer"
+          >
+            <Download className="w-4 h-4" />
+            <span>تنزيل PNG</span>
+          </button>
 
-            <button
-              onClick={handleDownloadQr}
-              className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3.5 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow transition cursor-pointer"
-            >
-              <Download className="w-4 h-4" />
-              <span>تنزيل PNG</span>
-            </button>
-
-            <button
-              onClick={handlePrintPlate}
-              className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-3.5 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow transition cursor-pointer"
-            >
-              <Printer className="w-4 h-4" />
-              <span>طباعة اللوحة</span>
-            </button>
-          </div>
+          <button
+            onClick={handlePrintPlate}
+            className="flex-1 sm:flex-none bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-4 py-2 rounded-xl text-xs flex items-center justify-center gap-1.5 shadow transition cursor-pointer"
+          >
+            <Printer className="w-4 h-4" />
+            <span>طباعة اللوحة</span>
+          </button>
         </div>
       </div>
     </div>
   );
 };
+

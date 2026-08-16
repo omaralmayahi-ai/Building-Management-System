@@ -210,11 +210,11 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800/40">
           <h3 className={`font-bold text-sm ${isLight ? 'text-slate-900' : 'text-slate-200'}`}>سجل بلاغات الصيانة والطلبات الميدانية</h3>
 
-          <div className="flex items-center gap-2 text-xs">
+          <div className="flex flex-wrap items-center gap-2 text-xs w-full sm:w-auto">
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
-              className={`rounded-lg px-2.5 py-1 focus:outline-none border ${isLight ? 'bg-slate-50 border-slate-200 text-slate-800' : 'bg-slate-950 border-slate-800 text-slate-200'}`}
+              className={`rounded-lg px-2.5 py-1.5 focus:outline-none border flex-1 sm:flex-none ${isLight ? 'bg-slate-50 border-slate-200 text-slate-800' : 'bg-slate-950 border-slate-800 text-slate-200'}`}
             >
               <option value="all">كافة الحالات</option>
               <option value="completed">تمت المعالجة و الانجاز</option>
@@ -222,20 +222,20 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
               <option value="in_progress">قيد المعالجة</option>
             </select>
 
-            <div className="relative">
-              <Search className="absolute right-2.5 top-2 w-3.5 h-3.5 text-slate-500" />
+            <div className="relative flex-1 sm:flex-none">
+              <Search className="absolute right-2.5 top-2.5 w-3.5 h-3.5 text-slate-500" />
               <input
                 type="text"
                 value={searchCode}
                 onChange={(e) => setSearchCode(e.target.value)}
                 placeholder="ابحث بالرمز أو المشكلة..."
-                className={`rounded-lg pr-8 pl-2 py-1 text-xs focus:outline-none border ${isLight ? 'bg-slate-50 border-slate-200 text-slate-800 focus:border-amber-500' : 'bg-slate-950 border-slate-800 text-slate-200 focus:border-amber-500'}`}
+                className={`w-full sm:w-auto rounded-lg pr-8 pl-2 py-1.5 text-xs focus:outline-none border ${isLight ? 'bg-slate-50 border-slate-200 text-slate-800 focus:border-amber-500' : 'bg-slate-950 border-slate-800 text-slate-200 focus:border-amber-500'}`}
               />
             </div>
           </div>
         </div>
 
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto no-scrollbar">
           <table className="w-full text-right text-xs">
             <thead>
               <tr className={`border-b ${isLight ? 'bg-slate-100 text-slate-700' : 'bg-slate-950 text-slate-400 border-slate-800'}`}>

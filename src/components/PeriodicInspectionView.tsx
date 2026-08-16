@@ -650,7 +650,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
         </div>
 
         {/* View Toggle Tabs */}
-        <div className="flex items-center gap-2 mt-5 border-t border-slate-800/40 pt-4">
+        <div className="flex flex-wrap items-center gap-2 mt-5 border-t border-slate-800/40 pt-4">
           <button
             onClick={() => setActiveSubTab('schedules')}
             className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer ${

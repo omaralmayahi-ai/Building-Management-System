@@ -1,7 +1,28 @@
 @import "tailwindcss";
 
+html, body, #root {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
 body {
   font-family: 'Cairo', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Zero horizontal scroll utilities */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Ensure mobile containers and canvas never force horizontal window overflow */
+@media (max-width: 768px) {
+  .modal-container, .card-container {
+    max-width: 100vw;
+  }
 }
 
 /* ==========================================================================

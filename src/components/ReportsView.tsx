@@ -2224,10 +2224,10 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
         </div>
 
         {/* Report Domain Category Tabs */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs font-bold">
+        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 pb-1 text-xs font-bold">
           <button
             onClick={() => setActiveTab('all')}
-            className={`px-4 py-2 rounded-xl flex items-center gap-2 whitespace-nowrap transition cursor-pointer ${
+            className={`px-3 sm:px-4 py-2 rounded-xl flex items-center gap-1.5 sm:gap-2 transition cursor-pointer ${
               activeTab === 'all'
                 ? 'bg-amber-500 text-slate-950 font-black shadow'
                 : isLight

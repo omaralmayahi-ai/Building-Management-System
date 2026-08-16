@@ -443,11 +443,11 @@ export const AttachmentViewerModal: React.FC<AttachmentViewerModalProps> = ({
           </div>
 
           {/* Explicit Header Action Buttons: Download & Exit/Close */}
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex flex-wrap items-center gap-2 shrink-0 w-full sm:w-auto justify-end">
             <button
               type="button"
               onClick={handleDownload}
-              className="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition shadow cursor-pointer"
+              className="flex-1 sm:flex-initial bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition shadow cursor-pointer"
               title="تنزيل الملف المرفق مباشرة للكمبيوتر أو الهاتف"
             >
               <Download className="w-4 h-4" />
@@ -457,7 +457,7 @@ export const AttachmentViewerModal: React.FC<AttachmentViewerModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition cursor-pointer border ${
+              className={`flex-1 sm:flex-initial px-3.5 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer border ${
                 isLight
                   ? 'bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-300'
                   : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700'

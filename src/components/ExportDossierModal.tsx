@@ -15,28 +15,28 @@ export const ExportDossierModal: React.FC<ExportDossierModalProps> = ({ unit, br
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-2xl w-full p-6 space-y-6 text-xs text-slate-200">
+    <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-2xl w-full p-4 sm:p-6 space-y-4 sm:space-y-6 text-xs text-slate-200 my-auto max-h-[95vh] overflow-y-auto">
         {/* Top Actions */}
-        <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-          <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-800">
+          <div className="flex items-center gap-2 min-w-0">
             {branding?.logoUrl ? (
-              <img src={branding.logoUrl} alt="Logo" className="w-5 h-5 object-contain" />
+              <img src={branding.logoUrl} alt="Logo" className="w-5 h-5 object-contain shrink-0" />
             ) : (
-              <ShieldCheck className="w-5 h-5 text-amber-400" />
+              <ShieldCheck className="w-5 h-5 text-amber-400 shrink-0" />
             )}
-            <span className="font-bold text-slate-100 text-sm">الاضبارة الفنية الرسمية للمنشأة</span>
+            <span className="font-bold text-slate-100 text-xs sm:text-sm truncate">الاضبارة الفنية الرسمية للمنشأة</span>
           </div>
 
           <div className="flex items-center gap-2">
             <button
               onClick={handlePrint}
-              className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 shadow"
+              className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 shadow cursor-pointer"
             >
               <Printer className="w-4 h-4" />
               <span>طباعة الاضبارة</span>
             </button>
-            <button onClick={onClose} className="text-slate-400 hover:text-white px-2 py-1">
+            <button onClick={onClose} className="text-slate-400 hover:text-white p-1 rounded-lg transition cursor-pointer">
               ✕
             </button>
           </div>

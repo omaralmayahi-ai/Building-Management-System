@@ -497,9 +497,9 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4 overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-2 sm:p-4 overflow-y-auto">
       <div
-        className={`w-full max-w-5xl rounded-3xl border shadow-2xl overflow-hidden my-6 transition-all ${
+        className={`w-full max-w-5xl rounded-2xl sm:rounded-3xl border shadow-2xl overflow-hidden my-auto max-h-[92vh] flex flex-col transition-all ${
           isLight
             ? 'bg-white border-slate-200 text-slate-900'
             : 'bg-slate-950 border-slate-800 text-slate-100'
@@ -507,22 +507,22 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
       >
         {/* Header */}
         <div
-          className={`px-6 py-4 border-b flex items-center justify-between ${
+          className={`px-4 sm:px-6 py-3 sm:py-4 border-b flex items-center justify-between gap-3 shrink-0 ${
             isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-900 border-slate-800'
           }`}
         >
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-amber-500 text-slate-950 flex items-center justify-center font-bold shadow-md">
-              <Edit3 className="w-5 h-5" />
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-amber-500 text-slate-950 flex items-center justify-center font-bold shadow-md shrink-0">
+              <Edit3 className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h3 className="text-base font-bold">تعديل كافة بيانات وتصميم المنشأة (3D)</h3>
-                <span className="font-mono text-xs px-2.5 py-0.5 rounded-full font-bold bg-amber-500/20 text-amber-500 border border-amber-500/30">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h3 className="text-sm sm:text-base font-bold truncate">تعديل بيانات وتصميم المنشأة (3D)</h3>
+                <span className="font-mono text-[11px] sm:text-xs px-2.5 py-0.5 rounded-full font-bold bg-amber-500/20 text-amber-500 border border-amber-500/30">
                   {toArabicDigits(unit.code)}
                 </span>
               </div>
-              <p className={`text-xs mt-0.5 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+              <p className={`text-[11px] sm:text-xs mt-0.5 truncate hidden sm:block ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
                 تحديث شامل مطابق لاستمارة تسجيل الوحدات الجديدة (الهوية، أبعاد 3D، الإحداثيات، الغرف، والمعدات)
               </p>
             </div>
@@ -530,7 +530,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
 
           <button
             onClick={onClose}
-            className={`p-2 rounded-xl transition cursor-pointer ${
+            className={`p-2 rounded-xl transition cursor-pointer shrink-0 ${
               isLight
                 ? 'hover:bg-slate-200 text-slate-600'
                 : 'hover:bg-slate-800 text-slate-400 hover:text-white'
@@ -541,7 +541,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
         </div>
 
         {/* Tab Navigation Ribbon */}
-        <div className={`px-6 py-2.5 border-b flex items-center gap-2 overflow-x-auto text-xs font-bold ${
+        <div className={`px-3 sm:px-6 py-2 border-b flex items-center gap-1.5 sm:gap-2 overflow-x-auto text-xs font-bold shrink-0 ${
           isLight ? 'bg-slate-100/80 border-slate-200' : 'bg-slate-900/60 border-slate-800/80'
         }`}>
           <button
@@ -624,7 +624,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-6 max-h-[72vh] overflow-y-auto">
+        <form onSubmit={handleSubmit} className="p-3.5 sm:p-6 space-y-4 sm:space-y-6 overflow-y-auto flex-1">
           {/* TAB 1: Basic Identity */}
           {activeTab === 'basic' && (
             <div
@@ -1739,20 +1739,20 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
 
           {/* Actions Footer */}
           <div
-            className={`pt-4 border-t flex items-center justify-between ${
+            className={`pt-4 border-t flex flex-col sm:flex-row items-center justify-between gap-3 ${
               isLight ? 'border-slate-200' : 'border-slate-800'
             }`}
           >
-            <div className="flex items-center gap-2 text-xs text-slate-400">
-              <ShieldCheck className="w-4 h-4 text-emerald-400" />
+            <div className="flex items-center gap-2 text-xs text-slate-400 order-2 sm:order-1 text-center sm:text-right">
+              <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
               <span>يتم توثيق التعديلات مباشرة بسجل التدقيق الأمني للشركة</span>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto order-1 sm:order-2">
               <button
                 type="button"
                 onClick={onClose}
-                className={`px-5 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                className={`flex-1 sm:flex-initial px-5 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer text-center ${
                   isLight
                     ? 'bg-slate-100 hover:bg-slate-200 text-slate-700'
                     : 'bg-slate-800 hover:bg-slate-700 text-slate-300'
@@ -1763,7 +1763,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
 
               <button
                 type="submit"
-                className="bg-amber-500 hover:bg-amber-400 text-slate-950 px-6 py-2.5 rounded-xl text-xs font-black flex items-center gap-2 shadow-lg transition cursor-pointer"
+                className="flex-1 sm:flex-initial bg-amber-500 hover:bg-amber-400 text-slate-950 px-6 py-2.5 rounded-xl text-xs font-black flex items-center justify-center gap-2 shadow-lg transition cursor-pointer"
               >
                 <Save className="w-4 h-4" />
                 <span>حفظ كافة التعديلات والـ 3D</span>

@@ -1008,7 +1008,7 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
           </div>
 
           {/* Action Buttons Toolbar - Formatted in a single row */}
-          <div className="flex flex-wrap lg:flex-nowrap items-center gap-2 shrink-0">
+          <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto shrink-0">
             <button
               onClick={() => onSelectUnit('')}
               className={`font-black py-2 px-3 rounded-xl text-xs flex items-center gap-1.5 border transition cursor-pointer whitespace-nowrap shadow-xs ${
@@ -1048,10 +1048,14 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
 
             <button
               onClick={() => setShowQrModal(true)}
-              className="bg-slate-950 hover:bg-slate-800 text-amber-400 font-bold py-2 px-3 rounded-xl text-xs flex items-center gap-1.5 border border-amber-500/40 shadow-md transition cursor-pointer whitespace-nowrap"
+              className={`font-bold py-2 px-3 rounded-xl text-xs flex items-center gap-1.5 border transition cursor-pointer whitespace-nowrap shadow-xs ${
+                isLight
+                  ? 'bg-amber-50 hover:bg-amber-100 text-amber-900 border-amber-300'
+                  : 'bg-slate-950 hover:bg-slate-800 text-amber-400 border-amber-500/40'
+              }`}
               title="عرض وطباعة رمز الوصول السريع (Quick Access QR Code) الخاص بهذه الوحدة"
             >
-              <QrCode className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+              <QrCode className="w-3.5 h-3.5 text-amber-500 shrink-0" />
               <span>رمز الوصول السريع (QR)</span>
             </button>
 

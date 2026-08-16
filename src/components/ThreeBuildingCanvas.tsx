@@ -756,7 +756,7 @@ export const ThreeBuildingCanvas: React.FC<ThreeBuildingCanvasProps> = ({
 
       {/* Floating Exploded View Control Bar (Bottom Center) */}
       {!isCaravan && floorsCount > 1 && (
-        <div className={`absolute bottom-12 left-1/2 -translate-x-1/2 z-10 backdrop-blur-md px-4 py-2 rounded-2xl border shadow-2xl flex items-center gap-3 text-xs w-72 sm:w-80 transition-colors ${
+        <div className={`absolute bottom-12 left-1/2 -translate-x-1/2 z-10 backdrop-blur-md px-3 sm:px-4 py-2 rounded-2xl border shadow-2xl flex items-center gap-2 sm:gap-3 text-xs w-72 sm:w-80 max-w-[92vw] transition-colors ${
           isNightMode ? 'bg-slate-900/90 border-slate-800 text-slate-300' : 'bg-white/95 border-slate-200 text-slate-800'
         }`}>
           <span className={`font-bold whitespace-nowrap flex items-center gap-1 ${isNightMode ? 'text-amber-400' : 'text-amber-700'}`}>
@@ -777,7 +777,7 @@ export const ThreeBuildingCanvas: React.FC<ThreeBuildingCanvasProps> = ({
 
       {/* Floating Architectural Customization Panel */}
       {showSettingsPanel && (
-        <div className={`absolute top-16 right-3 z-30 w-72 sm:w-80 backdrop-blur-md rounded-2xl border p-4 shadow-2xl space-y-4 text-xs animate-in fade-in slide-in-from-top-2 transition-colors ${
+        <div className={`absolute top-16 right-2 sm:right-3 z-30 w-72 sm:w-80 max-w-[92vw] backdrop-blur-md rounded-2xl border p-4 shadow-2xl space-y-4 text-xs animate-in fade-in slide-in-from-top-2 transition-colors ${
           isNightMode
             ? 'bg-slate-900/95 border-slate-800 text-slate-200'
             : 'bg-white/95 border-slate-200 text-slate-800'

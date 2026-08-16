@@ -248,7 +248,7 @@ export const InteractiveGISMap: React.FC<InteractiveGISMapProps> = ({
         </div>
 
         {/* Map Control Buttons */}
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={() => {
               if (mapInstanceRef.current) {
@@ -260,10 +260,10 @@ export const InteractiveGISMap: React.FC<InteractiveGISMapProps> = ({
             <span>خارطة العراق (Zoom Out)</span>
           </button>
 
-          <div className="flex items-center gap-1.5 bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs">
+          <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs">
             <button
               onClick={() => setMapType('satellite')}
-              className={`px-3 py-1.5 rounded-lg font-bold transition cursor-pointer ${
+              className={`px-2.5 sm:px-3 py-1.5 rounded-lg font-bold transition cursor-pointer ${
                 mapType === 'satellite'
                   ? 'bg-amber-500 text-slate-950 shadow'
                   : 'text-slate-400 hover:text-slate-200'
@@ -273,7 +273,7 @@ export const InteractiveGISMap: React.FC<InteractiveGISMapProps> = ({
             </button>
             <button
               onClick={() => setMapType('streets')}
-              className={`px-3 py-1.5 rounded-lg font-bold transition cursor-pointer ${
+              className={`px-2.5 sm:px-3 py-1.5 rounded-lg font-bold transition cursor-pointer ${
                 mapType === 'streets'
                   ? 'bg-amber-500 text-slate-950 shadow'
                   : 'text-slate-400 hover:text-slate-200'

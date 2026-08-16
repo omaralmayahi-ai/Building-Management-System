@@ -649,11 +649,11 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
           </div>
 
           {/* FOOTER ACTIONS */}
-          <div className="flex items-center justify-end gap-3 pt-2">
+          <div className="flex flex-col-reverse sm:flex-row items-center justify-end gap-2.5 sm:gap-3 pt-2 shrink-0">
             <button
               type="button"
               onClick={onClose}
-              className={`px-5 py-2.5 rounded-xl font-bold transition cursor-pointer ${
+              className={`w-full sm:w-auto px-5 py-2.5 rounded-xl font-bold transition cursor-pointer text-center ${
                 isLight ? 'bg-slate-100 hover:bg-slate-200 text-slate-700' : 'bg-slate-800 hover:bg-slate-700 text-slate-300'
               }`}
             >
@@ -661,7 +661,7 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
             </button>
             <button
               type="submit"
-              className="px-6 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-xl shadow-lg shadow-amber-500/20 transition cursor-pointer flex items-center gap-2"
+              className="w-full sm:w-auto px-6 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-xl shadow-lg shadow-amber-500/20 transition cursor-pointer flex items-center justify-center gap-2"
             >
               <Wrench className="w-4 h-4" />
               <span>إرسال وحفظ طلب الصيانة</span>
