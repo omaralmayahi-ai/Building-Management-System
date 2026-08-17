@@ -1,6 +1,5 @@
 import express from 'express';
 import path from 'path';
-import { fileURLToPath } from 'url';
 import { createServer as createViteServer } from 'vite';
 import { getDbPool, query } from './src/db/dbClient';
 import {
@@ -14,12 +13,10 @@ import {
   DbOrgEntityRow,
 } from './src/db/schema';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
 async function startServer() {
   const app = express();
   const PORT = 3000;
+  const API_SECRET_KEY = process.env.API_SECRET_KEY || 'midland_oil_secure_api_key_2026';
 
   app.use(express.json({ limit: '50mb' }));
   app.use(express.urlencoded({ extended: true, limit: '50mb' }));
@@ -36,7 +33,7 @@ async function startServer() {
     orgEntities: [] as any[],
   };
 
-  // Health check endpoint
+  // Health check endpoint (public, no auth required)
   app.get('/api/health', async (req, res) => {
     let dbStatus = 'disconnected';
     const pool = getDbPool();
@@ -53,6 +50,20 @@ async function startServer() {
       database: dbStatus,
       timestamp: new Date().toISOString(),
     });
+  });
+
+  // ==========================================================================
+  // API Authentication Middleware (Protected Routes under /api)
+  // ==========================================================================
+  app.use('/api', (req, res, next) => {
+    if (req.path === '/health' || req.path === '/health/') {
+      return next();
+    }
+    const clientKey = req.headers['x-api-key'];
+    if (!clientKey || clientKey !== API_SECRET_KEY) {
+      return res.status(401).json({ error: 'Unauthorized: Invalid or missing X-API-Key header' });
+    }
+    next();
   });
 
   // ==========================================================================
@@ -186,7 +197,85 @@ async function startServer() {
 
   app.post('/api/units/bulk', async (req, res) => {
     const { units } = req.body;
-    memStore.units = units || [];
+    const unitList = units || [];
+    try {
+      const pool = getDbPool();
+      if (pool) {
+        const client = await pool.connect();
+        try {
+          await client.query('BEGIN');
+          if (unitList.length === 0) {
+            await client.query('DELETE FROM units');
+          } else {
+            const codes = unitList.map((u: any) => u.code);
+            await client.query('DELETE FROM units WHERE code != ALL($1::text[])', [codes]);
+            for (const u of unitList) {
+              const row = mapModelToUnitRow(u);
+              await client.query(
+                `INSERT INTO units (
+                  id, code, name, type, site_id, site_name, field, governorate,
+                  condition_grade, construction_year, department, departments,
+                  lat, lng, sector_address, total_area_sq_m, length_m, width_m, height_m,
+                  building_shape, floors_count, rooms, equipment, attachments, attachments_count,
+                  design_finishing, status, decommissioned_at, decommission_reason, last_updated
+                ) VALUES (
+                  $1, $2, $3, $4, $5, $6, $7, $8,
+                  $9, $10, $11, $12,
+                  $13, $14, $15, $16, $17, $18, $19,
+                  $20, $21, $22, $23, $24, $25,
+                  $26, $27, $28, $29, $30
+                ) ON CONFLICT (code) DO UPDATE SET
+                  name = EXCLUDED.name,
+                  type = EXCLUDED.type,
+                  site_id = EXCLUDED.site_id,
+                  site_name = EXCLUDED.site_name,
+                  field = EXCLUDED.field,
+                  governorate = EXCLUDED.governorate,
+                  condition_grade = EXCLUDED.condition_grade,
+                  construction_year = EXCLUDED.construction_year,
+                  department = EXCLUDED.department,
+                  departments = EXCLUDED.departments,
+                  lat = EXCLUDED.lat,
+                  lng = EXCLUDED.lng,
+                  sector_address = EXCLUDED.sector_address,
+                  total_area_sq_m = EXCLUDED.total_area_sq_m,
+                  length_m = EXCLUDED.length_m,
+                  width_m = EXCLUDED.width_m,
+                  height_m = EXCLUDED.height_m,
+                  building_shape = EXCLUDED.building_shape,
+                  floors_count = EXCLUDED.floors_count,
+                  rooms = EXCLUDED.rooms,
+                  equipment = EXCLUDED.equipment,
+                  attachments = EXCLUDED.attachments,
+                  attachments_count = EXCLUDED.attachments_count,
+                  design_finishing = EXCLUDED.design_finishing,
+                  status = EXCLUDED.status,
+                  decommissioned_at = EXCLUDED.decommissioned_at,
+                  decommission_reason = EXCLUDED.decommission_reason,
+                  last_updated = EXCLUDED.last_updated`,
+                [
+                  row.id, row.code, row.name, row.type, row.site_id, row.site_name, row.field, row.governorate,
+                  row.condition_grade, row.construction_year, row.department, JSON.stringify(row.departments),
+                  row.lat, row.lng, row.sector_address, row.total_area_sq_m, row.length_m || null, row.width_m || null, row.height_m || null,
+                  row.building_shape || 'rectangular', row.floors_count, JSON.stringify(row.rooms), JSON.stringify(row.equipment),
+                  JSON.stringify(row.attachments), row.attachments_count, JSON.stringify(row.design_finishing),
+                  row.status, row.decommissioned_at || null, row.decommission_reason || null, new Date().toISOString()
+                ]
+              );
+            }
+          }
+          await client.query('COMMIT');
+        } catch (err) {
+          await client.query('ROLLBACK');
+          throw err;
+        } finally {
+          client.release();
+        }
+      }
+    } catch (err) {
+      console.warn('DB bulk save failed for units, updating memory store:', err);
+    }
+    memStore.units = unitList;
     res.json({ success: true });
   });
 
@@ -290,7 +379,61 @@ async function startServer() {
   });
 
   app.post('/api/maintenance/bulk', async (req, res) => {
-    memStore.maintenance = req.body.requests || [];
+    const requests = req.body.requests || [];
+    try {
+      const pool = getDbPool();
+      if (pool) {
+        const client = await pool.connect();
+        try {
+          await client.query('BEGIN');
+          if (requests.length === 0) {
+            await client.query('DELETE FROM maintenance_requests');
+          } else {
+            const ids = requests.map((r: any) => r.id);
+            await client.query('DELETE FROM maintenance_requests WHERE id != ALL($1::text[])', [ids]);
+            for (const r of requests) {
+              await client.query(
+                `INSERT INTO maintenance_requests (
+                  id, unit_code, unit_name, field, issue, priority, sla_deadline,
+                  assigned_to, status, reported_by, details, source_inspection_id,
+                  resolution_notes, completed_by, completed_at
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+                ON CONFLICT (id) DO UPDATE SET
+                  unit_code = EXCLUDED.unit_code,
+                  unit_name = EXCLUDED.unit_name,
+                  field = EXCLUDED.field,
+                  issue = EXCLUDED.issue,
+                  priority = EXCLUDED.priority,
+                  sla_deadline = EXCLUDED.sla_deadline,
+                  assigned_to = EXCLUDED.assigned_to,
+                  status = EXCLUDED.status,
+                  reported_by = EXCLUDED.reported_by,
+                  details = EXCLUDED.details,
+                  source_inspection_id = EXCLUDED.source_inspection_id,
+                  resolution_notes = EXCLUDED.resolution_notes,
+                  completed_by = EXCLUDED.completed_by,
+                  completed_at = EXCLUDED.completed_at`,
+                [
+                  r.id, r.unitCode, r.unitName || null, r.field, r.issue, r.priority || 'normal',
+                  r.slaDeadline || null, r.assignedTo, r.status || 'open', r.reportedBy,
+                  r.details || null, r.sourceInspectionId || null,
+                  r.resolutionNotes || null, r.completedBy || null, r.completedAt || null
+                ]
+              );
+            }
+          }
+          await client.query('COMMIT');
+        } catch (err) {
+          await client.query('ROLLBACK');
+          throw err;
+        } finally {
+          client.release();
+        }
+      }
+    } catch (err) {
+      console.warn('DB bulk save failed for maintenance:', err);
+    }
+    memStore.maintenance = requests;
     res.json({ success: true });
   });
 
@@ -377,7 +520,48 @@ async function startServer() {
   });
 
   app.post('/api/occupancy/bulk', async (req, res) => {
-    memStore.occupancy = req.body.records || [];
+    const records = req.body.records || [];
+    try {
+      const pool = getDbPool();
+      if (pool) {
+        const client = await pool.connect();
+        try {
+          await client.query('BEGIN');
+          if (records.length === 0) {
+            await client.query('DELETE FROM occupancy_records');
+          } else {
+            const ids = records.map((o: any) => o.id);
+            await client.query('DELETE FROM occupancy_records WHERE id != ALL($1::text[])', [ids]);
+            for (const o of records) {
+              await client.query(
+                `INSERT INTO occupancy_records (
+                  id, unit_code, room_id, department, use_type, allocation_order_no, start_date, status, capacity_text
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+                ON CONFLICT (id) DO UPDATE SET
+                  unit_code = EXCLUDED.unit_code,
+                  room_id = EXCLUDED.room_id,
+                  department = EXCLUDED.department,
+                  use_type = EXCLUDED.use_type,
+                  allocation_order_no = EXCLUDED.allocation_order_no,
+                  start_date = EXCLUDED.start_date,
+                  status = EXCLUDED.status,
+                  capacity_text = EXCLUDED.capacity_text`,
+                [o.id, o.unitCode, o.roomId, o.department, o.useType, o.allocationOrderNo, o.startDate, o.status, o.capacityText || null]
+              );
+            }
+          }
+          await client.query('COMMIT');
+        } catch (err) {
+          await client.query('ROLLBACK');
+          throw err;
+        } finally {
+          client.release();
+        }
+      }
+    } catch (err) {
+      console.warn('DB bulk save failed for occupancy:', err);
+    }
+    memStore.occupancy = records;
     res.json({ success: true });
   });
 
@@ -498,7 +682,76 @@ async function startServer() {
   });
 
   app.post('/api/inspections/bulk', async (req, res) => {
-    memStore.inspections = req.body.inspections || [];
+    const inspections = req.body.inspections || [];
+    try {
+      const pool = getDbPool();
+      if (pool) {
+        const client = await pool.connect();
+        try {
+          await client.query('BEGIN');
+          if (inspections.length === 0) {
+            await client.query('DELETE FROM periodic_inspections');
+          } else {
+            const ids = inspections.map((s: any) => s.id);
+            await client.query('DELETE FROM periodic_inspections WHERE id != ALL($1::text[])', [ids]);
+            for (const s of inspections) {
+              await client.query(
+                `INSERT INTO periodic_inspections (
+                  id, unit_code, unit_name, field, governorate, inspection_type, title,
+                  frequency, custom_interval_days, last_inspection_date, next_due_date,
+                  assigned_team, inspector_name, status, notes, condition_grade_given,
+                  completion_date, findings, recommendations, report_file_name, report_file_url,
+                  created_maintenance_request_id
+                ) VALUES (
+                  $1, $2, $3, $4, $5, $6, $7,
+                  $8, $9, $10, $11,
+                  $12, $13, $14, $15, $16,
+                  $17, $18, $19, $20, $21,
+                  $22
+                ) ON CONFLICT (id) DO UPDATE SET
+                  unit_code = EXCLUDED.unit_code,
+                  unit_name = EXCLUDED.unit_name,
+                  field = EXCLUDED.field,
+                  governorate = EXCLUDED.governorate,
+                  inspection_type = EXCLUDED.inspection_type,
+                  title = EXCLUDED.title,
+                  frequency = EXCLUDED.frequency,
+                  custom_interval_days = EXCLUDED.custom_interval_days,
+                  last_inspection_date = EXCLUDED.last_inspection_date,
+                  next_due_date = EXCLUDED.next_due_date,
+                  assigned_team = EXCLUDED.assigned_team,
+                  inspector_name = EXCLUDED.inspector_name,
+                  status = EXCLUDED.status,
+                  notes = EXCLUDED.notes,
+                  condition_grade_given = EXCLUDED.condition_grade_given,
+                  completion_date = EXCLUDED.completion_date,
+                  findings = EXCLUDED.findings,
+                  recommendations = EXCLUDED.recommendations,
+                  report_file_name = EXCLUDED.report_file_name,
+                  report_file_url = EXCLUDED.report_file_url,
+                  created_maintenance_request_id = EXCLUDED.created_maintenance_request_id`,
+                [
+                  s.id, s.unitCode, s.unitName || null, s.field, s.governorate, s.inspectionType, s.title,
+                  s.frequency || 'quarterly', s.customIntervalDays || null, s.lastInspectionDate, s.nextDueDate,
+                  s.assignedTeam, s.inspectorName, s.status || 'scheduled', s.notes || null, s.conditionGradeGiven || null,
+                  s.completionDate || null, s.findings || null, s.recommendations || null, s.reportFileName || null, s.reportFileUrl || null,
+                  s.createdMaintenanceRequestId || null
+                ]
+              );
+            }
+          }
+          await client.query('COMMIT');
+        } catch (err) {
+          await client.query('ROLLBACK');
+          throw err;
+        } finally {
+          client.release();
+        }
+      }
+    } catch (err) {
+      console.warn('DB bulk save failed for inspections:', err);
+    }
+    memStore.inspections = inspections;
     res.json({ success: true });
   });
 
@@ -546,7 +799,46 @@ async function startServer() {
   });
 
   app.post('/api/audit-logs/bulk', async (req, res) => {
-    memStore.auditLogs = req.body.logs || [];
+    const logs = req.body.logs || [];
+    try {
+      const pool = getDbPool();
+      if (pool) {
+        const client = await pool.connect();
+        try {
+          await client.query('BEGIN');
+          if (logs.length === 0) {
+            await client.query('DELETE FROM audit_logs');
+          } else {
+            const ids = logs.map((l: any) => l.id);
+            await client.query('DELETE FROM audit_logs WHERE id != ALL($1::text[])', [ids]);
+            for (const l of logs) {
+              await client.query(
+                `INSERT INTO audit_logs (id, unit_code, action, user_name, user_initials, affected_field, previous_value, new_value)
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+                 ON CONFLICT (id) DO UPDATE SET
+                   unit_code = EXCLUDED.unit_code,
+                   action = EXCLUDED.action,
+                   user_name = EXCLUDED.user_name,
+                   user_initials = EXCLUDED.user_initials,
+                   affected_field = EXCLUDED.affected_field,
+                   previous_value = EXCLUDED.previous_value,
+                   new_value = EXCLUDED.new_value`,
+                [l.id, l.unitCode || 'GLOBAL', l.action, l.user, l.userInitials || '—', l.affectedField, l.previousValue || null, l.newValue || null]
+              );
+            }
+          }
+          await client.query('COMMIT');
+        } catch (err) {
+          await client.query('ROLLBACK');
+          throw err;
+        } finally {
+          client.release();
+        }
+      }
+    } catch (err) {
+      console.warn('DB bulk save failed for audit logs:', err);
+    }
+    memStore.auditLogs = logs;
     res.json({ success: true });
   });
 
@@ -633,7 +925,46 @@ async function startServer() {
   });
 
   app.post('/api/org-entities/bulk', async (req, res) => {
-    memStore.orgEntities = req.body.entities || [];
+    const entities = req.body.entities || [];
+    try {
+      const pool = getDbPool();
+      if (pool) {
+        const client = await pool.connect();
+        try {
+          await client.query('BEGIN');
+          if (entities.length === 0) {
+            await client.query('DELETE FROM org_entities');
+          } else {
+            const ids = entities.map((e: any) => e.id);
+            await client.query('DELETE FROM org_entities WHERE id != ALL($1::text[])', [ids]);
+            for (const e of entities) {
+              await client.query(
+                `INSERT INTO org_entities (id, code, name_ar, name_en, parent_id, level, employee_count, status)
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+                 ON CONFLICT (id) DO UPDATE SET
+                   code = EXCLUDED.code,
+                   name_ar = EXCLUDED.name_ar,
+                   name_en = EXCLUDED.name_en,
+                   parent_id = EXCLUDED.parent_id,
+                   level = EXCLUDED.level,
+                   employee_count = EXCLUDED.employee_count,
+                   status = EXCLUDED.status`,
+                [e.id, e.code, e.nameAr, e.nameEn || null, e.parentId || null, e.level, e.employeeCount || 0, e.status || 'active']
+              );
+            }
+          }
+          await client.query('COMMIT');
+        } catch (err) {
+          await client.query('ROLLBACK');
+          throw err;
+        } finally {
+          client.release();
+        }
+      }
+    } catch (err) {
+      console.warn('DB bulk save failed for org entities:', err);
+    }
+    memStore.orgEntities = entities;
     res.json({ success: true });
   });
 

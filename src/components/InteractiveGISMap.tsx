@@ -1,6 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import 'leaflet.markercluster/dist/MarkerCluster.css';
+import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
+import 'leaflet.markercluster';
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
@@ -157,6 +160,42 @@ export const InteractiveGISMap: React.FC<InteractiveGISMapProps> = ({
       .bindTooltip(`حدود موقع ${site.nameAr} - شركة نفط الوسط`, { permanent: false, direction: 'top' })
       .addTo(layerGroup);
 
+    // Create Marker Cluster Group for high-density unit clustering
+    const clusterGroup = (L as any).markerClusterGroup({
+      showCoverageOnHover: false,
+      maxClusterRadius: 45,
+      spiderfyOnMaxZoom: true,
+      disableClusteringAtZoom: 18,
+      iconCreateFunction: (cluster: any) => {
+        const count = cluster.getChildCount();
+        return L.divIcon({
+          html: `
+            <div style="
+              background: linear-gradient(135deg, #f59e0b, #d97706);
+              color: #0f172a;
+              width: 36px;
+              height: 36px;
+              border-radius: 50%;
+              border: 2.5px solid #ffffff;
+              box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-weight: 900;
+              font-size: 12px;
+              font-family: system-ui, sans-serif;
+              cursor: pointer;
+            ">
+              ${count}
+            </div>
+          `,
+          className: 'custom-gis-cluster',
+          iconSize: [36, 36],
+          iconAnchor: [18, 18],
+        });
+      },
+    });
+
     // Map units onto map with custom color-coded HTML SVG Markers
     units.forEach((unit, index) => {
       // Offset coordinates slightly around center if exact matches
@@ -200,7 +239,7 @@ export const InteractiveGISMap: React.FC<InteractiveGISMapProps> = ({
         iconAnchor: [14, 14],
       });
 
-      const marker = L.marker([unitLat, unitLng], { icon: customIcon }).addTo(layerGroup);
+      const marker = L.marker([unitLat, unitLng], { icon: customIcon });
 
       // Popup Content
       const popupHtml = `
@@ -245,7 +284,11 @@ export const InteractiveGISMap: React.FC<InteractiveGISMapProps> = ({
           }
         }, 50);
       });
+
+      clusterGroup.addLayer(marker);
     });
+
+    layerGroup.addLayer(clusterGroup);
   }, [site.id, units]);
 
   return (

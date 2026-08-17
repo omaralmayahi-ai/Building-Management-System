@@ -199,6 +199,10 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
   const [expandedFields, setExpandedFields] = useState<Record<string, boolean>>({});
   const [viewLayoutMode, setViewLayoutMode] = useState<'tree' | 'flat'>('tree');
 
+  // Pagination State (50 items per page)
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const PAGE_SIZE = 50;
+
   // Selected unit (null if no unit code selected or matched)
   const selectedUnit = units.find((u) => u.code === selectedUnitCode) || null;
 
@@ -272,6 +276,30 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
     return matchGov && matchField && matchOrgEntity && matchGrade && matchType && matchStatus && matchSearch;
   });
 
+  // Auto-reset page to 1 when filters or search change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [
+    filterGovernorate,
+    filterField,
+    filterOrgEntity,
+    filterGrade,
+    filterType,
+    filterStatus,
+    searchCode,
+  ]);
+
+  const totalUnitsCount = filteredUnits.length;
+  const totalPages = Math.max(1, Math.ceil(totalUnitsCount / PAGE_SIZE));
+  const validPage = Math.min(Math.max(1, currentPage), totalPages);
+  const startIndex = (validPage - 1) * PAGE_SIZE;
+  const endIndex = Math.min(startIndex + PAGE_SIZE, totalUnitsCount);
+
+  // Paginated slice for instant DOM rendering
+  const paginatedUnits = useMemo(() => {
+    return filteredUnits.slice(startIndex, endIndex);
+  }, [filteredUnits, startIndex, endIndex]);
+
   const isFiltered =
     filterGovernorate !== 'all' ||
     filterField !== 'all' ||
@@ -281,11 +309,11 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
     filterStatus !== 'all' ||
     searchCode.trim() !== '';
 
-  // Hierarchy grouping: Governorate -> Oilfield -> Units
+  // Hierarchy grouping: Governorate -> Oilfield -> Units (based on paginated units on current page)
   const hierarchyData = useMemo(() => {
     const govMap = new Map<string, Map<string, UnitAsset[]>>();
 
-    filteredUnits.forEach((unit) => {
+    paginatedUnits.forEach((unit) => {
       const gov = unit.governorate?.trim() || 'غير محدد';
       const field = unit.field?.trim() || 'غير محدد';
 
@@ -328,7 +356,7 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
     });
 
     return result;
-  }, [filteredUnits]);
+  }, [paginatedUnits]);
 
   const toggleGov = (govName: string) => {
     setExpandedGovs((prev) => ({
@@ -419,6 +447,7 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
     setFilterType('all');
     setFilterStatus('all');
     setSearchCode('');
+    setCurrentPage(1);
   };
 
   return (
@@ -844,7 +873,7 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
         ) : (
           /* Flat Horizontal Ribbon View */
           <div className="flex items-center gap-2 overflow-x-auto pt-2 pb-1 text-xs">
-            {filteredUnits.map((u) => {
+            {paginatedUnits.map((u) => {
               const isSelected = selectedUnit?.code === u.code;
               const isDecom = u.status === 'decommissioned';
               return (
@@ -888,6 +917,113 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
                 </button>
               );
             })}
+          </div>
+        )}
+
+        {/* Pagination Controls Bar */}
+        {totalUnitsCount > 0 && (
+          <div className={`mt-3 pt-3 border-t flex flex-col sm:flex-row items-center justify-between gap-3 text-xs ${
+            isLight ? 'border-slate-200 text-slate-700' : 'border-slate-800 text-slate-300'
+          }`}>
+            {/* Pagination Range Summary */}
+            <div className="flex items-center gap-2">
+              <span className="font-semibold">
+                عرض <strong className="font-mono text-amber-500">{toArabicDigits(startIndex + 1)}</strong> إلى{' '}
+                <strong className="font-mono text-amber-500">{toArabicDigits(endIndex)}</strong> من إجمالي{' '}
+                <strong className="font-mono text-amber-500">{toArabicDigits(totalUnitsCount)}</strong> منشأة
+              </span>
+              <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold border ${
+                isLight ? 'bg-slate-100 border-slate-300 text-slate-600' : 'bg-slate-800 border-slate-700 text-slate-400'
+              }`}>
+                50 وحدة / صفحة
+              </span>
+            </div>
+
+            {/* Pagination Navigation Buttons */}
+            {totalPages > 1 && (
+              <div className="flex items-center gap-1.5 select-none">
+                {/* Previous Button (RTL: right arrow goes back to page - 1) */}
+                <button
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={validPage === 1}
+                  className={`px-2.5 py-1.5 rounded-lg border font-bold flex items-center gap-1 transition ${
+                    validPage === 1
+                      ? 'opacity-40 cursor-not-allowed border-transparent'
+                      : isLight
+                      ? 'bg-slate-100 hover:bg-slate-200 border-slate-300 text-slate-800 cursor-pointer'
+                      : 'bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-200 cursor-pointer'
+                  }`}
+                  title="الصفحة السابقة"
+                >
+                  <ChevronRight className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">السابق</span>
+                </button>
+
+                {/* Page Number Chips */}
+                <div className="flex items-center gap-1">
+                  {(() => {
+                    const pages: (number | string)[] = [];
+                    if (totalPages <= 7) {
+                      for (let i = 1; i <= totalPages; i++) pages.push(i);
+                    } else {
+                      pages.push(1);
+                      if (validPage > 3) pages.push('ellipsis-start');
+                      const start = Math.max(2, validPage - 1);
+                      const end = Math.min(totalPages - 1, validPage + 1);
+                      for (let i = start; i <= end; i++) {
+                        if (!pages.includes(i)) pages.push(i);
+                      }
+                      if (validPage < totalPages - 2) pages.push('ellipsis-end');
+                      if (!pages.includes(totalPages)) pages.push(totalPages);
+                    }
+
+                    return pages.map((item, idx) => {
+                      if (typeof item === 'string') {
+                        return (
+                          <span key={`el-${idx}`} className="px-1.5 text-slate-400 font-mono">
+                            ...
+                          </span>
+                        );
+                      }
+
+                      const isActive = item === validPage;
+                      return (
+                        <button
+                          key={item}
+                          onClick={() => setCurrentPage(item)}
+                          className={`w-7 h-7 rounded-lg text-xs font-bold font-mono transition flex items-center justify-center cursor-pointer ${
+                            isActive
+                              ? 'bg-amber-500 text-slate-950 font-black shadow-sm'
+                              : isLight
+                              ? 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200'
+                              : 'bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800'
+                          }`}
+                        >
+                          {toArabicDigits(item)}
+                        </button>
+                      );
+                    });
+                  })()}
+                </div>
+
+                {/* Next Button (RTL: left arrow goes forward to page + 1) */}
+                <button
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={validPage === totalPages}
+                  className={`px-2.5 py-1.5 rounded-lg border font-bold flex items-center gap-1 transition ${
+                    validPage === totalPages
+                      ? 'opacity-40 cursor-not-allowed border-transparent'
+                      : isLight
+                      ? 'bg-slate-100 hover:bg-slate-200 border-slate-300 text-slate-800 cursor-pointer'
+                      : 'bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-200 cursor-pointer'
+                  }`}
+                  title="الصفحة التالية"
+                >
+                  <span className="hidden sm:inline">التالي</span>
+                  <ChevronLeft className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>

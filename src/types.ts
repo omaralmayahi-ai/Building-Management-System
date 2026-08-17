@@ -163,7 +163,7 @@ export interface PeriodicInspectionSchedule {
 
 export interface AuditLogItem {
   id: string;
-  unitCode: string;
+  unitCode?: string;
   timestamp: string;
   action: string;
   user: string;

@@ -115,29 +115,14 @@ export function App() {
     safeParse('app_units', SEED_WITH_DEMO_DATA ? INITIAL_UNITS : [])
   );
 
-  useEffect(() => {
-    safeSetItem('app_units', units);
-    api.saveUnits(units).catch((err) => console.warn('API sync units error:', err));
-  }, [units]);
-
   const [selectedUnitCode, setSelectedUnitCode] = useState<string>('');
   const [maintenanceRequests, setMaintenanceRequests] = useState<MaintenanceRequest[]>(() =>
     safeParse('app_maintenance_requests', SEED_WITH_DEMO_DATA ? INITIAL_MAINTENANCE_REQUESTS : [])
   );
 
-  useEffect(() => {
-    safeSetItem('app_maintenance_requests', maintenanceRequests);
-    api.saveMaintenanceRequests(maintenanceRequests).catch((err) => console.warn('API sync maintenance error:', err));
-  }, [maintenanceRequests]);
-
   const [occupancyRecords, setOccupancyRecords] = useState<OccupancyRecord[]>(() =>
     safeParse('app_occupancy_records', SEED_WITH_DEMO_DATA ? INITIAL_OCCUPANCY_RECORDS : [])
   );
-
-  useEffect(() => {
-    safeSetItem('app_occupancy_records', occupancyRecords);
-    api.saveOccupancyRecords(occupancyRecords).catch((err) => console.warn('API sync occupancy error:', err));
-  }, [occupancyRecords]);
 
   const [periodicInspections, setPeriodicInspections] = useState<PeriodicInspectionSchedule[]>(() => {
     const saved = localStorage.getItem('app_periodic_inspections');
@@ -150,19 +135,19 @@ export function App() {
     }
   });
 
-  useEffect(() => {
-    safeSetItem('app_periodic_inspections', periodicInspections);
-    api.savePeriodicInspections(periodicInspections).catch((err) => console.warn('API sync inspections error:', err));
-  }, [periodicInspections]);
-
   const [auditLogs, setAuditLogs] = useState<AuditLogItem[]>(() =>
     safeParse('app_audit_logs', SEED_WITH_DEMO_DATA ? INITIAL_AUDIT_LOGS : [])
   );
 
-  useEffect(() => {
-    safeSetItem('app_audit_logs', auditLogs);
-    api.saveAuditLogs(auditLogs).catch((err) => console.warn('API sync audit-logs error:', err));
-  }, [auditLogs]);
+  // Helper for recording audit logs locally & in background on server
+  const appendAuditLog = (newLog: AuditLogItem) => {
+    setAuditLogs((prev) => {
+      const updated = [newLog, ...prev];
+      safeSetItem('app_audit_logs', updated);
+      return updated;
+    });
+    api.addAuditLog(newLog).catch((err) => console.warn('Background API addAuditLog note:', err));
+  };
 
   // Initial Load from Central API / Database on Component Mount
   useEffect(() => {
@@ -251,7 +236,7 @@ export function App() {
     });
   });
 
-  // Sync reference tables to LocalStorage & API
+  // Sync reference tables to LocalStorage
   useEffect(() => {
     safeSetItem('app_ref_unit_types', unitTypes);
     safeSetItem('app_ref_governorates', governorates);
@@ -260,76 +245,89 @@ export function App() {
     safeSetItem('app_ref_room_types', roomTypes);
     safeSetItem('app_ref_equipment_types', equipmentTypes);
     safeSetItem('app_ref_org_entities', orgEntities);
-    api.saveOrgEntities(orgEntities).catch((err) => console.warn('API sync orgEntities error:', err));
   }, [unitTypes, governorates, oilfields, sites, roomTypes, equipmentTypes, orgEntities]);
 
   const handleAddOrgEntity = (newEntity: OrgEntity) => {
-    setOrgEntities((prev) => [newEntity, ...prev]);
-    setAuditLogs((prev) => [
-      {
-        id: `LOG-${Date.now()}`,
-        timestamp: toArabicDigits(new Date().toLocaleString('ar-IQ')),
-        action: 'إضافة تشكيل تنظيمـي',
-        user: currentUser?.name || 'غير معروف',
-        userInitials: currentUser?.name ? currentUser.name.split(' ').map((w) => w[0]).join('').slice(0, 2) : '—',
-        affectedField: 'الهيكل التنظيمي',
-        previousValue: '-',
-        newValue: newEntity.nameAr,
-      },
-      ...prev,
-    ]);
+    setOrgEntities((prev) => {
+      const updated = [newEntity, ...prev];
+      safeSetItem('app_ref_org_entities', updated);
+      return updated;
+    });
+    api.addOrgEntity(newEntity).catch((err) => console.warn('Background API addOrgEntity note:', err));
+    appendAuditLog({
+      id: `LOG-${Date.now()}`,
+      timestamp: toArabicDigits(new Date().toLocaleString('ar-IQ')),
+      action: 'إضافة تشكيل تنظيمـي',
+      user: currentUser?.name || 'غير معروف',
+      userInitials: currentUser?.name ? currentUser.name.split(' ').map((w) => w[0]).join('').slice(0, 2) : '—',
+      affectedField: 'الهيكل التنظيمي',
+      previousValue: '-',
+      newValue: newEntity.nameAr,
+    });
   };
 
   const handleUpdateOrgEntity = (updatedEntity: OrgEntity) => {
-    setOrgEntities((prev) =>
-      prev.map((e) => (e.id === updatedEntity.id ? updatedEntity : e))
-    );
-    setAuditLogs((prev) => [
-      {
-        id: `LOG-${Date.now()}`,
-        timestamp: toArabicDigits(new Date().toLocaleString('ar-IQ')),
-        action: 'تعديل تشكيل تنظيمـي',
-        user: currentUser?.name || 'غير معروف',
-        userInitials: currentUser?.name ? currentUser.name.split(' ').map((w) => w[0]).join('').slice(0, 2) : '—',
-        affectedField: 'الهيكل التنظيمي',
-        previousValue: 'بيانات سابقة',
-        newValue: updatedEntity.nameAr,
-      },
-      ...prev,
-    ]);
+    setOrgEntities((prev) => {
+      const updated = prev.map((e) => (e.id === updatedEntity.id ? updatedEntity : e));
+      safeSetItem('app_ref_org_entities', updated);
+      return updated;
+    });
+    api.updateOrgEntity(updatedEntity).catch((err) => console.warn('Background API updateOrgEntity note:', err));
+    appendAuditLog({
+      id: `LOG-${Date.now()}`,
+      timestamp: toArabicDigits(new Date().toLocaleString('ar-IQ')),
+      action: 'تعديل تشكيل تنظيمـي',
+      user: currentUser?.name || 'غير معروف',
+      userInitials: currentUser?.name ? currentUser.name.split(' ').map((w) => w[0]).join('').slice(0, 2) : '—',
+      affectedField: 'الهيكل التنظيمي',
+      previousValue: 'بيانات سابقة',
+      newValue: updatedEntity.nameAr,
+    });
   };
 
   const handleDeleteOrgEntity = (id: string) => {
     const entity = orgEntities.find((e) => e.id === id);
-    setOrgEntities((prev) => prev.filter((e) => e.id !== id));
+    setOrgEntities((prev) => {
+      const updated = prev.filter((e) => e.id !== id);
+      safeSetItem('app_ref_org_entities', updated);
+      return updated;
+    });
+    api.deleteOrgEntity(id).catch((err) => console.warn('Background API deleteOrgEntity note:', err));
     if (entity) {
-      setAuditLogs((prev) => [
-        {
-          id: `LOG-${Date.now()}`,
-          timestamp: toArabicDigits(new Date().toLocaleString('ar-IQ')),
-          action: 'حذف تشكيل تنظيمـي',
-          user: currentUser?.name || 'غير معروف',
-          userInitials: currentUser?.name ? currentUser.name.split(' ').map((w) => w[0]).join('').slice(0, 2) : '—',
-          affectedField: 'الهيكل التنظيمي',
-          previousValue: entity.nameAr,
-          newValue: 'تم الحذف',
-        },
-        ...prev,
-      ]);
+      appendAuditLog({
+        id: `LOG-${Date.now()}`,
+        timestamp: toArabicDigits(new Date().toLocaleString('ar-IQ')),
+        action: 'حذف تشكيل تنظيمـي',
+        user: currentUser?.name || 'غير معروف',
+        userInitials: currentUser?.name ? currentUser.name.split(' ').map((w) => w[0]).join('').slice(0, 2) : '—',
+        affectedField: 'الهيكل التنظيمي',
+        previousValue: entity.nameAr,
+        newValue: 'تم الحذف',
+      });
     }
   };
 
   const handleToggleOrgEntityStatus = (id: string) => {
-    setOrgEntities((prev) =>
-      prev.map((e) =>
-        e.id === id ? { ...e, status: e.status === 'active' ? 'disabled' : 'active' } : e
-      )
-    );
+    let targetEntity: OrgEntity | null = null;
+    setOrgEntities((prev) => {
+      const updated = prev.map((e) => {
+        if (e.id === id) {
+          targetEntity = { ...e, status: e.status === 'active' ? 'disabled' : 'active' };
+          return targetEntity;
+        }
+        return e;
+      });
+      safeSetItem('app_ref_org_entities', updated);
+      return updated;
+    });
+    if (targetEntity) {
+      api.updateOrgEntity(targetEntity).catch((err) => console.warn('Background API updateOrgEntity note:', err));
+    }
   };
 
   const handleResetOrgEntitiesToDefault = () => {
     setOrgEntities(INITIAL_ORG_ENTITIES);
-    localStorage.setItem('app_ref_org_entities', JSON.stringify(INITIAL_ORG_ENTITIES));
+    safeSetItem('app_ref_org_entities', INITIAL_ORG_ENTITIES);
   };
 
   // Modals
@@ -346,14 +344,22 @@ export function App() {
 
   // Grade Update handler
   const handleUpdateGrade = (code: string, newGrade: ConditionGrade) => {
-    setUnits((prev) =>
-      prev.map((u) => {
+    let updatedUnitObj: UnitAsset | null = null;
+    setUnits((prev) => {
+      const updated = prev.map((u) => {
         if (u.code === code) {
-          return { ...u, conditionGrade: newGrade, lastUpdated: 'الآن' };
+          updatedUnitObj = { ...u, conditionGrade: newGrade, lastUpdated: 'الآن' };
+          return updatedUnitObj;
         }
         return u;
-      })
-    );
+      });
+      safeSetItem('app_units', updated);
+      return updated;
+    });
+
+    if (updatedUnitObj) {
+      api.updateUnit(updatedUnitObj).catch((err) => console.warn('Background API updateUnit grade note:', err));
+    }
 
     const newLog: AuditLogItem = {
       id: `LOG-${Math.floor(10 + Math.random() * 90)}`,
@@ -366,73 +372,76 @@ export function App() {
       previousValue: 'الدرجة السابقة',
       newValue: newGrade,
     };
-    setAuditLogs((prev) => [newLog, ...prev]);
+    appendAuditLog(newLog);
   };
 
   // User Management Handlers with Immediate System Reflection & Audit Logging
   const handleAddUser = (newUser: SystemUser) => {
-    setUsers((prev) => [newUser, ...prev]);
-    setAuditLogs((prev) => [
-      {
-        id: `LOG-${Date.now()}`,
-        timestamp: toArabicDigits(new Date().toLocaleString('ar-IQ')),
-        action: 'إضافة حساب مستخدم جديد',
-        user: currentUser?.name || 'غير معروف',
-        userInitials: currentUser?.name ? currentUser.name.split(' ').map((w) => w[0]).join('').slice(0, 2) : '—',
-        affectedField: 'المستخدمين',
-        previousValue: '-',
-        newValue: `${newUser.name} (${newUser.role})`,
-      },
-      ...prev,
-    ]);
+    setUsers((prev) => {
+      const updated = [newUser, ...prev];
+      safeSetItem('app_users', updated);
+      return updated;
+    });
+    appendAuditLog({
+      id: `LOG-${Date.now()}`,
+      timestamp: toArabicDigits(new Date().toLocaleString('ar-IQ')),
+      action: 'إضافة حساب مستخدم جديد',
+      user: currentUser?.name || 'غير معروف',
+      userInitials: currentUser?.name ? currentUser.name.split(' ').map((w) => w[0]).join('').slice(0, 2) : '—',
+      affectedField: 'المستخدمين',
+      previousValue: '-',
+      newValue: `${newUser.name} (${newUser.role})`,
+    });
   };
 
   const handleUpdateUser = (updatedUser: SystemUser) => {
-    setUsers((prev) => prev.map((u) => (u.id === updatedUser.id ? updatedUser : u)));
+    setUsers((prev) => {
+      const updated = prev.map((u) => (u.id === updatedUser.id ? updatedUser : u));
+      safeSetItem('app_users', updated);
+      return updated;
+    });
     if (currentUser?.id === updatedUser.id) {
       setCurrentUser(updatedUser);
     }
-    setAuditLogs((prev) => [
-      {
-        id: `LOG-${Date.now()}`,
-        timestamp: toArabicDigits(new Date().toLocaleString('ar-IQ')),
-        action: 'تعديل حساب وصلاحيات مستخدم',
-        user: currentUser?.name || 'غير معروف',
-        userInitials: currentUser?.name ? currentUser.name.split(' ').map((w) => w[0]).join('').slice(0, 2) : '—',
-        affectedField: 'المستخدمين',
-        previousValue: 'بيانات سابقة',
-        newValue: `${updatedUser.name} (${updatedUser.role})`,
-      },
-      ...prev,
-    ]);
+    appendAuditLog({
+      id: `LOG-${Date.now()}`,
+      timestamp: toArabicDigits(new Date().toLocaleString('ar-IQ')),
+      action: 'تعديل حساب وصلاحيات مستخدم',
+      user: currentUser?.name || 'غير معروف',
+      userInitials: currentUser?.name ? currentUser.name.split(' ').map((w) => w[0]).join('').slice(0, 2) : '—',
+      affectedField: 'المستخدمين',
+      previousValue: 'بيانات سابقة',
+      newValue: `${updatedUser.name} (${updatedUser.role})`,
+    });
   };
 
   const handleDeleteUser = (userId: string) => {
     const usr = users.find((u) => u.id === userId);
-    setUsers((prev) => prev.filter((u) => u.id !== userId));
+    setUsers((prev) => {
+      const updated = prev.filter((u) => u.id !== userId);
+      safeSetItem('app_users', updated);
+      return updated;
+    });
     if (currentUser?.id === userId) {
       handleLogout();
     }
     if (usr) {
-      setAuditLogs((prev) => [
-        {
-          id: `LOG-${Date.now()}`,
-          timestamp: toArabicDigits(new Date().toLocaleString('ar-IQ')),
-          action: 'حذف حساب مستخدم نهائياً',
-          user: currentUser?.name || 'غير معروف',
-          userInitials: currentUser?.name ? currentUser.name.split(' ').map((w) => w[0]).join('').slice(0, 2) : '—',
-          affectedField: 'المستخدمين',
-          previousValue: usr.name,
-          newValue: 'تم الحذف',
-        },
-        ...prev,
-      ]);
+      appendAuditLog({
+        id: `LOG-${Date.now()}`,
+        timestamp: toArabicDigits(new Date().toLocaleString('ar-IQ')),
+        action: 'حذف حساب مستخدم نهائياً',
+        user: currentUser?.name || 'غير معروف',
+        userInitials: currentUser?.name ? currentUser.name.split(' ').map((w) => w[0]).join('').slice(0, 2) : '—',
+        affectedField: 'المستخدمين',
+        previousValue: usr.name,
+        newValue: 'تم الحذف',
+      });
     }
   };
 
   const handleToggleUserStatus = (userId: string) => {
-    setUsers((prev) =>
-      prev.map((u) => {
+    setUsers((prev) => {
+      const updated = prev.map((u) => {
         if (u.id === userId) {
           const newStatus = u.status === 'active' ? 'disabled' : 'active';
           if (currentUser?.id === userId && newStatus === 'disabled') {
@@ -441,8 +450,10 @@ export function App() {
           return { ...u, status: newStatus };
         }
         return u;
-      })
-    );
+      });
+      safeSetItem('app_users', updated);
+      return updated;
+    });
   };
 
   const handleChangePassword = (
@@ -453,9 +464,8 @@ export function App() {
       return { success: false, message: 'لا يوجد حساب مستخدم مسجل حالياً' };
     }
 
-    // If current user has a password in state or users list, verify it
     const existingUser = users.find((u) => u.id === currentUser.id);
-    const expectedPassword = existingUser?.password || currentUser.password || '123';
+    const expectedPassword = existingUser?.password || currentUser.password || 'Moc#Adm!n2026$Krm';
 
     if (currentPass !== expectedPassword) {
       return { success: false, message: 'كلمة المرور الحالية غير صحيحة، يرجى المحاولة ثانية' };
@@ -467,23 +477,22 @@ export function App() {
     };
 
     setCurrentUser(updatedUser);
-    setUsers((prev) =>
-      prev.map((u) => (u.id === currentUser.id ? { ...u, password: newPass } : u))
-    );
+    setUsers((prev) => {
+      const updated = prev.map((u) => (u.id === currentUser.id ? { ...u, password: newPass } : u));
+      safeSetItem('app_users', updated);
+      return updated;
+    });
 
-    setAuditLogs((prev) => [
-      {
-        id: `LOG-${Date.now()}`,
-        timestamp: toArabicDigits(new Date().toLocaleString('ar-IQ')),
-        action: 'تغيير كلمة المرور الشخصية',
-        user: currentUser?.name || 'غير معروف',
-        userInitials: currentUser?.name ? currentUser.name.split(' ').map((w) => w[0]).join('').slice(0, 2) : '—',
-        affectedField: 'كلمة المرور',
-        previousValue: '••••••',
-        newValue: '••••••',
-      },
-      ...prev,
-    ]);
+    appendAuditLog({
+      id: `LOG-${Date.now()}`,
+      timestamp: toArabicDigits(new Date().toLocaleString('ar-IQ')),
+      action: 'تغيير كلمة المرور الشخصية',
+      user: currentUser?.name || 'غير معروف',
+      userInitials: currentUser?.name ? currentUser.name.split(' ').map((w) => w[0]).join('').slice(0, 2) : '—',
+      affectedField: 'كلمة المرور',
+      previousValue: '••••••',
+      newValue: '••••••',
+    });
 
     return { success: true, message: 'تم تغيير وتحديث كلمة المرور بنجاح' };
   };
@@ -518,8 +527,14 @@ export function App() {
     setEquipmentTypes((prev) => prev.filter((e) => e.id !== id));
 
   // Custom Granular Reset Handlers
-  const handleClearUnits = () => setUnits([]);
-  const handleResetUnitsToDefault = () => setUnits(INITIAL_UNITS);
+  const handleClearUnits = () => {
+    setUnits([]);
+    safeSetItem('app_units', []);
+  };
+  const handleResetUnitsToDefault = () => {
+    setUnits(INITIAL_UNITS);
+    safeSetItem('app_units', INITIAL_UNITS);
+  };
 
   const handleClearOilfields = () => setOilfields([]);
   const handleResetOilfieldsToDefault = () => setOilfields(INITIAL_OILFIELDS);
@@ -533,8 +548,14 @@ export function App() {
   const handleClearSites = () => setSites([]);
   const handleResetSitesToDefault = () => setSites(INITIAL_SITES);
 
-  const handleClearUsers = () => setUsers([]);
-  const handleResetUsersToDefault = () => setUsers(INITIAL_USERS);
+  const handleClearUsers = () => {
+    setUsers([]);
+    safeSetItem('app_users', []);
+  };
+  const handleResetUsersToDefault = () => {
+    setUsers(INITIAL_USERS);
+    safeSetItem('app_users', INITIAL_USERS);
+  };
 
   const handleClearRoomTypes = () => setRoomTypes([]);
   const handleResetRoomTypesToDefault = () => setRoomTypes(INITIAL_ROOM_TYPES);
@@ -542,11 +563,23 @@ export function App() {
   const handleClearEquipmentTypes = () => setEquipmentTypes([]);
   const handleResetEquipmentTypesToDefault = () => setEquipmentTypes(INITIAL_EQUIPMENT_TYPES);
 
-  const handleClearMaintenanceRequests = () => setMaintenanceRequests([]);
-  const handleResetMaintenanceRequestsToDefault = () => setMaintenanceRequests(INITIAL_MAINTENANCE_REQUESTS);
+  const handleClearMaintenanceRequests = () => {
+    setMaintenanceRequests([]);
+    safeSetItem('app_maintenance_requests', []);
+  };
+  const handleResetMaintenanceRequestsToDefault = () => {
+    setMaintenanceRequests(INITIAL_MAINTENANCE_REQUESTS);
+    safeSetItem('app_maintenance_requests', INITIAL_MAINTENANCE_REQUESTS);
+  };
 
-  const handleClearOccupancyRecords = () => setOccupancyRecords([]);
-  const handleResetOccupancyRecordsToDefault = () => setOccupancyRecords(INITIAL_OCCUPANCY_RECORDS);
+  const handleClearOccupancyRecords = () => {
+    setOccupancyRecords([]);
+    safeSetItem('app_occupancy_records', []);
+  };
+  const handleResetOccupancyRecordsToDefault = () => {
+    setOccupancyRecords(INITIAL_OCCUPANCY_RECORDS);
+    safeSetItem('app_occupancy_records', INITIAL_OCCUPANCY_RECORDS);
+  };
 
   // Factory Reset Handler
   const handleFactoryReset = () => {
@@ -568,16 +601,24 @@ export function App() {
 
   // Add new unit handler from Wizard
   const handleAddUnit = (newUnit: UnitAsset) => {
-    setUnits((prev) => [newUnit, ...prev]);
+    setUnits((prev) => {
+      const updated = [newUnit, ...prev];
+      safeSetItem('app_units', updated);
+      return updated;
+    });
+    api.addUnit(newUnit).catch((err) => console.warn('Background API addUnit note:', err));
     setSelectedUnitCode(newUnit.code);
     setActiveTab('units');
   };
 
   // Update existing unit handler
   const handleUpdateUnit = (updatedUnit: UnitAsset) => {
-    setUnits((prev) =>
-      prev.map((u) => (u.id === updatedUnit.id || u.code === updatedUnit.code ? updatedUnit : u))
-    );
+    setUnits((prev) => {
+      const updated = prev.map((u) => (u.id === updatedUnit.id || u.code === updatedUnit.code ? updatedUnit : u));
+      safeSetItem('app_units', updated);
+      return updated;
+    });
+    api.updateUnit(updatedUnit).catch((err) => console.warn('Background API updateUnit note:', err));
     const newLog: AuditLogItem = {
       id: `LOG-${Math.floor(100 + Math.random() * 900)}`,
       unitCode: updatedUnit.code,
@@ -589,7 +630,7 @@ export function App() {
       previousValue: 'البيانات السابقة',
       newValue: `تم تحديث المبنى (${updatedUnit.name})`,
     };
-    setAuditLogs((prev) => [newLog, ...prev]);
+    appendAuditLog(newLog);
   };
 
   // Delete unit handler (Permanent removal)
@@ -597,11 +638,13 @@ export function App() {
     const targetUnit = units.find((u) => u.code === unitCode);
     setUnits((prev) => {
       const remaining = prev.filter((u) => u.code !== unitCode);
+      safeSetItem('app_units', remaining);
       if (selectedUnitCode === unitCode) {
         setSelectedUnitCode(remaining[0]?.code || '');
       }
       return remaining;
     });
+    api.deleteUnit(unitCode).catch((err) => console.warn('Background API deleteUnit note:', err));
 
     const newLog: AuditLogItem = {
       id: `LOG-${Math.floor(100 + Math.random() * 900)}`,
@@ -614,26 +657,34 @@ export function App() {
       previousValue: targetUnit?.name || unitCode,
       newValue: 'تم الحذف النهائي وإزالة كافة سجلات المنشأة',
     };
-    setAuditLogs((prev) => [newLog, ...prev]);
+    appendAuditLog(newLog);
   };
 
   // Decommission unit handler (Freeze & mark as written off)
   const handleDecommissionUnit = (unitCode: string, reason: string) => {
     const timestampStr = toArabicDigits(new Date().toLocaleDateString('ar-IQ'));
-    setUnits((prev) =>
-      prev.map((u) => {
+    let targetUnitObj: UnitAsset | null = null;
+    setUnits((prev) => {
+      const updated = prev.map((u) => {
         if (u.code === unitCode) {
-          return {
+          targetUnitObj = {
             ...u,
             status: 'decommissioned' as const,
             decommissionedAt: timestampStr,
             decommissionReason: reason || 'تم الشطب والتجميد بناءً على توصيات السلامة والتقييم الإنشائي',
             lastUpdated: 'الآن',
           };
+          return targetUnitObj;
         }
         return u;
-      })
-    );
+      });
+      safeSetItem('app_units', updated);
+      return updated;
+    });
+
+    if (targetUnitObj) {
+      api.updateUnit(targetUnitObj).catch((err) => console.warn('Background API updateUnit decommission note:', err));
+    }
 
     const newLog: AuditLogItem = {
       id: `LOG-${Math.floor(100 + Math.random() * 900)}`,
@@ -646,25 +697,33 @@ export function App() {
       previousValue: 'نشطة / تشغيلية',
       newValue: `مشطوبة ومجمدة (السبب: ${reason})`,
     };
-    setAuditLogs((prev) => [newLog, ...prev]);
+    appendAuditLog(newLog);
   };
 
   // Reactivate unit handler
   const handleReactivateUnit = (unitCode: string) => {
-    setUnits((prev) =>
-      prev.map((u) => {
+    let targetUnitObj: UnitAsset | null = null;
+    setUnits((prev) => {
+      const updated = prev.map((u) => {
         if (u.code === unitCode) {
-          return {
+          targetUnitObj = {
             ...u,
             status: 'active' as const,
             decommissionedAt: undefined,
             decommissionReason: undefined,
             lastUpdated: 'الآن',
           };
+          return targetUnitObj;
         }
         return u;
-      })
-    );
+      });
+      safeSetItem('app_units', updated);
+      return updated;
+    });
+
+    if (targetUnitObj) {
+      api.updateUnit(targetUnitObj).catch((err) => console.warn('Background API updateUnit reactivate note:', err));
+    }
 
     const newLog: AuditLogItem = {
       id: `LOG-${Math.floor(100 + Math.random() * 900)}`,
@@ -677,7 +736,7 @@ export function App() {
       previousValue: 'مشطوبة ومجمدة',
       newValue: 'نشطة / تشغيلية',
     };
-    setAuditLogs((prev) => [newLog, ...prev]);
+    appendAuditLog(newLog);
   };
 
   // Add new governorate handler
@@ -734,7 +793,12 @@ export function App() {
 
   // Add new maintenance request
   const handleAddMaintenanceRequest = (req: MaintenanceRequest) => {
-    setMaintenanceRequests((prev) => [req, ...prev]);
+    setMaintenanceRequests((prev) => {
+      const updated = [req, ...prev];
+      safeSetItem('app_maintenance_requests', updated);
+      return updated;
+    });
+    api.addMaintenanceRequest(req).catch((err) => console.warn('Background API addMaintenanceRequest note:', err));
   };
 
   // Open maintenance modal for specific unit
@@ -751,15 +815,30 @@ export function App() {
 
   // Periodic Inspection Handlers
   const handleAddPeriodicInspection = (schedule: PeriodicInspectionSchedule) => {
-    setPeriodicInspections((prev) => [schedule, ...prev]);
+    setPeriodicInspections((prev) => {
+      const updated = [schedule, ...prev];
+      safeSetItem('app_periodic_inspections', updated);
+      return updated;
+    });
+    api.addPeriodicInspection(schedule).catch((err) => console.warn('Background API addPeriodicInspection note:', err));
   };
 
   const handleUpdatePeriodicInspection = (updated: PeriodicInspectionSchedule) => {
-    setPeriodicInspections((prev) => prev.map((s) => (s.id === updated.id ? updated : s)));
+    setPeriodicInspections((prev) => {
+      const list = prev.map((s) => (s.id === updated.id ? updated : s));
+      safeSetItem('app_periodic_inspections', list);
+      return list;
+    });
+    api.updatePeriodicInspection(updated).catch((err) => console.warn('Background API updatePeriodicInspection note:', err));
   };
 
   const handleDeletePeriodicInspection = (id: string) => {
-    setPeriodicInspections((prev) => prev.filter((s) => s.id !== id));
+    setPeriodicInspections((prev) => {
+      const remaining = prev.filter((s) => s.id !== id);
+      safeSetItem('app_periodic_inspections', remaining);
+      return remaining;
+    });
+    api.deletePeriodicInspection(id).catch((err) => console.warn('Background API deletePeriodicInspection note:', err));
   };
 
   const handleCompletePeriodicInspection = (
@@ -802,7 +881,12 @@ export function App() {
         details: `صادر عن كشف المعاينة ${existing.id}. التقييم الممنوح: ${outcome.grade}. التوصيات: ${outcome.recommendations || 'لا يوجد'}`,
         sourceInspectionId: existing.id,
       };
-      setMaintenanceRequests((prev) => [newReq, ...prev]);
+      setMaintenanceRequests((prev) => {
+        const updatedMaint = [newReq, ...prev];
+        safeSetItem('app_maintenance_requests', updatedMaint);
+        return updatedMaint;
+      });
+      api.addMaintenanceRequest(newReq).catch((err) => console.warn('Background API addMaintenanceRequest note:', err));
     }
 
     // Mark existing as completed
@@ -817,11 +901,24 @@ export function App() {
       reportFileUrl: outcome.reportFileUrl,
       createdMaintenanceRequestId: createdMaintId,
     };
+    api.updatePeriodicInspection(updatedExisting).catch((err) => console.warn('Background API updatePeriodicInspection note:', err));
 
     // Update unit condition grade
-    setUnits((prev) =>
-      prev.map((u) => (u.code === existing.unitCode ? { ...u, conditionGrade: outcome.grade } : u))
-    );
+    setUnits((prev) => {
+      let matchedUnit: UnitAsset | null = null;
+      const updatedUnits = prev.map((u) => {
+        if (u.code === existing.unitCode) {
+          matchedUnit = { ...u, conditionGrade: outcome.grade, lastUpdated: 'الآن' };
+          return matchedUnit;
+        }
+        return u;
+      });
+      safeSetItem('app_units', updatedUnits);
+      if (matchedUnit) {
+        api.updateUnit(matchedUnit).catch((err) => console.warn('Background API updateUnit note:', err));
+      }
+      return updatedUnits;
+    });
 
     // Auto schedule next inspection
     let nextSchedules: PeriodicInspectionSchedule[] = [];
@@ -856,22 +953,35 @@ export function App() {
         createdAt: new Date().toISOString().split('T')[0],
       };
       nextSchedules.push(newNextSchedule);
+      api.addPeriodicInspection(newNextSchedule).catch((err) => console.warn('Background API addPeriodicInspection note:', err));
     }
 
-    setPeriodicInspections((prev) => [
-      ...nextSchedules,
-      ...prev.map((s) => (s.id === id ? updatedExisting : s)),
-    ]);
+    setPeriodicInspections((prev) => {
+      const updatedAll = [
+        ...nextSchedules,
+        ...prev.map((s) => (s.id === id ? updatedExisting : s)),
+      ];
+      safeSetItem('app_periodic_inspections', updatedAll);
+      return updatedAll;
+    });
   };
 
   const handleUpdateMaintenanceRequest = (updatedReq: MaintenanceRequest) => {
-    setMaintenanceRequests((prev) =>
-      prev.map((r) => (r.id === updatedReq.id ? updatedReq : r))
-    );
+    setMaintenanceRequests((prev) => {
+      const updated = prev.map((r) => (r.id === updatedReq.id ? updatedReq : r));
+      safeSetItem('app_maintenance_requests', updated);
+      return updated;
+    });
+    api.updateMaintenanceRequest(updatedReq).catch((err) => console.warn('Background API updateMaintenanceRequest note:', err));
   };
 
   const handleDeleteMaintenanceRequest = (id: string) => {
-    setMaintenanceRequests((prev) => prev.filter((r) => r.id !== id));
+    setMaintenanceRequests((prev) => {
+      const remaining = prev.filter((r) => r.id !== id);
+      safeSetItem('app_maintenance_requests', remaining);
+      return remaining;
+    });
+    api.deleteMaintenanceRequest(id).catch((err) => console.warn('Background API deleteMaintenanceRequest note:', err));
   };
 
   const selectedUnit = units.find((u) => u.code === selectedUnitCode) || units[0];
@@ -1144,6 +1254,7 @@ export function App() {
               roomTypes={roomTypes}
               equipmentTypes={equipmentTypes}
               auditLogs={auditLogs}
+              onAddAuditLog={appendAuditLog}
               orgEntities={orgEntities}
               onAddOrgEntity={handleAddOrgEntity}
               onUpdateOrgEntity={handleUpdateOrgEntity}

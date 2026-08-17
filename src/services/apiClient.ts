@@ -15,6 +15,7 @@ import {
 import { safeParse, safeSetItem } from '../utils/storageUtils';
 
 const BASE_API_URL = '/api';
+const API_KEY = (import.meta as any).env?.VITE_API_KEY || 'midland_oil_secure_api_key_2026';
 
 /**
  * Helper to handle fetch responses with JSON parsing and error handling
@@ -24,6 +25,7 @@ async function fetchJson<T>(url: string, options?: RequestInit): Promise<T | nul
     const res = await fetch(url, {
       headers: {
         'Content-Type': 'application/json',
+        'X-API-Key': API_KEY,
         ...options?.headers,
       },
       ...options,

@@ -45,7 +45,7 @@ interface ThreeBuildingCanvasProps {
   decommissionReason?: string;
 }
 
-export const ThreeBuildingCanvas: React.FC<ThreeBuildingCanvasProps> = ({
+const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
   unitCode,
   unitName = 'وحدة سكنية / إدارية',
   unitType = 'building',
@@ -313,25 +313,27 @@ export const ThreeBuildingCanvas: React.FC<ThreeBuildingCanvasProps> = ({
       caravanGroup.add(beacon);
 
       // Windows and Door
-      if (showWindows) {
-        const doorGeo = new THREE.BoxGeometry(0.08, 2.1, 0.95);
-        const doorMat = new THREE.MeshStandardMaterial({ color: 0x0284c7 });
-        const door = new THREE.Mesh(doorGeo, doorMat);
-        door.position.set(width / 2 + 0.02, 1.1, 0);
-        caravanGroup.add(door);
+      const doorGeo = new THREE.BoxGeometry(0.08, 2.1, 0.95);
+      const doorMat = new THREE.MeshStandardMaterial({ color: 0x0284c7 });
+      const door = new THREE.Mesh(doorGeo, doorMat);
+      door.position.set(width / 2 + 0.02, 1.1, 0);
+      caravanGroup.add(door);
 
-        const winGeo = new THREE.BoxGeometry(1.1, 1.0, 0.08);
-        const winMat = new THREE.MeshPhysicalMaterial({ color: styleColors.glass, transparent: true, opacity: 0.4, transmission: 0.7 });
-        const win1 = new THREE.Mesh(winGeo, winMat);
-        win1.position.set(-width / 4, 1.6, depth / 2 + 0.02);
-        caravanGroup.add(win1);
-        const win2 = new THREE.Mesh(winGeo, winMat);
-        win2.position.set(width / 4, 1.6, depth / 2 + 0.02);
-        caravanGroup.add(win2);
-      }
+      const winGeo = new THREE.BoxGeometry(1.1, 1.0, 0.08);
+      const winMat = new THREE.MeshPhysicalMaterial({ color: styleColors.glass, transparent: true, opacity: showWindows ? 0.4 : 0.9, transmission: 0.7 });
+      const win1 = new THREE.Mesh(winGeo, winMat);
+      win1.position.set(-width / 4, 1.6, depth / 2 + 0.02);
+      win1.userData = { isWindow: true, isGlassMaterial: true };
+      win1.visible = showWindows;
+      caravanGroup.add(win1);
+      const win2 = new THREE.Mesh(winGeo, winMat);
+      win2.position.set(width / 4, 1.6, depth / 2 + 0.02);
+      win2.userData = { isWindow: true, isGlassMaterial: true };
+      win2.visible = showWindows;
+      caravanGroup.add(win2);
 
       // Rooms & Furniture inside caravan
-      renderInteriorRooms(caravanGroup, rooms, 0, width, depth, storyHeight, showFurniture, isNightMode && isNightLightsOn, roomMeshesRef.current, interiorLightIntensity);
+      renderInteriorRooms(caravanGroup, rooms, 0, width, depth, storyHeight, showFurniture, isNightMode, isNightLightsOn, roomMeshesRef.current, interiorLightIntensity);
     } else {
       // --- DYNAMIC MULTI-STORY BUILDING ---
       const shape2D = createBuildingShape(buildingShape, width, depth);
@@ -395,16 +397,18 @@ export const ThreeBuildingCanvas: React.FC<ThreeBuildingCanvasProps> = ({
         floorGroup.add(storyMesh);
 
         // Glass Curtain Front Facade Panels
-        if (showWindows) {
-          const glassFrontGeo = new THREE.BoxGeometry(width - 1.2, storyHeight - 0.8, 0.1);
-          const frontGlass = new THREE.Mesh(glassFrontGeo, glassMat);
-          frontGlass.position.set(0, storyHeight / 2, depth / 2 + 0.02);
-          floorGroup.add(frontGlass);
+        const glassFrontGeo = new THREE.BoxGeometry(width - 1.2, storyHeight - 0.8, 0.1);
+        const frontGlass = new THREE.Mesh(glassFrontGeo, glassMat);
+        frontGlass.position.set(0, storyHeight / 2, depth / 2 + 0.02);
+        frontGlass.userData = { isWindow: true, isGlassMaterial: true };
+        frontGlass.visible = showWindows;
+        floorGroup.add(frontGlass);
 
-          const backGlass = frontGlass.clone();
-          backGlass.position.z = -depth / 2 - 0.02;
-          floorGroup.add(backGlass);
-        }
+        const backGlass = frontGlass.clone();
+        backGlass.position.z = -depth / 2 - 0.02;
+        backGlass.userData = { isWindow: true, isGlassMaterial: true };
+        backGlass.visible = showWindows;
+        floorGroup.add(backGlass);
 
         // Entrance Door on Ground Floor
         if (f === 0) {
@@ -416,7 +420,7 @@ export const ThreeBuildingCanvas: React.FC<ThreeBuildingCanvasProps> = ({
         }
 
         // Render Interior Rooms & Furniture
-        renderInteriorRooms(floorGroup, rooms, f, width, depth, storyHeight, showFurniture, isNightMode && isNightLightsOn, roomMeshesRef.current, interiorLightIntensity);
+        renderInteriorRooms(floorGroup, rooms, f, width, depth, storyHeight, showFurniture, isNightMode, isNightLightsOn, roomMeshesRef.current, interiorLightIntensity);
 
         floorGroupsRef.current.push(floorGroup);
         buildingGroup.add(floorGroup);
@@ -492,7 +496,25 @@ export const ThreeBuildingCanvas: React.FC<ThreeBuildingCanvasProps> = ({
     };
     animate();
 
-    // Cleanup
+    // Helper to deeply dispose all Three.js geometries and materials
+    const disposeHierarchy = (obj: THREE.Object3D) => {
+      for (let i = obj.children.length - 1; i >= 0; i--) {
+        disposeHierarchy(obj.children[i]);
+      }
+      const mesh = obj as any;
+      if (mesh.geometry) {
+        mesh.geometry.dispose();
+      }
+      if (mesh.material) {
+        if (Array.isArray(mesh.material)) {
+          mesh.material.forEach((mat: THREE.Material) => mat.dispose());
+        } else {
+          mesh.material.dispose();
+        }
+      }
+    };
+
+    // Cleanup on unmount or structural rebuild
     return () => {
       clearTimeout(resizeTimer1);
       clearTimeout(resizeTimer2);
@@ -502,7 +524,11 @@ export const ThreeBuildingCanvas: React.FC<ThreeBuildingCanvasProps> = ({
       if (container && renderer.domElement && container.contains(renderer.domElement)) {
         container.removeChild(renderer.domElement);
       }
+      disposeHierarchy(scene);
       renderer.dispose();
+      try {
+        renderer.forceContextLoss();
+      } catch (e) {}
     };
   }, [
     unitCode,
@@ -511,21 +537,76 @@ export const ThreeBuildingCanvas: React.FC<ThreeBuildingCanvasProps> = ({
     conditionGrade,
     buildingShape,
     totalAreaSqM,
+    lengthM,
+    widthM,
+    heightM,
     floorsCount,
     rooms,
     equipment,
-    theme,
-    isNightMode,
-    isNightLightsOn,
     archStyle,
     roofType,
-    showFurniture,
-    showWindows,
-    showTrees,
-    interiorLightIntensity,
-    exteriorLightIntensity,
-    autoRotate,
   ]);
+
+  // Dynamic Auto-rotate update without scene destruction
+  useEffect(() => {
+    if (controlsRef.current) {
+      controlsRef.current.autoRotate = autoRotate;
+    }
+  }, [autoRotate]);
+
+  // Dynamic Visibility Updates for Furniture, Windows, Trees
+  useEffect(() => {
+    const scene = sceneRef.current;
+    if (!scene) return;
+
+    scene.traverse((obj: any) => {
+      if (obj.userData?.isFurniture) {
+        obj.visible = showFurniture;
+      } else if (obj.userData?.isWindow) {
+        obj.visible = showWindows;
+      } else if (obj.userData?.isTree) {
+        obj.visible = showTrees;
+      }
+    });
+  }, [showFurniture, showWindows, showTrees]);
+
+  // Dynamic Light & Environment Updates without full scene destruction
+  useEffect(() => {
+    const scene = sceneRef.current;
+    if (!scene) return;
+
+    const mult = Math.max(0.3, exteriorLightIntensity / 2.5);
+    const bgHex = isNightMode ? 0x020617 : theme === 'light' ? 0xe2e8f0 : 0x090d16;
+    scene.background = new THREE.Color(bgHex);
+    if (scene.fog) {
+      scene.fog.color = new THREE.Color(bgHex);
+    }
+
+    scene.traverse((obj: any) => {
+      if (obj.userData?.isAmbientLight) {
+        obj.color.setHex(isNightMode ? 0x1e1b4b : 0xffffff);
+        obj.intensity = (isNightMode ? 0.35 : theme === 'light' ? 0.85 : 0.7) * mult;
+      } else if (obj.userData?.isSunLight) {
+        obj.color.setHex(isNightMode ? 0x60a5fa : 0xfffbeb);
+        obj.intensity = (isNightMode ? 0.3 : 1.25) * mult;
+      } else if (obj.userData?.isFillLight) {
+        obj.intensity = (isNightMode ? 0.2 : 0.5) * mult;
+      } else if (obj.userData?.isPerimeterFloodlight) {
+        obj.visible = isNightMode && isNightLightsOn;
+        if (obj.visible) {
+          obj.intensity = 2.8 * (exteriorLightIntensity / 2.5);
+        }
+      } else if (obj.userData?.isInteriorLight) {
+        const pIntensity = (isNightMode ? 1.8 : 1.0) * (interiorLightIntensity / 2.5);
+        obj.intensity = isNightMode && !isNightLightsOn ? 0 : pIntensity;
+      } else if (obj.userData?.isGroundPad && obj.material) {
+        obj.material.color.setHex(isNightMode ? 0x0f172a : theme === 'light' ? 0xcbd5e1 : 0x1e293b);
+      } else if (obj.userData?.isGlassMaterial && obj.material) {
+        const isLit = (isNightMode && isNightLightsOn) || interiorLightIntensity > 2.0;
+        obj.material.emissiveIntensity = isLit ? Math.min(3.0, 0.4 * interiorLightIntensity) : 0.0;
+      }
+    });
+  }, [isNightMode, isNightLightsOn, theme, interiorLightIntensity, exteriorLightIntensity]);
 
   // Handle Explode Slider Offset updates dynamically
   useEffect(() => {
@@ -1007,6 +1088,8 @@ export const ThreeBuildingCanvas: React.FC<ThreeBuildingCanvasProps> = ({
   );
 };
 
+export const ThreeBuildingCanvas = React.memo(ThreeBuildingCanvasComponent);
+
 // --- HELPER FUNCTION: DYNAMIC LIGHTS SETUP ---
 function setupLights(scene: THREE.Scene, isNightMode: boolean, theme: string, exteriorIntensity: number = 3.5) {
   const mult = Math.max(0.3, exteriorIntensity / 2.5);
@@ -1014,6 +1097,7 @@ function setupLights(scene: THREE.Scene, isNightMode: boolean, theme: string, ex
     isNightMode ? 0x1e1b4b : 0xffffff,
     (isNightMode ? 0.35 : theme === 'light' ? 0.85 : 0.7) * mult
   );
+  ambientLight.userData = { isAmbientLight: true };
   scene.add(ambientLight);
 
   const sunLight = new THREE.DirectionalLight(
@@ -1024,10 +1108,12 @@ function setupLights(scene: THREE.Scene, isNightMode: boolean, theme: string, ex
   sunLight.castShadow = true;
   sunLight.shadow.mapSize.width = 1024;
   sunLight.shadow.mapSize.height = 1024;
+  sunLight.userData = { isSunLight: true };
   scene.add(sunLight);
 
   const fillLight = new THREE.DirectionalLight(0x38bdf8, (isNightMode ? 0.2 : 0.5) * mult);
   fillLight.position.set(-15, 15, -15);
+  fillLight.userData = { isFillLight: true };
   scene.add(fillLight);
 }
 
@@ -1056,60 +1142,61 @@ function setupEnvironment(
   const padMesh = new THREE.Mesh(padGeo, padMat);
   padMesh.position.y = -0.1;
   padMesh.receiveShadow = true;
+  padMesh.userData = { isGroundPad: true };
   scene.add(padMesh);
 
-  if (showTrees) {
-    const treePositions = [
-      [-padW / 2 - 3, -padD / 2 - 3],
-      [padW / 2 + 3, -padD / 2 - 3],
-      [-padW / 2 - 3, padD / 2 + 3],
-      [padW / 2 + 3, padD / 2 + 3],
-    ];
+  const treePositions = [
+    [-padW / 2 - 3, -padD / 2 - 3],
+    [padW / 2 + 3, -padD / 2 - 3],
+    [-padW / 2 - 3, padD / 2 + 3],
+    [padW / 2 + 3, padD / 2 + 3],
+  ];
 
-    treePositions.forEach(([x, z]) => {
-      const tree = createTreeMesh();
-      tree.position.set(x, 0, z);
-      scene.add(tree);
-    });
-  }
+  treePositions.forEach(([x, z]) => {
+    const tree = createTreeMesh();
+    tree.position.set(x, 0, z);
+    tree.userData = { isTree: true };
+    tree.visible = showTrees;
+    scene.add(tree);
+  });
 
   // Outdoor Perimeter Floodlights for Night Lighting Mode or boosted exterior
-  if (isNightMode && isNightLightsOn) {
-    const postPositions = [
-      [-padW / 2 + 1.2, -padD / 2 + 1.2],
-      [padW / 2 - 1.2, -padD / 2 + 1.2],
-      [-padW / 2 + 1.2, padD / 2 - 1.2],
-      [padW / 2 - 1.2, padD / 2 - 1.2],
-    ];
+  const postPositions = [
+    [-padW / 2 + 1.2, -padD / 2 + 1.2],
+    [padW / 2 - 1.2, -padD / 2 + 1.2],
+    [-padW / 2 + 1.2, padD / 2 - 1.2],
+    [padW / 2 - 1.2, padD / 2 - 1.2],
+  ];
 
-    const lightPower = 2.8 * (exteriorIntensity / 2.5);
+  const lightPower = 2.8 * (exteriorIntensity / 2.5);
 
-    postPositions.forEach(([x, z]) => {
-      // Lamp Post Pole
-      const poleGeo = new THREE.CylinderGeometry(0.08, 0.12, 4.2, 12);
-      const poleMat = new THREE.MeshStandardMaterial({ color: 0x334155, metalness: 0.8 });
-      const pole = new THREE.Mesh(poleGeo, poleMat);
-      pole.position.set(x, 2.1, z);
-      scene.add(pole);
+  postPositions.forEach(([x, z]) => {
+    // Lamp Post Pole
+    const poleGeo = new THREE.CylinderGeometry(0.08, 0.12, 4.2, 12);
+    const poleMat = new THREE.MeshStandardMaterial({ color: 0x334155, metalness: 0.8 });
+    const pole = new THREE.Mesh(poleGeo, poleMat);
+    pole.position.set(x, 2.1, z);
+    scene.add(pole);
 
-      // Lamp Head Fixture
-      const headGeo = new THREE.BoxGeometry(0.6, 0.2, 0.6);
-      const headMat = new THREE.MeshStandardMaterial({
-        color: 0xfef08a,
-        emissive: 0xfef08a,
-        emissiveIntensity: Math.min(4.0, 1.2 * (exteriorIntensity / 2.5)),
-      });
-      const head = new THREE.Mesh(headGeo, headMat);
-      head.position.set(x, 4.2, z);
-      scene.add(head);
-
-      // Floodlight Source Illuminating Ground & Building Outer Perimeter
-      const lampLight = new THREE.PointLight(0xfffbeb, lightPower, 30);
-      lampLight.position.set(x, 4.1, z);
-      lampLight.castShadow = true;
-      scene.add(lampLight);
+    // Lamp Head Fixture
+    const headGeo = new THREE.BoxGeometry(0.6, 0.2, 0.6);
+    const headMat = new THREE.MeshStandardMaterial({
+      color: 0xfef08a,
+      emissive: 0xfef08a,
+      emissiveIntensity: Math.min(4.0, 1.2 * (exteriorIntensity / 2.5)),
     });
-  }
+    const head = new THREE.Mesh(headGeo, headMat);
+    head.position.set(x, 4.2, z);
+    scene.add(head);
+
+    // Floodlight Source Illuminating Ground & Building Outer Perimeter
+    const lampLight = new THREE.PointLight(0xfffbeb, lightPower, 30);
+    lampLight.position.set(x, 4.1, z);
+    lampLight.castShadow = true;
+    lampLight.userData = { isPerimeterFloodlight: true };
+    lampLight.visible = isNightMode && isNightLightsOn;
+    scene.add(lampLight);
+  });
 }
 
 function createTreeMesh(): THREE.Group {
@@ -1141,6 +1228,7 @@ function renderInteriorRooms(
   storyHeight: number,
   showFurniture: boolean,
   isNightMode: boolean,
+  isNightLightsOn: boolean,
   roomMeshesStore: THREE.Mesh[],
   interiorIntensity: number = 3.5
 ) {
@@ -1246,23 +1334,22 @@ function renderInteriorRooms(
     }
 
     // Interior Furniture Models
-    if (showFurniture) {
-      renderFurnitureInRoom(floorGroup, rm.type || rm.name || '', x, 0.25, z);
-    }
+    renderFurnitureInRoom(floorGroup, rm.type || rm.name || '', x, 0.25, z, showFurniture);
 
-    // Interior Light Source (always rendered when interior intensity > 1.0 or night mode)
-    if (isNightMode || interiorIntensity > 1.5) {
-      const pIntensity = (isNightMode ? 1.8 : 1.0) * (interiorIntensity / 2.5);
-      const roomLight = new THREE.PointLight(colorHex, pIntensity, 12);
-      roomLight.position.set(x, storyHeight - 0.5, z);
-      floorGroup.add(roomLight);
-    }
+    // Interior Light Source (always rendered for smooth live adjustment)
+    const pIntensity = (isNightMode ? 1.8 : 1.0) * (interiorIntensity / 2.5);
+    const roomLight = new THREE.PointLight(colorHex, isNightMode && !isNightLightsOn ? 0 : pIntensity, 12);
+    roomLight.position.set(x, storyHeight - 0.5, z);
+    roomLight.userData = { isInteriorLight: true, baseColor: colorHex };
+    floorGroup.add(roomLight);
   });
 }
 
-function renderFurnitureInRoom(parentGroup: THREE.Group, type: string, x: number, y: number, z: number) {
+function renderFurnitureInRoom(parentGroup: THREE.Group, type: string, x: number, y: number, z: number, showFurniture: boolean = true) {
   const group = new THREE.Group();
   group.position.set(x, y, z);
+  group.userData = { isFurniture: true };
+  group.visible = showFurniture;
 
   if (type.includes('اجتماعات') || type.includes('قاعة')) {
     const tableGeo = new THREE.BoxGeometry(2.2, 0.65, 1.1);
