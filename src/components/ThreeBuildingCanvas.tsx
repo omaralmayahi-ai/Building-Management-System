@@ -542,6 +542,8 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
     heightM,
     floorsCount,
     rooms,
+    selectedFloor,
+    viewMode,
     equipment,
     archStyle,
     roofType,
@@ -1199,17 +1201,73 @@ function setupEnvironment(
   });
 }
 
+// --- REUSABLE CACHES FOR GEOMETRY & MATERIAL EFFICIENCY ---
+const GEOM_CACHE: Record<string, THREE.BufferGeometry> = {};
+const MAT_CACHE: Record<string, THREE.Material> = {};
+
+function getCachedBoxGeometry(w: number, h: number, d: number): THREE.BoxGeometry {
+  const key = `box_${w.toFixed(2)}_${h.toFixed(2)}_${d.toFixed(2)}`;
+  if (!GEOM_CACHE[key]) {
+    GEOM_CACHE[key] = new THREE.BoxGeometry(w, h, d);
+  }
+  return GEOM_CACHE[key] as THREE.BoxGeometry;
+}
+
+function getCachedCylinderGeometry(rt: number, rb: number, h: number, segs: number = 8): THREE.CylinderGeometry {
+  const key = `cyl_${rt.toFixed(2)}_${rb.toFixed(2)}_${h.toFixed(2)}_${segs}`;
+  if (!GEOM_CACHE[key]) {
+    GEOM_CACHE[key] = new THREE.CylinderGeometry(rt, rb, h, segs);
+  }
+  return GEOM_CACHE[key] as THREE.CylinderGeometry;
+}
+
+function getCachedConeGeometry(r: number, h: number, segs: number = 8): THREE.ConeGeometry {
+  const key = `cone_${r.toFixed(2)}_${h.toFixed(2)}_${segs}`;
+  if (!GEOM_CACHE[key]) {
+    GEOM_CACHE[key] = new THREE.ConeGeometry(r, h, segs);
+  }
+  return GEOM_CACHE[key] as THREE.ConeGeometry;
+}
+
+function getCachedStandardMaterial(
+  color: number,
+  metalness: number = 0,
+  roughness: number = 0.5,
+  transparent: boolean = false,
+  opacity: number = 1.0
+): THREE.MeshStandardMaterial {
+  const key = `std_${color.toString(16)}_${metalness}_${roughness}_${transparent}_${opacity}`;
+  if (!MAT_CACHE[key]) {
+    MAT_CACHE[key] = new THREE.MeshStandardMaterial({
+      color,
+      metalness,
+      roughness,
+      transparent,
+      opacity,
+    });
+  }
+  return MAT_CACHE[key] as THREE.MeshStandardMaterial;
+}
+
+function getCachedBasicMaterial(color: number, visible: boolean = true): THREE.MeshBasicMaterial {
+  const key = `basic_${color.toString(16)}_${visible}`;
+  if (!MAT_CACHE[key]) {
+    MAT_CACHE[key] = new THREE.MeshBasicMaterial({ color, visible });
+  }
+  return MAT_CACHE[key] as THREE.MeshBasicMaterial;
+}
+
 function createTreeMesh(): THREE.Group {
   const group = new THREE.Group();
-  const trunkGeo = new THREE.CylinderGeometry(0.25, 0.4, 2.5, 8);
-  const trunkMat = new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.9 });
+  const trunkGeo = getCachedCylinderGeometry(0.25, 0.4, 2.5, 8);
+  const trunkMat = getCachedStandardMaterial(0x78350f, 0, 0.9);
   const trunk = new THREE.Mesh(trunkGeo, trunkMat);
   trunk.position.y = 1.25;
   trunk.castShadow = true;
   group.add(trunk);
 
-  const folGeo = new THREE.ConeGeometry(1.6, 4.0, 8);
-  const folMat = new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.7 });
+  const folGeo = getCachedConeGeometry(1.6, 4.0, 8);
+  const folMat = getCachedStandardMaterial(0x15803d, 0, 0.7);
   const fol = new THREE.Mesh(folGeo, folMat);
   fol.position.y = 3.8;
   fol.castShadow = true;
@@ -1230,7 +1288,8 @@ function renderInteriorRooms(
   isNightMode: boolean,
   isNightLightsOn: boolean,
   roomMeshesStore: THREE.Mesh[],
-  interiorIntensity: number = 3.5
+  interiorIntensity: number = 3.5,
+  isFloorActive: boolean = true
 ) {
   if (!rooms || rooms.length === 0) {
     return; // Strict rule: No fake default rooms if no rooms exist in database/unit state
@@ -1271,6 +1330,13 @@ function renderInteriorRooms(
   const cellW = (width - 0.8) / cols;
   const cellD = (depth - 0.8) / rows;
 
+  const wallH = storyHeight - 0.6;
+  const wallMat = getCachedStandardMaterial(0xcbd5e1, 0, 0.8);
+  const pWallGeo = getCachedBoxGeometry(0.08, wallH, cellD * 0.9);
+
+  // Determine dominant light color for the floor to avoid multiple point lights
+  let floorDominantColor = 0xffffff;
+
   activeRooms.forEach((rm, i) => {
     const col = i % cols;
     const row = Math.floor(i / cols);
@@ -1294,14 +1360,13 @@ function renderInteriorRooms(
       ? 0xd97706
       : 0x6366f1;
 
+    if (i === 0) {
+      floorDominantColor = colorHex;
+    }
+
     // Room Floor Pad Mesh (Raycaster Target)
-    const padGeo = new THREE.BoxGeometry(cellW * 0.92, 0.06, cellD * 0.92);
-    const padMat = new THREE.MeshStandardMaterial({
-      color: colorHex,
-      roughness: 0.4,
-      transparent: true,
-      opacity: 0.85,
-    });
+    const padGeo = getCachedBoxGeometry(cellW * 0.92, 0.06, cellD * 0.92);
+    const padMat = getCachedStandardMaterial(colorHex, 0, 0.4, true, 0.85);
     const padMesh = new THREE.Mesh(padGeo, padMat);
     padMesh.position.set(x, 0.18, z);
 
@@ -1323,26 +1388,27 @@ function renderInteriorRooms(
     floorGroup.add(padMesh);
     roomMeshesStore.push(padMesh);
 
-    // Partition Divider Walls
-    const wallH = storyHeight - 0.6;
-    const wallMat = new THREE.MeshStandardMaterial({ color: 0xcbd5e1, roughness: 0.8 });
+    // Partition Divider Walls (Optimized Geometry & Material Reuse)
     if (col < cols - 1) {
-      const pWallGeo = new THREE.BoxGeometry(0.08, wallH, cellD * 0.9);
       const pWall = new THREE.Mesh(pWallGeo, wallMat);
       pWall.position.set(x + cellW / 2, wallH / 2 + 0.2, z);
       floorGroup.add(pWall);
     }
 
-    // Interior Furniture Models
+    // Interior Furniture Models (Rendered with shared geometries and materials)
     renderFurnitureInRoom(floorGroup, rm.type || rm.name || '', x, 0.25, z, showFurniture);
-
-    // Interior Light Source (always rendered for smooth live adjustment)
-    const pIntensity = (isNightMode ? 1.8 : 1.0) * (interiorIntensity / 2.5);
-    const roomLight = new THREE.PointLight(colorHex, isNightMode && !isNightLightsOn ? 0 : pIntensity, 12);
-    roomLight.position.set(x, storyHeight - 0.5, z);
-    roomLight.userData = { isInteriorLight: true, baseColor: colorHex };
-    floorGroup.add(roomLight);
   });
+
+  // Consolidated Floor Light Source: Single optimized PointLight per active floor
+  const pIntensity = (isNightMode ? 2.2 : 1.2) * (interiorIntensity / 2.5);
+  const floorLight = new THREE.PointLight(
+    floorDominantColor,
+    isNightMode && !isNightLightsOn ? 0 : pIntensity,
+    Math.max(width, depth) * 1.8
+  );
+  floorLight.position.set(0, storyHeight - 0.4, 0);
+  floorLight.userData = { isInteriorLight: true, baseColor: floorDominantColor };
+  floorGroup.add(floorLight);
 }
 
 function renderFurnitureInRoom(parentGroup: THREE.Group, type: string, x: number, y: number, z: number, showFurniture: boolean = true) {
@@ -1352,35 +1418,38 @@ function renderFurnitureInRoom(parentGroup: THREE.Group, type: string, x: number
   group.visible = showFurniture;
 
   if (type.includes('اجتماعات') || type.includes('قاعة')) {
-    const tableGeo = new THREE.BoxGeometry(2.2, 0.65, 1.1);
-    const tableMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.3 });
+    const tableGeo = getCachedBoxGeometry(2.2, 0.65, 1.1);
+    const tableMat = getCachedStandardMaterial(0x334155, 0, 0.3);
     const table = new THREE.Mesh(tableGeo, tableMat);
     table.position.y = 0.32;
     group.add(table);
 
-    const chairMat = new THREE.MeshStandardMaterial({ color: 0x0284c7 });
+    const chairGeo = getCachedBoxGeometry(0.35, 0.5, 0.35);
+    const chairMat = getCachedStandardMaterial(0x0284c7);
     [-0.8, 0, 0.8].forEach((cx) => {
-      const chair1 = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.5, 0.35), chairMat);
+      const chair1 = new THREE.Mesh(chairGeo, chairMat);
       chair1.position.set(cx, 0.25, 0.7);
       group.add(chair1);
 
-      const chair2 = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.5, 0.35), chairMat);
+      const chair2 = new THREE.Mesh(chairGeo, chairMat);
       chair2.position.set(cx, 0.25, -0.7);
       group.add(chair2);
     });
   } else if (type.includes('استقبال') || type.includes('راحة')) {
-    const sofaGeo = new THREE.BoxGeometry(2.0, 0.55, 0.8);
-    const sofaMat = new THREE.MeshStandardMaterial({ color: 0x0284c7 });
+    const sofaGeo = getCachedBoxGeometry(2.0, 0.55, 0.8);
+    const sofaMat = getCachedStandardMaterial(0x0284c7);
     const sofa = new THREE.Mesh(sofaGeo, sofaMat);
     sofa.position.set(0, 0.28, -0.6);
     group.add(sofa);
 
-    const cTable = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.35, 0.6), new THREE.MeshStandardMaterial({ color: 0x94a3b8 }));
+    const cTableGeo = getCachedBoxGeometry(1.2, 0.35, 0.6);
+    const cTableMat = getCachedStandardMaterial(0x94a3b8);
+    const cTable = new THREE.Mesh(cTableGeo, cTableMat);
     cTable.position.set(0, 0.18, 0.1);
     group.add(cTable);
   } else if (type.includes('سيرفر')) {
-    const rackGeo = new THREE.BoxGeometry(0.7, 1.6, 0.7);
-    const rackMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, metalness: 0.9, roughness: 0.2 });
+    const rackGeo = getCachedBoxGeometry(0.7, 1.6, 0.7);
+    const rackMat = getCachedStandardMaterial(0x0f172a, 0.9, 0.2);
     const rack1 = new THREE.Mesh(rackGeo, rackMat);
     rack1.position.set(-0.6, 0.8, 0);
     group.add(rack1);
@@ -1390,12 +1459,13 @@ function renderFurnitureInRoom(parentGroup: THREE.Group, type: string, x: number
     group.add(rack2);
   } else {
     // Standard Desks
-    const deskMat = new THREE.MeshStandardMaterial({ color: 0x64748b });
-    const desk1 = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.6, 0.6), deskMat);
+    const deskGeo = getCachedBoxGeometry(1.2, 0.6, 0.6);
+    const deskMat = getCachedStandardMaterial(0x64748b);
+    const desk1 = new THREE.Mesh(deskGeo, deskMat);
     desk1.position.set(-0.6, 0.3, -0.4);
     group.add(desk1);
 
-    const desk2 = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.6, 0.6), deskMat);
+    const desk2 = new THREE.Mesh(deskGeo, deskMat);
     desk2.position.set(0.6, 0.3, 0.4);
     group.add(desk2);
   }
@@ -1651,10 +1721,9 @@ function renderEquipmentMeshes(
     parentGroup.add(group);
 
     // Make interactive mesh target for raycaster
-    const boundBox = new THREE.Mesh(
-      new THREE.BoxGeometry(1.6, 1.2, 1.4),
-      new THREE.MeshBasicMaterial({ visible: false })
-    );
+    const boundBoxGeo = getCachedBoxGeometry(1.6, 1.2, 1.4);
+    const boundBoxMat = getCachedBasicMaterial(0x000000, false);
+    const boundBox = new THREE.Mesh(boundBoxGeo, boundBoxMat);
     boundBox.position.set(x, y, z);
     boundBox.userData = {
       isRoom: true,
@@ -1686,10 +1755,9 @@ function renderEquipmentMeshes(
     group.position.set(x, y, z);
     parentGroup.add(group);
 
-    const boundBox = new THREE.Mesh(
-      new THREE.BoxGeometry(1.8, 1.4, 1.4),
-      new THREE.MeshBasicMaterial({ visible: false })
-    );
+    const boundBoxGeo = getCachedBoxGeometry(1.8, 1.4, 1.4);
+    const boundBoxMat = getCachedBasicMaterial(0x000000, false);
+    const boundBox = new THREE.Mesh(boundBoxGeo, boundBoxMat);
     boundBox.position.set(x, y, z);
     boundBox.userData = {
       isRoom: true,
@@ -1720,10 +1788,9 @@ function renderEquipmentMeshes(
     group.position.set(x, y, z);
     parentGroup.add(group);
 
-    const boundBox = new THREE.Mesh(
-      new THREE.BoxGeometry(1.4, 1.2, 1.2),
-      new THREE.MeshBasicMaterial({ visible: false })
-    );
+    const boundBoxGeo = getCachedBoxGeometry(1.4, 1.2, 1.2);
+    const boundBoxMat = getCachedBasicMaterial(0x000000, false);
+    const boundBox = new THREE.Mesh(boundBoxGeo, boundBoxMat);
     boundBox.position.set(x, y, z);
     boundBox.userData = {
       isRoom: true,
@@ -1752,82 +1819,91 @@ function createEquipmentMesh3D(eq: EquipmentItem): THREE.Group {
 
   if (nameStr.includes('gen') || nameStr.includes('مولد') || nameStr.includes('طاقة')) {
     // Diesel Generator Canopy Skid
-    const baseMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.8 });
-    const base = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.25, 1.1), baseMat);
+    const baseMat = getCachedStandardMaterial(0x1e293b, 0.8, 0.5);
+    const baseGeo = getCachedBoxGeometry(1.8, 0.25, 1.1);
+    const base = new THREE.Mesh(baseGeo, baseMat);
     base.position.y = 0.125;
     group.add(base);
 
-    const bodyMat = new THREE.MeshStandardMaterial({ color: 0x0284c7, metalness: 0.6, roughness: 0.3 });
-    const body = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.85, 0.95), bodyMat);
+    const bodyMat = getCachedStandardMaterial(0x0284c7, 0.6, 0.3);
+    const bodyGeo = getCachedBoxGeometry(1.6, 0.85, 0.95);
+    const body = new THREE.Mesh(bodyGeo, bodyMat);
     body.position.y = 0.675;
-    body.castShadow = true;
     group.add(body);
 
     // Radiator Grill & Exhaust Pipe
-    const grillMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, metalness: 0.9 });
-    const grill = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.6, 0.8), grillMat);
+    const grillMat = getCachedStandardMaterial(0x0f172a, 0.9, 0.5);
+    const grillGeo = getCachedBoxGeometry(0.05, 0.6, 0.8);
+    const grill = new THREE.Mesh(grillGeo, grillMat);
     grill.position.set(0.825, 0.675, 0);
     group.add(grill);
 
-    const pipeMat = new THREE.MeshStandardMaterial({ color: 0x334155, metalness: 0.9 });
-    const pipe = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.5, 12), pipeMat);
+    const pipeMat = getCachedStandardMaterial(0x334155, 0.9, 0.5);
+    const pipeGeo = getCachedCylinderGeometry(0.06, 0.06, 0.5, 12);
+    const pipe = new THREE.Mesh(pipeGeo, pipeMat);
     pipe.position.set(-0.4, 1.35, 0.2);
     group.add(pipe);
   } else if (nameStr.includes('tank') || nameStr.includes('خزان') || nameStr.includes('مياه') || nameStr.includes('tnk')) {
     // Water / Fuel Tank Cylinder
-    const legMat = new THREE.MeshStandardMaterial({ color: 0x334155, metalness: 0.8 });
+    const legMat = getCachedStandardMaterial(0x334155, 0.8, 0.5);
+    const legGeo = getCachedCylinderGeometry(0.05, 0.05, 0.4, 8);
     [-0.4, 0.4].forEach((lx) => {
-      const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.4, 8), legMat);
+      const leg = new THREE.Mesh(legGeo, legMat);
       leg.position.set(lx, 0.2, 0);
       group.add(leg);
     });
 
-    const tankMat = new THREE.MeshStandardMaterial({ color: 0x38bdf8, metalness: 0.6, roughness: 0.2 });
-    const tank = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.55, 1.2, 24), tankMat);
+    const tankMat = getCachedStandardMaterial(0x38bdf8, 0.6, 0.2);
+    const tankGeo = getCachedCylinderGeometry(0.55, 0.55, 1.2, 16);
+    const tank = new THREE.Mesh(tankGeo, tankMat);
     tank.position.y = 0.9;
-    tank.castShadow = true;
     group.add(tank);
   } else if (nameStr.includes('ac') || nameStr.includes('تكييف') || nameStr.includes('hvac')) {
     // HVAC Condenser Unit
-    const acMat = new THREE.MeshStandardMaterial({ color: 0x64748b, metalness: 0.7, roughness: 0.3 });
-    const acBox = new THREE.Mesh(new THREE.BoxGeometry(1.3, 0.85, 1.1), acMat);
+    const acMat = getCachedStandardMaterial(0x64748b, 0.7, 0.3);
+    const acGeo = getCachedBoxGeometry(1.3, 0.85, 1.1);
+    const acBox = new THREE.Mesh(acGeo, acMat);
     acBox.position.y = 0.425;
-    acBox.castShadow = true;
     group.add(acBox);
 
-    const fanMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, metalness: 0.9 });
-    const fan = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.35, 0.05, 16), fanMat);
+    const fanMat = getCachedStandardMaterial(0x0f172a, 0.9, 0.5);
+    const fanGeo = getCachedCylinderGeometry(0.35, 0.35, 0.05, 12);
+    const fan = new THREE.Mesh(fanGeo, fanMat);
     fan.position.set(0, 0.875, 0);
     group.add(fan);
   } else if (nameStr.includes('شمس') || nameStr.includes('solar')) {
     // Solar PV Array Panel
-    const frameMat = new THREE.MeshStandardMaterial({ color: 0x334155, metalness: 0.9 });
-    const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.8, 12), frameMat);
+    const frameMat = getCachedStandardMaterial(0x334155, 0.9, 0.5);
+    const poleGeo = getCachedCylinderGeometry(0.06, 0.06, 0.8, 8);
+    const pole = new THREE.Mesh(poleGeo, frameMat);
     pole.position.y = 0.4;
     group.add(pole);
 
-    const panelMat = new THREE.MeshStandardMaterial({ color: 0x1e3a8a, metalness: 0.8, roughness: 0.1 });
-    const panel = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.05, 1.1), panelMat);
+    const panelMat = getCachedStandardMaterial(0x1e3a8a, 0.8, 0.1);
+    const panelGeo = getCachedBoxGeometry(1.6, 0.05, 1.1);
+    const panel = new THREE.Mesh(panelGeo, panelMat);
     panel.position.set(0, 0.8, 0);
     panel.rotation.x = Math.PI / 6; // 30 deg tilt
     group.add(panel);
   } else if (nameStr.includes('سيرفر') || nameStr.includes('it') || nameStr.includes('شبكة')) {
     // IT Server Cabinet Rack
-    const rackMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, metalness: 0.9, roughness: 0.2 });
-    const rack = new THREE.Mesh(new THREE.BoxGeometry(0.7, 1.5, 0.7), rackMat);
+    const rackMat = getCachedStandardMaterial(0x0f172a, 0.9, 0.2);
+    const rackGeo = getCachedBoxGeometry(0.7, 1.5, 0.7);
+    const rack = new THREE.Mesh(rackGeo, rackMat);
     rack.position.y = 0.75;
     group.add(rack);
 
-    const ledMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8 });
-    const led = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.05, 0.02), ledMat);
+    const ledMat = getCachedBasicMaterial(0x38bdf8);
+    const ledGeo = getCachedBoxGeometry(0.5, 0.05, 0.02);
+    const led = new THREE.Mesh(ledGeo, ledMat);
     led.position.set(0, 1.2, 0.36);
     group.add(led);
   } else {
     // Generic Heavy Equipment Skid
-    const eqMat = new THREE.MeshStandardMaterial({ color: 0x475569, metalness: 0.7, roughness: 0.4 });
-    const eqBox = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.75, 0.9), eqMat);
+    const eqMat = getCachedStandardMaterial(0x475569, 0.7, 0.4);
+    const eqGeo = getCachedBoxGeometry(1.2, 0.75, 0.9);
+    const eqBox = new THREE.Mesh(eqGeo, eqMat);
     eqBox.position.y = 0.375;
-    eqBox.castShadow = true;
     group.add(eqBox);
   }
 

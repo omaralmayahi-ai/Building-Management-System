@@ -15,8 +15,28 @@ import {
 
 async function startServer() {
   const app = express();
-  const PORT = 3000;
-  const API_SECRET_KEY = process.env.API_SECRET_KEY || 'midland_oil_secure_api_key_2026';
+  const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
+  const API_SECRET_KEY = process.env.API_SECRET_KEY || 'CHANGE_ME_BEFORE_DEPLOY';
+
+  // Production Security Warning Check for insecure placeholder secrets
+  if (process.env.NODE_ENV === 'production') {
+    const dbUrl = process.env.DATABASE_URL || '';
+    const hasInsecureApiKey = API_SECRET_KEY === 'CHANGE_ME_BEFORE_DEPLOY';
+    const hasInsecureDbUrl = dbUrl.includes('CHANGE_ME_BEFORE_DEPLOY');
+
+    if (hasInsecureApiKey || hasInsecureDbUrl) {
+      console.warn('====================================================================');
+      console.warn('⚠️  SECURITY WARNING: Default placeholder credentials detected in PRODUCTION!');
+      if (hasInsecureApiKey) {
+        console.warn('⚠️  API_SECRET_KEY is still using the default placeholder ("CHANGE_ME_BEFORE_DEPLOY").');
+      }
+      if (hasInsecureDbUrl) {
+        console.warn('⚠️  DATABASE_URL is still using the default placeholder password.');
+      }
+      console.warn('⚠️  Please configure strong, production-grade environment variables.');
+      console.warn('====================================================================');
+    }
+  }
 
   app.use(express.json({ limit: '50mb' }));
   app.use(express.urlencoded({ extended: true, limit: '50mb' }));

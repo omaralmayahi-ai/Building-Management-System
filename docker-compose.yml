@@ -15,8 +15,8 @@ services:
     environment:
       - NODE_ENV=${NODE_ENV:-production}
       - PORT=${PORT:-3000}
-      - DATABASE_URL=${DATABASE_URL:-postgres://oil_user:OilCompany2026_SecureKey@db:5432/midland_assets_db}
-      - API_SECRET_KEY=${API_SECRET_KEY:-midland_oil_secure_api_key_2026}
+      - DATABASE_URL=${DATABASE_URL:-postgres://oil_user:CHANGE_ME_BEFORE_DEPLOY@db:5432/midland_assets_db}
+      - API_SECRET_KEY=${API_SECRET_KEY:-CHANGE_ME_BEFORE_DEPLOY}
     depends_on:
       db:
         condition: service_healthy
@@ -32,7 +32,7 @@ services:
     restart: unless-stopped
     environment:
       - POSTGRES_USER=${POSTGRES_USER:-oil_user}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-OilCompany2026_SecureKey}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-CHANGE_ME_BEFORE_DEPLOY}
       - POSTGRES_DB=${POSTGRES_DB:-midland_assets_db}
     volumes:
       - postgres_data:/var/lib/postgresql/data
