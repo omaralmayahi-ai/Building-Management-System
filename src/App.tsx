@@ -7,6 +7,7 @@ import {
   Wrench,
   FileText,
   Settings,
+  ClipboardCheck,
 } from 'lucide-react';
 import { Header } from './components/Header';
 import { Sidebar, NavTab } from './components/Sidebar';
@@ -17,6 +18,7 @@ import { PeriodicInspectionView } from './components/PeriodicInspectionView';
 import { MaintenanceView } from './components/MaintenanceView';
 import { ReportsView } from './components/ReportsView';
 import { SettingsView } from './components/SettingsView';
+import { FieldInspectionView } from './components/FieldInspectionView';
 import { NewMaintenanceModal } from './components/NewMaintenanceModal';
 import { ExportDossierModal } from './components/ExportDossierModal';
 import { LoginView } from './components/LoginView';
@@ -73,6 +75,22 @@ export function App() {
   });
   const [globalSearchTerm, setGlobalSearchTerm] = useState<string>('');
 
+  // Deep Link Inspection Query Parameter Handling
+  const [pendingDeepLink, setPendingDeepLink] = useState<{ view: string; unit: string } | null>(() => {
+    if (typeof window === 'undefined') return null;
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const view = params.get('view');
+      const unit = params.get('unit');
+      if (view === 'inspect' && unit) {
+        return { view, unit };
+      }
+    } catch (e) {
+      console.warn('Error reading deep link query parameters:', e);
+    }
+    return null;
+  });
+
   // Authentication & Current User State (default initial login screen)
   const [currentUser, setCurrentUser] = useState<SystemUser | null>(() =>
     safeParse('app_current_user', null)
@@ -85,7 +103,9 @@ export function App() {
   const handleLogin = (user: SystemUser) => {
     setCurrentUser(user);
     const role = user.role;
-    if (role === 'مستخدم' || role === 'user') {
+    if (role === 'موظف الكشف والصيانة' || role === 'inspector') {
+      setActiveTab('field_inspection');
+    } else if (role === 'مستخدم' || role === 'user') {
       setActiveTab('dashboard');
     }
   };
@@ -116,6 +136,30 @@ export function App() {
   );
 
   const [selectedUnitCode, setSelectedUnitCode] = useState<string>('');
+
+  // Handle Pending Deep Link Navigation after authentication
+  useEffect(() => {
+    if (currentUser && pendingDeepLink) {
+      if (pendingDeepLink.view === 'inspect' && pendingDeepLink.unit) {
+        setSelectedUnitCode(pendingDeepLink.unit);
+        if (
+          currentUser.role === 'موظف الكشف والصيانة' ||
+          currentUser.role === 'inspector'
+        ) {
+          setActiveTab('field_inspection');
+        } else {
+          setActiveTab('units');
+        }
+        setPendingDeepLink(null);
+
+        // Clean query parameters from URL to avoid re-triggering on page refresh
+        if (typeof window !== 'undefined' && window.history && window.history.replaceState) {
+          const cleanUrl = window.location.pathname;
+          window.history.replaceState({}, document.title, cleanUrl);
+        }
+      }
+    }
+  }, [currentUser, pendingDeepLink]);
   const [maintenanceRequests, setMaintenanceRequests] = useState<MaintenanceRequest[]>(() =>
     safeParse('app_maintenance_requests', SEED_WITH_DEMO_DATA ? INITIAL_MAINTENANCE_REQUESTS : [])
   );
@@ -1009,10 +1053,17 @@ export function App() {
   const currentUserRole = currentUser.role || 'مستخدم';
   const isRoleAdmin = currentUserRole === 'مدير النظام' || currentUserRole === 'admin';
   const isRoleOperator = currentUserRole === 'مشغل النظام' || currentUserRole === 'operator';
+  const isRoleInspector = currentUserRole === 'موظف الكشف والصيانة' || currentUserRole === 'inspector';
   const isRoleUser = currentUserRole === 'مستخدم' || currentUserRole === 'user';
 
   // Responsive Mobile Navigation Items (Tailored to permissions)
   const mobileMenuItems = [
+    {
+      id: 'field_inspection' as NavTab,
+      label: 'كشف ميداني',
+      icon: ClipboardCheck,
+      roles: ['موظف الكشف والصيانة'],
+    },
     {
       id: 'dashboard' as NavTab,
       label: 'الرئيسية',
@@ -1035,19 +1086,19 @@ export function App() {
       id: 'periodic_inspection' as NavTab,
       label: 'كشوفات',
       icon: CalendarCheck,
-      roles: ['مدير النظام', 'مشغل النظام'],
+      roles: ['مدير النظام', 'مشغل النظام', 'موظف الكشف والصيانة'],
     },
     {
       id: 'maintenance' as NavTab,
       label: 'صيانة',
       icon: Wrench,
-      roles: ['مدير النظام', 'مشغل النظام'],
+      roles: ['مدير النظام', 'مشغل النظام', 'موظف الكشف والصيانة'],
     },
     {
       id: 'reports' as NavTab,
       label: 'تقارير',
       icon: FileText,
-      roles: ['مدير النظام', 'مشغل النظام', 'مستخدم'],
+      roles: ['مدير النظام', 'مشغل النظام', 'مستخدم', 'موظف الكشف والصيانة'],
     },
     {
       id: 'settings' as NavTab,
@@ -1057,8 +1108,11 @@ export function App() {
     },
   ].filter((item) => {
     if (isRoleAdmin) return true;
-    if (isRoleOperator) return item.id !== 'settings';
-    return item.roles.includes('مستخدم');
+    if (isRoleInspector) {
+      return ['field_inspection', 'periodic_inspection', 'maintenance', 'reports'].includes(item.id);
+    }
+    if (isRoleOperator) return item.id !== 'settings' && item.id !== 'field_inspection';
+    return item.roles.includes('مستخدم') && item.id !== 'field_inspection';
   });
 
   return (
@@ -1141,6 +1195,19 @@ export function App() {
           </div>
 
           {/* Active View Router */}
+          {activeTab === 'field_inspection' && (
+            <FieldInspectionView
+              units={units}
+              periodicInspections={periodicInspections}
+              currentUser={currentUser}
+              onAddInspection={handleAddPeriodicInspection}
+              onUpdateGrade={handleUpdateGrade}
+              onOpenMaintenanceModal={handleOpenMaintenanceForUnit}
+              theme={theme}
+              initialUnitCode={selectedUnitCode}
+            />
+          )}
+
           {activeTab === 'dashboard' && (
             <DashboardView
               units={units}

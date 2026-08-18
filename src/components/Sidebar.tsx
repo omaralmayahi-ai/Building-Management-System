@@ -14,6 +14,7 @@ import {
   ChevronLeft,
   PanelLeftClose,
   PanelLeftOpen,
+  ClipboardCheck,
 } from 'lucide-react';
 
 import { SystemBranding } from '../types';
@@ -26,7 +27,8 @@ export type NavTab =
   | 'periodic_inspection'
   | 'maintenance'
   | 'reports'
-  | 'settings';
+  | 'settings'
+  | 'field_inspection';
 
 interface SidebarProps {
   activeTab: NavTab;
@@ -66,6 +68,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   const allMenuItems = [
     {
+      id: 'field_inspection' as NavTab,
+      label: 'كشف وصيانة ميدانية',
+      icon: ClipboardCheck,
+      badge: 'ميداني',
+      badgeColor: 'bg-amber-500/20 text-amber-400 border border-amber-500/30',
+      roles: ['موظف الكشف والصيانة'],
+    },
+    {
       id: 'dashboard' as NavTab,
       label: 'لوحة القيادة',
       icon: LayoutDashboard,
@@ -91,7 +101,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       label: 'سجل الكشوفات الدورية',
       icon: CalendarCheck,
       badge: 'مجدول',
-      roles: ['مدير النظام', 'مشغل النظام'],
+      roles: ['مدير النظام', 'مشغل النظام', 'موظف الكشف والصيانة'],
     },
     {
       id: 'maintenance' as NavTab,
@@ -99,7 +109,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       icon: Wrench,
       badge: `${toArabicDigits(maintenanceCount)} طلب`,
       badgeColor: maintenanceCount > 0 ? 'bg-red-500 text-white' : undefined,
-      roles: ['مدير النظام', 'مشغل النظام'],
+      roles: ['مدير النظام', 'مشغل النظام', 'موظف الكشف والصيانة'],
     },
     {
       id: 'reports' as NavTab,
@@ -107,7 +117,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       icon: FileText,
       badge: 'تقرير',
       badgeColor: 'bg-amber-500/20 text-amber-400 border border-amber-500/30',
-      roles: ['مدير النظام', 'مشغل النظام', 'مستخدم'],
+      roles: ['مدير النظام', 'مشغل النظام', 'مستخدم', 'موظف الكشف والصيانة'],
     },
     {
       id: 'settings' as NavTab,
@@ -121,12 +131,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const menuItems = allMenuItems.filter((item) => {
     // If admin, show all
     if (currentUserRole === 'مدير النظام' || currentUserRole === 'admin') return true;
-    // If operator, show all except settings
+    // If field inspector, show field inspection, periodic, maintenance, reports
+    if (currentUserRole === 'موظف الكشف والصيانة' || currentUserRole === 'inspector') {
+      return ['field_inspection', 'periodic_inspection', 'maintenance', 'reports'].includes(item.id);
+    }
+    // If operator, show all except settings & field_inspection
     if (currentUserRole === 'مشغل النظام' || currentUserRole === 'operator') {
-      return item.id !== 'settings';
+      return item.id !== 'settings' && item.id !== 'field_inspection';
     }
     // If user, only dashboard, units, reports
-    return item.roles.includes('مستخدم');
+    return item.roles.includes('مستخدم') && item.id !== 'field_inspection';
   });
 
   return (

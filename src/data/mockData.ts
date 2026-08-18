@@ -853,6 +853,19 @@ export const INITIAL_USERS: SystemUser[] = [
     status: 'disabled',
     lastActive: 'منذ أسبوع',
   },
+  {
+    id: 'USR-105',
+    name: 'م. حيدر العبيدي (مفتش ميداني)',
+    username: 'inspector',
+    password: 'Insp#2026_Moc!Field',
+    role: 'موظف الكشف والصيانة',
+    email: 'haider.inspect@mdoc.gov.iq',
+    phone: '07705558899',
+    governorate: 'واسط',
+    field: 'الأحدب',
+    status: 'active',
+    lastActive: 'الآن',
+  },
 ];
 
 

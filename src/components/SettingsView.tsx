@@ -1689,6 +1689,12 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                           >
                             مستخدم (User)
                           </option>
+                          <option
+                            value="موظف الكشف والصيانة"
+                            className={isLight ? 'bg-white text-orange-800' : 'bg-slate-900 text-orange-400'}
+                          >
+                            موظف الكشف والصيانة (Field Inspector)
+                          </option>
                         </select>
                       </div>
 

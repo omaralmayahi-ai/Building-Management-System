@@ -269,7 +269,12 @@ export interface SystemBranding {
   logoUrl?: string;
 }
 
-export type UserAccountRole = 'مدير النظام' | 'مشغل النظام' | 'مستخدم' | string;
+export type UserAccountRole =
+  | 'مدير النظام'
+  | 'مشغل النظام'
+  | 'مستخدم'
+  | 'موظف الكشف والصيانة'
+  | string;
 
 export interface SystemUser {
   id: string;

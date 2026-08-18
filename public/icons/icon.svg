@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+    <defs>
+      <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#0f172a"/>
+        <stop offset="50%" stop-color="#1e293b"/>
+        <stop offset="100%" stop-color="#0f172a"/>
+      </linearGradient>
+      <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#fbbf24"/>
+        <stop offset="100%" stop-color="#d97706"/>
+      </linearGradient>
+    </defs>
+    <rect width="512" height="512" rx="112.64" fill="url(#bgGrad)"/>
+    <rect x="20.48" y="20.48" width="471.04" height="471.04" rx="92.16" fill="none" stroke="#f59e0b" stroke-width="10.24" stroke-opacity="0.4"/>
+    
+    <!-- Building & Oil Drop Emblem -->
+    <g transform="translate(76.8, 76.8) scale(3.5839999999999996)">
+      <!-- Main Building Silhouette -->
+      <path d="M 20 85 L 20 35 L 50 15 L 80 35 L 80 85 Z" fill="none" stroke="url(#goldGrad)" stroke-width="5" stroke-linejoin="round"/>
+      <!-- Windows / Grid -->
+      <rect x="32" y="42" width="12" height="12" rx="2" fill="#fbbf24" fill-opacity="0.8"/>
+      <rect x="56" y="42" width="12" height="12" rx="2" fill="#fbbf24" fill-opacity="0.8"/>
+      <rect x="32" y="62" width="12" height="12" rx="2" fill="#fbbf24" fill-opacity="0.8"/>
+      <rect x="56" y="62" width="12" height="12" rx="2" fill="#fbbf24" fill-opacity="0.8"/>
+      <!-- Oil Drop in Apex -->
+      <path d="M 50 18 C 50 18 40 28 40 33 C 40 38.5 44.5 43 50 43 C 55.5 43 60 38.5 60 33 C 60 28 50 18 50 18 Z" fill="url(#goldGrad)"/>
+    </g>
+    
+    <!-- Text MOC / MDOC -->
+    <text x="256" y="450.56" font-family="sans-serif" font-size="46.08" font-weight="900" fill="#f8fafc" text-anchor="middle" letter-spacing="2">MDOC</text>
+  </svg>

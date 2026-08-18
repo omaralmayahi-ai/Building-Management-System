@@ -26,23 +26,12 @@ export const UnitQrCodeModal: React.FC<UnitQrCodeModalProps> = ({
   const isLight = theme === 'light';
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
 
-  // Payload encoded inside the Quick Access QR Code
-  const mapsUrl = `https://maps.google.com/?q=${unit.coordinates.lat},${unit.coordinates.lng}`;
-  const qrPayload = JSON.stringify({
-    code: unit.code,
-    name: unit.name,
-    field: unit.field,
-    governorate: unit.governorate,
-    lat: unit.coordinates.lat,
-    lng: unit.coordinates.lng,
-    constructionYear: unit.constructionYear,
-    grade: unit.conditionGrade,
-    area: unit.totalAreaSqM,
-    floors: unit.floorsCount,
-    department: unit.department,
-    maps: mapsUrl,
-    org: 'شركة نفط الوسط - وزارة النفط العراقي',
-  });
+  // Payload encoded inside the Quick Access QR Code: Web link for immediate smart inspection
+  const appBaseUrl =
+    (import.meta as any).env?.VITE_APP_URL ||
+    (import.meta as any).env?.APP_URL ||
+    (typeof window !== 'undefined' ? window.location.origin : '');
+  const qrPayload = `${appBaseUrl}/?view=inspect&unit=${encodeURIComponent(unit.code)}`;
 
   useEffect(() => {
     let isMounted = true;
