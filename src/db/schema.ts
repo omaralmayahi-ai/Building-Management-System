@@ -99,6 +99,7 @@ export interface DbPeriodicInspectionRow {
   next_due_date: string;
   assigned_team: string;
   inspector_name: string;
+  performed_by_name?: string;
   status: string;
   notes?: string;
   condition_grade_given?: string;

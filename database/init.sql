@@ -128,6 +128,7 @@ CREATE TABLE IF NOT EXISTS periodic_inspections (
     next_due_date VARCHAR(64) NOT NULL,
     assigned_team VARCHAR(255) NOT NULL,
     inspector_name VARCHAR(255) NOT NULL,
+    performed_by_name VARCHAR(255),
     status VARCHAR(32) NOT NULL DEFAULT 'scheduled' CHECK (status IN ('scheduled', 'in_progress', 'completed', 'overdue', 'cancelled')),
     notes TEXT,
     condition_grade_given CHAR(1) CHECK (condition_grade_given IN ('A', 'B', 'C', 'D')),

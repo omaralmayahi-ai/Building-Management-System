@@ -43,7 +43,7 @@ import {
   RefreshCw,
 } from 'lucide-react';
 import { AttachmentViewerModal } from './AttachmentViewerModal';
-import { INITIAL_GOVERNORATES, INITIAL_OILFIELDS } from '../data/mockData';
+import { INITIAL_GOVERNORATES, INITIAL_OILFIELDS, INITIAL_USERS } from '../data/mockData';
 import {
   PeriodicInspectionSchedule,
   InspectionFrequency,
@@ -56,6 +56,7 @@ import {
   MaintenanceRequest,
   MaintenanceStatus,
   UnitAttachment,
+  SystemUser,
 } from '../types';
 import {
   toArabicDigits,
@@ -64,12 +65,195 @@ import {
   calculateMaintenanceDurationDays,
 } from '../utils/arabicUtils';
 
+// Helper to determine role label and accredited user display
+export const getPerformerDisplay = (
+  performedBy?: string,
+  inspector?: string,
+  users?: SystemUser[],
+  isCompleted: boolean = true
+): {
+  roleBadgeText: string;
+  roleBadgeClass: string;
+  roleBadgeBorder: string;
+  userName: string;
+  fullText: string;
+  isOperator: boolean;
+  isInspector: boolean;
+  isAdmin: boolean;
+} => {
+  const raw = (performedBy || inspector || '').trim();
+  if (!raw) {
+    return {
+      roleBadgeText: 'موظف الكشف',
+      roleBadgeClass: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30',
+      roleBadgeBorder: 'border-emerald-500/30',
+      userName: isCompleted ? 'موظف الكشف' : 'لم يُنجز بعد',
+      fullText: isCompleted ? 'موظف الكشف' : 'لم يُنجز بعد',
+      isOperator: false,
+      isInspector: true,
+      isAdmin: false,
+    };
+  }
+
+  // Check matching user in system users list
+  const userList = users && users.length > 0 ? users : INITIAL_USERS;
+  const matchedUser = userList.find((u) => {
+    if (u.name === raw || u.username === raw || u.id === raw) return true;
+    const cleanUName = u.name.replace(/\s*\([^)]*\)/g, '').trim();
+    const cleanRaw = raw.replace(/\s*\([^)]*\)/g, '').trim();
+    return (
+      cleanUName === cleanRaw ||
+      (cleanRaw.length > 2 && cleanUName.includes(cleanRaw)) ||
+      (cleanRaw.length > 2 && cleanRaw.includes(cleanUName))
+    );
+  });
+
+  if (matchedUser) {
+    const cleanName = matchedUser.name.replace(/\s*\([^)]*\)/g, '').trim();
+    if (
+      matchedUser.role === 'مشغل النظام' ||
+      matchedUser.role.includes('مشغل') ||
+      matchedUser.username === 'operator'
+    ) {
+      return {
+        roleBadgeText: 'مشغل النظام',
+        roleBadgeClass: 'bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30',
+        roleBadgeBorder: 'border-amber-500/30',
+        userName: cleanName || 'مشغل النظام',
+        fullText: isCompleted ? (cleanName ? `مشغل النظام: ${cleanName}` : 'مشغل النظام') : (performedBy ? `مشغل النظام: ${cleanName}` : 'لم يُنجز بعد'),
+        isOperator: true,
+        isInspector: false,
+        isAdmin: false,
+      };
+    }
+    if (
+      matchedUser.role === 'موظف الكشف والصيانة' ||
+      matchedUser.role.includes('كشف') ||
+      matchedUser.role.includes('مفتش') ||
+      matchedUser.username === 'inspector'
+    ) {
+      return {
+        roleBadgeText: 'موظف الكشف',
+        roleBadgeClass: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30',
+        roleBadgeBorder: 'border-emerald-500/30',
+        userName: cleanName || 'موظف الكشف',
+        fullText: isCompleted ? (cleanName ? `موظف الكشف: ${cleanName}` : 'موظف الكشف') : (performedBy ? `موظف الكشف: ${cleanName}` : 'لم يُنجز بعد'),
+        isOperator: false,
+        isInspector: true,
+        isAdmin: false,
+      };
+    }
+    if (
+      matchedUser.role === 'مدير النظام' ||
+      matchedUser.role.includes('مدير') ||
+      matchedUser.username === 'admin'
+    ) {
+      return {
+        roleBadgeText: 'مدير النظام',
+        roleBadgeClass: 'bg-purple-500/15 text-purple-700 dark:text-purple-400 border-purple-500/30',
+        roleBadgeBorder: 'border-purple-500/30',
+        userName: cleanName || 'مدير النظام',
+        fullText: isCompleted ? (cleanName ? `مدير النظام: ${cleanName}` : 'مدير النظام') : (performedBy ? `مدير النظام: ${cleanName}` : 'لم يُنجز بعد'),
+        isOperator: false,
+        isInspector: false,
+        isAdmin: true,
+      };
+    }
+    return {
+      roleBadgeText: matchedUser.role || 'مستخدم',
+      roleBadgeClass: 'bg-sky-500/15 text-sky-700 dark:text-sky-400 border-sky-500/30',
+      roleBadgeBorder: 'border-sky-500/30',
+      userName: cleanName || matchedUser.role || 'مستخدم',
+      fullText: isCompleted ? `${matchedUser.role || 'مستخدم'}: ${cleanName}` : (performedBy ? `${matchedUser.role || 'مستخدم'}: ${cleanName}` : 'لم يُنجز بعد'),
+      isOperator: false,
+      isInspector: false,
+      isAdmin: false,
+    };
+  }
+
+  // String matching heuristics fallback
+  if (
+    raw.includes('مشغل') ||
+    raw.includes('operator') ||
+    raw.includes('سيف الدين') ||
+    raw.includes('علي حسن')
+  ) {
+    let cleanName = raw.replace(/\s*\([^)]*مشغل[^)]*\)/g, '').trim();
+    cleanName = cleanName.replace(/^(?:مشغل النظام|مشغل)\s*[:\-\/]?\s*/g, '').trim();
+    return {
+      roleBadgeText: 'مشغل النظام',
+      roleBadgeClass: 'bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30',
+      roleBadgeBorder: 'border-amber-500/30',
+      userName: cleanName || 'مشغل النظام',
+      fullText: (cleanName && cleanName !== 'مشغل النظام' && cleanName !== 'مشغل') ? `مشغل النظام: ${cleanName}` : 'مشغل النظام',
+      isOperator: true,
+      isInspector: false,
+      isAdmin: false,
+    };
+  }
+
+  if (
+    raw.includes('مدير') ||
+    raw.includes('admin') ||
+    raw.includes('أحمد كريم')
+  ) {
+    let cleanName = raw.replace(/\s*\([^)]*مدير[^)]*\)/g, '').trim();
+    cleanName = cleanName.replace(/^(?:مدير النظام|مدير)\s*[:\-\/]?\s*/g, '').trim();
+    return {
+      roleBadgeText: 'مدير النظام',
+      roleBadgeClass: 'bg-purple-500/15 text-purple-700 dark:text-purple-400 border-purple-500/30',
+      roleBadgeBorder: 'border-purple-500/30',
+      userName: cleanName || 'مدير النظام',
+      fullText: (cleanName && cleanName !== 'مدير النظام' && cleanName !== 'مدير') ? `مدير النظام: ${cleanName}` : 'مدير النظام',
+      isOperator: false,
+      isInspector: false,
+      isAdmin: true,
+    };
+  }
+
+  if (
+    raw.includes('كشف') ||
+    raw.includes('مفتش') ||
+    raw.includes('حيدر') ||
+    raw.includes('صباح') ||
+    raw.includes('فحص') ||
+    raw.includes('مهندس الموقع')
+  ) {
+    let cleanName = raw.replace(/\s*\([^)]*(?:شعبة|قسم|فريق|هندسي|تفتيش|كشف|صيانة|مفتش|فحص|مهندس الموقع)[^)]*\)/g, '').trim();
+    cleanName = cleanName.replace(/^(?:موظف الكشف|موظف كشف|مهندس الموقع|مفتش)\s*[:\-\/]?\s*/g, '').trim();
+    return {
+      roleBadgeText: 'موظف الكشف',
+      roleBadgeClass: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30',
+      roleBadgeBorder: 'border-emerald-500/30',
+      userName: cleanName || 'موظف الكشف',
+      fullText: (cleanName && cleanName !== 'موظف الكشف') ? `موظف الكشف: ${cleanName}` : 'موظف الكشف',
+      isOperator: false,
+      isInspector: true,
+      isAdmin: false,
+    };
+  }
+
+  const cleanName = raw.replace(/\s*\([^)]*\)/g, '').trim() || raw;
+  return {
+    roleBadgeText: 'موظف الكشف',
+    roleBadgeClass: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30',
+    roleBadgeBorder: 'border-emerald-500/30',
+    userName: cleanName,
+    fullText: `موظف الكشف: ${cleanName}`,
+    isOperator: false,
+    isInspector: true,
+    isAdmin: false,
+  };
+};
+
 interface PeriodicInspectionViewProps {
   schedules: PeriodicInspectionSchedule[];
   units: UnitAsset[];
   governorates?: GovernorateRef[];
   oilfields?: OilfieldRef[];
   maintenanceRequests?: MaintenanceRequest[];
+  users?: SystemUser[];
+  currentUser?: SystemUser | null;
   onAddSchedule: (schedule: PeriodicInspectionSchedule) => void;
   onUpdateSchedule: (schedule: PeriodicInspectionSchedule) => void;
   onDeleteSchedule: (id: string) => void;
@@ -81,6 +265,7 @@ interface PeriodicInspectionViewProps {
       findings: string;
       recommendations: string;
       autoScheduleNext: boolean;
+      performedByName?: string;
       reportFileName?: string;
       reportFileUrl?: string;
       createMaintenance?: boolean;
@@ -101,6 +286,8 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
   governorates = [],
   oilfields = [],
   maintenanceRequests = [],
+  users = [],
+  currentUser = null,
   onAddSchedule,
   onUpdateSchedule,
   onDeleteSchedule,
@@ -242,6 +429,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
   const [completeGrade, setCompleteGrade] = useState<ConditionGrade>('A');
   const [completeFindings, setCompleteFindings] = useState('');
   const [completeRecommendations, setCompleteRecommendations] = useState('');
+  const [completePerformedByName, setCompletePerformedByName] = useState('');
   const [autoScheduleNext, setAutoScheduleNext] = useState(true);
   const [reportFile, setReportFile] = useState<File | null>(null);
   const [reportFileName, setReportFileName] = useState<string>('');
@@ -303,6 +491,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
   const [editNextDate, setEditNextDate] = useState('');
   const [editAssignedTeam, setEditAssignedTeam] = useState('');
   const [editInspectorName, setEditInspectorName] = useState('');
+  const [editPerformedByName, setEditPerformedByName] = useState('');
   const [editNotes, setEditNotes] = useState('');
 
   // Delete Schedule Confirm state
@@ -338,6 +527,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
     const unitObj = units.find((u) => u.code === newUnitCode);
     const year = new Date().getFullYear();
     const uniqueSuffix = Date.now().toString(36).slice(-6).toUpperCase();
+    const defaultPerformer = currentUser?.name || currentUser?.role || 'مشغل النظام';
     const schedule: PeriodicInspectionSchedule = {
       id: `INS-${year}-${uniqueSuffix}`,
       unitCode: newUnitCode,
@@ -351,7 +541,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
       lastInspectionDate: newStartDate,
       nextDueDate: newNextDate,
       assignedTeam: newAssignedTeam,
-      inspectorName: newInspectorName || 'مهندس الموقع',
+      inspectorName: newInspectorName.trim() || defaultPerformer,
       status: 'scheduled',
       notes: newNotes,
       createdAt: new Date().toISOString().split('T')[0],
@@ -370,12 +560,16 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
     e.preventDefault();
     if (!showCompleteModal) return;
 
+    const fallbackPerformer = currentUser?.name || currentUser?.role || showCompleteModal.inspectorName || 'مشغل النظام';
+    const finalPerformedBy = completePerformedByName.trim() || fallbackPerformer;
+
     onCompleteInspection(showCompleteModal.id, {
       completionDate: completeDate,
       grade: completeGrade,
       findings: completeFindings,
       recommendations: completeRecommendations,
       autoScheduleNext,
+      performedByName: finalPerformedBy,
       reportFileName: reportFileName || (reportFile ? reportFile.name : undefined),
       reportFileUrl: reportFile ? URL.createObjectURL(reportFile) : undefined,
       createMaintenance,
@@ -388,6 +582,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
     setShowCompleteModal(null);
     setCompleteFindings('');
     setCompleteRecommendations('');
+    setCompletePerformedByName('');
     setReportFile(null);
     setReportFileName('');
     setCreateMaintenance(false);
@@ -420,6 +615,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
     setEditNextDate(sch.nextDueDate || '');
     setEditAssignedTeam(sch.assignedTeam || '');
     setEditInspectorName(sch.inspectorName || '');
+    setEditPerformedByName(sch.performedByName || '');
     setEditNotes(sch.notes || '');
   };
 
@@ -438,6 +634,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
       nextDueDate: editNextDate,
       assignedTeam: editAssignedTeam,
       inspectorName: editInspectorName,
+      performedByName: editPerformedByName.trim() || undefined,
       notes: editNotes,
     };
 
@@ -885,7 +1082,8 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                     <th className="p-3.5">تاريخ البدء والتكرار</th>
                     <th className="p-3.5">الموعد القادم المستحق</th>
                     <th className="p-3.5">حالة الكشف</th>
-                    <th className="p-3.5">التقرير الهندسي</th>
+                    <th className="p-3.5">مُنفِّذ الكشف</th>
+                    <th className="p-3.5 text-center">التقرير</th>
                     <th className="p-3.5 text-center">الإجراءات والتوثيق</th>
                   </tr>
                 </thead>
@@ -953,17 +1151,116 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                         {/* Status */}
                         <td className="p-3.5">{getStatusBadge(sch.status)}</td>
 
-                        {/* Uploaded Report */}
-                        <td className="p-3.5">
-                          {sch.reportFileName ? (
-                            <div className="flex items-center gap-1.5 text-emerald-500 font-bold text-[11px]">
-                              <FileText className="w-3.5 h-3.5" />
-                              <span className="truncate max-w-[120px]" title={sch.reportFileName}>
-                                {sch.reportFileName}
-                              </span>
-                            </div>
+                        {/* Performed By */}
+                        <td className="p-3.5 whitespace-nowrap">
+                          {sch.performedByName || (sch.status === 'completed' && sch.inspectorName) ? (
+                            (() => {
+                              const p = getPerformerDisplay(sch.performedByName, sch.inspectorName, users, sch.status === 'completed');
+                              const isGenericRole = !p.userName || p.userName === p.roleBadgeText || p.userName === 'مشغل النظام' || p.userName === 'موظف الكشف' || p.userName === 'مدير النظام' || p.userName === 'مستخدم';
+                              
+                              if (isGenericRole) {
+                                return (
+                                  <div className="flex items-center">
+                                    <span
+                                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-black border shadow-sm ${p.roleBadgeClass}`}
+                                    >
+                                      <UserCheck
+                                        className={`w-3.5 h-3.5 shrink-0 ${
+                                          p.isOperator
+                                            ? isLight
+                                              ? 'text-amber-600'
+                                              : 'text-amber-400'
+                                            : p.isAdmin
+                                            ? isLight
+                                              ? 'text-purple-600'
+                                              : 'text-purple-400'
+                                            : isLight
+                                            ? 'text-emerald-600'
+                                            : 'text-emerald-400'
+                                        }`}
+                                      />
+                                      <span>{p.roleBadgeText}</span>
+                                    </span>
+                                  </div>
+                                );
+                              }
+
+                              return (
+                                <div className="space-y-1">
+                                  <div className="flex items-center gap-1.5 font-bold text-xs">
+                                    <UserCheck
+                                      className={`w-3.5 h-3.5 shrink-0 ${
+                                        p.isOperator
+                                          ? isLight
+                                            ? 'text-amber-600'
+                                            : 'text-amber-400'
+                                          : p.isAdmin
+                                          ? isLight
+                                            ? 'text-purple-600'
+                                            : 'text-purple-400'
+                                          : isLight
+                                          ? 'text-emerald-600'
+                                          : 'text-emerald-400'
+                                      }`}
+                                    />
+                                    <span className={isLight ? 'text-slate-900' : 'text-slate-100'}>
+                                      {p.userName}
+                                    </span>
+                                  </div>
+                                  <div>
+                                    <span
+                                      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-black border ${p.roleBadgeClass}`}
+                                    >
+                                      {p.roleBadgeText}
+                                    </span>
+                                  </div>
+                                </div>
+                              );
+                            })()
                           ) : (
-                            <span className="text-slate-500 text-[10px]">لم يرفع تقرير بعد</span>
+                            <div className="space-y-0.5">
+                              <span className={`text-[11px] font-semibold ${isLight ? 'text-slate-400' : 'text-slate-500'}`}>
+                                {sch.status === 'completed' ? '—' : 'لم يُنجز بعد'}
+                              </span>
+                              {sch.inspectorName && sch.status !== 'completed' && (
+                                <div className="text-[10px] text-slate-400 truncate max-w-[120px]" title={sch.inspectorName}>
+                                  المكلف: {sch.inspectorName.replace(/\s*\([^)]*\)/g, '').trim()}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </td>
+
+                        {/* Uploaded Report */}
+                        <td className="p-3.5 text-center whitespace-nowrap">
+                          {sch.reportFileName || sch.reportFileUrl ? (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const ext = sch.reportFileName?.split('.').pop() || 'pdf';
+                                setPreviewAttachment({
+                                  id: 'insp-main-' + sch.id,
+                                  name: sch.reportFileName || 'تقرير_الكشف.pdf',
+                                  type: ext,
+                                  url: sch.reportFileUrl || '#',
+                                  uploadedAt: sch.lastInspectionDate || new Date().toISOString().split('T')[0],
+                                  size: '1.5 MB',
+                                });
+                              }}
+                              className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition cursor-pointer border shadow-sm ${
+                                isLight
+                                  ? 'bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100 hover:border-emerald-400'
+                                  : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 hover:bg-emerald-500/30 hover:border-emerald-400/60'
+                              }`}
+                              title="فتح ومعاينة التقرير أو الصورة"
+                            >
+                              <Eye className="w-3.5 h-3.5" />
+                              <span className="truncate max-w-[110px]" title={sch.reportFileName || 'تقرير الكشف'}>
+                                {sch.reportFileName || 'معاينة التقرير'}
+                              </span>
+                            </button>
+                          ) : (
+                            <span className={`text-[10px] ${isLight ? 'text-slate-400' : 'text-slate-500'}`}>لا يوجد تقرير</span>
                           )}
                         </td>
 
@@ -978,6 +1275,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                                   setShowCompleteModal(sch);
                                   setCompleteDate(todayStr);
                                   setMaintDate(todayStr);
+                                  setCompletePerformedByName(sch.performedByName || '');
                                   if (matchedUnit) {
                                     setCompleteGrade(matchedUnit.conditionGrade);
                                   }
@@ -1722,17 +2020,40 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
 
                     <div>
                       <label className={`block font-bold mb-1 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
-                        اسم المهندس / المفتش المسؤول:
+                        القائم بالكشف / المهندس المسؤول:
                       </label>
-                      <input
-                        type="text"
-                        value={newInspectorName}
-                        onChange={(e) => setNewInspectorName(e.target.value)}
-                        placeholder="مثال: م. علي حسين"
-                        className={`w-full rounded-xl p-2.5 font-bold outline-none border ${
-                          isLight ? 'bg-white border-slate-200 text-slate-900 focus:border-amber-500' : 'bg-slate-900 border-slate-800 text-slate-100 focus:border-amber-500'
-                        }`}
-                      />
+                      <div className="space-y-1.5">
+                        <select
+                          value={newInspectorName}
+                          onChange={(e) => setNewInspectorName(e.target.value)}
+                          className={`w-full rounded-xl px-3 py-2 font-bold outline-none border cursor-pointer text-xs ${
+                            isLight ? 'bg-white border-slate-200 text-slate-900 focus:border-amber-500' : 'bg-slate-900 border-slate-800 text-slate-100 focus:border-amber-500'
+                          }`}
+                        >
+                          <option value="">-- اختر المستخدم أو حدد صفته --</option>
+                          <optgroup label="المستخدمون في النظام">
+                            {(users && users.length > 0 ? users : INITIAL_USERS).map((u) => (
+                              <option key={u.id} value={u.name}>
+                                {u.name} — ({u.role})
+                              </option>
+                            ))}
+                          </optgroup>
+                          <optgroup label="الصفات المعتمدة">
+                            <option value="مشغل النظام">مشغل النظام</option>
+                            <option value="موظف الكشف">موظف الكشف</option>
+                            <option value="مدير النظام">مدير النظام</option>
+                          </optgroup>
+                        </select>
+                        <input
+                          type="text"
+                          value={newInspectorName}
+                          onChange={(e) => setNewInspectorName(e.target.value)}
+                          placeholder="أو اكتب اسماً مخصصاً (مثال: م. سيف الدين علي)..."
+                          className={`w-full rounded-lg px-2.5 py-1 text-[11px] font-bold outline-none border ${
+                            isLight ? 'bg-white border-slate-200 text-slate-900 focus:border-amber-500' : 'bg-slate-900 border-slate-800 text-slate-100 focus:border-amber-500'
+                          }`}
+                        />
+                      </div>
                     </div>
                   </div>
 
@@ -1801,7 +2122,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
             </div>
 
             <form onSubmit={handleCompleteSubmit} className="space-y-3 text-xs overflow-hidden">
-              {/* ROW 1: HORIZONTAL TOP PARAMETERS GRID (3 COLUMNS) */}
+              {/* ROW 1: HORIZONTAL TOP PARAMETERS GRID (4 COLUMNS) */}
               <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-stretch">
                 {/* Column 1: Date */}
                 <div className="md:col-span-3">
@@ -1820,9 +2141,9 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                 </div>
 
                 {/* Column 2: Condition Grade Selection (A-B-C-D) */}
-                <div className="md:col-span-4">
+                <div className="md:col-span-3">
                   <label className={`block font-bold mb-1 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
-                    التقييم الهندسي (Condition Grade A-D):
+                    التقييم الهندسي (Grade):
                   </label>
                   <select
                     value={completeGrade}
@@ -1831,22 +2152,61 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                       isLight ? 'bg-slate-50 border-slate-200 text-slate-900 focus:border-emerald-500' : 'bg-slate-950 border-slate-800 text-slate-100 focus:border-emerald-500'
                     }`}
                   >
-                    <option value="A">درجة A (حالة ممتازة - لا توجد عيوب أو أضرار)</option>
-                    <option value="B">درجة B (حالة جيدة - ملاحظات فنية بسيطة)</option>
-                    <option value="C">درجة C (حالة متوسطة - تحتاج صيانة وقائية)</option>
-                    <option value="D">درجة D (حالة حرجة - تتطلب صيانة طارئة وفورية)</option>
+                    <option value="A">درجة A (حالة ممتازة)</option>
+                    <option value="B">درجة B (حالة جيدة)</option>
+                    <option value="C">درجة C (حالة متوسطة)</option>
+                    <option value="D">درجة D (حالة حرجة)</option>
                   </select>
                 </div>
 
-                {/* Column 3: Upload Report File Section */}
-                <div className={`md:col-span-5 p-2 rounded-xl border flex flex-col justify-center ${isLight ? 'bg-emerald-50/50 border-emerald-200' : 'bg-slate-950 border-slate-800'}`}>
+                {/* Column 3: Performed By (System user selector or custom) */}
+                <div className="md:col-span-3">
+                  <label className={`block font-bold mb-1 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                    مُنفِّذ الكشف (المعتمد في النظام):
+                  </label>
+                  <div className="space-y-1.5">
+                    <select
+                      value={completePerformedByName}
+                      onChange={(e) => setCompletePerformedByName(e.target.value)}
+                      className={`w-full rounded-xl px-3 py-2 font-bold outline-none border cursor-pointer text-xs ${
+                        isLight ? 'bg-slate-50 border-slate-200 text-slate-900 focus:border-emerald-500' : 'bg-slate-950 border-slate-800 text-slate-100 focus:border-emerald-500'
+                      }`}
+                    >
+                      <optgroup label="المستخدمون المعتمدون في النظام">
+                        {(users && users.length > 0 ? users : INITIAL_USERS).map((u) => (
+                          <option key={u.id} value={u.name}>
+                            {u.name} — ({u.role})
+                          </option>
+                        ))}
+                      </optgroup>
+                      <optgroup label="تصنيفات عامة">
+                        <option value="مشغل النظام">مشغل النظام</option>
+                        <option value="موظف الكشف">موظف الكشف</option>
+                        <option value="مدير النظام">مدير النظام</option>
+                      </optgroup>
+                    </select>
+
+                    <input
+                      type="text"
+                      value={completePerformedByName}
+                      onChange={(e) => setCompletePerformedByName(e.target.value)}
+                      placeholder="أو اكتب اسم مخصص لمُنفّذ الكشف..."
+                      className={`w-full rounded-lg px-2.5 py-1 text-[11px] font-bold outline-none border ${
+                        isLight ? 'bg-white border-slate-200 text-slate-900 focus:border-emerald-500' : 'bg-slate-900 border-slate-800 text-slate-100 focus:border-emerald-500'
+                      }`}
+                    />
+                  </div>
+                </div>
+
+                {/* Column 4: Upload Report File Section */}
+                <div className={`md:col-span-3 p-2 rounded-xl border flex flex-col justify-center ${isLight ? 'bg-emerald-50/50 border-emerald-200' : 'bg-slate-950 border-slate-800'}`}>
                   <div className="flex items-center justify-between mb-1">
                     <label className={`font-bold flex items-center gap-1.5 text-xs ${isLight ? 'text-emerald-900' : 'text-emerald-400'}`}>
                       <Upload className="w-3.5 h-3.5 shrink-0" />
-                      <span>ملف تقرير الكشف الهندسي:</span>
+                      <span>ملف التقرير:</span>
                     </label>
                     <span className={`text-[10px] font-semibold ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
-                      (صور / PDF / Word / Excel)
+                      (PDF/صور/Word)
                     </span>
                   </div>
 
@@ -1864,7 +2224,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                     <button
                       type="button"
                       onClick={() => reportFileInputRef.current?.click()}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition cursor-pointer shrink-0 ${
+                      className={`px-2.5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition cursor-pointer shrink-0 ${
                         isLight
                           ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm'
                           : 'bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/40'
@@ -1872,7 +2232,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                       title="رفع ملف التقرير من جهاز الحاسوب"
                     >
                       <Upload className="w-3.5 h-3.5" />
-                      <span>رفع من الحاسوب</span>
+                      <span>رفع ملف</span>
                     </button>
 
                     {/* File Info and Action Buttons */}
@@ -1880,7 +2240,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                       <div className="flex items-center justify-between gap-1.5 flex-1 min-w-0 bg-emerald-500/10 border border-emerald-500/30 px-2 py-1 rounded-lg">
                         <div className="flex items-center gap-1.5 min-w-0">
                           <FileCheck className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                          <span className="text-[11px] font-bold text-emerald-400 truncate max-w-[100px]" title={reportFileName}>
+                          <span className="text-[11px] font-bold text-emerald-400 truncate max-w-[80px]" title={reportFileName}>
                             {reportFileName}
                           </span>
                         </div>
@@ -1890,12 +2250,12 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                           <button
                             type="button"
                             onClick={handlePreviewReportFile}
-                            className={`px-2 py-1 rounded-md transition cursor-pointer text-[11px] font-bold flex items-center gap-1 ${
+                            className={`px-1.5 py-0.5 rounded-md transition cursor-pointer text-[10px] font-bold flex items-center gap-0.5 ${
                               isLight ? 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200' : 'bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700'
                             }`}
                             title="معاينة الملف المرفق"
                           >
-                            <Eye className="w-3.5 h-3.5 text-sky-400" />
+                            <Eye className="w-3 h-3 text-sky-400" />
                             <span>معاينة</span>
                           </button>
 
@@ -1903,19 +2263,18 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                           <button
                             type="button"
                             onClick={handleRemoveReportFile}
-                            className={`px-2 py-1 rounded-md transition cursor-pointer text-[11px] font-bold flex items-center gap-1 ${
+                            className={`px-1.5 py-0.5 rounded-md transition cursor-pointer text-[10px] font-bold flex items-center gap-0.5 ${
                               isLight ? 'bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200' : 'bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 border border-rose-500/30'
                             }`}
                             title="إزالة الملف المرفق"
                           >
-                            <Trash2 className="w-3.5 h-3.5" />
-                            <span>إزالة</span>
+                            <Trash2 className="w-3 h-3" />
                           </button>
                         </div>
                       </div>
                     ) : (
-                      <span className={`text-[11px] italic ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
-                        لم يتم اختيار أي ملف
+                      <span className={`text-[10px] italic ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                        لم يتم اختيار ملف
                       </span>
                     )}
                   </div>
@@ -2273,17 +2632,40 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
 
                     <div>
                       <label className={`block font-bold mb-1 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
-                        اسم المهندس المسؤول:
+                        القائم بالكشف / المهندس المسؤول:
                       </label>
-                      <input
-                        type="text"
-                        value={editInspectorName}
-                        onChange={(e) => setEditInspectorName(e.target.value)}
-                        placeholder="مثال: م. أحمد عبد الحسين"
-                        className={`w-full rounded-xl p-2.5 font-bold outline-none border ${
-                          isLight ? 'bg-white border-slate-200 text-slate-900 focus:border-amber-500' : 'bg-slate-900 border-slate-800 text-slate-100 focus:border-amber-500'
-                        }`}
-                      />
+                      <div className="space-y-1.5">
+                        <select
+                          value={editInspectorName}
+                          onChange={(e) => setEditInspectorName(e.target.value)}
+                          className={`w-full rounded-xl px-3 py-2 font-bold outline-none border cursor-pointer text-xs ${
+                            isLight ? 'bg-white border-slate-200 text-slate-900 focus:border-amber-500' : 'bg-slate-900 border-slate-800 text-slate-100 focus:border-amber-500'
+                          }`}
+                        >
+                          <option value="">-- اختر المستخدم أو حدد صفته --</option>
+                          <optgroup label="المستخدمون في النظام">
+                            {(users && users.length > 0 ? users : INITIAL_USERS).map((u) => (
+                              <option key={u.id} value={u.name}>
+                                {u.name} — ({u.role})
+                              </option>
+                            ))}
+                          </optgroup>
+                          <optgroup label="الصفات المعتمدة">
+                            <option value="مشغل النظام">مشغل النظام</option>
+                            <option value="موظف الكشف">موظف الكشف</option>
+                            <option value="مدير النظام">مدير النظام</option>
+                          </optgroup>
+                        </select>
+                        <input
+                          type="text"
+                          value={editInspectorName}
+                          onChange={(e) => setEditInspectorName(e.target.value)}
+                          placeholder="أو اكتب اسماً مخصصاً..."
+                          className={`w-full rounded-lg px-2.5 py-1 text-[11px] font-bold outline-none border ${
+                            isLight ? 'bg-white border-slate-200 text-slate-900 focus:border-amber-500' : 'bg-slate-900 border-slate-800 text-slate-100 focus:border-amber-500'
+                          }`}
+                        />
+                      </div>
                     </div>
                   </div>
 
@@ -2428,6 +2810,10 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                             <th className="p-2">آخر كشف</th>
                             <th className="p-2">الموعد المستحق</th>
                             <th className="p-2">الحالة والدرجة</th>
+                            <th className="p-2">مُنفِّذ الكشف</th>
+                            <th className="p-2">الملاحظات والنتائج</th>
+                            <th className="p-2">التوصيات والإجراءات</th>
+                            <th className="p-2 text-center">المرفقات / الصور</th>
                             <th className="p-2 text-center">تحديث الكشف</th>
                           </tr>
                         </thead>
@@ -2438,16 +2824,6 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                               <tr key={sch.id} className={isLight ? 'hover:bg-slate-100/80' : 'hover:bg-slate-800/30'}>
                                 <td className="p-2 font-bold">
                                   <div className={isLight ? 'text-slate-900' : 'text-slate-100'}>{sch.title}</div>
-                                  {sch.reportFileName && (
-                                    <a
-                                      href={sch.reportFileUrl || '#'}
-                                      download={sch.reportFileName}
-                                      className={`${isLight ? 'text-emerald-700' : 'text-emerald-400'} text-[10px] flex items-center gap-1 hover:underline mt-0.5`}
-                                    >
-                                      <FileText className="w-3 h-3" />
-                                      <span className="truncate max-w-[110px]">{sch.reportFileName}</span>
-                                    </a>
-                                  )}
                                 </td>
                                 <td className={`p-2 text-[11px] ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>{getFrequencyLabel(sch.frequency, sch.customIntervalDays)}</td>
                                 <td className={`p-2 font-mono text-[11px] ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>{toArabicDigits(sch.lastInspectionDate)}</td>
@@ -2458,6 +2834,84 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                                     {sch.conditionGradeGiven && <div>{getConditionGradeBadge(sch.conditionGradeGiven)}</div>}
                                   </div>
                                 </td>
+                                <td className="p-2 text-[11px] whitespace-nowrap">
+                                  {sch.performedByName || (sch.status === 'completed' && sch.inspectorName) ? (
+                                    (() => {
+                                      const p = getPerformerDisplay(sch.performedByName, sch.inspectorName, users, sch.status === 'completed');
+                                      const isGenericRole = !p.userName || p.userName === p.roleBadgeText || p.userName === 'مشغل النظام' || p.userName === 'موظف الكشف' || p.userName === 'مدير النظام' || p.userName === 'مستخدم';
+                                      
+                                      if (isGenericRole) {
+                                        return (
+                                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold border ${p.roleBadgeClass}`}>
+                                            <UserCheck className={`w-3 h-3 ${p.isOperator ? 'text-amber-500' : p.isAdmin ? 'text-purple-500' : 'text-emerald-500'}`} />
+                                            {p.roleBadgeText}
+                                          </span>
+                                        );
+                                      }
+
+                                      return (
+                                        <div className="space-y-0.5">
+                                          <div className="flex items-center gap-1 font-bold">
+                                            <UserCheck className={`w-3 h-3 ${p.isOperator ? 'text-amber-500' : p.isAdmin ? 'text-purple-500' : 'text-emerald-500'}`} />
+                                            <span className={isLight ? 'text-slate-800' : 'text-slate-200'}>{p.userName}</span>
+                                          </div>
+                                          <span className={`inline-block px-1.5 py-0.2 rounded text-[9px] font-bold border ${p.roleBadgeClass}`}>
+                                            {p.roleBadgeText}
+                                          </span>
+                                        </div>
+                                      );
+                                    })()
+                                  ) : (
+                                    <span className="text-slate-400">{sch.status === 'completed' ? '—' : 'لم يُنجز بعد'}</span>
+                                  )}
+                                </td>
+                                <td className="p-2 max-w-[160px]">
+                                  {sch.findings || sch.notes ? (
+                                    <span className={`text-[11px] line-clamp-2 ${isLight ? 'text-slate-700' : 'text-slate-300'}`} title={sch.findings || sch.notes}>
+                                      {sch.findings || sch.notes}
+                                    </span>
+                                  ) : (
+                                    <span className="text-slate-400 text-[10px]">لا توجد ملاحظات</span>
+                                  )}
+                                </td>
+                                <td className="p-2 max-w-[160px]">
+                                  {sch.recommendations ? (
+                                    <span className={`text-[11px] line-clamp-2 font-semibold ${isLight ? 'text-amber-900' : 'text-amber-300'}`} title={sch.recommendations}>
+                                      {sch.recommendations}
+                                    </span>
+                                  ) : (
+                                    <span className="text-slate-400 text-[10px]">لا توجد توصيات</span>
+                                  )}
+                                </td>
+                                <td className="p-2 text-center whitespace-nowrap">
+                                  {sch.reportFileName || sch.reportFileUrl ? (
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        const ext = sch.reportFileName?.split('.').pop() || 'pdf';
+                                        setPreviewAttachment({
+                                          id: 'insp-arch-' + sch.id,
+                                          name: sch.reportFileName || 'تقرير_الكشف.pdf',
+                                          type: ext,
+                                          url: sch.reportFileUrl || '#',
+                                          uploadedAt: sch.lastInspectionDate || new Date().toISOString().split('T')[0],
+                                          size: '1.5 MB',
+                                        });
+                                      }}
+                                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold transition cursor-pointer border shadow-sm ${
+                                        isLight
+                                          ? 'bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100'
+                                          : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 hover:bg-emerald-500/30'
+                                      }`}
+                                      title="معاينة المرفق أو الصورة الملتقطة"
+                                    >
+                                      <Eye className="w-3.5 h-3.5" />
+                                      <span className="truncate max-w-[90px]">{sch.reportFileName || 'معاينة المرفق'}</span>
+                                    </button>
+                                  ) : (
+                                    <span className="text-slate-400 text-[10px]">لا يوجد مرفق</span>
+                                  )}
+                                </td>
                                 <td className="p-2 text-center">
                                   {sch.status !== 'completed' ? (
                                     <button
@@ -2466,6 +2920,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                                         setShowCompleteModal(sch);
                                         setCompleteDate(sch.lastInspectionDate || new Date().toISOString().split('T')[0]);
                                         setMaintDate(sch.lastInspectionDate || new Date().toISOString().split('T')[0]);
+                                        setCompletePerformedByName(sch.performedByName || '');
                                         if (matchedUnit) {
                                           setCompleteGrade(sch.conditionGradeGiven || matchedUnit.conditionGrade);
                                         }
@@ -2526,6 +2981,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                             <th className="p-2">تاريخ الطلب</th>
                             <th className="p-2">تاريخ الإنجاز / الإلغاء</th>
                             <th className="p-2">المدة (بالأيام)</th>
+                            <th className="p-2 text-center">المرفق / الصورة</th>
                             <th className="p-2">ملاحظات الحل</th>
                             <th className="p-2 text-center">إجراء الموظف</th>
                           </tr>
@@ -2570,9 +3026,38 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                                     </span>
                                   )}
                                 </td>
-                                 <td className={`p-2 font-mono text-[11px] font-semibold ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>{formatDateOnly(req.createdAt)}</td>
+                                <td className={`p-2 font-mono text-[11px] font-semibold ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>{formatDateOnly(req.createdAt)}</td>
                                 <td className={`p-2 font-mono text-[11px] font-semibold ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>{getCompletionOrCancellationDate(req.completedAt, req.status)}</td>
                                 <td className={`p-2 font-bold text-[11px] ${isLight ? 'text-amber-700' : 'text-amber-400'}`}>{calculateMaintenanceDurationDays(req.createdAt, req.completedAt, req.status)}</td>
+                                <td className="p-2 text-center whitespace-nowrap">
+                                  {req.attachmentUrl || req.attachmentName ? (
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        const ext = req.attachmentName?.split('.').pop() || 'jpg';
+                                        setPreviewAttachment({
+                                          id: 'maint-arch-' + req.id,
+                                          name: req.attachmentName || 'صورة_البلاغ.jpg',
+                                          type: ext,
+                                          url: req.attachmentUrl || '#',
+                                          uploadedAt: formatDateOnly(req.createdAt),
+                                          size: '1.2 MB',
+                                        });
+                                      }}
+                                      className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-[10px] font-bold transition cursor-pointer border shadow-sm ${
+                                        isLight
+                                          ? 'bg-amber-50 text-amber-800 border-amber-300 hover:bg-amber-100'
+                                          : 'bg-amber-500/20 text-amber-300 border-amber-500/40 hover:bg-amber-500/30'
+                                      }`}
+                                      title="معاينة صورة أو مرفق طلب الصيانة"
+                                    >
+                                      <Eye className="w-3.5 h-3.5" />
+                                      <span className="truncate max-w-[80px]">{req.attachmentName || 'معاينة'}</span>
+                                    </button>
+                                  ) : (
+                                    <span className="text-slate-400 text-[10px]">لا يوجد مرفق</span>
+                                  )}
+                                </td>
                                 <td className="p-2">
                                   {req.resolutionNotes ? (
                                     <span className={`text-[10px] truncate max-w-[120px] block ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>{req.resolutionNotes}</span>

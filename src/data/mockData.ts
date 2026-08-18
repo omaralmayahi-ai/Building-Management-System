@@ -791,6 +791,8 @@ export const INITIAL_ORG_ENTITIES: OrgEntity[] = [
   },
 ];
 
+export const OFFICIAL_MOC_LOGO_SVG = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200"><defs><linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="%23fbbf24"/><stop offset="50%" stop-color="%23d97706"/><stop offset="100%" stop-color="%2378350f"/></linearGradient><linearGradient id="flameGrad" x1="0%" y1="100%" x2="0%" y2="0%"><stop offset="0%" stop-color="%23dc2626"/><stop offset="50%" stop-color="%23f59e0b"/><stop offset="100%" stop-color="%23fef08a"/></linearGradient><linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="%230f172a"/><stop offset="100%" stop-color="%23020617"/></linearGradient></defs><circle cx="100" cy="100" r="94" fill="url(%23bgGrad)" stroke="url(%23goldGrad)" stroke-width="4"/><circle cx="100" cy="100" r="86" fill="none" stroke="%23d97706" stroke-width="1.5" stroke-dasharray="4 2"/><path d="M 40 100 A 60 60 0 0 1 160 100" fill="none" stroke="%23dc2626" stroke-width="6"/><path d="M 40 108 A 60 60 0 0 0 160 108" fill="none" stroke="%2316a34a" stroke-width="6"/><g fill="%23d97706" opacity="0.4"><circle cx="100" cy="100" r="56" fill="none" stroke="%23d97706" stroke-width="3"/></g><path d="M82 145 L94 65 L106 65 L118 145 Z" fill="none" stroke="url(%23goldGrad)" stroke-width="3"/><line x1="87" y1="125" x2="113" y2="125" stroke="%23fbbf24" stroke-width="2"/><line x1="90" y1="105" x2="110" y2="105" stroke="%23fbbf24" stroke-width="2"/><line x1="92" y1="85" x2="108" y2="85" stroke="%23fbbf24" stroke-width="2"/><line x1="87" y1="125" x2="110" y2="105" stroke="%23fbbf24" stroke-width="1.5"/><line x1="113" y1="125" x2="90" y2="105" stroke="%23fbbf24" stroke-width="1.5"/><path d="M100 40 C92 52 94 60 100 65 C106 60 108 52 100 40 Z" fill="url(%23flameGrad)"/><path d="M100 110 C92 122 93 134 100 138 C107 134 108 122 100 110 Z" fill="%230f172a" stroke="%23fbbf24" stroke-width="1.5"/><text x="100" y="28" fill="%23fbbf24" font-size="9" font-weight="900" text-anchor="middle" font-family="Arial, sans-serif" letter-spacing="1">وزارة النفط • شركة نفط الوسط</text><text x="100" y="180" fill="%23f59e0b" font-size="8" font-weight="bold" text-anchor="middle" font-family="Arial, sans-serif" letter-spacing="1.5">MIDLAND OIL COMPANY</text></svg>`;
+
 export const INITIAL_BRANDING: SystemBranding = {
   systemName: 'السجل الرقمي الموحد للأصول الهندسية والإنشائية',
   companyName: 'شركة نفط الوسط',
@@ -798,6 +800,7 @@ export const INITIAL_BRANDING: SystemBranding = {
   countryName: 'جمهورية العراق',
   copyrightText: 'جميع الحقوق محفوظة © 2026 - شركة نفط الوسط • وزارة النفط العراقية',
   logoSubtext: 'عراق',
+  logoUrl: OFFICIAL_MOC_LOGO_SVG,
 };
 
 export const INITIAL_USERS: SystemUser[] = [
@@ -805,7 +808,7 @@ export const INITIAL_USERS: SystemUser[] = [
     id: 'USR-101',
     name: 'م. أحمد كريم الحلي (مدير النظام)',
     username: 'admin',
-    password: 'Moc#Adm!n2026$Krm',
+    password: 'admin123',
     role: 'مدير النظام',
     email: 'ahmed.kareem@mdoc.gov.iq',
     phone: '07701234567',

@@ -1067,6 +1067,15 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
             <strong className={`font-bold text-sm ${isNightMode ? 'text-emerald-400' : 'text-emerald-600'}`}>{toArabicDigits(selectedRoomData.area)}</strong>
           </div>
 
+          {selectedRoomData.occupiedBy && (
+            <div className={`p-2 rounded-xl border flex items-center justify-between ${
+              isNightMode ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200'
+            }`}>
+              <span className="text-slate-500 text-xs font-bold">الجهة الشاغلة:</span>
+              <strong className="font-bold text-xs text-amber-500">{selectedRoomData.occupiedBy}</strong>
+            </div>
+          )}
+
           {selectedRoomData.contents && selectedRoomData.contents.length > 0 && (
             <div className="flex flex-wrap gap-1.5 pt-1">
               {selectedRoomData.contents.map((item, idx) => (
@@ -1378,6 +1387,7 @@ function renderInteriorRooms(
       dimensions: `${(cellW * 0.92).toFixed(1)}م × ${(cellD * 0.92).toFixed(1)}م`,
       area: `${rm.areaSqM || Math.round((cellW * cellD) * 10) / 10} م²`,
       type: rm.type || 'غرفة مسجلة',
+      occupiedBy: rm.occupiedBy || '',
       contents: [
         isStopped ? 'الحالة: متوقفة 🔴' : 'الحالة: فعالة 🟢',
         isStopped && rm.notes ? `سبب التوقف: ${rm.notes}` : null,

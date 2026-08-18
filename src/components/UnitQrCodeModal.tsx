@@ -30,7 +30,9 @@ export const UnitQrCodeModal: React.FC<UnitQrCodeModalProps> = ({
   const appBaseUrl =
     (import.meta as any).env?.VITE_APP_URL ||
     (import.meta as any).env?.APP_URL ||
-    (typeof window !== 'undefined' ? window.location.origin : '');
+    (typeof window !== 'undefined'
+      ? `${window.location.protocol}//${window.location.host}`
+      : '');
   const qrPayload = `${appBaseUrl}/?view=inspect&unit=${encodeURIComponent(unit.code)}`;
 
   useEffect(() => {

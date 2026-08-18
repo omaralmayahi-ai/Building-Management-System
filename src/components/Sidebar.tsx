@@ -101,7 +101,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       label: 'سجل الكشوفات الدورية',
       icon: CalendarCheck,
       badge: 'مجدول',
-      roles: ['مدير النظام', 'مشغل النظام', 'موظف الكشف والصيانة'],
+      roles: ['مدير النظام', 'مشغل النظام'],
     },
     {
       id: 'maintenance' as NavTab,
@@ -109,7 +109,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       icon: Wrench,
       badge: `${toArabicDigits(maintenanceCount)} طلب`,
       badgeColor: maintenanceCount > 0 ? 'bg-red-500 text-white' : undefined,
-      roles: ['مدير النظام', 'مشغل النظام', 'موظف الكشف والصيانة'],
+      roles: ['مدير النظام', 'مشغل النظام'],
     },
     {
       id: 'reports' as NavTab,
@@ -117,7 +117,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       icon: FileText,
       badge: 'تقرير',
       badgeColor: 'bg-amber-500/20 text-amber-400 border border-amber-500/30',
-      roles: ['مدير النظام', 'مشغل النظام', 'مستخدم', 'موظف الكشف والصيانة'],
+      roles: ['مدير النظام', 'مشغل النظام', 'مستخدم'],
     },
     {
       id: 'settings' as NavTab,
@@ -131,9 +131,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const menuItems = allMenuItems.filter((item) => {
     // If admin, show all
     if (currentUserRole === 'مدير النظام' || currentUserRole === 'admin') return true;
-    // If field inspector, show field inspection, periodic, maintenance, reports
+    // If field inspector, show only field_inspection
     if (currentUserRole === 'موظف الكشف والصيانة' || currentUserRole === 'inspector') {
-      return ['field_inspection', 'periodic_inspection', 'maintenance', 'reports'].includes(item.id);
+      return ['field_inspection'].includes(item.id);
     }
     // If operator, show all except settings & field_inspection
     if (currentUserRole === 'مشغل النظام' || currentUserRole === 'operator') {

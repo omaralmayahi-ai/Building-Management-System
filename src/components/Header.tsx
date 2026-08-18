@@ -31,6 +31,7 @@ interface HeaderProps {
     currentPass: string,
     newPass: string
   ) => { success: boolean; message: string } | Promise<{ success: boolean; message: string }>;
+  syncStatus?: 'connected' | 'reconnecting' | 'polling';
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -40,6 +41,7 @@ export const Header: React.FC<HeaderProps> = ({
   currentUser,
   onLogout,
   onChangePassword,
+  syncStatus = 'connected',
 }) => {
   const isLight = theme === 'light';
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -230,9 +232,53 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
           </div>
 
-          {/* Unified User Profile Trigger & Dropdown Menu */}
-          {currentUser && (
-            <div className="relative shrink-0" ref={dropdownRef}>
+          {/* Actions & Unified User Profile Trigger */}
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            {/* Live Real-Time Sync Indicator */}
+            <div
+              id="live-sync-indicator-badge"
+              className={`hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[11px] font-semibold transition-all ${
+                syncStatus === 'connected'
+                  ? isLight
+                    ? 'bg-emerald-50 text-emerald-700 border-emerald-300 shadow-2xs'
+                    : 'bg-emerald-950/40 text-emerald-300 border-emerald-500/30'
+                  : syncStatus === 'reconnecting'
+                  ? isLight
+                    ? 'bg-amber-50 text-amber-700 border-amber-300 animate-pulse'
+                    : 'bg-amber-950/40 text-amber-300 border-amber-500/30 animate-pulse'
+                  : isLight
+                  ? 'bg-blue-50 text-blue-700 border-blue-300'
+                  : 'bg-blue-950/40 text-blue-300 border-blue-500/30'
+              }`}
+              title={
+                syncStatus === 'connected'
+                  ? 'المزامنة الفورية اللحظية متصلة بالخادم المركزي'
+                  : syncStatus === 'reconnecting'
+                  ? 'جاري إعادة الاتصال بالمزامنة الفورية...'
+                  : 'المزامنة الدورية نشطة'
+              }
+            >
+              <span
+                className={`w-2 h-2 rounded-full ${
+                  syncStatus === 'connected'
+                    ? 'bg-emerald-500 shadow-xs shadow-emerald-500/50 animate-pulse'
+                    : syncStatus === 'reconnecting'
+                    ? 'bg-amber-500 shadow-xs shadow-amber-500/50'
+                    : 'bg-blue-500'
+                }`}
+              />
+              <span>
+                {syncStatus === 'connected'
+                  ? 'مزامنة فورية نشطة'
+                  : syncStatus === 'reconnecting'
+                  ? 'إعادة اتصال...'
+                  : 'مزامنة تلقائية'}
+              </span>
+            </div>
+
+            {/* Unified User Profile Trigger & Dropdown Menu */}
+            {currentUser && (
+              <div className="relative shrink-0" ref={dropdownRef}>
               <button
                 type="button"
                 id="user-profile-menu-button"
@@ -473,7 +519,8 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
           )}
         </div>
-      </header>
+      </div>
+    </header>
 
       {/* ==================== Change Password Modal ==================== */}
       {isPasswordModalOpen && (

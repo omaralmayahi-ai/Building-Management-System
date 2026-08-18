@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import {
   Wrench,
   GitBranch,
@@ -14,8 +14,16 @@ import {
   ChevronLeft,
   Check,
   X,
+  Camera,
+  Upload,
+  FileCheck,
+  Eye,
+  Trash2,
+  Download,
+  ImageIcon,
+  FileText,
 } from 'lucide-react';
-import { MaintenanceRequest, MaintenancePriority, UnitAsset } from '../types';
+import { MaintenanceRequest, MaintenancePriority, UnitAsset, SystemUser } from '../types';
 
 interface NewMaintenanceModalProps {
   units?: UnitAsset[];
@@ -23,6 +31,7 @@ interface NewMaintenanceModalProps {
   onAddRequest: (req: MaintenanceRequest) => void;
   onClose: () => void;
   isLight?: boolean;
+  currentUser?: SystemUser | null;
 }
 
 export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
@@ -31,6 +40,7 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
   onAddRequest,
   onClose,
   isLight = false,
+  currentUser,
 }) => {
   const [unitCode, setUnitCode] = useState(initialUnitCode || (units[0]?.code ?? 'WS-AHD-BLD-014'));
   const [unitPickerMode, setUnitPickerMode] = useState<'tree_vertical' | 'tree_horizontal' | 'dropdown'>('tree_vertical');
@@ -45,6 +55,45 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
   const [priority, setPriority] = useState<MaintenancePriority>('normal');
   const [assignedTo, setAssignedTo] = useState('فريق الصيانة الميدانية بالموقع');
   const [validationError, setValidationError] = useState('');
+
+  // Attachment / Camera Upload State (Optional)
+  const [attachmentName, setAttachmentName] = useState<string>('');
+  const [attachmentUrl, setAttachmentUrl] = useState<string>('');
+  const [attachmentType, setAttachmentType] = useState<string>('');
+  const [previewItem, setPreviewItem] = useState<{ title: string; url: string; fileName: string } | null>(null);
+
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Check size limit: 12MB
+    if (file.size > 12 * 1024 * 1024) {
+      setValidationError('حجم الملف المرفق كبير جداً. الحد الأقصى المسموح به هو 12 ميجابايت.');
+      return;
+    }
+
+    setAttachmentName(file.name);
+    setAttachmentType(file.type);
+    setValidationError('');
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      setAttachmentUrl(result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveFile = () => {
+    setAttachmentName('');
+    setAttachmentUrl('');
+    setAttachmentType('');
+    if (cameraInputRef.current) cameraInputRef.current.value = '';
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
 
   // Group units by governorate -> field
   const groupedUnits = useMemo(() => {
@@ -106,7 +155,9 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
       assignedTo,
       status: 'open',
       createdAt: requestDate || new Date().toISOString().split('T')[0],
-      reportedBy: 'مهندس المعاينة والصيانة',
+      reportedBy: currentUser?.name || 'غير معروف',
+      attachmentName: attachmentName || undefined,
+      attachmentUrl: attachmentUrl || undefined,
     };
 
     onAddRequest(newReq);
@@ -666,6 +717,117 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
             </div>
           </div>
 
+          {/* SECTION 3: ATTACHMENT / CAMERA UPLOAD (OPTIONAL) */}
+          <div className={`p-4 rounded-2xl border space-y-3 ${isLight ? 'bg-slate-50/80 border-slate-200' : 'bg-slate-950/60 border-slate-800'}`}>
+            <div className="flex items-center justify-between border-b pb-2 border-slate-200 dark:border-slate-800">
+              <label className={`block font-extrabold text-xs flex items-center gap-1.5 ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                <Camera className="w-4 h-4 text-amber-500" />
+                <span>3. رفع ملف أو التقاط صورة للعطل:</span>
+              </label>
+              <span className="text-[10px] text-slate-400 font-bold bg-amber-500/10 px-2 py-0.5 rounded-full text-amber-600 dark:text-amber-400">
+                اختياري (غير ملزم)
+              </span>
+            </div>
+
+            {/* Hidden File Inputs */}
+            <input
+              type="file"
+              accept="image/*"
+              capture="environment"
+              ref={cameraInputRef}
+              onChange={handleFileSelected}
+              className="hidden"
+            />
+            <input
+              type="file"
+              accept="image/*,.pdf,.doc,.docx,.xls,.xlsx"
+              ref={fileInputRef}
+              onChange={handleFileSelected}
+              className="hidden"
+            />
+
+            {/* Buttons */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => cameraInputRef.current?.click()}
+                className="py-2.5 px-3 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-slate-950 flex items-center justify-center gap-2 shadow-md transition cursor-pointer active:scale-95"
+              >
+                <Camera className="w-4 h-4" />
+                <span>فتح كاميرا الهاتف لالتقاط صورة</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className={`py-2.5 px-3 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-2 cursor-pointer active:scale-95 ${
+                  isLight
+                    ? 'bg-white hover:bg-slate-100 border-slate-300 text-slate-700'
+                    : 'bg-slate-900 hover:bg-slate-800 border-slate-700 text-slate-200'
+                }`}
+              >
+                <Upload className="w-4 h-4 text-emerald-400" />
+                <span>اختيار ملف / صورة من الجهاز</span>
+              </button>
+            </div>
+
+            {/* Attached file status */}
+            {attachmentName ? (
+              <div className="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-xs animate-fadeIn">
+                <div className="flex items-center gap-2 min-w-0">
+                  {attachmentType.startsWith('image/') || attachmentUrl.startsWith('data:image/') ? (
+                    <img
+                      src={attachmentUrl}
+                      alt="Attachment Preview"
+                      className="w-10 h-10 object-cover rounded-lg border border-emerald-500/40 shrink-0"
+                      referrerPolicy="no-referrer"
+                    />
+                  ) : (
+                    <FileCheck className="w-6 h-6 text-emerald-400 shrink-0" />
+                  )}
+                  <div className="min-w-0">
+                    <div className="font-bold text-emerald-400 truncate max-w-[200px]" title={attachmentName}>
+                      {attachmentName}
+                    </div>
+                    <div className="text-[10px] text-emerald-500/80">تم إرفاق الملف بطلب الصيانة</div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1.5 shrink-0">
+                  {attachmentUrl && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setPreviewItem({
+                          title: 'معاينة مرفق طلب الصيانة',
+                          url: attachmentUrl,
+                          fileName: attachmentName,
+                        })
+                      }
+                      className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] flex items-center gap-1 cursor-pointer transition shadow-sm"
+                    >
+                      <Eye className="w-3.5 h-3.5" />
+                      <span>معاينة</span>
+                    </button>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={handleRemoveFile}
+                    className="p-1.5 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 border border-rose-500/40 transition cursor-pointer"
+                    title="إزالة المرفق"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <p className="text-[11px] text-slate-400 text-center py-0.5">
+                يمكنك التقاط صورة من الكاميرا مباشرة لتوثيق العطل أو إرسال الطلب بدون مرفق.
+              </p>
+            )}
+          </div>
+
           {/* VALIDATION ERROR MESSAGE */}
           {validationError && (
             <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-500 font-bold text-xs flex items-center gap-2">
@@ -695,6 +857,64 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
           </div>
         </form>
       </div>
+
+      {/* FULL PREVIEW MODAL FOR ATTACHMENT */}
+      {previewItem && (
+        <div className="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 animate-fadeIn">
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-4 sm:p-5 w-full max-w-2xl space-y-4 shadow-2xl flex flex-col max-h-[90vh]">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <ImageIcon className="w-5 h-5 text-amber-500" />
+                <h3 className="font-bold text-sm sm:text-base text-white">{previewItem.title}</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setPreviewItem(null)}
+                className="p-1.5 rounded-xl bg-slate-800 text-slate-400 hover:text-white transition cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-auto rounded-2xl bg-black/50 border border-slate-800/80 flex items-center justify-center p-2 min-h-[220px]">
+              {previewItem.url.startsWith('data:image/') ||
+              previewItem.fileName.match(/\.(jpeg|jpg|png|webp|gif|svg)$/i) ? (
+                <img
+                  src={previewItem.url}
+                  alt={previewItem.fileName}
+                  className="max-h-[55vh] max-w-full object-contain rounded-xl shadow-lg"
+                  referrerPolicy="no-referrer"
+                />
+              ) : (
+                <div className="text-center p-6 space-y-3">
+                  <FileText className="w-16 h-16 text-amber-500 mx-auto" />
+                  <p className="text-sm font-bold text-white">{previewItem.fileName}</p>
+                  <p className="text-xs text-slate-400">مستند مرفق</p>
+                </div>
+              )}
+            </div>
+
+            <div className="flex items-center justify-between pt-2 border-t border-slate-800">
+              <a
+                href={previewItem.url}
+                download={previewItem.fileName}
+                className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs flex items-center gap-1.5 transition cursor-pointer shadow-md"
+              >
+                <Download className="w-4 h-4" />
+                <span>تنزيل المرفق</span>
+              </a>
+
+              <button
+                type="button"
+                onClick={() => setPreviewItem(null)}
+                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl text-xs transition cursor-pointer"
+              >
+                إغلاق
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -15,6 +15,9 @@ import {
   XCircle,
   Upload,
   Trash2,
+  Eye,
+  Camera,
+  Image as ImageIcon,
 } from 'lucide-react';
 import { MaintenanceRequest, MaintenanceStatus, MaintenancePriority, UnitAsset } from '../types';
 import {
@@ -60,6 +63,9 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
   const [editPriority, setEditPriority] = useState<MaintenancePriority>('normal');
   const [editAssignedTo, setEditAssignedTo] = useState('');
   const [editStatus, setEditStatus] = useState<MaintenanceStatus>('open');
+
+  // Preview Attachment Modal State
+  const [previewItem, setPreviewItem] = useState<{ title: string; url: string; fileName: string } | null>(null);
 
   const filteredRequests = requests.filter((r) => {
     const matchStatus =
@@ -243,11 +249,13 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
                 <th className="p-3 font-semibold min-w-[200px]">رمز الأصل واسم الوحدة</th>
                 <th className="p-3 font-semibold">العطل / المشكلة</th>
                 <th className="p-3 font-semibold">الأولية</th>
+                <th className="p-3 font-semibold">مقدّم الطلب</th>
                 <th className="p-3 font-semibold">الفريق المكلف</th>
                 <th className="p-3 font-semibold">حالة الطلب</th>
                 <th className="p-3 font-semibold">تاريخ الطلب</th>
                 <th className="p-3 font-semibold">تاريخ الإنجاز / الإلغاء</th>
                 <th className="p-3 font-semibold">المدة (بالأيام)</th>
+                <th className="p-3 font-semibold text-center">المرفق / الصورة</th>
                 <th className="p-3 font-semibold">تفاصيل وملاحظات الحل</th>
                 <th className="p-3 font-semibold text-center">المعالجة والتحديث</th>
               </tr>
@@ -287,6 +295,12 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
                       {req.priority === 'critical' ? 'حرج جداً' : 'عادي'}
                     </span>
                   </td>
+                  <td className="p-3">
+                    <div className="flex items-center gap-1.5 font-bold text-xs">
+                      <UserCheck className={`w-3.5 h-3.5 shrink-0 ${isLight ? 'text-amber-600' : 'text-amber-400'}`} />
+                      <span className={isLight ? 'text-slate-900' : 'text-slate-100'}>{req.reportedBy || 'غير معروف'}</span>
+                    </div>
+                  </td>
                   <td className="p-3 text-slate-400">{req.assignedTo}</td>
                   <td className="p-3">
                     {req.status === 'completed' ? (
@@ -306,6 +320,31 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
                   <td className="p-3 font-mono text-[11px] font-semibold">{formatDateOnly(req.createdAt)}</td>
                   <td className="p-3 font-mono text-[11px] font-semibold">{getCompletionOrCancellationDate(req.completedAt, req.status)}</td>
                   <td className="p-3 font-bold text-amber-400 text-[11px]">{calculateMaintenanceDurationDays(req.createdAt, req.completedAt, req.status)}</td>
+                  <td className="p-3 text-center whitespace-nowrap">
+                    {req.attachmentUrl || req.attachmentName ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setPreviewItem({
+                            title: `مرفق طلب الصيانة (${toArabicDigits(req.id)})`,
+                            url: req.attachmentUrl || '#',
+                            fileName: req.attachmentName || 'صورة_البلاغ.jpg',
+                          });
+                        }}
+                        className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold transition cursor-pointer border shadow-sm ${
+                          isLight
+                            ? 'bg-amber-50 text-amber-800 border-amber-300 hover:bg-amber-100'
+                            : 'bg-amber-500/20 text-amber-300 border-amber-500/40 hover:bg-amber-500/30'
+                        }`}
+                        title="معاينة الصورة المرفقة بطلب الصيانة"
+                      >
+                        <Eye className="w-3.5 h-3.5" />
+                        <span className="truncate max-w-[70px]">{req.attachmentName || 'معاينة'}</span>
+                      </button>
+                    ) : (
+                      <span className="text-slate-500 text-[10px]">لا يوجد</span>
+                    )}
+                  </td>
                   <td className="p-3">
                     {req.resolutionNotes ? (
                       <span className="text-slate-300 text-[11px]">{req.resolutionNotes}</span>
@@ -605,6 +644,56 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
               >
                 <Trash2 className="w-4 h-4" />
                 <span>تأكيد الحذف النهائي</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* FULL PREVIEW MODAL FOR ATTACHMENT */}
+      {previewItem && (
+        <div className="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 animate-fadeIn">
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-4 sm:p-5 w-full max-w-2xl space-y-4 shadow-2xl flex flex-col max-h-[90vh]">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <ImageIcon className="w-5 h-5 text-amber-500" />
+                <h3 className="font-bold text-sm sm:text-base text-white">{previewItem.title}</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setPreviewItem(null)}
+                className="p-1.5 rounded-xl bg-slate-800 text-slate-400 hover:text-white transition cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-auto rounded-2xl bg-black/50 border border-slate-800/80 flex items-center justify-center p-2 min-h-[220px]">
+              {previewItem.url.startsWith('data:image/') ||
+              previewItem.fileName.match(/\.(jpeg|jpg|png|webp|gif|svg)$/i) ? (
+                <img
+                  src={previewItem.url}
+                  alt={previewItem.fileName}
+                  className="max-h-[55vh] max-w-full object-contain rounded-xl shadow-lg"
+                  referrerPolicy="no-referrer"
+                />
+              ) : (
+                <div className="text-center p-6 space-y-3">
+                  <FileText className="w-16 h-16 text-amber-500 mx-auto" />
+                  <p className="text-sm font-bold text-white">{previewItem.fileName}</p>
+                  <p className="text-xs text-slate-400">مستند مرفق</p>
+                </div>
+              )}
+            </div>
+
+            <div className="flex items-center justify-between pt-2 border-t border-slate-800">
+              <span className="text-xs text-slate-400 font-mono">{previewItem.fileName}</span>
+              <button
+                type="button"
+                onClick={() => setPreviewItem(null)}
+                className="px-4 py-1.5 rounded-xl bg-slate-800 text-white font-bold text-xs hover:bg-slate-700 transition cursor-pointer"
+              >
+                إغلاق
               </button>
             </div>
           </div>

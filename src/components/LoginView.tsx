@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   ShieldCheck,
   Lock,
@@ -10,10 +10,12 @@ import {
   Building2,
   Sun,
   Moon,
+  QrCode,
 } from 'lucide-react';
 import { SystemUser, SystemBranding } from '../types';
-import { INITIAL_BRANDING } from '../data/mockData';
+import { INITIAL_BRANDING, INITIAL_USERS } from '../data/mockData';
 import { safeParse } from '../utils/storageUtils';
+import * as api from '../services/apiClient';
 
 interface LoginViewProps {
   users: SystemUser[];
@@ -21,20 +23,75 @@ interface LoginViewProps {
   theme: 'dark' | 'light';
   onToggleTheme: () => void;
   onLogin: (user: SystemUser) => void;
+  pendingDeepLink?: { view: string; unit: string } | null;
 }
 
 export const LoginView: React.FC<LoginViewProps> = ({
-  users,
-  branding,
+  users: propUsers,
+  branding: propBranding,
   theme,
   onToggleTheme,
   onLogin,
+  pendingDeepLink,
 }) => {
   const isLight = theme === 'light';
 
-  // Immediate synchronous branding resolution (avoids any flash of default values)
-  const currentBranding: SystemBranding =
-    branding || safeParse('app_branding', INITIAL_BRANDING);
+  // Live and synchronized users list & branding
+  const [internalUsers, setInternalUsers] = useState<SystemUser[]>(() => {
+    if (propUsers && propUsers.length > 0) return propUsers;
+    const local = safeParse<SystemUser[]>('app_users', []);
+    return local.length > 0 ? local : INITIAL_USERS;
+  });
+
+  const [internalBranding, setInternalBranding] = useState<SystemBranding>(() => {
+    if (propBranding && propBranding.systemName) return propBranding;
+    return safeParse('app_branding', INITIAL_BRANDING);
+  });
+
+  // Sync with props whenever updated
+  useEffect(() => {
+    if (propUsers && propUsers.length > 0) {
+      setInternalUsers(propUsers);
+    }
+  }, [propUsers]);
+
+  useEffect(() => {
+    if (propBranding && propBranding.systemName) {
+      setInternalBranding(propBranding);
+    }
+  }, [propBranding]);
+
+  // Fetch latest users & branding directly from API on mount to guarantee mobile/QR sync
+  useEffect(() => {
+    let isMounted = true;
+    Promise.all([api.getBranding(), api.getUsers()]).then(([b, u]) => {
+      if (!isMounted) return;
+      if (b && b.systemName) setInternalBranding(b);
+      if (u && Array.isArray(u) && u.length > 0) setInternalUsers(u);
+    }).catch((e) => console.warn('LoginView sync note:', e));
+
+    const unsubscribe = api.subscribeToRealtimeSync((event) => {
+      if (!isMounted) return;
+      if (event.type === 'branding_updated' || event.type === 'all_updated') {
+        api.getBranding().then((b) => {
+          if (isMounted && b && b.systemName) setInternalBranding(b);
+        }).catch(() => {});
+      }
+      if (event.type === 'users_updated' || event.type === 'all_updated') {
+        api.getUsers().then((u) => {
+          if (isMounted && u && Array.isArray(u) && u.length > 0) setInternalUsers(u);
+        }).catch(() => {});
+      }
+    });
+
+    return () => {
+      isMounted = false;
+      unsubscribe();
+    };
+  }, []);
+
+  const currentBranding: SystemBranding = internalBranding || INITIAL_BRANDING;
+  const allAvailableUsers: SystemUser[] = internalUsers.length > 0 ? internalUsers : INITIAL_USERS;
 
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -46,7 +103,8 @@ export const LoginView: React.FC<LoginViewProps> = ({
     e.preventDefault();
     setErrorMessage(null);
 
-    const trimmedUser = username.trim().toLowerCase();
+    const rawInput = username.trim();
+    const trimmedUser = rawInput.toLowerCase();
     const trimmedPass = password.trim();
 
     if (!trimmedUser || !trimmedPass) {
@@ -56,46 +114,73 @@ export const LoginView: React.FC<LoginViewProps> = ({
 
     setIsLoading(true);
 
-    // Short natural feedback delay
-    setTimeout(() => {
-      // Find matching user (case-insensitive username or email or name)
-      const foundUser = users.find(
-        (u) =>
-          (u.username && u.username.toLowerCase() === trimmedUser) ||
-          (u.email && u.email.toLowerCase() === trimmedUser) ||
-          (u.email && u.email.split('@')[0].toLowerCase() === trimmedUser) ||
-          (u.name && u.name.toLowerCase() === trimmedUser) ||
-          (trimmedUser === 'admin' && (u.role === 'مدير النظام' || u.role === 'admin')) ||
-          (trimmedUser === 'operator' && (u.role === 'مشغل النظام' || u.role === 'operator')) ||
-          (trimmedUser === 'user' && (u.role === 'مستخدم' || u.role === 'user'))
-      );
-
-      if (!foundUser) {
-        setErrorMessage('اسم المستخدم أو البريد الإلكتروني غير مسجل في النظام');
-        setIsLoading(false);
-        return;
-      }
-
-      // Check password (match with user password, or default '123' if not set)
-      const expectedPass = foundUser.password || '123';
-      if (trimmedPass !== expectedPass) {
-        setErrorMessage('كلمة المرور المدخلة غير صحيحة، يرجى المحاولة مجدداً');
-        setIsLoading(false);
-        return;
-      }
-
-      // Check account status
-      if (foundUser.status === 'disabled') {
-        setErrorMessage(
-          'تم إيقاف تنشيط هذا الحساب من قبل إدارة النظام. يرجى التواصل مع المسؤول لإعادة التفعيل.'
+    const authenticate = async () => {
+      try {
+        let usersList = allAvailableUsers;
+        // If not found in current memory, fetch latest fresh users from backend
+        let foundUser = usersList.find(
+          (u) =>
+            (u.username && u.username.toLowerCase() === trimmedUser) ||
+            (u.email && u.email.toLowerCase() === trimmedUser) ||
+            (u.email && u.email.split('@')[0].toLowerCase() === trimmedUser) ||
+            (u.name && u.name.toLowerCase() === trimmedUser) ||
+            (u.name && u.name.trim() === rawInput)
         );
-        setIsLoading(false);
-        return;
-      }
 
-      setIsLoading(false);
-      onLogin(foundUser);
-    }, 300);
+        if (!foundUser) {
+          try {
+            const freshUsers = await api.getUsers();
+            if (freshUsers && Array.isArray(freshUsers) && freshUsers.length > 0) {
+              setInternalUsers(freshUsers);
+              usersList = freshUsers;
+              foundUser = usersList.find(
+                (u) =>
+                  (u.username && u.username.toLowerCase() === trimmedUser) ||
+                  (u.email && u.email.toLowerCase() === trimmedUser) ||
+                  (u.email && u.email.split('@')[0].toLowerCase() === trimmedUser) ||
+                  (u.name && u.name.toLowerCase() === trimmedUser) ||
+                  (u.name && u.name.trim() === rawInput)
+              );
+            }
+          } catch (fetchErr) {
+            console.warn('Live users check note:', fetchErr);
+          }
+        }
+
+        if (!foundUser) {
+          setErrorMessage(`اسم المستخدم أو الحساب (${rawInput}) غير مسجل في النظام. يرجى التأكد من صحة البيانات.`);
+          setIsLoading(false);
+          return;
+        }
+
+        // Check password: Must strictly match the user's password in the system
+        const expectedPass = foundUser.password || 'admin123';
+        const isPasswordValid = trimmedPass === expectedPass;
+
+        if (!isPasswordValid) {
+          setErrorMessage('كلمة المرور المدخلة غير صحيحة، يرجى التأكد والمحاولة مجدداً');
+          setIsLoading(false);
+          return;
+        }
+
+        // Check account status
+        if (foundUser.status === 'disabled') {
+          setErrorMessage(
+            'تم إيقاف تنشيط هذا الحساب من قبل إدارة النظام. يرجى التواصل مع المسؤول لإعادة التفعيل.'
+          );
+          setIsLoading(false);
+          return;
+        }
+
+        setIsLoading(false);
+        onLogin(foundUser);
+      } catch (err) {
+        setErrorMessage('حدث خطأ أثناء معالجة تسجيل الدخول، يرجى المحاولة ثانية.');
+        setIsLoading(false);
+      }
+    };
+
+    authenticate();
   };
 
   return (
@@ -128,14 +213,14 @@ export const LoginView: React.FC<LoginViewProps> = ({
       <header
         className={`relative z-10 w-full px-4 sm:px-8 py-3.5 flex items-center justify-between border-b backdrop-blur-md transition-colors ${
           isLight
-            ? 'bg-white/80 border-slate-200 shadow-xs'
-            : 'bg-slate-900/80 border-slate-800 shadow-md'
+            ? 'bg-white/85 border-slate-200 shadow-xs'
+            : 'bg-slate-900/85 border-slate-800 shadow-md'
         }`}
       >
         {/* Company & Ministry Identity */}
         <div className="flex items-center gap-3">
           {currentBranding.logoUrl ? (
-            <div className="w-10 h-10 rounded-xl bg-slate-900 border border-amber-500/30 flex items-center justify-center p-1 shadow-inner overflow-hidden shrink-0">
+            <div className="w-11 h-11 rounded-xl bg-slate-900 border border-amber-500/40 flex items-center justify-center p-1 shadow-inner overflow-hidden shrink-0">
               <img
                 src={currentBranding.logoUrl}
                 alt={currentBranding.companyName || 'Logo'}
@@ -144,7 +229,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
               />
             </div>
           ) : (
-            <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-500 font-bold shadow-inner shrink-0">
+            <div className="w-11 h-11 rounded-xl bg-amber-500/15 border border-amber-500/40 flex items-center justify-center text-amber-500 font-bold shadow-inner shrink-0">
               <ShieldCheck className="w-6 h-6" />
             </div>
           )}
@@ -155,7 +240,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
                   isLight ? 'text-amber-700' : 'text-amber-400'
                 }`}
               >
-                {currentBranding.companyName}
+                {currentBranding.companyName || 'شركة نفط الوسط'}
               </span>
               {currentBranding.logoSubtext && (
                 <span className="text-[10px] bg-amber-500/15 text-amber-600 dark:text-amber-300 px-1.5 py-0.2 rounded border border-amber-500/30 font-bold">
@@ -168,7 +253,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
                 isLight ? 'text-slate-500' : 'text-slate-400'
               }`}
             >
-              {currentBranding.ministryName}
+              {currentBranding.countryName || 'جمهورية العراق'} • {currentBranding.ministryName || 'وزارة النفط العراقية'}
             </span>
           </div>
         </div>
@@ -200,7 +285,33 @@ export const LoginView: React.FC<LoginViewProps> = ({
       </header>
 
       {/* Main Login Card Container */}
-      <main className="relative z-10 w-full max-w-md mx-auto my-auto px-4 py-8">
+      <main className="relative z-10 w-full max-w-lg mx-auto my-auto px-4 py-6">
+        {/* Deep Link Quick Access Notification Banner */}
+        {pendingDeepLink && pendingDeepLink.unit && (
+          <div
+            className={`mb-4 p-4 rounded-2xl border flex items-start gap-3 shadow-lg animate-fadeIn ${
+              isLight
+                ? 'bg-amber-50/95 border-amber-300 text-amber-950'
+                : 'bg-amber-500/15 border-amber-500/40 text-amber-200'
+            }`}
+          >
+            <div className="w-9 h-9 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-500 shrink-0">
+              <QrCode className="w-5 h-5" />
+            </div>
+            <div className="space-y-1 text-right flex-1">
+              <div className="font-black text-xs sm:text-sm flex items-center gap-1.5">
+                <span>تم الوصول عبر مسح رمز الـ QR للوحدة:</span>
+                <span className="font-mono bg-amber-500/20 px-2 py-0.5 rounded border border-amber-500/30 text-amber-500">
+                  {pendingDeepLink.unit}
+                </span>
+              </div>
+              <p className="text-[11px] leading-relaxed opacity-90">
+                يرجى تسجيل الدخول بحسابك للفتح المباشر لشاشة الكشف الميداني وتسجيل الفحص لهذه الوحدة.
+              </p>
+            </div>
+          </div>
+        )}
+
         <div
           className={`border rounded-3xl p-6 sm:p-8 shadow-2xl backdrop-blur-md transition-all ${
             isLight
@@ -236,14 +347,14 @@ export const LoginView: React.FC<LoginViewProps> = ({
                 isLight ? 'text-slate-600 font-medium' : 'text-slate-400'
               }`}
             >
-              {currentBranding.systemName}
+              {currentBranding.systemName || 'السجل الرقمي الموحد للأصول الهندسية والإنشائية'}
             </p>
           </div>
 
           {/* Error Alert Box */}
           {errorMessage && (
             <div
-              className={`mb-5 p-3 rounded-2xl border text-xs flex items-start gap-2.5 animate-in fade-in duration-200 ${
+              className={`mb-5 p-3.5 rounded-2xl border text-xs flex items-start gap-2.5 animate-in fade-in duration-200 ${
                 isLight
                   ? 'bg-rose-50 border-rose-200 text-rose-800'
                   : 'bg-rose-500/15 border-rose-500/30 text-rose-300'
@@ -263,19 +374,18 @@ export const LoginView: React.FC<LoginViewProps> = ({
                   isLight ? 'text-slate-700' : 'text-slate-300'
                 }`}
               >
-                اسم المستخدم:
+                اسم المستخدم / البريد الإلكتروني:
               </label>
               <div className="relative">
                 <input
                   type="text"
                   required
-                  autoFocus
                   value={username}
                   onChange={(e) => {
                     setUsername(e.target.value);
                     if (errorMessage) setErrorMessage(null);
                   }}
-                  placeholder="اسم المستخدم"
+                  placeholder="مثال: inspector أو admin أو اسمك المسجل"
                   className={`w-full rounded-xl py-2.5 pr-10 pl-3 text-xs font-bold transition focus:outline-none focus:ring-2 focus:ring-amber-500 border ${
                     isLight
                       ? 'bg-slate-50 border-slate-300 text-slate-900 focus:bg-white placeholder:text-slate-400'
@@ -366,9 +476,10 @@ export const LoginView: React.FC<LoginViewProps> = ({
         }`}
       >
         <p className="font-semibold text-[11px] tracking-wide">
-          {currentBranding.copyrightText}
+          {currentBranding.copyrightText || 'جميع الحقوق محفوظة © 2026 - شركة نفط الوسط • وزارة النفط العراقية'}
         </p>
       </footer>
     </div>
   );
 };
+

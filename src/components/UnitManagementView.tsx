@@ -37,6 +37,7 @@ import {
   Grid,
   Maximize2,
   Minimize2,
+  Users,
 } from 'lucide-react';
 import { UnitAsset, ConditionGrade, ReferenceUnitType, UnitAttachment, OrgEntity, GovernorateRef, OilfieldRef } from '../types';
 import { ThreeBuildingCanvas } from './ThreeBuildingCanvas';
@@ -1098,15 +1099,15 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
         </div>
       )}
 
-      {/* 1. HORIZONTAL ASSET DETAILS CARD (بطاقة تفاصيل الأصل بشكل أفقي) */}
-      <div className={`border rounded-2xl p-5 shadow-xl space-y-4 transition-colors ${
+      {/* 1. MASTER UNIFIED ASSET & 3D METADATA CARD (بطاقة البيانات الهندسية والشغل الإشغالي الموحدة الشاملة) */}
+      <div className={`w-full border rounded-2xl p-5 sm:p-6 shadow-xl space-y-5 transition-colors ${
         isLight ? 'bg-white border-slate-200' : 'bg-slate-900 border-slate-800'
       }`}>
         {/* Top Header Row of Asset Details */}
         <div className={`flex flex-col lg:flex-row lg:items-center justify-between pb-4 border-b gap-4 ${
           isLight ? 'border-slate-200' : 'border-slate-800'
         }`}>
-          <div className="flex items-start sm:items-center gap-3">
+          <div className="flex items-start sm:items-center gap-3.5">
             <div className="w-12 h-12 rounded-2xl bg-amber-500 text-slate-950 flex items-center justify-center font-black text-lg shadow-lg shrink-0">
               <Box className="w-6 h-6" />
             </div>
@@ -1139,7 +1140,7 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
                   </span>
                 )}
               </div>
-              <h3 className={`font-extrabold text-lg mt-1 ${isLight ? 'text-slate-900' : 'text-white'}`}>{selectedUnit.name}</h3>
+              <h3 className={`font-extrabold text-lg sm:text-xl mt-1 ${isLight ? 'text-slate-900' : 'text-white'}`}>{selectedUnit.name}</h3>
             </div>
           </div>
 
@@ -1241,195 +1242,250 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
           </div>
         </div>
 
-        {/* Comprehensive Asset Metadata Horizontal Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 text-xs">
-          {/* Column 1: Location & Field */}
-          <div className={`p-3 rounded-xl border space-y-1 ${
-            isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-950/80 border-slate-800/80'
+        {/* Combined & Well-Distributed Metadata Grid (ممتدة على عرض النافذة بدون بطاقات منفصلة وبدون أشرطة تمرير) */}
+        <div className="space-y-4">
+          {/* Row 1: Core 5 Metadata Columns */}
+          <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5 p-4 rounded-xl border text-xs ${
+            isLight ? 'bg-slate-50/90 border-slate-200' : 'bg-slate-950/70 border-slate-800'
           }`}>
-            <span className={`text-[10px] font-semibold block ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>الحقل والقطاع:</span>
-            <p className="font-bold text-amber-600 dark:text-amber-400 truncate">{selectedUnit.field}</p>
-            <span className={`text-[10px] block ${isLight ? 'text-slate-500' : 'text-slate-500'}`}>{selectedUnit.governorate}</span>
-          </div>
+            {/* 1. الحقل والقطاع */}
+            <div className="space-y-1">
+              <span className={`text-[11px] font-bold flex items-center gap-1.5 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                <MapPin className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                <span>الحقل والقطاع:</span>
+              </span>
+              <p className="font-extrabold text-sm text-amber-600 dark:text-amber-400">{selectedUnit.field}</p>
+              <span className={`text-[11px] font-medium block ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                {selectedUnit.governorate}
+              </span>
+            </div>
 
-          {/* Column 2: Building Shape & Geometry */}
-          <div className={`p-3 rounded-xl border space-y-1 ${
-            isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-950/80 border-slate-800/80'
-          }`}>
-            <span className={`text-[10px] font-semibold block ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>شكل وهندسة المبنى (3D):</span>
-            {(() => {
-              const shapeObj = BUILDING_SHAPE_OPTIONS.find((s) => s.id === selectedUnit.buildingShape) || {
-                nameAr: selectedUnit.buildingShape || 'مستطيل',
-                symbol: '▭',
-                category: 'الأشكال الأساسية',
-              };
-              return (
-                <>
-                  <p className={`font-bold flex items-center gap-1.5 ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
-                    <span className="text-amber-500 font-black text-sm">{shapeObj.symbol}</span>
-                    <span className="truncate">{shapeObj.nameAr}</span>
-                  </p>
-                  <span className="text-[10px] text-slate-500 block truncate">{shapeObj.category}</span>
-                </>
-              );
-            })()}
-          </div>
-
-          {/* Column 3: Area & Floors */}
-          <div className={`p-3 rounded-xl border space-y-1 ${
-            isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-950/80 border-slate-800/80'
-          }`}>
-            <span className={`text-[10px] font-semibold block ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>المساحة والطوابق:</span>
-            <p className={`font-bold ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>{toArabicDigits(selectedUnit.totalAreaSqM)} م²</p>
-            <span className="text-[10px] text-slate-500 block">{toArabicDigits(selectedUnit.floorsCount)} طابق</span>
-          </div>
-
-          {/* Column 4: Department */}
-          <div className={`p-3 rounded-xl border space-y-1 ${
-            isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-950/80 border-slate-800/80'
-          }`}>
-            <span className={`text-[10px] font-semibold block ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
-              الجهات الشاغلة للمنشأة:
-            </span>
-            {(() => {
-              const depts =
-                selectedUnit.departments && selectedUnit.departments.length > 0
-                  ? selectedUnit.departments
-                  : selectedUnit.department
-                  ? selectedUnit.department.split(' ، ')
-                  : ['غير محدد'];
-              const primary = depts[0] || 'غير محدد';
-              const othersCount = depts.length - 1;
-
-              return (
-                <div>
-                  <p
-                    className={`font-bold truncate ${isLight ? 'text-slate-900' : 'text-slate-100'}`}
-                    title={depts.join(' | ')}
-                  >
-                    {primary}
-                  </p>
-                  {othersCount > 0 ? (
-                    <span
-                      className={`text-[9.5px] font-bold px-1.5 py-0.2 rounded mt-0.5 inline-block ${
-                        isLight
-                          ? 'bg-amber-100 text-amber-900 border border-amber-300'
-                          : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                      }`}
-                      title={`كافة الجهات الشاغلة:\n${depts.map((d, i) => `${i + 1}. ${d}`).join('\n')}`}
-                    >
-                      + {toArabicDigits(othersCount)} جهات شاغلة أخرى
+            {/* 2. شكل وهندسة المبنى (3D) */}
+            <div className="space-y-1">
+              <span className={`text-[11px] font-bold flex items-center gap-1.5 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                <Box className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                <span>شكل وهندسة المبنى (3D):</span>
+              </span>
+              {(() => {
+                const shapeObj = BUILDING_SHAPE_OPTIONS.find((s) => s.id === selectedUnit.buildingShape) || {
+                  nameAr: selectedUnit.buildingShape || 'مستطيل',
+                  symbol: '▭',
+                  category: 'الأشكال الأساسية',
+                };
+                return (
+                  <>
+                    <p className={`font-extrabold text-sm flex items-center gap-1.5 ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                      <span className="text-amber-500 font-black text-base leading-none">{shapeObj.symbol}</span>
+                      <span>{shapeObj.nameAr}</span>
+                    </p>
+                    <span className="text-[11px] text-slate-500 dark:text-slate-400 block">
+                      {shapeObj.category} {selectedUnit.lengthM && selectedUnit.widthM ? `(${toArabicDigits(selectedUnit.lengthM)}م × ${toArabicDigits(selectedUnit.widthM)}م)` : ''}
                     </span>
-                  ) : (
-                    <span className="text-[10px] text-slate-500 block truncate">الجهة الشاغلة الوحيدة</span>
-                  )}
+                  </>
+                );
+              })()}
+            </div>
+
+            {/* 3. المساحة والطوابق */}
+            <div className="space-y-1">
+              <span className={`text-[11px] font-bold flex items-center gap-1.5 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                <Maximize2 className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                <span>المساحة والطوابق:</span>
+              </span>
+              <p className={`font-extrabold text-sm ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                {toArabicDigits(selectedUnit.totalAreaSqM)} م²
+              </p>
+              <span className="text-[11px] text-slate-500 dark:text-slate-400 block font-medium">
+                {toArabicDigits(selectedUnit.floorsCount)} طوابق | {toArabicDigits(selectedUnit.rooms?.length || 0)} غرفة
+              </span>
+            </div>
+
+            {/* 4. سنة الإنشاء والإحداثيات */}
+            <div className="space-y-1">
+              <span className={`text-[11px] font-bold flex items-center gap-1.5 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                <Calendar className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                <span>سنة الإنشاء والإحداثيات:</span>
+              </span>
+              <p className={`font-extrabold text-sm ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                {toArabicDigits(selectedUnit.constructionYear)} م
+              </p>
+              <span className="text-[11px] font-mono text-amber-600 dark:text-amber-400/90 block">
+                {toArabicDigits(selectedUnit.coordinates.lat)}°, {toArabicDigits(selectedUnit.coordinates.lng)}°
+              </span>
+            </div>
+
+            {/* 5. التقييم الهندسي (Grade) */}
+            <div className="space-y-1">
+              <span className={`text-[11px] font-bold flex items-center gap-1.5 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                <AlertTriangle className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                <span>التقييم الهندسي (Grade):</span>
+              </span>
+              {isReadOnly ? (
+                <div className="pt-0.5">
+                  <span
+                    className={`inline-flex items-center justify-center w-full py-1.5 rounded-lg text-xs font-black border ${
+                      selectedUnit.conditionGrade === 'A'
+                        ? 'bg-emerald-500/20 text-emerald-500 dark:text-emerald-400 border-emerald-500/40'
+                        : selectedUnit.conditionGrade === 'B'
+                        ? 'bg-blue-500/20 text-blue-500 dark:text-blue-400 border-blue-500/40'
+                        : selectedUnit.conditionGrade === 'C'
+                        ? 'bg-amber-500/20 text-amber-500 dark:text-amber-400 border-amber-500/40'
+                        : 'bg-red-500/20 text-red-500 dark:text-red-400 border-red-500/40'
+                    }`}
+                  >
+                    الدرجة {selectedUnit.conditionGrade}
+                  </span>
                 </div>
-              );
-            })()}
+              ) : (
+                <div className="grid grid-cols-4 gap-1 pt-0.5">
+                  {(['A', 'B', 'C', 'D'] as ConditionGrade[]).map((g) => {
+                    const isActive = selectedUnit.conditionGrade === g;
+                    return (
+                      <button
+                        key={g}
+                        onClick={() => onUpdateGrade(selectedUnit.code, g)}
+                        className={`py-1.5 rounded-lg text-xs font-black transition cursor-pointer border ${
+                          g === 'A'
+                            ? isActive
+                              ? 'bg-emerald-500 text-slate-950 border-emerald-400 shadow'
+                              : 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/30'
+                            : g === 'B'
+                            ? isActive
+                              ? 'bg-blue-500 text-slate-950 border-blue-400 shadow'
+                              : 'bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/30'
+                            : g === 'C'
+                            ? isActive
+                              ? 'bg-amber-500 text-slate-950 border-amber-400 shadow'
+                              : 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/30'
+                            : isActive
+                            ? 'bg-red-500 text-white border-red-400 shadow'
+                            : 'bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/30'
+                        }`}
+                        title={`تحديث التقييم الهندسي إلى الدرجة ${g}`}
+                      >
+                        {g}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* Column 5: Year & GPS */}
-          <div className={`p-3 rounded-xl border space-y-1 ${
-            isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-950/80 border-slate-800/80'
-          }`}>
-            <span className={`text-[10px] font-semibold block ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>سنة الإنشاء والإحداثيات:</span>
-            <p className={`font-bold ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>{toArabicDigits(selectedUnit.constructionYear)} م</p>
-            <span className="text-[10px] font-mono text-amber-600 dark:text-amber-400/90 block truncate">
-              {toArabicDigits(selectedUnit.coordinates.lat)}°, {toArabicDigits(selectedUnit.coordinates.lng)}°
-            </span>
-          </div>
+          {/* Row 2: Occupying Entities (الجهات الشاغلة للمنشأة) - ممتدة بعرض البطاقة وبدون أي شريط تمرير */}
+          {(() => {
+            const deptsSet = new Set<string>();
+            if (selectedUnit.departments && selectedUnit.departments.length > 0) {
+              selectedUnit.departments.forEach((d) => d && d.trim() && deptsSet.add(d.trim()));
+            }
+            if (selectedUnit.department && selectedUnit.department.trim()) {
+              selectedUnit.department
+                .split(/[\n،,;/|]+/)
+                .map((s) => s.trim())
+                .filter(Boolean)
+                .forEach((d) => deptsSet.add(d));
+            }
+            selectedUnit.rooms?.forEach((r) => {
+              if (r.occupiedBy && r.occupiedBy.trim()) {
+                deptsSet.add(r.occupiedBy.trim());
+              }
+            });
 
-          {/* Column 6: Condition Grade Interactive Modifier */}
-          <div className={`p-2.5 rounded-xl border space-y-1 ${
-            isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-950/80 border-slate-800/80'
-          }`}>
-            <span className={`text-[10px] font-semibold block ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>التقييم الهندسي (Grade):</span>
-            {isReadOnly ? (
-              <div className="pt-1">
-                <span
-                  className={`inline-flex items-center justify-center w-full py-1 rounded text-xs font-black border ${
-                    selectedUnit.conditionGrade === 'A'
-                      ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40'
-                      : selectedUnit.conditionGrade === 'B'
-                      ? 'bg-blue-500/20 text-blue-400 border-blue-500/40'
-                      : selectedUnit.conditionGrade === 'C'
-                      ? 'bg-amber-500/20 text-amber-400 border-amber-500/40'
-                      : 'bg-red-500/20 text-red-400 border-red-500/40'
-                  }`}
-                >
-                  Grade {selectedUnit.conditionGrade}
-                </span>
+            const depts = Array.from(deptsSet);
+            if (depts.length === 0) depts.push('غير محدد');
+
+            return (
+              <div className={`p-4 rounded-xl border flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs ${
+                isLight ? 'bg-amber-50/70 border-amber-200/90 text-slate-800' : 'bg-slate-950/80 border-slate-800 text-slate-200'
+              }`}>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2.5 flex-1">
+                  <div className="flex items-center gap-1.5 font-bold text-amber-600 dark:text-amber-400 shrink-0 text-xs">
+                    <Users className="w-4 h-4 text-amber-500 shrink-0" />
+                    <span>الجهات الشاغلة للمنشأة:</span>
+                  </div>
+
+                  {/* All entities wrapped naturally with NO scrollbars */}
+                  <div className="flex flex-wrap items-center gap-2 flex-1">
+                    {depts.map((deptName, idx) => {
+                      const entityRooms = (selectedUnit.rooms || []).filter((r) => r.occupiedBy === deptName);
+                      const roomCount = entityRooms.length;
+                      return (
+                        <div
+                          key={idx}
+                          className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold border transition ${
+                            idx === 0
+                              ? isLight
+                                ? 'bg-white text-amber-950 border-amber-300 shadow-xs'
+                                : 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                              : isLight
+                              ? 'bg-white text-slate-800 border-slate-300 shadow-xs'
+                              : 'bg-slate-900 text-slate-200 border-slate-700'
+                          }`}
+                          title={`الجهة الشاغلة: ${deptName}${roomCount > 0 ? ` (تشغل ${roomCount} غرف في هذه المنشأة)` : ''}`}
+                        >
+                          <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0" />
+                          <span>{deptName}</span>
+                          {roomCount > 0 && (
+                            <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono font-bold ${
+                              isLight ? 'bg-amber-100 text-amber-900 border border-amber-200' : 'bg-amber-400/20 text-amber-300 border border-amber-400/30'
+                            }`}>
+                              {toArabicDigits(roomCount)} غرف
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="text-[11.5px] font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-2 shrink-0 pt-1 md:pt-0 border-t md:border-t-0 border-slate-200 dark:border-slate-800">
+                  <span>إجمالي الجهات:</span>
+                  <span className="px-2 py-0.5 rounded bg-amber-500/20 text-amber-600 dark:text-amber-400 font-mono font-bold">
+                    {toArabicDigits(depts.length)}
+                  </span>
+                  <span className="mr-1">| إجمالي الغرف:</span>
+                  <span className="px-2 py-0.5 rounded bg-slate-200/70 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-mono font-bold">
+                    {toArabicDigits(selectedUnit.rooms?.length || 0)}
+                  </span>
+                </div>
               </div>
-            ) : (
-              <div className="grid grid-cols-4 gap-1 pt-0.5">
-                {(['A', 'B', 'C', 'D'] as ConditionGrade[]).map((g) => {
-                  const isActive = selectedUnit.conditionGrade === g;
-                  return (
-                    <button
-                      key={g}
-                      onClick={() => onUpdateGrade(selectedUnit.code, g)}
-                      className={`py-1 rounded text-[11px] font-black transition cursor-pointer border ${
-                        g === 'A'
-                          ? isActive
-                            ? 'bg-emerald-500 text-slate-950 border-emerald-400 shadow'
-                            : 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/30'
-                          : g === 'B'
-                          ? isActive
-                            ? 'bg-blue-500 text-slate-950 border-blue-400 shadow'
-                            : 'bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/30'
-                          : g === 'C'
-                          ? isActive
-                            ? 'bg-amber-500 text-slate-950 border-amber-400 shadow'
-                            : 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/30'
-                          : isActive
-                          ? 'bg-red-500 text-white border-red-400 shadow'
-                          : 'bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/30'
-                      }`}
-                    >
-                      {g}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </div>
+            );
+          })()}
         </div>
       </div>
 
-      {/* 2. HUGE 3D CANVAS VIEWPORT (المخطط ثلاثي الأبعاد بمساحة أكبر عمودياً وأفقياً) */}
-      <div className="space-y-4">
-        <div className="w-full">
-          <ThreeBuildingCanvas
-            unitCode={selectedUnit.code}
-            unitName={selectedUnit.name}
-            unitType={selectedUnit.type}
-            conditionGrade={selectedUnit.conditionGrade}
-            buildingShape={selectedUnit.buildingShape}
-            totalAreaSqM={selectedUnit.totalAreaSqM}
-            lengthM={selectedUnit.lengthM}
-            widthM={selectedUnit.widthM}
-            heightM={selectedUnit.heightM}
-            floorsCount={selectedUnit.floorsCount}
-            rooms={selectedUnit.rooms}
-            selectedFloor={selectedFloor}
-            viewMode={view3DMode}
-            equipment={selectedUnit.equipment}
-            onViewModeChange={setView3DMode}
-            onFloorChange={setSelectedFloor}
-            theme={theme}
-            designFinishing={selectedUnit.designFinishing}
-            onUpdateDesignFinishing={(updatedFinishing) => {
-              if (onUpdateUnit) {
-                onUpdateUnit({
-                  ...selectedUnit,
-                  designFinishing: updatedFinishing,
-                });
-              }
-            }}
-            unitStatus={selectedUnit.status}
-            decommissionReason={selectedUnit.decommissionReason}
-          />
-        </div>
+      {/* 2. HUGE 3D CANVAS VIEWPORT (المخطط ثلاثي الأبعاد بمساحة ممتدة ومتكاملة) */}
+      <div className="w-full">
+        <ThreeBuildingCanvas
+          unitCode={selectedUnit.code}
+          unitName={selectedUnit.name}
+          unitType={selectedUnit.type}
+          conditionGrade={selectedUnit.conditionGrade}
+          buildingShape={selectedUnit.buildingShape}
+          totalAreaSqM={selectedUnit.totalAreaSqM}
+          lengthM={selectedUnit.lengthM}
+          widthM={selectedUnit.widthM}
+          heightM={selectedUnit.heightM}
+          floorsCount={selectedUnit.floorsCount}
+          rooms={selectedUnit.rooms}
+          selectedFloor={selectedFloor}
+          viewMode={view3DMode}
+          equipment={selectedUnit.equipment}
+          onViewModeChange={setView3DMode}
+          onFloorChange={setSelectedFloor}
+          theme={theme}
+          designFinishing={selectedUnit.designFinishing}
+          onUpdateDesignFinishing={(updatedFinishing) => {
+            if (onUpdateUnit) {
+              onUpdateUnit({
+                ...selectedUnit,
+                designFinishing: updatedFinishing,
+              });
+            }
+          }}
+          unitStatus={selectedUnit.status}
+          decommissionReason={selectedUnit.decommissionReason}
+        />
       </div>
 
       {/* Bottom Tabs Area: Rooms, Equipment, History, Attachments */}

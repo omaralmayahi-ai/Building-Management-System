@@ -27,6 +27,7 @@ import {
   ChevronRight,
   ExternalLink,
   FileSpreadsheet,
+  Users,
 } from 'lucide-react';
 import {
   UnitAsset,
@@ -40,10 +41,13 @@ import {
   MaintenancePriority,
   OrgEntity,
   SystemBranding,
+  SystemUser,
 } from '../types';
+import { AttachmentViewerModal } from './AttachmentViewerModal';
 import {
   INITIAL_GOVERNORATES,
   INITIAL_OILFIELDS,
+  INITIAL_USERS,
 } from '../data/mockData';
 import {
   toArabicDigits,
@@ -192,6 +196,93 @@ const formatGradeArabic = (grade?: string): string => {
   return `الدرجة ${grade}`;
 };
 
+const getCleanInspectorName = (inspector?: string, performedBy?: string, users?: SystemUser[]): string => {
+  const raw = (performedBy || inspector || '').trim();
+  if (!raw) return 'موظف الكشف';
+
+  // Check matching user in system users list
+  const userList = users && users.length > 0 ? users : INITIAL_USERS;
+  const matchedUser = userList.find((u) => {
+    if (u.name === raw || u.username === raw || u.id === raw) return true;
+    const cleanUName = u.name.replace(/\s*\([^)]*\)/g, '').trim();
+    const cleanRaw = raw.replace(/\s*\([^)]*\)/g, '').trim();
+    return (
+      cleanUName === cleanRaw ||
+      (cleanRaw.length > 2 && cleanUName.includes(cleanRaw)) ||
+      (cleanRaw.length > 2 && cleanRaw.includes(cleanUName))
+    );
+  });
+
+  if (matchedUser) {
+    const cleanName = matchedUser.name.replace(/\s*\([^)]*\)/g, '').trim();
+    if (
+      matchedUser.role === 'موظف الكشف والصيانة' ||
+      matchedUser.role.includes('كشف') ||
+      matchedUser.role.includes('مفتش')
+    ) {
+      return cleanName ? `موظف الكشف: ${cleanName}` : 'موظف الكشف';
+    }
+    if (matchedUser.role === 'مشغل النظام' || matchedUser.role.includes('مشغل')) {
+      return cleanName ? `مشغل النظام: ${cleanName}` : 'مشغل النظام';
+    }
+    if (matchedUser.role === 'مدير النظام' || matchedUser.role.includes('مدير')) {
+      return cleanName ? `مدير النظام: ${cleanName}` : 'مدير النظام';
+    }
+    return cleanName ? `${matchedUser.role || 'مستخدم'}: ${cleanName}` : (matchedUser.role || 'مستخدم');
+  }
+
+  // String matching heuristics fallback
+  if (
+    raw.includes('مشغل') ||
+    raw.includes('operator') ||
+    raw.includes('سيف الدين') ||
+    raw.includes('علي حسن')
+  ) {
+    let clean = raw.replace(/\s*\([^)]*مشغل[^)]*\)/g, '').trim();
+    clean = clean.replace(/^(?:مشغل النظام|مشغل)\s*[:\-\/]?\s*/g, '').trim();
+    return (clean && clean !== 'مشغل النظام' && clean !== 'مشغل') ? `مشغل النظام: ${clean}` : 'مشغل النظام';
+  }
+
+  if (
+    raw.includes('مدير') ||
+    raw.includes('admin') ||
+    raw.includes('أحمد كريم')
+  ) {
+    let clean = raw.replace(/\s*\([^)]*مدير[^)]*\)/g, '').trim();
+    clean = clean.replace(/^(?:مدير النظام|مدير)\s*[:\-\/]?\s*/g, '').trim();
+    return (clean && clean !== 'مدير النظام' && clean !== 'مدير') ? `مدير النظام: ${clean}` : 'مدير النظام';
+  }
+
+  if (
+    raw.includes('كشف') ||
+    raw.includes('مفتش') ||
+    raw.includes('حيدر') ||
+    raw.includes('صباح') ||
+    raw.includes('فحص') ||
+    raw.includes('مهندس الموقع')
+  ) {
+    let clean = raw.replace(/\s*\([^)]*(?:شعبة|قسم|فريق|هندسي|تفتيش|كشف|صيانة|مفتش|فحص|مهندس الموقع)[^)]*\)/g, '').trim();
+    clean = clean.replace(/^(?:موظف الكشف|موظف كشف|مهندس الموقع|مفتش)\s*[:\-\/]?\s*/g, '').trim();
+    return (clean && clean !== 'موظف الكشف') ? `موظف الكشف: ${clean}` : 'موظف الكشف';
+  }
+
+  const cleaned = raw.replace(/\s*\([^)]*\)/g, '').trim();
+  return cleaned ? `موظف الكشف: ${cleaned}` : 'موظف الكشف';
+};
+
+const getCleanReporterName = (reportedBy?: string): string => {
+  const raw = (reportedBy || '').trim();
+  if (!raw) return 'مشغل النظام';
+  if (
+    raw === 'شعبة الفحص الهندسي والسلامة الإنشائية' ||
+    raw === 'شعبة الصيانة والتشغيل' ||
+    raw === 'فريق الصيانة الميدانية بالموقع'
+  ) {
+    return 'موظف الكشف';
+  }
+  return raw;
+};
+
 interface ReportsViewProps {
   units: UnitAsset[];
   periodicInspections: PeriodicInspectionSchedule[];
@@ -199,6 +290,7 @@ interface ReportsViewProps {
   governorates?: GovernorateRef[];
   oilfields?: OilfieldRef[];
   orgEntities?: OrgEntity[];
+  users?: SystemUser[];
   theme?: 'dark' | 'light';
   branding?: SystemBranding;
 }
@@ -210,6 +302,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
   governorates = [],
   oilfields = [],
   orgEntities = [],
+  users = [],
   theme = 'dark',
   branding,
 }) => {
@@ -217,6 +310,9 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
 
   // Category Tab
   const [activeTab, setActiveTab] = useState<'all' | 'inspections' | 'maintenance' | 'units' | 'decommissioned'>('all');
+
+  // Attachment Viewer Preview State
+  const [previewAttachment, setPreviewAttachment] = useState<any>(null);
 
   // Multi-Filters State
   const [searchKeyword, setSearchKeyword] = useState('');
@@ -404,17 +500,96 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
         const unit = unitByCode.get(deptOrUnitCode);
         if (unit) {
           if (unit.department === selectedOrgEntity) return true;
+          if (unit.departments?.includes(selectedOrgEntity)) return true;
+          if (unit.department?.includes(selectedOrgEntity)) return true;
           if (unit.rooms?.some((r) => r.occupiedBy === selectedOrgEntity)) return true;
         }
       }
 
-      if (deptOrUnitCode && deptOrUnitCode === selectedOrgEntity) return true;
-      if (extraDept && extraDept === selectedOrgEntity) return true;
+      if (deptOrUnitCode) {
+        if (deptOrUnitCode === selectedOrgEntity) return true;
+        if (deptOrUnitCode.includes(selectedOrgEntity)) return true;
+      }
+      if (extraDept) {
+        if (extraDept === selectedOrgEntity) return true;
+        if (extraDept.includes(selectedOrgEntity)) return true;
+      }
 
       return false;
     },
     [selectedOrgEntity, unitByCode]
   );
+
+  // Calculate detailed occupancy statistics for a unit and an entity
+  const getUnitOccupancyStats = useCallback((u: UnitAsset, targetEntity: string) => {
+    const deptsSet = new Set<string>();
+    if (u.departments && u.departments.length > 0) {
+      u.departments.forEach((d) => d && d.trim() && deptsSet.add(d.trim()));
+    }
+    if (u.department && u.department.trim()) {
+      u.department
+        .split(/[\n،,;/|]+/)
+        .map((s) => s.trim())
+        .filter(Boolean)
+        .forEach((d) => deptsSet.add(d));
+    }
+    u.rooms?.forEach((r) => {
+      if (r.occupiedBy && r.occupiedBy.trim()) {
+        deptsSet.add(r.occupiedBy.trim());
+      }
+    });
+    const allOccupants = Array.from(deptsSet);
+    if (allOccupants.length === 0) allOccupants.push(u.department || 'غير محدد');
+
+    const totalRooms = u.rooms?.length || 0;
+
+    if (!targetEntity || targetEntity === 'all') {
+      return {
+        entity: allOccupants.join(' ، '),
+        allOccupants,
+        occupiedRoomsCount: totalRooms,
+        totalRooms,
+        occupiedRooms: u.rooms || [],
+        isFilteredEntity: false,
+      };
+    }
+
+    // Target entity is specified
+    const explicitRooms = (u.rooms || []).filter((r) => r.occupiedBy === targetEntity);
+    if (explicitRooms.length > 0) {
+      return {
+        entity: targetEntity,
+        allOccupants,
+        occupiedRoomsCount: explicitRooms.length,
+        totalRooms,
+        occupiedRooms: explicitRooms,
+        isFilteredEntity: true,
+      };
+    }
+
+    const isUnitOwner = u.department === targetEntity || (u.departments && u.departments.includes(targetEntity)) || (u.department && u.department.includes(targetEntity));
+    if (isUnitOwner) {
+      const assignedRooms = (u.rooms || []).filter((r) => !r.occupiedBy || r.occupiedBy === targetEntity);
+      const count = assignedRooms.length > 0 ? assignedRooms.length : totalRooms;
+      return {
+        entity: targetEntity,
+        allOccupants,
+        occupiedRoomsCount: count,
+        totalRooms,
+        occupiedRooms: assignedRooms.length > 0 ? assignedRooms : (u.rooms || []),
+        isFilteredEntity: true,
+      };
+    }
+
+    return {
+      entity: targetEntity,
+      allOccupants,
+      occupiedRoomsCount: 0,
+      totalRooms,
+      occupiedRooms: [],
+      isFilteredEntity: true,
+    };
+  }, []);
 
   // Reset Filters Handler
   const handleResetFilters = () => {
@@ -750,22 +925,23 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
 
     if (activeTab === 'inspections') {
       filename = `تقرير_الكشوفات_الدورية_والمعاينة_${dateStr}.csv`;
-      content += 'كود الوحدة,اسم الوحدة,الحقل النفطي,المحافظة,نوع الكشف,عنوان وموضوع الكشف,دورية الكشف,تاريخ الكشف السابق,تاريخ الكشف القادم,فريق الفحص المكلف,المسؤول الفني,حالة الكشف,التقييم الإنشائي,الملاحظات والنتائج الفنية\n';
+      content += 'كود الوحدة,اسم الوحدة,الحقل النفطي,المحافظة,نوع الكشف,عنوان وموضوع الكشف,دورية الكشف,تاريخ الكشف السابق,تاريخ الكشف القادم,القائم بالكشف,حالة الكشف,التقييم الإنشائي,الملاحظات والنتائج الفنية,التوصيات والإجراءات,المرفق والملفات\n';
       filteredInspections.forEach((i) => {
-        content += `"${toArabicDigits(i.unitCode)}","${i.unitName || ''}","${translateField(i.field)}","${translateGovernorate(i.governorate)}","${translateInspectionType(i.inspectionType)}","${i.title}","${translateFrequency(i.frequency)}","${toArabicDigits(i.lastInspectionDate || 'غير مسجل')}","${toArabicDigits(i.nextDueDate)}","${i.assignedTeam}","${i.inspectorName}","${translateInspectionStatus(i.status)}","${i.conditionGradeGiven ? formatGradeArabic(i.conditionGradeGiven) : '-'}","${(i.findings || i.notes || '').replace(/"/g, '""')}"\n`;
+        content += `"${toArabicDigits(i.unitCode)}","${i.unitName || ''}","${translateField(i.field)}","${translateGovernorate(i.governorate)}","${translateInspectionType(i.inspectionType)}","${i.title}","${translateFrequency(i.frequency)}","${toArabicDigits(i.lastInspectionDate || 'غير مسجل')}","${toArabicDigits(i.nextDueDate)}","${getCleanInspectorName(i.inspectorName, i.performedByName, users)}","${translateInspectionStatus(i.status)}","${i.conditionGradeGiven ? formatGradeArabic(i.conditionGradeGiven) : '-'}","${(i.findings || i.notes || '').replace(/"/g, '""')}","${(i.recommendations || '').replace(/"/g, '""')}","${(i.reportFileName || (i.reportFileUrl ? 'ملف مرفق' : 'لا يوجد')).replace(/"/g, '""')}"\n`;
       });
     } else if (activeTab === 'maintenance') {
       filename = `تقرير_بلاغات_الصيانة_والتشغيل_${dateStr}.csv`;
-      content += 'رقم الطلب,كود الوحدة,الحقل النفطي,المحافظة,وصف العطل والبلاغ,درجة الأهمية,تاريخ تسجيل البلاغ,المقاول / الفريق المكلف,تاريخ الإنجاز أو الإلغاء,مدة المعالجة (أيام),الحالة الحالية\n';
+      content += 'رقم الطلب,كود الوحدة,الحقل النفطي,المحافظة,وصف العطل والبلاغ,درجة الأهمية,محرر الطلب,تاريخ تسجيل البلاغ,تاريخ الإنجاز أو الإلغاء,مدة المعالجة (أيام),المرفق / الصورة,الحالة الحالية\n';
       filteredMaintenance.forEach((m) => {
         const u = units.find((unit) => unit.code === m.unitCode);
-        content += `"${toArabicDigits(m.id)}","${toArabicDigits(m.unitCode)}","${translateField(m.field)}","${translateGovernorate(u?.governorate || '')}","${m.issue.replace(/"/g, '""')}","${translatePriority(m.priority)}","${formatDateOnly(m.createdAt)}","${m.assignedTo}","${getCompletionOrCancellationDate(m.completedAt, m.status)}","${calculateMaintenanceDurationDays(m.createdAt, m.completedAt, m.status)}","${translateMaintenanceStatus(m.status)}"\n`;
+        content += `"${toArabicDigits(m.id)}","${toArabicDigits(m.unitCode)}","${translateField(m.field)}","${translateGovernorate(u?.governorate || '')}","${m.issue.replace(/"/g, '""')}","${translatePriority(m.priority)}","${getCleanReporterName(m.reportedBy)}","${formatDateOnly(m.createdAt)}","${getCompletionOrCancellationDate(m.completedAt, m.status)}","${calculateMaintenanceDurationDays(m.createdAt, m.completedAt, m.status)}","${(m.attachmentName || (m.attachmentUrl ? 'صورة مرفقة' : 'لا يوجد')).replace(/"/g, '""')}","${translateMaintenanceStatus(m.status)}"\n`;
       });
     } else if (activeTab === 'units') {
       filename = `تقرير_حصر_الأصول_والوحدات_الهندسية_${dateStr}.csv`;
-      content += 'رمز الوحدة,اسم الوحدة,نوع المنشأة,الحقل النفطي,المحافظة,التقييم الإنشائي,الجهة الشاغلة / التشكيل,سنة الإنشاء,المساحة الإجمالية (م²),عدد الطوابق,عدد الغرف,عدد المعدات\n';
+      content += 'رمز الوحدة,اسم الوحدة,نوع المنشأة,الحقل النفطي,المحافظة,التقييم الإنشائي,الجهة الشاغلة,عدد الغرف الشاغلة للتشكيل,إجمالي غرف الوحدة,سنة الإنشاء,المساحة الإجمالية (م²),عدد الطوابق,عدد المعدات\n';
       filteredUnits.forEach((u) => {
-        content += `"${toArabicDigits(u.code)}","${u.name}","${translateUnitType(u.type)}","${translateField(u.field)}","${translateGovernorate(u.governorate)}","${formatGradeArabic(u.conditionGrade)}","${u.department}","${toArabicDigits(u.constructionYear)}","${toArabicDigits(u.totalAreaSqM)}","${toArabicDigits(u.floorsCount)}","${toArabicDigits(u.rooms.length)}","${toArabicDigits(u.equipment.length)}"\n`;
+        const stats = getUnitOccupancyStats(u, selectedOrgEntity);
+        content += `"${toArabicDigits(u.code)}","${u.name}","${translateUnitType(u.type)}","${translateField(u.field)}","${translateGovernorate(u.governorate)}","${formatGradeArabic(u.conditionGrade)}","${stats.entity}","${toArabicDigits(stats.occupiedRoomsCount)}","${toArabicDigits(stats.totalRooms)}","${toArabicDigits(u.constructionYear)}","${toArabicDigits(u.totalAreaSqM)}","${toArabicDigits(u.floorsCount)}","${toArabicDigits(u.equipment.length)}"\n`;
       });
     } else if (activeTab === 'decommissioned') {
       filename = `تقرير_سجل_الوحدات_المشطوبة_والمجمدة_${dateStr}.csv`;
@@ -781,21 +957,22 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
       content += `تاريخ التصدير: ${toArabicDigits(dateStr)}\n\n`;
 
       content += '=== 1. تقرير وتاريخ الكشوفات والمعاينة الدورية ===\n';
-      content += 'كود الوحدة,اسم الوحدة,الحقل النفطي,المحافظة,نوع الكشف,عنوان الكشف,الدورية,تاريخ الكشف السابق,تاريخ الكشف القادم,فريق الفحص,المسؤول,حالة الكشف,التقييم الإنشائي,الملاحظات\n';
+      content += 'كود الوحدة,اسم الوحدة,الحقل النفطي,المحافظة,نوع الكشف,عنوان الكشف,الدورية,تاريخ الكشف السابق,تاريخ الكشف القادم,القائم بالكشف,حالة الكشف,التقييم الإنشائي,الملاحظات,التوصيات,المرفق\n';
       filteredInspections.forEach((i) => {
-        content += `"${toArabicDigits(i.unitCode)}","${i.unitName || ''}","${translateField(i.field)}","${translateGovernorate(i.governorate)}","${translateInspectionType(i.inspectionType)}","${i.title}","${translateFrequency(i.frequency)}","${toArabicDigits(i.lastInspectionDate || 'غير مسجل')}","${toArabicDigits(i.nextDueDate)}","${i.assignedTeam}","${i.inspectorName}","${translateInspectionStatus(i.status)}","${i.conditionGradeGiven ? formatGradeArabic(i.conditionGradeGiven) : '-'}","${(i.findings || i.notes || '').replace(/"/g, '""')}"\n`;
+        content += `"${toArabicDigits(i.unitCode)}","${i.unitName || ''}","${translateField(i.field)}","${translateGovernorate(i.governorate)}","${translateInspectionType(i.inspectionType)}","${i.title}","${translateFrequency(i.frequency)}","${toArabicDigits(i.lastInspectionDate || 'غير مسجل')}","${toArabicDigits(i.nextDueDate)}","${getCleanInspectorName(i.inspectorName, i.performedByName, users)}","${translateInspectionStatus(i.status)}","${i.conditionGradeGiven ? formatGradeArabic(i.conditionGradeGiven) : '-'}","${(i.findings || i.notes || '').replace(/"/g, '""')}","${(i.recommendations || '').replace(/"/g, '""')}","${(i.reportFileName || (i.reportFileUrl ? 'مرفق' : '-')).replace(/"/g, '""')}"\n`;
       });
 
       content += '\n=== 2. تقرير بلاغات الصيانة ومتابعة الإنجاز ===\n';
-      content += 'رقم الطلب,كود الوحدة,الحقل النفطي,وصف العطل,درجة الأهمية,تاريخ البلاغ,الجهة المكلفة,تاريخ الإنجاز,المدة (أيام),الحالة\n';
+      content += 'رقم الطلب,كود الوحدة,الحقل النفطي,وصف العطل,درجة الأهمية,محرر الطلب,تاريخ البلاغ,تاريخ الإنجاز,المدة (أيام),المرفق,الحالة\n';
       filteredMaintenance.forEach((m) => {
-        content += `"${toArabicDigits(m.id)}","${toArabicDigits(m.unitCode)}","${translateField(m.field)}","${m.issue.replace(/"/g, '""')}","${translatePriority(m.priority)}","${formatDateOnly(m.createdAt)}","${m.assignedTo}","${getCompletionOrCancellationDate(m.completedAt, m.status)}","${calculateMaintenanceDurationDays(m.createdAt, m.completedAt, m.status)}","${translateMaintenanceStatus(m.status)}"\n`;
+        content += `"${toArabicDigits(m.id)}","${toArabicDigits(m.unitCode)}","${translateField(m.field)}","${m.issue.replace(/"/g, '""')}","${translatePriority(m.priority)}","${getCleanReporterName(m.reportedBy)}","${formatDateOnly(m.createdAt)}","${getCompletionOrCancellationDate(m.completedAt, m.status)}","${calculateMaintenanceDurationDays(m.createdAt, m.completedAt, m.status)}","${(m.attachmentName || (m.attachmentUrl ? 'صورة مرفقة' : '-')).replace(/"/g, '""')}","${translateMaintenanceStatus(m.status)}"\n`;
       });
 
       content += '\n=== 3. تقرير حصر الأصول والوحدات الهندسية ===\n';
-      content += 'رمز الوحدة,اسم الوحدة,نوع المنشأة,الحقل النفطي,المحافظة,التقييم الإنشائي,الجهة الشاغلة,سنة الإنشاء,المساحة (م²),عدد الطوابق,عدد الغرف,عدد المعدات\n';
+      content += 'رمز الوحدة,اسم الوحدة,نوع المنشأة,الحقل النفطي,المحافظة,التقييم الإنشائي,الجهة الشاغلة,عدد الغرف الشاغلة,إجمالي غرف الوحدة,سنة الإنشاء,المساحة (م²),عدد الطوابق,عدد المعدات\n';
       filteredUnits.forEach((u) => {
-        content += `"${toArabicDigits(u.code)}","${u.name}","${translateUnitType(u.type)}","${translateField(u.field)}","${translateGovernorate(u.governorate)}","${formatGradeArabic(u.conditionGrade)}","${u.department}","${toArabicDigits(u.constructionYear)}","${toArabicDigits(u.totalAreaSqM)}","${toArabicDigits(u.floorsCount)}","${toArabicDigits(u.rooms.length)}","${toArabicDigits(u.equipment.length)}"\n`;
+        const stats = getUnitOccupancyStats(u, selectedOrgEntity);
+        content += `"${toArabicDigits(u.code)}","${u.name}","${translateUnitType(u.type)}","${translateField(u.field)}","${translateGovernorate(u.governorate)}","${formatGradeArabic(u.conditionGrade)}","${stats.entity}","${toArabicDigits(stats.occupiedRoomsCount)}","${toArabicDigits(stats.totalRooms)}","${toArabicDigits(u.constructionYear)}","${toArabicDigits(u.totalAreaSqM)}","${toArabicDigits(u.floorsCount)}","${toArabicDigits(u.equipment.length)}"\n`;
       });
 
       content += '\n=== 4. سجل وتقارير الوحدات المشطوبة والمجمدة ===\n';
@@ -1017,16 +1194,21 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
         rows += `
           <tr style="${bg}">
             <td style="text-align: center; font-weight: bold; font-family: monospace;">${toArabicDigits(item.indexInSection + 1)}</td>
-            <td style="font-weight: bold; font-family: monospace; color: #78350f;">${toArabicDigits(i.unitCode)}</td>
-            <td style="font-weight: bold; color: #0f172a;">${i.unitName || i.title || '-'}</td>
-            <td>${translateField(i.field)} / ${translateGovernorate(i.governorate)}</td>
+            <td style="line-height: 1.45;">
+              <div style="font-weight: bold; font-family: monospace; color: #78350f; font-size: 8.5pt;">${toArabicDigits(i.unitCode)}</div>
+              <div style="font-weight: bold; color: #0f172a; font-size: 8.5pt;">${i.unitName || i.title || '-'}</div>
+              <div style="font-size: 7.5pt; color: #64748b;">${translateField(i.field)} / ${translateGovernorate(i.governorate)}</div>
+            </td>
             <td><b>${translateInspectionType(i.inspectionType)}</b> <span style="font-size: 8pt; color: #475569;">(${translateFrequency(i.frequency)})</span></td>
             <td style="font-family: monospace; color: #475569;">${toArabicDigits(i.lastInspectionDate || 'غير مسجل')}</td>
             <td style="font-family: monospace; font-weight: bold; color: #0369a1;">${toArabicDigits(i.nextDueDate)}</td>
-            <td>${i.inspectorName} (${i.assignedTeam})</td>
+            <td style="font-weight: 600; color: #0f172a;">${getCleanInspectorName(i.inspectorName, i.performedByName, users)}</td>
             <td style="text-align: center; font-weight: 600; color: #0f172a;">
               ${translateInspectionStatus(i.status)}${i.conditionGradeGiven ? ` - الدرجة ${i.conditionGradeGiven}` : ''}
             </td>
+            <td style="font-size: 8pt; color: #334155;">${i.findings || i.notes || '-'}</td>
+            <td style="font-size: 8pt; color: #78350f; font-weight: 600;">${i.recommendations || '-'}</td>
+            <td style="text-align: center; font-size: 8pt;">${i.reportFileName ? `📎 ${i.reportFileName}` : (i.reportFileUrl ? '📎 ملف مرفق' : '-')}</td>
           </tr>
         `;
       });
@@ -1034,15 +1216,16 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
         <table>
           <thead>
             <tr>
-              <th style="width: 30px; text-align: center;">#</th>
-              <th>رمز الوحدة</th>
-              <th>اسم الوحدة / العنوان</th>
-              <th>الحقل / المحافظة</th>
+              <th style="width: 25px; text-align: center;">#</th>
+              <th style="min-width: 140px;">بيانات الوحدة والموقع</th>
               <th>نوع ودورية الكشف</th>
               <th>تاريخ الكشف السابق</th>
-              <th>تاريخ الاستحقاق القادم</th>
-              <th>الفريق / المفتش المسؤول</th>
+              <th>تاريخ الاستحقاق</th>
+              <th>القائم بالكشف</th>
               <th style="text-align: center;">الحالة والتقييم</th>
+              <th>الملاحظات والنتائج</th>
+              <th>التوصيات والإجراءات</th>
+              <th style="text-align: center;">المرفق</th>
             </tr>
           </thead>
           <tbody>${rows}</tbody>
@@ -1064,9 +1247,10 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
             <td style="font-weight: 600; color: #0f172a;">${m.issue}</td>
             <td>${translateField(m.field)}</td>
             <td style="text-align: center; font-weight: bold;">${translatePriority(m.priority)}</td>
-            <td>${m.assignedTo}</td>
+            <td style="font-weight: 600; color: #0f172a;">${getCleanReporterName(m.reportedBy)}</td>
             <td style="font-family: monospace;">${formatDateOnly(m.createdAt)}</td>
             <td style="font-family: monospace;">${getCompletionOrCancellationDate(m.completedAt, m.status)}</td>
+            <td style="text-align: center; font-size: 8pt;">${m.attachmentName ? `📷 ${m.attachmentName}` : (m.attachmentUrl ? '📷 صورة مرفقة' : '-')}</td>
             <td style="text-align: center; font-weight: bold; color: #78350f;">${translateMaintenanceStatus(m.status)}</td>
           </tr>
         `;
@@ -1075,15 +1259,16 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
         <table>
           <thead>
             <tr>
-              <th style="width: 30px; text-align: center;">#</th>
+              <th style="width: 25px; text-align: center;">#</th>
               <th>رقم الطلب</th>
               <th>كود الوحدة</th>
               <th>وصف العطل / البلاغ</th>
               <th>الحقل</th>
               <th style="text-align: center;">درجة الأهمية</th>
-              <th>الجهة المكلفة</th>
+              <th>محرر الطلب</th>
               <th>تاريخ البلاغ</th>
               <th>تاريخ الإنجاز/الإلغاء</th>
+              <th style="text-align: center;">المرفق / الصورة</th>
               <th style="text-align: center;">حالة البلاغ</th>
             </tr>
           </thead>
@@ -1097,6 +1282,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
       page.items.forEach((item, idx) => {
         if (item.type !== 'unit') return;
         const u = item.data;
+        const stats = getUnitOccupancyStats(u, selectedOrgEntity);
         const bg = idx % 2 === 1 ? 'background-color: #f8fafc;' : 'background-color: #ffffff;';
         rows += `
           <tr style="${bg}">
@@ -1105,7 +1291,9 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
             <td style="font-weight: bold; color: #0f172a;">${u.name}</td>
             <td>${translateField(u.field)} / ${translateGovernorate(u.governorate)}</td>
             <td>${translateUnitType(u.type)}</td>
-            <td>${u.department}</td>
+            <td style="font-weight: 600;">${stats.entity}</td>
+            <td style="text-align: center; font-weight: bold; font-family: monospace; color: #78350f;">${toArabicDigits(stats.occupiedRoomsCount)} غرف</td>
+            <td style="text-align: center; font-family: monospace;">${toArabicDigits(stats.totalRooms)} غرفة</td>
             <td style="font-family: monospace;">${toArabicDigits(u.constructionYear)}</td>
             <td style="font-family: monospace;">${u.totalAreaSqM ? `${toArabicDigits(u.totalAreaSqM)} م²` : '-'}</td>
             <td style="text-align: center; font-weight: 600; color: #0f172a;">${formatGradeArabic(u.conditionGrade)}</td>
@@ -1122,6 +1310,8 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
               <th>الحقل / المحافظة</th>
               <th>نوع المنشأة</th>
               <th>الجهة الشاغلة</th>
+              <th style="text-align: center;">الغرف الشاغلة</th>
+              <th style="text-align: center;">إجمالي الغرف</th>
               <th>سنة الإنشاء</th>
               <th>المساحة (م²)</th>
               <th style="text-align: center;">التقييم الإنشائي</th>
@@ -1655,15 +1845,16 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
         <table className="w-full border-collapse border border-slate-400 text-[9.5px] text-right">
           <thead className="bg-slate-200 font-bold text-slate-900">
             <tr>
-              <th className="border border-slate-400 p-1.5 w-9 text-center">#</th>
-              <th className="border border-slate-400 p-1.5 font-mono">رمز الوحدة</th>
-              <th className="border border-slate-400 p-1.5">اسم الوحدة / العنوان</th>
-              <th className="border border-slate-400 p-1.5">الحقل / المحافظة</th>
+              <th className="border border-slate-400 p-1.5 w-8 text-center">#</th>
+              <th className="border border-slate-400 p-1.5 min-w-[130px]">بيانات الوحدة والموقع</th>
               <th className="border border-slate-400 p-1.5">نوع ودورية الكشف</th>
               <th className="border border-slate-400 p-1.5">تاريخ الكشف السابق</th>
-              <th className="border border-slate-400 p-1.5">تاريخ الاستحقاق القادم</th>
-              <th className="border border-slate-400 p-1.5">الفريق / المفتش المسؤول</th>
+              <th className="border border-slate-400 p-1.5">تاريخ الاستحقاق</th>
+              <th className="border border-slate-400 p-1.5">القائم بالكشف</th>
               <th className="border border-slate-400 p-1.5 text-center">الحالة والتقييم</th>
+              <th className="border border-slate-400 p-1.5">الملاحظات والنتائج</th>
+              <th className="border border-slate-400 p-1.5">التوصيات والإجراءات</th>
+              <th className="border border-slate-400 p-1.5 text-center">المرفق</th>
             </tr>
           </thead>
           <tbody>
@@ -1675,14 +1866,10 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                   <td className="border border-slate-400 p-1.5 text-center font-mono font-bold text-slate-700">
                     {toArabicDigits(item.indexInSection + 1)}
                   </td>
-                  <td className="border border-slate-400 p-1.5 font-bold font-mono text-amber-900">
-                    {toArabicDigits(i.unitCode)}
-                  </td>
-                  <td className="border border-slate-400 p-1.5 font-bold text-slate-900">
-                    {i.unitName || i.title || '-'}
-                  </td>
-                  <td className="border border-slate-400 p-1.5 text-slate-700">
-                    {translateField(i.field)} / {translateGovernorate(i.governorate)}
+                  <td className="border border-slate-400 p-1.5 leading-snug">
+                    <div className="font-bold font-mono text-amber-900 text-[10px]">{toArabicDigits(i.unitCode)}</div>
+                    <div className="font-bold text-slate-900 text-[9.5px]">{i.unitName || i.title || '-'}</div>
+                    <div className="text-[8.5px] text-slate-600">{translateField(i.field)} / {translateGovernorate(i.governorate)}</div>
                   </td>
                   <td className="border border-slate-400 p-1.5">
                     <span className="font-semibold text-slate-900">{translateInspectionType(i.inspectionType)}</span>
@@ -1694,12 +1881,43 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                   <td className="border border-slate-400 p-1.5 font-mono font-bold text-sky-900">
                     {toArabicDigits(i.nextDueDate)}
                   </td>
-                  <td className="border border-slate-400 p-1.5 text-slate-800">
-                    {i.inspectorName} ({i.assignedTeam})
+                  <td className="border border-slate-400 p-1.5 font-semibold text-slate-900">
+                    {getCleanInspectorName(i.inspectorName, i.performedByName, users)}
                   </td>
                   <td className="border border-slate-400 p-1.5 text-center font-semibold text-slate-900">
                     {translateInspectionStatus(i.status)}
                     {i.conditionGradeGiven ? ` - الدرجة ${i.conditionGradeGiven}` : ''}
+                  </td>
+                  <td className="border border-slate-400 p-1.5 text-[8.5px] max-w-[130px] truncate" title={i.findings || i.notes}>
+                    {i.findings || i.notes || '-'}
+                  </td>
+                  <td className="border border-slate-400 p-1.5 text-[8.5px] max-w-[130px] font-semibold text-amber-900 truncate" title={i.recommendations}>
+                    {i.recommendations || '-'}
+                  </td>
+                  <td className="border border-slate-400 p-1.5 text-center whitespace-nowrap">
+                    {i.reportFileName || i.reportFileUrl ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const ext = i.reportFileName?.split('.').pop() || 'pdf';
+                          setPreviewAttachment({
+                            id: 'rep-insp-' + i.id,
+                            name: i.reportFileName || 'تقرير_الكشف.pdf',
+                            type: ext,
+                            url: i.reportFileUrl || '#',
+                            uploadedAt: i.lastInspectionDate || new Date().toISOString().split('T')[0],
+                            size: '1.5 MB',
+                          });
+                        }}
+                        className="text-emerald-700 hover:text-emerald-900 font-bold underline cursor-pointer text-[9px] inline-flex items-center gap-1"
+                        title="معاينة الملف المرفق"
+                      >
+                        <Eye className="w-3 h-3" />
+                        <span>معاينة</span>
+                      </button>
+                    ) : (
+                      <span className="text-slate-400">-</span>
+                    )}
                   </td>
                 </tr>
               );
@@ -1714,15 +1932,16 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
         <table className="w-full border-collapse border border-slate-400 text-[9.5px] text-right">
           <thead className="bg-slate-200 font-bold text-slate-900">
             <tr>
-              <th className="border border-slate-400 p-1.5 w-9 text-center">#</th>
+              <th className="border border-slate-400 p-1.5 w-8 text-center">#</th>
               <th className="border border-slate-400 p-1.5 font-mono">رقم الطلب</th>
               <th className="border border-slate-400 p-1.5 font-mono">كود الوحدة</th>
               <th className="border border-slate-400 p-1.5">وصف العطل / البلاغ</th>
               <th className="border border-slate-400 p-1.5">الحقل</th>
               <th className="border border-slate-400 p-1.5 text-center">درجة الأهمية</th>
-              <th className="border border-slate-400 p-1.5">الجهة المكلفة</th>
+              <th className="border border-slate-400 p-1.5">محرر الطلب</th>
               <th className="border border-slate-400 p-1.5 font-mono">تاريخ البلاغ</th>
               <th className="border border-slate-400 p-1.5 font-mono">تاريخ الإنجاز/الإلغاء</th>
+              <th className="border border-slate-400 p-1.5 text-center">المرفق / الصورة</th>
               <th className="border border-slate-400 p-1.5 font-bold text-center">حالة البلاغ</th>
             </tr>
           </thead>
@@ -1750,14 +1969,39 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                   <td className="border border-slate-400 p-1.5 text-center font-bold">
                     {translatePriority(m.priority)}
                   </td>
-                  <td className="border border-slate-400 p-1.5 text-slate-800">
-                    {m.assignedTo}
+                  <td className="border border-slate-400 p-1.5 font-semibold text-slate-900">
+                    {getCleanReporterName(m.reportedBy)}
                   </td>
                   <td className="border border-slate-400 p-1.5 font-mono text-slate-700">
                     {formatDateOnly(m.createdAt)}
                   </td>
                   <td className="border border-slate-400 p-1.5 font-mono text-slate-700">
                     {getCompletionOrCancellationDate(m.completedAt, m.status)}
+                  </td>
+                  <td className="border border-slate-400 p-1.5 text-center whitespace-nowrap">
+                    {m.attachmentUrl || m.attachmentName ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const ext = m.attachmentName?.split('.').pop() || 'jpg';
+                          setPreviewAttachment({
+                            id: 'rep-maint-' + m.id,
+                            name: m.attachmentName || 'صورة_البلاغ.jpg',
+                            type: ext,
+                            url: m.attachmentUrl || '#',
+                            uploadedAt: formatDateOnly(m.createdAt),
+                            size: '1.2 MB',
+                          });
+                        }}
+                        className="text-amber-800 hover:text-amber-950 font-bold underline cursor-pointer text-[9px] inline-flex items-center gap-1"
+                        title="معاينة الصورة المرفقة"
+                      >
+                        <Eye className="w-3 h-3" />
+                        <span>معاينة الصورة</span>
+                      </button>
+                    ) : (
+                      <span className="text-slate-400">-</span>
+                    )}
                   </td>
                   <td className="border border-slate-400 p-1.5 text-center font-bold text-amber-900">
                     {translateMaintenanceStatus(m.status)}
@@ -1781,6 +2025,8 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
               <th className="border border-slate-400 p-1.5">الحقل / المحافظة</th>
               <th className="border border-slate-400 p-1.5">نوع المنشأة</th>
               <th className="border border-slate-400 p-1.5">الجهة الشاغلة</th>
+              <th className="border border-slate-400 p-1.5 text-center font-bold text-amber-900">الغرف الشاغلة</th>
+              <th className="border border-slate-400 p-1.5 text-center">إجمالي الغرف</th>
               <th className="border border-slate-400 p-1.5 font-mono">سنة الإنشاء</th>
               <th className="border border-slate-400 p-1.5 font-mono">المساحة (م²)</th>
               <th className="border border-slate-400 p-1.5 text-center font-bold">التقييم الإنشائي</th>
@@ -1790,6 +2036,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
             {page.items.map((item, rowIdx) => {
               if (item.type !== 'unit') return null;
               const u = item.data;
+              const stats = getUnitOccupancyStats(u, selectedOrgEntity);
               return (
                 <tr key={`unit-row-${u.id}`} className={rowIdx % 2 === 1 ? 'bg-slate-50' : 'bg-white'}>
                   <td className="border border-slate-400 p-1.5 text-center font-mono font-bold text-slate-700">
@@ -1807,8 +2054,14 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                   <td className="border border-slate-400 p-1.5">
                     {translateUnitType(u.type)}
                   </td>
-                  <td className="border border-slate-400 p-1.5 text-slate-800">
-                    {u.department}
+                  <td className="border border-slate-400 p-1.5 font-semibold text-slate-900">
+                    {stats.entity}
+                  </td>
+                  <td className="border border-slate-400 p-1.5 text-center font-mono font-bold text-amber-900">
+                    {toArabicDigits(stats.occupiedRoomsCount)} غرف
+                  </td>
+                  <td className="border border-slate-400 p-1.5 text-center font-mono text-slate-700">
+                    {toArabicDigits(stats.totalRooms)} غرفة
                   </td>
                   <td className="border border-slate-400 p-1.5 font-mono text-slate-700">
                     {toArabicDigits(u.constructionYear)}
@@ -2542,15 +2795,15 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
             <table className="w-full text-right text-xs">
               <thead className={`border-b ${isLight ? 'bg-slate-100 border-slate-200 text-slate-700' : 'bg-slate-950 border-slate-800 text-slate-400'} font-bold`}>
                 <tr>
-                  <th className="p-2.5">كود الوحدة</th>
-                  <th className="p-2.5">اسم الوحدة</th>
-                  <th className="p-2.5">الحقل / المحافظة</th>
+                  <th className="p-2.5 min-w-[140px]">بيانات الوحدة والموقع</th>
                   <th className="p-2.5">نوع ودورية الكشف</th>
                   <th className="p-2.5">تاريخ الكشف السابق</th>
                   <th className="p-2.5">التاريخ القادم</th>
-                  <th className="p-2.5">فريق الفحص / المسؤول</th>
+                  <th className="p-2.5">القائم بالكشف</th>
                   <th className="p-2.5">الحالة والتصنيف</th>
-                  <th className="p-2.5">ملاحظات ونتائج والمعاينة</th>
+                  <th className="p-2.5">الملاحظات والنتائج</th>
+                  <th className="p-2.5">التوصيات والإجراءات</th>
+                  <th className="p-2.5 text-center">المرفقات / الصور</th>
                 </tr>
               </thead>
               <tbody className={`divide-y ${isLight ? 'divide-slate-200 text-slate-800' : 'divide-slate-800 text-slate-300'}`}>
@@ -2563,10 +2816,12 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                 ) : (
                   filteredInspections.map((item) => (
                     <tr key={item.id} className={isLight ? 'hover:bg-slate-50' : 'hover:bg-slate-800/40'}>
-                      <td className="p-2.5 font-mono font-bold text-amber-500 whitespace-nowrap">{toArabicDigits(item.unitCode)}</td>
-                      <td className="p-2.5 font-bold whitespace-nowrap">{item.unitName || 'غير مسمى'}</td>
-                      <td className="p-2.5 text-slate-400 whitespace-nowrap">
-                        {item.field} / {item.governorate}
+                      <td className="p-2.5 leading-snug whitespace-nowrap">
+                        <div className="font-mono font-bold text-amber-500">{toArabicDigits(item.unitCode)}</div>
+                        <div className={`font-bold ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>{item.unitName || 'غير مسمى'}</div>
+                        <div className={`text-[11px] ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                          {translateField(item.field)} / {translateGovernorate(item.governorate)}
+                        </div>
                       </td>
                       <td className="p-2.5 whitespace-nowrap">
                         <span className="font-semibold">{item.title}</span>
@@ -2574,7 +2829,9 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                       </td>
                       <td className="p-2.5 font-mono whitespace-nowrap">{toArabicDigits(item.lastInspectionDate || 'غير مسجل')}</td>
                       <td className="p-2.5 font-mono whitespace-nowrap font-bold text-sky-400">{toArabicDigits(item.nextDueDate)}</td>
-                      <td className="p-2.5 whitespace-nowrap">{item.inspectorName} ({item.assignedTeam})</td>
+                      <td className="p-2.5 whitespace-nowrap font-semibold">
+                        {getCleanInspectorName(item.inspectorName, item.performedByName, users)}
+                      </td>
                       <td className="p-2.5 whitespace-nowrap">
                         <span
                           className={`px-2 py-0.5 rounded text-[10px] font-bold ${
@@ -2593,7 +2850,41 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                           </span>
                         )}
                       </td>
-                      <td className="p-2.5 max-w-xs text-[11px] text-slate-400 truncate">{item.findings || item.notes || 'لا توجد ملاحظات إضافية'}</td>
+                      <td className="p-2.5 max-w-xs text-[11px] text-slate-300 truncate" title={item.findings || item.notes}>
+                        {item.findings || item.notes || 'لا توجد ملاحظات'}
+                      </td>
+                      <td className="p-2.5 max-w-xs text-[11px] font-semibold text-amber-400 truncate" title={item.recommendations}>
+                        {item.recommendations || 'لا توجد توصيات'}
+                      </td>
+                      <td className="p-2.5 text-center whitespace-nowrap">
+                        {item.reportFileName || item.reportFileUrl ? (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const ext = item.reportFileName?.split('.').pop() || 'pdf';
+                              setPreviewAttachment({
+                                id: 'rep-live-insp-' + item.id,
+                                name: item.reportFileName || 'تقرير_الكشف.pdf',
+                                type: ext,
+                                url: item.reportFileUrl || '#',
+                                uploadedAt: item.lastInspectionDate || new Date().toISOString().split('T')[0],
+                                size: '1.5 MB',
+                              });
+                            }}
+                            className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold transition cursor-pointer border shadow-sm ${
+                              isLight
+                                ? 'bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100'
+                                : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 hover:bg-emerald-500/30'
+                            }`}
+                            title="معاينة الملف المرفق أو الصورة"
+                          >
+                            <Eye className="w-3.5 h-3.5" />
+                            <span className="truncate max-w-[80px]">{item.reportFileName || 'معاينة'}</span>
+                          </button>
+                        ) : (
+                          <span className="text-slate-500 text-[10px]">لا يوجد</span>
+                        )}
+                      </td>
                     </tr>
                   ))
                 )}
@@ -2624,17 +2915,18 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                   <th className="p-2.5">كود الوحدة</th>
                   <th className="p-2.5">وصف العطل / البلاغ</th>
                   <th className="p-2.5">درجة الأهمية</th>
-                  <th className="p-2.5">المقاول / الفريق المكلّف</th>
+                  <th className="p-2.5">محرر الطلب</th>
                   <th className="p-2.5">تاريخ البلاغ</th>
                   <th className="p-2.5">تاريخ الإنجاز / الإلغاء</th>
                   <th className="p-2.5">المدة (بالأيام)</th>
+                  <th className="p-2.5 text-center">المرفق / الصورة</th>
                   <th className="p-2.5">الحالة الحالية</th>
                 </tr>
               </thead>
               <tbody className={`divide-y ${isLight ? 'divide-slate-200 text-slate-800' : 'divide-slate-800 text-slate-300'}`}>
                 {filteredMaintenance.length === 0 ? (
                   <tr>
-                    <td colSpan={9} className="p-6 text-center text-slate-500 font-semibold">
+                    <td colSpan={10} className="p-6 text-center text-slate-500 font-semibold">
                       لا توجد بلاغات صيانة تطابق معايير الفلترة المحددة.
                     </td>
                   </tr>
@@ -2657,10 +2949,41 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                           {req.priority === 'critical' ? 'حرج جدًا' : req.priority === 'normal' ? 'متوسط' : 'منخفض'}
                         </span>
                       </td>
-                      <td className="p-2.5 whitespace-nowrap">{req.assignedTo}</td>
+                      <td className="p-2.5 whitespace-nowrap font-semibold">
+                        {getCleanReporterName(req.reportedBy)}
+                      </td>
                       <td className="p-2.5 font-mono whitespace-nowrap">{formatDateOnly(req.createdAt)}</td>
                       <td className="p-2.5 font-mono whitespace-nowrap">{getCompletionOrCancellationDate(req.completedAt, req.status)}</td>
                       <td className="p-2.5 font-bold text-amber-400 whitespace-nowrap">{calculateMaintenanceDurationDays(req.createdAt, req.completedAt, req.status)}</td>
+                      <td className="p-2.5 text-center whitespace-nowrap">
+                        {req.attachmentUrl || req.attachmentName ? (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const ext = req.attachmentName?.split('.').pop() || 'jpg';
+                              setPreviewAttachment({
+                                id: 'rep-live-maint-' + req.id,
+                                name: req.attachmentName || 'صورة_البلاغ.jpg',
+                                type: ext,
+                                url: req.attachmentUrl || '#',
+                                uploadedAt: formatDateOnly(req.createdAt),
+                                size: '1.2 MB',
+                              });
+                            }}
+                            className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold transition cursor-pointer border shadow-sm ${
+                              isLight
+                                ? 'bg-amber-50 text-amber-800 border-amber-300 hover:bg-amber-100'
+                                : 'bg-amber-500/20 text-amber-300 border-amber-500/40 hover:bg-amber-500/30'
+                            }`}
+                            title="معاينة الصورة المرفقة بطلب الصيانة"
+                          >
+                            <Eye className="w-3.5 h-3.5" />
+                            <span className="truncate max-w-[70px]">{req.attachmentName || 'معاينة'}</span>
+                          </button>
+                        ) : (
+                          <span className="text-slate-500 text-[10px]">لا يوجد</span>
+                        )}
+                      </td>
                       <td className="p-2.5 whitespace-nowrap font-bold">
                         {req.status === 'completed' ? (
                           <span className="text-emerald-400">منجز</span>
@@ -2694,6 +3017,30 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
             <span className="text-[11px] text-amber-500 font-mono font-bold">السجل العام للاصول</span>
           </div>
 
+          {/* Org Entity Filter Highlight Banner */}
+          {selectedOrgEntity !== 'all' && (
+            <div className={`p-3 px-4 rounded-xl border flex flex-wrap items-center justify-between gap-3 text-xs ${
+              isLight ? 'bg-amber-50 border-amber-200 text-slate-800' : 'bg-slate-950 border-amber-500/30 text-slate-200'
+            }`}>
+              <div className="flex items-center gap-2">
+                <Users className="w-4 h-4 text-amber-500 shrink-0" />
+                <span className="font-bold text-amber-600 dark:text-amber-400">
+                  حصر إشغال التشكيل: <span className="underline decoration-amber-500 underline-offset-4">{selectedOrgEntity}</span>
+                </span>
+                <span className="text-slate-500 text-[11px]">
+                  (يشغل عدد <b>{toArabicDigits(filteredUnits.length)}</b> منشأة / وحدة هندسية)
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="px-3 py-1 rounded-lg bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 font-bold font-mono text-xs">
+                  إجمالي الغرف الشاغلة للتشكيل: {toArabicDigits(
+                    filteredUnits.reduce((acc, u) => acc + getUnitOccupancyStats(u, selectedOrgEntity).occupiedRoomsCount, 0)
+                  )} غرفة
+                </span>
+              </div>
+            </div>
+          )}
+
           <div className="overflow-x-auto">
             <table className="w-full text-right text-xs">
               <thead className={`border-b ${isLight ? 'bg-slate-100 border-slate-200 text-slate-700' : 'bg-slate-950 border-slate-800 text-slate-400'} font-bold`}>
@@ -2704,48 +3051,90 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                   <th className="p-2.5">المحافظة</th>
                   <th className="p-2.5">التقييم الإنشائي</th>
                   <th className="p-2.5">الجهة الشاغلة</th>
+                  <th className="p-2.5 text-center font-black text-amber-600 dark:text-amber-400">
+                    {selectedOrgEntity !== 'all' ? 'الغرف الشاغلة للتشكيل' : 'عدد الغرف'}
+                  </th>
+                  <th className="p-2.5 text-center">إجمالي غرف المنشأة</th>
                   <th className="p-2.5">سنة الإنشاء</th>
                   <th className="p-2.5">المساحة (م²)</th>
-                  <th className="p-2.5">الغرف / المعدات</th>
+                  <th className="p-2.5">المعدات</th>
                 </tr>
               </thead>
               <tbody className={`divide-y ${isLight ? 'divide-slate-200 text-slate-800' : 'divide-slate-800 text-slate-300'}`}>
                 {filteredUnits.length === 0 ? (
                   <tr>
-                    <td colSpan={9} className="p-6 text-center text-slate-500 font-semibold">
+                    <td colSpan={11} className="p-6 text-center text-slate-500 font-semibold">
                       لا توجد وحدات هندسية تطابق معايير الفلترة المحددة.
                     </td>
                   </tr>
                 ) : (
-                  filteredUnits.map((u) => (
-                    <tr key={u.id} className={isLight ? 'hover:bg-slate-50' : 'hover:bg-slate-800/40'}>
-                      <td className="p-2.5 font-mono font-bold text-amber-500 whitespace-nowrap">{toArabicDigits(u.code)}</td>
-                      <td className="p-2.5 font-bold whitespace-nowrap">{u.name}</td>
-                      <td className="p-2.5 text-slate-400 whitespace-nowrap">{u.field}</td>
-                      <td className="p-2.5 text-slate-400 whitespace-nowrap">{u.governorate}</td>
-                      <td className="p-2.5 whitespace-nowrap">
-                        <span
-                          className={`px-2 py-0.5 rounded text-[10px] font-black ${
-                            u.conditionGrade === 'A'
-                              ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                              : u.conditionGrade === 'B'
-                              ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
-                              : u.conditionGrade === 'C'
-                              ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                              : 'bg-red-500/20 text-red-400 border border-red-500/30'
-                          }`}
-                        >
-                          الدرجة {u.conditionGrade}
-                        </span>
-                      </td>
-                      <td className="p-2.5 whitespace-nowrap">{u.department}</td>
-                      <td className="p-2.5 font-mono whitespace-nowrap">{toArabicDigits(u.constructionYear)}</td>
-                      <td className="p-2.5 font-mono whitespace-nowrap">{toArabicDigits(u.totalAreaSqM)} م²</td>
-                      <td className="p-2.5 text-[11px] text-slate-400 whitespace-nowrap">
-                        {toArabicDigits(u.rooms.length)} غرف / {toArabicDigits(u.equipment.length)} معدة
-                      </td>
-                    </tr>
-                  ))
+                  filteredUnits.map((u) => {
+                    const stats = getUnitOccupancyStats(u, selectedOrgEntity);
+                    return (
+                      <tr key={u.id} className={isLight ? 'hover:bg-slate-50' : 'hover:bg-slate-800/40'}>
+                        <td className="p-2.5 font-mono font-bold text-amber-500 whitespace-nowrap">{toArabicDigits(u.code)}</td>
+                        <td className="p-2.5 font-bold whitespace-nowrap">
+                          <div>{u.name}</div>
+                          <span className="text-[10px] text-slate-500 font-normal">{translateUnitType(u.type)}</span>
+                        </td>
+                        <td className="p-2.5 text-slate-400 whitespace-nowrap">{u.field}</td>
+                        <td className="p-2.5 text-slate-400 whitespace-nowrap">{u.governorate}</td>
+                        <td className="p-2.5 whitespace-nowrap">
+                          <span
+                            className={`px-2 py-0.5 rounded text-[10px] font-black ${
+                              u.conditionGrade === 'A'
+                                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                                : u.conditionGrade === 'B'
+                                ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
+                                : u.conditionGrade === 'C'
+                                ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                                : 'bg-red-500/20 text-red-400 border border-red-500/30'
+                            }`}
+                          >
+                            الدرجة {u.conditionGrade}
+                          </span>
+                        </td>
+                        <td className="p-2.5 whitespace-nowrap">
+                          {selectedOrgEntity !== 'all' ? (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30">
+                              <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                              {selectedOrgEntity}
+                            </span>
+                          ) : (
+                            <span className="font-semibold">{stats.entity}</span>
+                          )}
+                        </td>
+                        <td className="p-2.5 whitespace-nowrap text-center">
+                          <div className="inline-flex flex-col items-center">
+                            <span className={`px-2.5 py-0.5 rounded text-[11px] font-black font-mono border ${
+                              selectedOrgEntity !== 'all'
+                                ? 'bg-amber-500/20 text-amber-600 dark:text-amber-400 border-amber-500/40 shadow-xs'
+                                : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700'
+                            }`}>
+                              {toArabicDigits(stats.occupiedRoomsCount)} غرف شاغلة
+                            </span>
+                            {selectedOrgEntity !== 'all' && stats.occupiedRooms.length > 0 && (
+                              <span
+                                className="text-[9.5px] text-slate-400 max-w-[140px] truncate block mt-0.5"
+                                title={stats.occupiedRooms.map((r) => r.name).join(' ، ')}
+                              >
+                                {stats.occupiedRooms.map((r) => r.name).slice(0, 2).join('، ')}
+                                {stats.occupiedRooms.length > 2 ? ' ...' : ''}
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="p-2.5 font-mono text-center text-slate-400 whitespace-nowrap">
+                          {toArabicDigits(stats.totalRooms)} غرفة
+                        </td>
+                        <td className="p-2.5 font-mono whitespace-nowrap">{toArabicDigits(u.constructionYear)}</td>
+                        <td className="p-2.5 font-mono whitespace-nowrap">{toArabicDigits(u.totalAreaSqM)} م²</td>
+                        <td className="p-2.5 text-[11px] text-slate-400 whitespace-nowrap font-mono">
+                          {toArabicDigits(u.equipment.length)} معدة
+                        </td>
+                      </tr>
+                    );
+                  })
                 )}
               </tbody>
             </table>
@@ -3044,6 +3433,15 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
             </div>
           </div>
         </div>
+      )}
+
+      {/* Attachment Viewer Modal */}
+      {previewAttachment && (
+        <AttachmentViewerModal
+          attachment={previewAttachment}
+          theme={theme}
+          onClose={() => setPreviewAttachment(null)}
+        />
       )}
     </div>
   );

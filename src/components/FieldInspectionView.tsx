@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import {
   ClipboardCheck,
   Building,
@@ -19,6 +19,16 @@ import {
   Info,
   Clock,
   UserCheck,
+  QrCode,
+  Camera,
+  Upload,
+  Eye,
+  Trash2,
+  Image as ImageIcon,
+  FileCheck,
+  Archive,
+  Download,
+  X,
 } from 'lucide-react';
 import {
   UnitAsset,
@@ -56,13 +66,17 @@ export const FieldInspectionView: React.FC<FieldInspectionViewProps> = ({
   const isLight = theme === 'light';
 
   // Selected Unit state
-  const [selectedUnitCode, setSelectedUnitCode] = useState<string>(
-    initialUnitCode || (units.length > 0 ? units[0].code : '')
-  );
+  const [selectedUnitCode, setSelectedUnitCode] = useState<string>(initialUnitCode || '');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
-  // Mode: 'overview' | 'new_inspection'
-  const [viewMode, setViewMode] = useState<'overview' | 'new_inspection'>('overview');
+  useEffect(() => {
+    if (initialUnitCode) {
+      setSelectedUnitCode(initialUnitCode);
+    }
+  }, [initialUnitCode]);
+
+  // Mode: 'overview' | 'new_inspection' | 'unit_archive'
+  const [viewMode, setViewMode] = useState<'overview' | 'new_inspection' | 'unit_archive'>('overview');
 
   // New Inspection Form State
   const [inspectionType, setInspectionType] = useState<InspectionType>('structural');
@@ -71,6 +85,17 @@ export const FieldInspectionView: React.FC<FieldInspectionViewProps> = ({
   const [findings, setFindings] = useState<string>('');
   const [recommendations, setRecommendations] = useState<string>('');
   const [notes, setNotes] = useState<string>('');
+  
+  // File & Camera upload state
+  const [reportFileName, setReportFileName] = useState<string>('');
+  const [reportFileUrl, setReportFileUrl] = useState<string>('');
+  const [reportFileType, setReportFileType] = useState<string>('');
+  const cameraInputRef = useRef<HTMLInputElement | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  // Photo / Document Viewer Modal State
+  const [previewItem, setPreviewItem] = useState<{ title: string; url: string; fileName: string } | null>(null);
+
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [submitSuccessMsg, setSubmitSuccessMsg] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -80,20 +105,47 @@ export const FieldInspectionView: React.FC<FieldInspectionViewProps> = ({
     return units.find((u) => u.code === selectedUnitCode) || null;
   }, [units, selectedUnitCode]);
 
+  // All completed inspections recorded for this unit
+  const unitCompletedInspections = useMemo(() => {
+    if (!selectedUnitCode) return [];
+    return periodicInspections
+      .filter((ins) => ins.unitCode === selectedUnitCode && ins.status === 'completed')
+      .sort((a, b) => {
+        const dateA = a.completionDate || a.lastInspectionDate || a.createdAt;
+        const dateB = b.completionDate || b.lastInspectionDate || b.createdAt;
+        return dateB.localeCompare(dateA);
+      });
+  }, [periodicInspections, selectedUnitCode]);
+
   // Last inspection recorded for this unit
   const lastInspection = useMemo(() => {
-    if (!selectedUnitCode) return null;
-    const unitInsps = periodicInspections.filter(
-      (ins) => ins.unitCode === selectedUnitCode && ins.status === 'completed'
-    );
-    if (unitInsps.length === 0) return null;
-    // Sort by completionDate or createdAt descending
-    return [...unitInsps].sort((a, b) => {
-      const dateA = a.completionDate || a.lastInspectionDate || a.createdAt;
-      const dateB = b.completionDate || b.lastInspectionDate || b.createdAt;
-      return dateB.localeCompare(dateA);
-    })[0];
-  }, [periodicInspections, selectedUnitCode]);
+    return unitCompletedInspections[0] || null;
+  }, [unitCompletedInspections]);
+
+  // Handle Camera and File Pickers
+  const handleFileSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setReportFileName(file.name);
+    setReportFileType(file.type);
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      if (event.target?.result) {
+        setReportFileUrl(event.target.result as string);
+      }
+    };
+    reader.readAsDataURL(file);
+    // Reset file input value so selecting the same file triggers onChange again
+    e.target.value = '';
+  };
+
+  const handleRemoveFile = () => {
+    setReportFileName('');
+    setReportFileUrl('');
+    setReportFileType('');
+  };
 
   // Filtered units list for manual selection
   const filteredUnits = useMemo(() => {
@@ -135,12 +187,15 @@ export const FieldInspectionView: React.FC<FieldInspectionViewProps> = ({
       nextDueDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
       assignedTeam: 'شعبة الفحص الهندسي الميداني',
       inspectorName: currentUser?.name || 'مفتش ميداني معتمد',
+      performedByName: currentUser?.name || 'مفتش ميداني معتمد',
       status: 'completed',
       completionDate: nowIso,
       conditionGradeGiven: conditionGrade,
       findings: findings.trim() || 'تمت معاينة الهيكل الإنشائي وكافة الملحقات الميدانية.',
       recommendations: recommendations.trim() || 'استمرار التشغيل والمراقبة الدورية.',
-      notes: notes.trim() || 'كشف مسجل عبر الواجهة الميدانية السريعة QR.',
+      notes: notes.trim() || '',
+      reportFileName: reportFileName || undefined,
+      reportFileUrl: reportFileUrl || undefined,
       createdAt: nowIso,
     };
 
@@ -152,7 +207,7 @@ export const FieldInspectionView: React.FC<FieldInspectionViewProps> = ({
         onUpdateGrade(currentUnit.code, conditionGrade);
       }
 
-      setSubmitSuccessMsg(`تم تسجيل تقرير الكشف بنجاح بالرقم: ${newInspection.id}`);
+      setSubmitSuccessMsg(`تم تسجيل واعتماد تقرير الكشف بنجاح بالرقم: ${newInspection.id}`);
       setIsSubmitting(false);
       setViewMode('overview');
 
@@ -160,6 +215,9 @@ export const FieldInspectionView: React.FC<FieldInspectionViewProps> = ({
       setFindings('');
       setRecommendations('');
       setNotes('');
+      setReportFileName('');
+      setReportFileUrl('');
+      setReportFileType('');
 
       setTimeout(() => setSubmitSuccessMsg(null), 6000);
     } catch (err: any) {
@@ -172,6 +230,12 @@ export const FieldInspectionView: React.FC<FieldInspectionViewProps> = ({
       setSubmitSuccessMsg(`تم حفظ الكشف محلياً بنجاح بالرقم: ${newInspection.id}`);
       setIsSubmitting(false);
       setViewMode('overview');
+      setFindings('');
+      setRecommendations('');
+      setNotes('');
+      setReportFileName('');
+      setReportFileUrl('');
+      setReportFileType('');
       setTimeout(() => setSubmitSuccessMsg(null), 6000);
     }
   };
@@ -202,43 +266,37 @@ export const FieldInspectionView: React.FC<FieldInspectionViewProps> = ({
         }`}
       >
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-amber-500 text-slate-950 font-black flex items-center justify-center shadow-lg shrink-0">
-            <ClipboardCheck className="w-7 h-7" />
+          <div className="w-12 h-12 rounded-2xl bg-amber-500/15 border border-amber-500/30 text-amber-500 flex items-center justify-center font-black shadow-inner shrink-0">
+            <ClipboardCheck className="w-6 h-6" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-lg sm:text-xl font-black tracking-tight">منظومة الكشف والصيانة الميدانية</h1>
+              <h1 className="font-black text-base sm:text-lg tracking-tight">نظام الكشف الميداني السريع</h1>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-500 border border-amber-500/40">
+                QR Mobile
+              </span>
             </div>
-            <p className={`text-xs mt-0.5 flex items-center gap-1.5 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
-              <UserCheck className="w-3.5 h-3.5 text-amber-500" />
-              <span>المفتش: {currentUser?.name || 'مفتش ميداني'}</span>
+            <p className={`text-xs mt-0.5 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+              معاينة الكرفانات والمنشآت وتوثيق الحالة الإنشائية بالصور والملاحظات
             </p>
           </div>
         </div>
 
-        <div className="text-left shrink-0">
-          <span
-            className={`px-3 py-1 rounded-full text-xs font-bold border inline-flex items-center gap-1 ${
-              isLight ? 'bg-amber-100 text-amber-900 border-amber-300' : 'bg-amber-500/20 text-amber-400 border-amber-500/40'
-            }`}
-          >
-            <ShieldCheck className="w-3.5 h-3.5" />
-            <span>كشف ميداني</span>
-          </span>
-        </div>
+        {currentUser && (
+          <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800/40 border border-slate-700/50 text-xs font-bold text-slate-300">
+            <UserCheck className="w-4 h-4 text-emerald-400" />
+            <span>{currentUser.name}</span>
+          </div>
+        )}
       </div>
 
       {/* Success Notification */}
       {submitSuccessMsg && (
-        <div
-          className={`p-4 rounded-2xl border flex items-center gap-3 animate-fadeIn ${
-            isLight
-              ? 'bg-emerald-50 border-emerald-300 text-emerald-900 shadow-sm'
-              : 'bg-emerald-500/20 border-emerald-500/40 text-emerald-200'
-          }`}
-        >
-          <CheckCircle2 className="w-6 h-6 text-emerald-500 shrink-0" />
-          <div className="text-xs sm:text-sm font-bold">{submitSuccessMsg}</div>
+        <div className="p-4 rounded-2xl bg-emerald-500/15 border border-emerald-500/40 text-emerald-400 text-xs sm:text-sm font-bold flex items-center gap-3 shadow-lg animate-fadeIn">
+          <CheckCircle2 className="w-5 h-5 shrink-0 text-emerald-400" />
+          <div className="flex-1">
+            <span>{submitSuccessMsg}</span>
+          </div>
         </div>
       )}
 
@@ -285,6 +343,9 @@ export const FieldInspectionView: React.FC<FieldInspectionViewProps> = ({
                 : 'bg-slate-950 border-slate-800 text-amber-400 focus:border-amber-500'
             }`}
           >
+            <option value="" disabled className={isLight ? 'bg-white text-slate-500' : 'bg-slate-900 text-slate-400'}>
+              -- اضغط لاختيار الوحدة المستهدفة للكشف --
+            </option>
             {filteredUnits.map((u) => (
               <option key={u.code} value={u.code} className={isLight ? 'bg-white text-slate-900' : 'bg-slate-900 text-white'}>
                 {u.code} - {u.name} ({u.field || u.governorate})
@@ -294,7 +355,28 @@ export const FieldInspectionView: React.FC<FieldInspectionViewProps> = ({
         </div>
       </div>
 
-      {/* Main Container - Overview Mode or New Inspection Mode */}
+      {/* Guidance Message when no unit is selected */}
+      {!currentUnit && (
+        <div
+          className={`rounded-2xl p-6 sm:p-8 border shadow-lg text-center space-y-3 transition-colors ${
+            isLight
+              ? 'bg-white border-slate-200 text-slate-900 shadow-slate-200/60'
+              : 'bg-slate-900/90 border-slate-800 text-slate-100 shadow-2xl'
+          }`}
+        >
+          <div className="w-16 h-16 rounded-2xl bg-amber-500/15 border border-amber-500/30 text-amber-500 flex items-center justify-center mx-auto shadow-inner">
+            <QrCode className="w-8 h-8" />
+          </div>
+          <div className="space-y-1.5 max-w-md mx-auto">
+            <h3 className="text-base sm:text-lg font-black">لم يتم اختيار أي وحدة بعد</h3>
+            <p className={`text-xs sm:text-sm leading-relaxed ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+              يرجى مسح رمز QR الخاص بالوحدة أو اختيار وحدة يدوياً من قائمة البحث أعلاه لبدء كشف هندسي جديد أو تسجيل طلب صيانة.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Main Container - Overview Mode */}
       {currentUnit && viewMode === 'overview' && (
         <div className="space-y-4 animate-fadeIn">
           {/* Unit Summary Card - Big and Clear for Mobile */}
@@ -388,16 +470,16 @@ export const FieldInspectionView: React.FC<FieldInspectionViewProps> = ({
               </div>
             )}
 
-            {/* Last Inspection Info Card */}
+            {/* Last Inspection Info Card with Findings, Recommendations & Attached Photo */}
             <div
-              className={`p-3.5 rounded-xl border space-y-1.5 ${
-                isLight ? 'bg-amber-50/40 border-amber-200' : 'bg-amber-500/10 border-amber-500/20'
+              className={`p-3.5 rounded-xl border space-y-2 ${
+                isLight ? 'bg-amber-50/50 border-amber-200' : 'bg-amber-500/10 border-amber-500/20'
               }`}
             >
               <div className="flex items-center justify-between text-xs font-bold text-amber-600 dark:text-amber-400">
                 <span className="flex items-center gap-1.5">
                   <Clock className="w-3.5 h-3.5" />
-                  <span>آخر كشف فني مسجل</span>
+                  <span>آخر كشف فني مسجل لهذه المنشأة</span>
                 </span>
                 {lastInspection ? (
                   <span className="font-mono">{toArabicDigits(lastInspection.completionDate || lastInspection.lastInspectionDate)}</span>
@@ -407,24 +489,84 @@ export const FieldInspectionView: React.FC<FieldInspectionViewProps> = ({
               </div>
 
               {lastInspection ? (
-                <div className="text-xs space-y-1 pt-1 text-slate-700 dark:text-slate-300">
-                  <p><strong>المفتش:</strong> {lastInspection.inspectorName}</p>
+                <div className="text-xs space-y-1.5 pt-1 text-slate-700 dark:text-slate-300">
+                  <div className="flex items-center justify-between flex-wrap gap-1">
+                    <p><strong>مُنفِّذ الكشف:</strong> {lastInspection.performedByName || lastInspection.inspectorName}</p>
+                    {lastInspection.conditionGradeGiven && (
+                      <span className="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                        Grade {lastInspection.conditionGradeGiven}
+                      </span>
+                    )}
+                  </div>
+
                   {lastInspection.findings && (
-                    <p className="line-clamp-2 text-slate-600 dark:text-slate-400">
-                      <strong>النتائج:</strong> {lastInspection.findings}
-                    </p>
+                    <div className="p-2 rounded-lg bg-black/5 dark:bg-black/20 text-slate-700 dark:text-slate-300 text-xs">
+                      <span className="font-bold text-amber-500 block mb-0.5">الملاحظات والنتائج الميدانية:</span>
+                      <p className="leading-relaxed">{lastInspection.findings}</p>
+                    </div>
                   )}
-                  {lastInspection.conditionGradeGiven && (
-                    <p>
-                      <strong>الدرجة الممنوحة:</strong>{' '}
-                      <span className="font-bold text-amber-500">Grade {lastInspection.conditionGradeGiven}</span>
-                    </p>
+
+                  {lastInspection.recommendations && (
+                    <div className="p-2 rounded-lg bg-black/5 dark:bg-black/20 text-slate-700 dark:text-slate-300 text-xs">
+                      <span className="font-bold text-emerald-500 block mb-0.5">التوصيات والإجراءات المطلوب اتخاذها:</span>
+                      <p className="leading-relaxed">{lastInspection.recommendations}</p>
+                    </div>
+                  )}
+
+                  {/* Attached File / Photo Preview */}
+                  {lastInspection.reportFileName && (
+                    <div className="flex items-center justify-between gap-2 p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/30">
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <FileCheck className="w-4 h-4 text-emerald-500 shrink-0" />
+                        <span className="text-[11px] font-bold text-emerald-400 truncate" title={lastInspection.reportFileName}>
+                          {lastInspection.reportFileName}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-1 shrink-0">
+                        {lastInspection.reportFileUrl && (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setPreviewItem({
+                                title: `مرفق الكشف - ${lastInspection.title}`,
+                                url: lastInspection.reportFileUrl!,
+                                fileName: lastInspection.reportFileName!,
+                              })
+                            }
+                            className="px-2 py-1 rounded-lg bg-emerald-500 text-slate-950 font-bold text-[10px] flex items-center gap-1 hover:bg-emerald-400 cursor-pointer"
+                          >
+                            <Eye className="w-3 h-3" />
+                            <span>معاينة الصورة / الملف</span>
+                          </button>
+                        )}
+                      </div>
+                    </div>
                   )}
                 </div>
               ) : (
                 <p className="text-xs text-slate-500">هذه المنشأة لم تخضع لكشف فني مؤخراً. يوصى ببدء كشف ميداني فوري.</p>
               )}
             </div>
+
+            {/* Previous Inspections Archive Link */}
+            {unitCompletedInspections.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setViewMode('unit_archive')}
+                className={`w-full py-2.5 px-3 rounded-xl border text-xs font-bold transition flex items-center justify-between cursor-pointer ${
+                  isLight
+                    ? 'bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-700'
+                    : 'bg-slate-950/60 hover:bg-slate-800 border-slate-800 text-slate-300'
+                }`}
+              >
+                <span className="flex items-center gap-2">
+                  <Archive className="w-4 h-4 text-amber-500" />
+                  <span>عرض سجل وكافة كشوفات هذه الوحدة السابقة ({toArabicDigits(unitCompletedInspections.length)})</span>
+                </span>
+                <ChevronLeft className="w-4 h-4 text-slate-400" />
+              </button>
+            )}
 
             {/* Primary Action Buttons - Large Touch Targets */}
             <div className="space-y-2.5 pt-2">
@@ -449,6 +591,121 @@ export const FieldInspectionView: React.FC<FieldInspectionViewProps> = ({
                 <Wrench className="w-4 h-4 text-amber-500" />
                 <span>تسجيل طلب صيانة لهذي الوحدة</span>
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Unit Archive Mode - Full history of completed inspections */}
+      {currentUnit && viewMode === 'unit_archive' && (
+        <div className="space-y-4 animate-fadeIn">
+          <div
+            className={`rounded-2xl p-4 sm:p-5 border shadow-xl space-y-4 transition-colors ${
+              isLight ? 'bg-white border-slate-200 text-slate-900' : 'bg-slate-900 border-slate-800 text-slate-100'
+            }`}
+          >
+            <div className="flex items-center justify-between border-b pb-3 border-slate-200 dark:border-slate-800">
+              <div>
+                <h2 className="text-base sm:text-lg font-black text-amber-500 flex items-center gap-2">
+                  <Archive className="w-5 h-5" />
+                  <span>أرشيف كشوفات الوحدة ({currentUnit.code})</span>
+                </h2>
+                <p className="text-xs text-slate-500">{currentUnit.name}</p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setViewMode('overview')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition flex items-center gap-1 cursor-pointer ${
+                  isLight ? 'bg-slate-100 hover:bg-slate-200 border-slate-300 text-slate-700' : 'bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-300'
+                }`}
+              >
+                <span>رجوع</span>
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              {unitCompletedInspections.map((ins, idx) => (
+                <div
+                  key={ins.id}
+                  className={`p-3.5 rounded-xl border space-y-2 ${
+                    isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-950/70 border-slate-800'
+                  }`}
+                >
+                  <div className="flex items-center justify-between flex-wrap gap-2 pb-2 border-b border-slate-800/30">
+                    <div>
+                      <div className="font-bold text-xs sm:text-sm text-slate-900 dark:text-slate-100">{ins.title}</div>
+                      <div className="text-[11px] text-slate-500 font-mono mt-0.5">
+                        التاريخ: {toArabicDigits(ins.completionDate || ins.lastInspectionDate)} • المعاين: {ins.performedByName || ins.inspectorName}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      {ins.conditionGradeGiven && (
+                        <span className={`px-2 py-0.5 rounded-lg text-xs font-bold border ${getGradeBadge(ins.conditionGradeGiven)}`}>
+                          Grade {ins.conditionGradeGiven}
+                        </span>
+                      )}
+                      <span className="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                        مكتمل
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Findings */}
+                  <div className="space-y-1 text-xs">
+                    <span className="font-bold text-amber-500 block text-[11px]">الملاحظات والنتائج الميدانية:</span>
+                    <p className={`p-2 rounded-lg ${isLight ? 'bg-white border border-slate-200' : 'bg-slate-900 border border-slate-800'} text-slate-700 dark:text-slate-300 leading-relaxed`}>
+                      {ins.findings || 'لا توجد ملاحظات مدونة'}
+                    </p>
+                  </div>
+
+                  {/* Recommendations */}
+                  {ins.recommendations && (
+                    <div className="space-y-1 text-xs">
+                      <span className="font-bold text-emerald-500 block text-[11px]">التوصيات والإجراءات المطلوب اتخاذها:</span>
+                      <p className={`p-2 rounded-lg ${isLight ? 'bg-white border border-slate-200' : 'bg-slate-900 border border-slate-800'} text-slate-700 dark:text-slate-300 leading-relaxed`}>
+                        {ins.recommendations}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Notes */}
+                  {ins.notes && (
+                    <div className="text-[11px] text-slate-400 italic">
+                      ملاحظات إضافية: {ins.notes}
+                    </div>
+                  )}
+
+                  {/* Attached File / Photo */}
+                  {ins.reportFileName && (
+                    <div className="flex items-center justify-between gap-2 p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-xs">
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <FileCheck className="w-4 h-4 text-emerald-500 shrink-0" />
+                        <span className="font-bold text-emerald-400 truncate max-w-[160px]">{ins.reportFileName}</span>
+                      </div>
+
+                      {ins.reportFileUrl && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setPreviewItem({
+                              title: `مرفق الكشف - ${ins.title}`,
+                              url: ins.reportFileUrl!,
+                              fileName: ins.reportFileName!,
+                            })
+                          }
+                          className="px-2.5 py-1 rounded-lg bg-emerald-600 text-white font-bold text-[11px] flex items-center gap-1 hover:bg-emerald-500 cursor-pointer shadow-sm"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                          <span>معاينة الصورة</span>
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -553,17 +810,17 @@ export const FieldInspectionView: React.FC<FieldInspectionViewProps> = ({
               </div>
             </div>
 
-            {/* 3. Findings / نتائج الفحص */}
+            {/* 3. Findings / الملاحظات والنتائج الميدانية */}
             <div className="space-y-1.5">
               <label className="block text-xs font-bold text-slate-300">
-                النتائج والمشاهدات الميدانية (Findings) <span className="text-rose-500">*</span>
+                الملاحظات والنتائج الميدانية (Findings) <span className="text-rose-500">*</span>
               </label>
               <textarea
                 required
                 rows={3}
                 value={findings}
                 onChange={(e) => setFindings(e.target.value)}
-                placeholder="صف حالة الجدران، الأسقف، الأبواب، التشققات، منظومات التكييف أو الكهرباء..."
+                placeholder="سجل أية عيوب، ملاحظات إنشائية، حالة الجدران والأسقف، أو أضرار ميكانيكية تم مشاهدتها..."
                 className={`w-full rounded-xl p-3 text-xs sm:text-sm focus:outline-none transition border ${
                   isLight
                     ? 'bg-slate-50 border-slate-300 text-slate-900 focus:border-amber-500 focus:bg-white'
@@ -572,16 +829,16 @@ export const FieldInspectionView: React.FC<FieldInspectionViewProps> = ({
               />
             </div>
 
-            {/* 4. Recommendations / التوصيات الهندسية */}
+            {/* 4. Recommendations / التوصيات والإجراءات المطلوب اتخاذها */}
             <div className="space-y-1.5">
               <label className="block text-xs font-bold text-slate-300">
-                التوصيات والإجراءات المطلوبة (Recommendations)
+                التوصيات والإجراءات المطلوب اتخاذها (Recommendations)
               </label>
               <textarea
                 rows={2}
                 value={recommendations}
                 onChange={(e) => setRecommendations(e.target.value)}
-                placeholder="مثال: إجراء صيانة وقائية للمكيفات، معالجة عوازل السطح، طلاء الواجهة..."
+                placeholder="سجل التوصيات الهندسية، إجراءات السلامة، والتوجيهات الفنية المطلوبة..."
                 className={`w-full rounded-xl p-3 text-xs sm:text-sm focus:outline-none transition border ${
                   isLight
                     ? 'bg-slate-50 border-slate-300 text-slate-900 focus:border-amber-500 focus:bg-white'
@@ -593,7 +850,7 @@ export const FieldInspectionView: React.FC<FieldInspectionViewProps> = ({
             {/* 5. Notes / ملاحظات إضافية */}
             <div className="space-y-1.5">
               <label className="block text-xs font-bold text-slate-300">
-                ملاحظات إضافية
+                ملاحظات إضافية (اختياري)
               </label>
               <input
                 type="text"
@@ -606,6 +863,119 @@ export const FieldInspectionView: React.FC<FieldInspectionViewProps> = ({
                     : 'bg-slate-950 border-slate-800 text-white focus:border-amber-500'
                 }`}
               />
+            </div>
+
+            {/* 6. File / Camera Upload - رفع ملف و فتح كاميرا الهاتف */}
+            <div className={`p-3.5 rounded-2xl border space-y-2.5 ${
+              isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-950/70 border-slate-800'
+            }`}>
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold text-amber-500 flex items-center gap-1.5">
+                  <Camera className="w-4 h-4" />
+                  <span>رفع ملف أو التقاط صورة عبر الكاميرا</span>
+                </label>
+                <span className="text-[10px] text-slate-400">(اختياري)</span>
+              </div>
+
+              {/* Hidden File Inputs */}
+              {/* Direct Camera Capture */}
+              <input
+                type="file"
+                accept="image/*"
+                capture="environment"
+                ref={cameraInputRef}
+                onChange={handleFileSelected}
+                className="hidden"
+              />
+              {/* Device File/Image Browser */}
+              <input
+                type="file"
+                accept="image/*,.pdf,.doc,.docx,.xls,.xlsx"
+                ref={fileInputRef}
+                onChange={handleFileSelected}
+                className="hidden"
+              />
+
+              {/* Upload Buttons */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => cameraInputRef.current?.click()}
+                  className="py-2.5 px-3 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-slate-950 flex items-center justify-center gap-2 shadow-md transition cursor-pointer active:scale-95"
+                >
+                  <Camera className="w-4 h-4" />
+                  <span>فتح كاميرا الهاتف لالتقاط صورة</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className={`py-2.5 px-3 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-2 cursor-pointer active:scale-95 ${
+                    isLight
+                      ? 'bg-white hover:bg-slate-100 border-slate-300 text-slate-700'
+                      : 'bg-slate-900 hover:bg-slate-800 border-slate-700 text-slate-200'
+                  }`}
+                >
+                  <Upload className="w-4 h-4 text-emerald-400" />
+                  <span>اختيار ملف / صورة من الجهاز</span>
+                </button>
+              </div>
+
+              {/* Uploaded File Status / Preview Bar */}
+              {reportFileName ? (
+                <div className="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-xs animate-fadeIn">
+                  <div className="flex items-center gap-2 min-w-0">
+                    {reportFileType.startsWith('image/') || reportFileUrl.startsWith('data:image/') ? (
+                      <img
+                        src={reportFileUrl}
+                        alt="Preview"
+                        className="w-10 h-10 object-cover rounded-lg border border-emerald-500/40 shrink-0"
+                        referrerPolicy="no-referrer"
+                      />
+                    ) : (
+                      <FileCheck className="w-6 h-6 text-emerald-400 shrink-0" />
+                    )}
+                    <div className="min-w-0">
+                      <div className="font-bold text-emerald-400 truncate max-w-[170px]" title={reportFileName}>
+                        {reportFileName}
+                      </div>
+                      <div className="text-[10px] text-emerald-500/80">تم إرفاق الملف بنجاح</div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    {reportFileUrl && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setPreviewItem({
+                            title: 'معاينة المرفق الميداني',
+                            url: reportFileUrl,
+                            fileName: reportFileName,
+                          })
+                        }
+                        className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] flex items-center gap-1 cursor-pointer transition shadow-sm"
+                      >
+                        <Eye className="w-3.5 h-3.5" />
+                        <span>معاينة</span>
+                      </button>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={handleRemoveFile}
+                      className="p-1.5 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 border border-rose-500/40 transition cursor-pointer"
+                      title="إزالة الملف"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-[11px] text-slate-400 text-center py-1">
+                  يمكنك التقاط صورة من الكاميرا مباشرة لتوثيق المشاهدات الميدانية.
+                </div>
+              )}
             </div>
 
             {/* Submit Button */}
@@ -633,6 +1003,64 @@ export const FieldInspectionView: React.FC<FieldInspectionViewProps> = ({
             </div>
           </div>
         </form>
+      )}
+
+      {/* FULL PREVIEW MODAL FOR IMAGES / ATTACHMENTS */}
+      {previewItem && (
+        <div className="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 animate-fadeIn">
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-4 sm:p-5 w-full max-w-3xl space-y-4 shadow-2xl flex flex-col max-h-[92vh]">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <ImageIcon className="w-5 h-5 text-amber-500" />
+                <h3 className="font-bold text-sm sm:text-base text-white">{previewItem.title}</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setPreviewItem(null)}
+                className="p-1.5 rounded-xl bg-slate-800 text-slate-400 hover:text-white transition cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-auto rounded-2xl bg-black/50 border border-slate-800/80 flex items-center justify-center p-2 min-h-[260px]">
+              {previewItem.url.startsWith('data:image/') ||
+              previewItem.fileName.match(/\.(jpeg|jpg|png|webp|gif|svg)$/i) ? (
+                <img
+                  src={previewItem.url}
+                  alt={previewItem.fileName}
+                  className="max-h-[60vh] max-w-full object-contain rounded-xl shadow-lg"
+                  referrerPolicy="no-referrer"
+                />
+              ) : (
+                <div className="text-center p-6 space-y-3">
+                  <FileText className="w-16 h-16 text-amber-500 mx-auto" />
+                  <p className="text-sm font-bold text-white">{previewItem.fileName}</p>
+                  <p className="text-xs text-slate-400">مستند مرفق (PDF / Word / Excel)</p>
+                </div>
+              )}
+            </div>
+
+            <div className="flex items-center justify-between pt-2 border-t border-slate-800">
+              <a
+                href={previewItem.url}
+                download={previewItem.fileName}
+                className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs flex items-center gap-1.5 transition cursor-pointer shadow-md"
+              >
+                <Download className="w-4 h-4" />
+                <span>تنزيل الملف</span>
+              </a>
+
+              <button
+                type="button"
+                onClick={() => setPreviewItem(null)}
+                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl text-xs transition cursor-pointer"
+              >
+                إغلاق
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

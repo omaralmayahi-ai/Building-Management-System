@@ -117,6 +117,8 @@ export interface MaintenanceRequest {
   completedBy?: string;
   completedAt?: string;
   sourceInspectionId?: string;
+  attachmentName?: string;
+  attachmentUrl?: string;
 }
 
 export interface OccupancyRecord {
@@ -149,6 +151,7 @@ export interface PeriodicInspectionSchedule {
   nextDueDate: string;
   assignedTeam: string;
   inspectorName: string;
+  performedByName?: string;
   status: InspectionStatus;
   notes?: string;
   conditionGradeGiven?: ConditionGrade;

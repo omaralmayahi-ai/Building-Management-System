@@ -8,6 +8,10 @@ import {
   FileText,
   Settings,
   ClipboardCheck,
+  AlertTriangle,
+  CheckCircle,
+  Info,
+  X,
 } from 'lucide-react';
 import { Header } from './components/Header';
 import { Sidebar, NavTab } from './components/Sidebar';
@@ -68,21 +72,47 @@ import * as api from './services/apiClient';
 const SEED_WITH_DEMO_DATA = false;
 
 export function App() {
-  const [activeTab, setActiveTab] = useState<NavTab>('dashboard');
+  const [currentUser, setCurrentUser] = useState<SystemUser | null>(() =>
+    safeParse('app_current_user', null)
+  );
+
+  const [activeTab, setActiveTab] = useState<NavTab>(() => {
+    const savedUser = safeParse<SystemUser | null>('app_current_user', null);
+    if (savedUser && (savedUser.role === 'موظف الكشف والصيانة' || savedUser.role === 'inspector')) {
+      return 'field_inspection';
+    }
+    return 'dashboard';
+  });
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
     const saved = localStorage.getItem('app_theme');
     return saved === 'light' || saved === 'dark' ? saved : 'dark';
   });
   const [globalSearchTerm, setGlobalSearchTerm] = useState<string>('');
 
+  // Toast / Alert Notification State for API & System Alerts
+  const [toastMessage, setToastMessage] = useState<{
+    id: string;
+    type: 'error' | 'success' | 'info';
+    title?: string;
+    text: string;
+  } | null>(null);
+
+  const showToast = (text: string, type: 'error' | 'success' | 'info' = 'error', title?: string) => {
+    const id = String(Date.now());
+    setToastMessage({ id, type, text, title });
+    setTimeout(() => {
+      setToastMessage((curr) => (curr?.id === id ? null : curr));
+    }, 7000);
+  };
+
   // Deep Link Inspection Query Parameter Handling
   const [pendingDeepLink, setPendingDeepLink] = useState<{ view: string; unit: string } | null>(() => {
     if (typeof window === 'undefined') return null;
     try {
       const params = new URLSearchParams(window.location.search);
-      const view = params.get('view');
-      const unit = params.get('unit');
-      if (view === 'inspect' && unit) {
+      const view = params.get('view') || 'inspect';
+      const unit = params.get('unit') || params.get('code') || params.get('id');
+      if (unit) {
         return { view, unit };
       }
     } catch (e) {
@@ -91,17 +121,37 @@ export function App() {
     return null;
   });
 
-  // Authentication & Current User State (default initial login screen)
-  const [currentUser, setCurrentUser] = useState<SystemUser | null>(() =>
-    safeParse('app_current_user', null)
-  );
-
   useEffect(() => {
     safeSetItem('app_current_user', currentUser);
   }, [currentUser]);
 
+  // Enforce role-based active tab restrictions (Inspector locked strictly to 'field_inspection')
+  useEffect(() => {
+    if (currentUser) {
+      const role = currentUser.role;
+      if (role === 'موظف الكشف والصيانة' || role === 'inspector') {
+        if (activeTab !== 'field_inspection') {
+          setActiveTab('field_inspection');
+        }
+      }
+    }
+  }, [currentUser, activeTab]);
+
   const handleLogin = (user: SystemUser) => {
     setCurrentUser(user);
+    if (pendingDeepLink && pendingDeepLink.unit) {
+      setSelectedUnitCode(pendingDeepLink.unit);
+      if (pendingDeepLink.view === 'maintenance') {
+        setActiveTab('maintenance');
+      } else {
+        setActiveTab('field_inspection');
+      }
+      setPendingDeepLink(null);
+      if (typeof window !== 'undefined' && window.history && window.history.replaceState) {
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+      return;
+    }
     const role = user.role;
     if (role === 'موظف الكشف والصيانة' || role === 'inspector') {
       setActiveTab('field_inspection');
@@ -140,15 +190,12 @@ export function App() {
   // Handle Pending Deep Link Navigation after authentication
   useEffect(() => {
     if (currentUser && pendingDeepLink) {
-      if (pendingDeepLink.view === 'inspect' && pendingDeepLink.unit) {
+      if (pendingDeepLink.unit) {
         setSelectedUnitCode(pendingDeepLink.unit);
-        if (
-          currentUser.role === 'موظف الكشف والصيانة' ||
-          currentUser.role === 'inspector'
-        ) {
-          setActiveTab('field_inspection');
+        if (pendingDeepLink.view === 'maintenance') {
+          setActiveTab('maintenance');
         } else {
-          setActiveTab('units');
+          setActiveTab('field_inspection');
         }
         setPendingDeepLink(null);
 
@@ -198,13 +245,15 @@ export function App() {
     let isMounted = true;
     async function loadDataFromApi() {
       try {
-        const [apiUnits, apiMaint, apiOcc, apiInsp, apiLogs, apiEntities] = await Promise.all([
+        const [apiUnits, apiMaint, apiOcc, apiInsp, apiLogs, apiEntities, apiBranding, apiUsers] = await Promise.all([
           api.getUnits(),
           api.getMaintenanceRequests(),
           api.getOccupancyRecords(),
           api.getPeriodicInspections(),
           api.getAuditLogs(),
           api.getOrgEntities(),
+          api.getBranding(),
+          api.getUsers(),
         ]);
         if (!isMounted) return;
         if (apiUnits && apiUnits.length > 0) setUnits(apiUnits);
@@ -213,6 +262,8 @@ export function App() {
         if (apiInsp && apiInsp.length > 0) setPeriodicInspections(apiInsp);
         if (apiLogs && apiLogs.length > 0) setAuditLogs(apiLogs);
         if (apiEntities && apiEntities.length > 0) setOrgEntities(apiEntities);
+        if (apiBranding && apiBranding.systemName) setBranding(apiBranding);
+        if (apiUsers && apiUsers.length > 0) setUsers(apiUsers);
       } catch (err) {
         console.warn('Initial API data fetch note:', err);
       }
@@ -223,14 +274,88 @@ export function App() {
     };
   }, []);
 
+  // Real-Time Synchronization State & Listener (المزامنة الفورية اللحظية عند إضافة/تعديل/حذف)
+  const [syncStatus, setSyncStatus] = useState<'connected' | 'reconnecting' | 'polling'>('connected');
+
+  useEffect(() => {
+    const unsubscribe = api.subscribeToRealtimeSync(
+      async (event) => {
+        try {
+          if (event.type === 'units_updated' || event.type === 'all_updated') {
+            const latestUnits = await api.getUnits();
+            if (latestUnits && Array.isArray(latestUnits)) {
+              setUnits(latestUnits);
+            }
+          }
+          if (event.type === 'maintenance_updated' || event.type === 'all_updated') {
+            const latestMaint = await api.getMaintenanceRequests();
+            if (latestMaint && Array.isArray(latestMaint)) {
+              setMaintenanceRequests(latestMaint);
+            }
+          }
+          if (event.type === 'occupancy_updated' || event.type === 'all_updated') {
+            const latestOcc = await api.getOccupancyRecords();
+            if (latestOcc && Array.isArray(latestOcc)) {
+              setOccupancyRecords(latestOcc);
+            }
+          }
+          if (event.type === 'inspections_updated' || event.type === 'all_updated') {
+            const latestInsp = await api.getPeriodicInspections();
+            if (latestInsp && Array.isArray(latestInsp)) {
+              setPeriodicInspections(latestInsp);
+            }
+          }
+          if (event.type === 'audit_logs_updated' || event.type === 'all_updated') {
+            const latestLogs = await api.getAuditLogs();
+            if (latestLogs && Array.isArray(latestLogs)) {
+              setAuditLogs(latestLogs);
+            }
+          }
+          if (event.type === 'org_entities_updated' || event.type === 'all_updated') {
+            const latestEntities = await api.getOrgEntities();
+            if (latestEntities && Array.isArray(latestEntities)) {
+              setOrgEntities(latestEntities);
+            }
+          }
+          if (event.type === 'branding_updated' || event.type === 'all_updated') {
+            const latestBranding = await api.getBranding();
+            if (latestBranding && latestBranding.systemName) {
+              setBranding(latestBranding);
+            }
+          }
+          if (event.type === 'users_updated' || event.type === 'all_updated') {
+            const latestUsers = await api.getUsers();
+            if (latestUsers && Array.isArray(latestUsers)) {
+              setUsers(latestUsers);
+            }
+          }
+        } catch (err) {
+          console.warn('Real-time sync update note:', err);
+        }
+      },
+      (status) => {
+        setSyncStatus(status);
+      }
+    );
+
+    return () => {
+      unsubscribe();
+    };
+  }, []);
+
   // System Branding State
   const [branding, setBranding] = useState<SystemBranding>(() =>
     safeParse('app_branding', INITIAL_BRANDING)
   );
 
-  useEffect(() => {
-    safeSetItem('app_branding', branding);
-  }, [branding]);
+  const handleUpdateBranding = (newBranding: SystemBranding) => {
+    setBranding(newBranding);
+    safeSetItem('app_branding', newBranding);
+    api.saveBranding(newBranding).catch((err) => {
+      console.error('API saveBranding error:', err);
+      showToast(err.message || 'فشل حفظ الهوية البصرية', 'error', 'خطأ في الحفظ');
+    });
+  };
 
   // System Users State
   const [users, setUsers] = useState<SystemUser[]>(() =>
@@ -239,10 +364,6 @@ export function App() {
 
   // Sidebar Collapsed State
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-
-  useEffect(() => {
-    safeSetItem('app_users', users);
-  }, [users]);
 
   // Dynamic Reference Data States
   const [unitTypes, setUnitTypes] = useState<ReferenceUnitType[]>(() =>
@@ -297,7 +418,10 @@ export function App() {
       safeSetItem('app_ref_org_entities', updated);
       return updated;
     });
-    api.addOrgEntity(newEntity).catch((err) => console.warn('Background API addOrgEntity note:', err));
+    api.addOrgEntity(newEntity).catch((err) => {
+      console.error('API addOrgEntity error:', err);
+      showToast(err.message || 'فشل حفظ التشكيل التنظيمي في قاعدة البيانات', 'error', 'خطأ في حفظ البيانات');
+    });
     appendAuditLog({
       id: `LOG-${Date.now()}`,
       timestamp: toArabicDigits(new Date().toLocaleString('ar-IQ')),
@@ -316,7 +440,10 @@ export function App() {
       safeSetItem('app_ref_org_entities', updated);
       return updated;
     });
-    api.updateOrgEntity(updatedEntity).catch((err) => console.warn('Background API updateOrgEntity note:', err));
+    api.updateOrgEntity(updatedEntity).catch((err) => {
+      console.error('API updateOrgEntity error:', err);
+      showToast(err.message || 'فشل تحديث التشكيل التنظيمي في قاعدة البيانات', 'error', 'خطأ في حفظ البيانات');
+    });
     appendAuditLog({
       id: `LOG-${Date.now()}`,
       timestamp: toArabicDigits(new Date().toLocaleString('ar-IQ')),
@@ -336,7 +463,10 @@ export function App() {
       safeSetItem('app_ref_org_entities', updated);
       return updated;
     });
-    api.deleteOrgEntity(id).catch((err) => console.warn('Background API deleteOrgEntity note:', err));
+    api.deleteOrgEntity(id).catch((err) => {
+      console.error('API deleteOrgEntity error:', err);
+      showToast(err.message || 'فشل حذف التشكيل التنظيمي من قاعدة البيانات', 'error', 'خطأ في حذف البيانات');
+    });
     if (entity) {
       appendAuditLog({
         id: `LOG-${Date.now()}`,
@@ -365,7 +495,10 @@ export function App() {
       return updated;
     });
     if (targetEntity) {
-      api.updateOrgEntity(targetEntity).catch((err) => console.warn('Background API updateOrgEntity note:', err));
+      api.updateOrgEntity(targetEntity).catch((err) => {
+        console.error('API updateOrgEntity error:', err);
+        showToast(err.message || 'فشل تحديث حالة التشكيل التنظيمي', 'error', 'خطأ في الحفظ');
+      });
     }
   };
 
@@ -402,7 +535,10 @@ export function App() {
     });
 
     if (updatedUnitObj) {
-      api.updateUnit(updatedUnitObj).catch((err) => console.warn('Background API updateUnit grade note:', err));
+      api.updateUnit(updatedUnitObj).catch((err) => {
+        console.error('API updateUnit grade error:', err);
+        showToast(err.message || 'فشل تحديث درجة التقييم في قاعدة البيانات المركزية', 'error', 'خطأ في حفظ البيانات');
+      });
     }
 
     const newLog: AuditLogItem = {
@@ -426,6 +562,10 @@ export function App() {
       safeSetItem('app_users', updated);
       return updated;
     });
+    api.addUser(newUser).catch((err) => {
+      console.error('API addUser error:', err);
+      showToast(err.message || 'فشل إضافة المستخدم في قاعدة البيانات المركزية', 'error', 'خطأ في الحفظ');
+    });
     appendAuditLog({
       id: `LOG-${Date.now()}`,
       timestamp: toArabicDigits(new Date().toLocaleString('ar-IQ')),
@@ -447,6 +587,10 @@ export function App() {
     if (currentUser?.id === updatedUser.id) {
       setCurrentUser(updatedUser);
     }
+    api.updateUser(updatedUser).catch((err) => {
+      console.error('API updateUser error:', err);
+      showToast(err.message || 'فشل تحديث بيانات المستخدم في قاعدة البيانات', 'error', 'خطأ في الحفظ');
+    });
     appendAuditLog({
       id: `LOG-${Date.now()}`,
       timestamp: toArabicDigits(new Date().toLocaleString('ar-IQ')),
@@ -469,6 +613,10 @@ export function App() {
     if (currentUser?.id === userId) {
       handleLogout();
     }
+    api.deleteUser(userId).catch((err) => {
+      console.error('API deleteUser error:', err);
+      showToast(err.message || 'فشل حذف المستخدم من قاعدة البيانات', 'error', 'خطأ في الحذف');
+    });
     if (usr) {
       appendAuditLog({
         id: `LOG-${Date.now()}`,
@@ -484,20 +632,27 @@ export function App() {
   };
 
   const handleToggleUserStatus = (userId: string) => {
+    let targetUser: SystemUser | null = null;
     setUsers((prev) => {
       const updated = prev.map((u) => {
         if (u.id === userId) {
           const newStatus = u.status === 'active' ? 'disabled' : 'active';
+          targetUser = { ...u, status: newStatus };
           if (currentUser?.id === userId && newStatus === 'disabled') {
             setTimeout(() => handleLogout(), 100);
           }
-          return { ...u, status: newStatus };
+          return targetUser;
         }
         return u;
       });
       safeSetItem('app_users', updated);
       return updated;
     });
+    if (targetUser) {
+      api.updateUser(targetUser).catch((err) => {
+        console.error('API updateUser status error:', err);
+      });
+    }
   };
 
   const handleChangePassword = (
@@ -509,7 +664,7 @@ export function App() {
     }
 
     const existingUser = users.find((u) => u.id === currentUser.id);
-    const expectedPassword = existingUser?.password || currentUser.password || 'Moc#Adm!n2026$Krm';
+    const expectedPassword = existingUser?.password || currentUser.password || 'admin123';
 
     if (currentPass !== expectedPassword) {
       return { success: false, message: 'كلمة المرور الحالية غير صحيحة، يرجى المحاولة ثانية' };
@@ -525,6 +680,10 @@ export function App() {
       const updated = prev.map((u) => (u.id === currentUser.id ? { ...u, password: newPass } : u));
       safeSetItem('app_users', updated);
       return updated;
+    });
+
+    api.updateUser(updatedUser).catch((err) => {
+      console.error('API updateUser password error:', err);
     });
 
     appendAuditLog({
@@ -650,7 +809,10 @@ export function App() {
       safeSetItem('app_units', updated);
       return updated;
     });
-    api.addUnit(newUnit).catch((err) => console.warn('Background API addUnit note:', err));
+    api.addUnit(newUnit).catch((err) => {
+      console.error('API addUnit error:', err);
+      showToast(err.message || 'فشل حفظ الوحدة الجديدة في قاعدة البيانات المركزية', 'error', 'خطأ في حفظ البيانات');
+    });
     setSelectedUnitCode(newUnit.code);
     setActiveTab('units');
   };
@@ -662,7 +824,10 @@ export function App() {
       safeSetItem('app_units', updated);
       return updated;
     });
-    api.updateUnit(updatedUnit).catch((err) => console.warn('Background API updateUnit note:', err));
+    api.updateUnit(updatedUnit).catch((err) => {
+      console.error('API updateUnit error:', err);
+      showToast(err.message || 'فشل تحديث بيانات الوحدة في قاعدة البيانات المركزية', 'error', 'خطأ في حفظ البيانات');
+    });
     const newLog: AuditLogItem = {
       id: `LOG-${Math.floor(100 + Math.random() * 900)}`,
       unitCode: updatedUnit.code,
@@ -688,7 +853,10 @@ export function App() {
       }
       return remaining;
     });
-    api.deleteUnit(unitCode).catch((err) => console.warn('Background API deleteUnit note:', err));
+    api.deleteUnit(unitCode).catch((err) => {
+      console.error('API deleteUnit error:', err);
+      showToast(err.message || 'فشل حذف الوحدة من قاعدة البيانات المركزية', 'error', 'خطأ في حذف البيانات');
+    });
 
     const newLog: AuditLogItem = {
       id: `LOG-${Math.floor(100 + Math.random() * 900)}`,
@@ -727,7 +895,10 @@ export function App() {
     });
 
     if (targetUnitObj) {
-      api.updateUnit(targetUnitObj).catch((err) => console.warn('Background API updateUnit decommission note:', err));
+      api.updateUnit(targetUnitObj).catch((err) => {
+        console.error('API decommission unit error:', err);
+        showToast(err.message || 'فشل شطب وتجميد المنشأة في قاعدة البيانات المركزية', 'error', 'خطأ في حفظ البيانات');
+      });
     }
 
     const newLog: AuditLogItem = {
@@ -766,7 +937,10 @@ export function App() {
     });
 
     if (targetUnitObj) {
-      api.updateUnit(targetUnitObj).catch((err) => console.warn('Background API updateUnit reactivate note:', err));
+      api.updateUnit(targetUnitObj).catch((err) => {
+        console.error('API reactivate unit error:', err);
+        showToast(err.message || 'فشل إعادة تفعيل المنشأة في قاعدة البيانات المركزية', 'error', 'خطأ في حفظ البيانات');
+      });
     }
 
     const newLog: AuditLogItem = {
@@ -842,7 +1016,10 @@ export function App() {
       safeSetItem('app_maintenance_requests', updated);
       return updated;
     });
-    api.addMaintenanceRequest(req).catch((err) => console.warn('Background API addMaintenanceRequest note:', err));
+    api.addMaintenanceRequest(req).catch((err) => {
+      console.error('API addMaintenanceRequest error:', err);
+      showToast(err.message || 'فشل حفظ أمر الصيانة في قاعدة البيانات المركزية', 'error', 'خطأ في حفظ البيانات');
+    });
   };
 
   // Open maintenance modal for specific unit
@@ -864,7 +1041,10 @@ export function App() {
       safeSetItem('app_periodic_inspections', updated);
       return updated;
     });
-    api.addPeriodicInspection(schedule).catch((err) => console.warn('Background API addPeriodicInspection note:', err));
+    api.addPeriodicInspection(schedule).catch((err) => {
+      console.error('API addPeriodicInspection error:', err);
+      showToast(err.message || 'فشل جدولة الكشف الدوري في قاعدة البيانات المركزية', 'error', 'خطأ في حفظ البيانات');
+    });
   };
 
   const handleUpdatePeriodicInspection = (updated: PeriodicInspectionSchedule) => {
@@ -873,7 +1053,10 @@ export function App() {
       safeSetItem('app_periodic_inspections', list);
       return list;
     });
-    api.updatePeriodicInspection(updated).catch((err) => console.warn('Background API updatePeriodicInspection note:', err));
+    api.updatePeriodicInspection(updated).catch((err) => {
+      console.error('API updatePeriodicInspection error:', err);
+      showToast(err.message || 'فشل تحديث بيانات الكشف الدوري في قاعدة البيانات', 'error', 'خطأ في حفظ البيانات');
+    });
   };
 
   const handleDeletePeriodicInspection = (id: string) => {
@@ -882,7 +1065,10 @@ export function App() {
       safeSetItem('app_periodic_inspections', remaining);
       return remaining;
     });
-    api.deletePeriodicInspection(id).catch((err) => console.warn('Background API deletePeriodicInspection note:', err));
+    api.deletePeriodicInspection(id).catch((err) => {
+      console.error('API deletePeriodicInspection error:', err);
+      showToast(err.message || 'فشل حذف الكشف الدوري من قاعدة البيانات', 'error', 'خطأ في حذف البيانات');
+    });
   };
 
   const handleCompletePeriodicInspection = (
@@ -893,6 +1079,7 @@ export function App() {
       findings: string;
       recommendations: string;
       autoScheduleNext: boolean;
+      performedByName?: string;
       reportFileName?: string;
       reportFileUrl?: string;
       createMaintenance?: boolean;
@@ -921,7 +1108,7 @@ export function App() {
         assignedTo: outcome.maintenanceAssignedTo || 'فريق الصيانة الميدانية',
         status: 'open',
         createdAt: outcome.maintenanceDate || outcome.completionDate,
-        reportedBy: existing.inspectorName || 'موظف الإدخال (معاينة دورية)',
+        reportedBy: outcome.performedByName || currentUser?.name || existing.inspectorName || 'غير معروف',
         details: `صادر عن كشف المعاينة ${existing.id}. التقييم الممنوح: ${outcome.grade}. التوصيات: ${outcome.recommendations || 'لا يوجد'}`,
         sourceInspectionId: existing.id,
       };
@@ -930,7 +1117,10 @@ export function App() {
         safeSetItem('app_maintenance_requests', updatedMaint);
         return updatedMaint;
       });
-      api.addMaintenanceRequest(newReq).catch((err) => console.warn('Background API addMaintenanceRequest note:', err));
+      api.addMaintenanceRequest(newReq).catch((err) => {
+        console.error('API addMaintenanceRequest error:', err);
+        showToast(err.message || 'فشل حفظ أمر الصيانة المرتبط بالكشف في قاعدة البيانات', 'error', 'خطأ في حفظ البيانات');
+      });
     }
 
     // Mark existing as completed
@@ -939,13 +1129,17 @@ export function App() {
       status: 'completed',
       completionDate: outcome.completionDate,
       conditionGradeGiven: outcome.grade,
+      performedByName: outcome.performedByName || existing.performedByName || undefined,
       findings: outcome.findings,
       recommendations: outcome.recommendations,
       reportFileName: outcome.reportFileName,
       reportFileUrl: outcome.reportFileUrl,
       createdMaintenanceRequestId: createdMaintId,
     };
-    api.updatePeriodicInspection(updatedExisting).catch((err) => console.warn('Background API updatePeriodicInspection note:', err));
+    api.updatePeriodicInspection(updatedExisting).catch((err) => {
+      console.error('API updatePeriodicInspection error:', err);
+      showToast(err.message || 'فشل توثيق إنجاز الكشف الدوري في قاعدة البيانات', 'error', 'خطأ في حفظ البيانات');
+    });
 
     // Update unit condition grade
     setUnits((prev) => {
@@ -959,7 +1153,10 @@ export function App() {
       });
       safeSetItem('app_units', updatedUnits);
       if (matchedUnit) {
-        api.updateUnit(matchedUnit).catch((err) => console.warn('Background API updateUnit note:', err));
+        api.updateUnit(matchedUnit).catch((err) => {
+          console.error('API updateUnit grade error:', err);
+          showToast(err.message || 'فشل تحديث درجة تقييم الوحدة في قاعدة البيانات المركزية', 'error', 'خطأ في حفظ البيانات');
+        });
       }
       return updatedUnits;
     });
@@ -997,7 +1194,10 @@ export function App() {
         createdAt: new Date().toISOString().split('T')[0],
       };
       nextSchedules.push(newNextSchedule);
-      api.addPeriodicInspection(newNextSchedule).catch((err) => console.warn('Background API addPeriodicInspection note:', err));
+      api.addPeriodicInspection(newNextSchedule).catch((err) => {
+        console.error('API addPeriodicInspection next schedule error:', err);
+        showToast(err.message || 'فشل جدولة الكشف القادم في قاعدة البيانات', 'error', 'خطأ في حفظ البيانات');
+      });
     }
 
     setPeriodicInspections((prev) => {
@@ -1016,7 +1216,10 @@ export function App() {
       safeSetItem('app_maintenance_requests', updated);
       return updated;
     });
-    api.updateMaintenanceRequest(updatedReq).catch((err) => console.warn('Background API updateMaintenanceRequest note:', err));
+    api.updateMaintenanceRequest(updatedReq).catch((err) => {
+      console.error('API updateMaintenanceRequest error:', err);
+      showToast(err.message || 'فشل تحديث أمر الصيانة في قاعدة البيانات المركزية', 'error', 'خطأ في حفظ البيانات');
+    });
   };
 
   const handleDeleteMaintenanceRequest = (id: string) => {
@@ -1025,7 +1228,10 @@ export function App() {
       safeSetItem('app_maintenance_requests', remaining);
       return remaining;
     });
-    api.deleteMaintenanceRequest(id).catch((err) => console.warn('Background API deleteMaintenanceRequest note:', err));
+    api.deleteMaintenanceRequest(id).catch((err) => {
+      console.error('API deleteMaintenanceRequest error:', err);
+      showToast(err.message || 'فشل حذف أمر الصيانة من قاعدة البيانات المركزية', 'error', 'خطأ في حذف البيانات');
+    });
   };
 
   const selectedUnit = units.find((u) => u.code === selectedUnitCode) || units[0];
@@ -1046,6 +1252,7 @@ export function App() {
         onLogin={handleLogin}
         theme={theme}
         onToggleTheme={handleToggleTheme}
+        pendingDeepLink={pendingDeepLink}
       />
     );
   }
@@ -1086,19 +1293,19 @@ export function App() {
       id: 'periodic_inspection' as NavTab,
       label: 'كشوفات',
       icon: CalendarCheck,
-      roles: ['مدير النظام', 'مشغل النظام', 'موظف الكشف والصيانة'],
+      roles: ['مدير النظام', 'مشغل النظام'],
     },
     {
       id: 'maintenance' as NavTab,
       label: 'صيانة',
       icon: Wrench,
-      roles: ['مدير النظام', 'مشغل النظام', 'موظف الكشف والصيانة'],
+      roles: ['مدير النظام', 'مشغل النظام'],
     },
     {
       id: 'reports' as NavTab,
       label: 'تقارير',
       icon: FileText,
-      roles: ['مدير النظام', 'مشغل النظام', 'مستخدم', 'موظف الكشف والصيانة'],
+      roles: ['مدير النظام', 'مشغل النظام', 'مستخدم'],
     },
     {
       id: 'settings' as NavTab,
@@ -1109,7 +1316,7 @@ export function App() {
   ].filter((item) => {
     if (isRoleAdmin) return true;
     if (isRoleInspector) {
-      return ['field_inspection', 'periodic_inspection', 'maintenance', 'reports'].includes(item.id);
+      return ['field_inspection'].includes(item.id);
     }
     if (isRoleOperator) return item.id !== 'settings' && item.id !== 'field_inspection';
     return item.roles.includes('مستخدم') && item.id !== 'field_inspection';
@@ -1124,9 +1331,9 @@ export function App() {
     >
       {/* Top Navigation Header */}
       <Header
-        onOpenNewAssetModal={!isRoleUser ? () => setActiveTab('new_unit') : undefined}
+        onOpenNewAssetModal={!isRoleUser && !isRoleInspector ? () => setActiveTab('new_unit') : undefined}
         onOpenNewMaintenanceModal={
-          !isRoleUser
+          !isRoleUser && !isRoleInspector
             ? () => {
                 setMaintenanceUnitCode(selectedUnitCode);
                 setShowNewMaintenanceModal(true);
@@ -1141,6 +1348,7 @@ export function App() {
         currentUser={currentUser}
         onLogout={handleLogout}
         onChangePassword={handleChangePassword}
+        syncStatus={syncStatus}
       />
 
       {/* Main Body Layout: Sidebar + Dynamic Main Content */}
@@ -1208,7 +1416,7 @@ export function App() {
             />
           )}
 
-          {activeTab === 'dashboard' && (
+          {activeTab === 'dashboard' && !isRoleInspector && (
             <DashboardView
               units={units}
               maintenanceRequests={maintenanceRequests}
@@ -1224,7 +1432,7 @@ export function App() {
             />
           )}
 
-          {activeTab === 'units' && (
+          {activeTab === 'units' && !isRoleInspector && (
             <UnitManagementView
               units={units}
               selectedUnitCode={selectedUnitCode}
@@ -1246,7 +1454,7 @@ export function App() {
             />
           )}
 
-          {activeTab === 'new_unit' && !isRoleUser && (
+          {activeTab === 'new_unit' && !isRoleUser && !isRoleInspector && (
             <NewUnitWizard
               governorates={governorates}
               oilfields={oilfields}
@@ -1265,13 +1473,15 @@ export function App() {
             />
           )}
 
-          {activeTab === 'periodic_inspection' && !isRoleUser && (
+          {activeTab === 'periodic_inspection' && !isRoleUser && !isRoleInspector && (
             <PeriodicInspectionView
               schedules={periodicInspections}
               units={units}
               governorates={governorates}
               oilfields={oilfields}
               maintenanceRequests={maintenanceRequests}
+              users={users}
+              currentUser={currentUser}
               onAddSchedule={handleAddPeriodicInspection}
               onUpdateSchedule={handleUpdatePeriodicInspection}
               onDeleteSchedule={handleDeletePeriodicInspection}
@@ -1282,7 +1492,7 @@ export function App() {
             />
           )}
 
-          {activeTab === 'maintenance' && !isRoleUser && (
+          {activeTab === 'maintenance' && !isRoleUser && !isRoleInspector && (
             <MaintenanceView
               requests={maintenanceRequests}
               units={units}
@@ -1296,7 +1506,7 @@ export function App() {
             />
           )}
 
-          {activeTab === 'reports' && (
+          {activeTab === 'reports' && !isRoleInspector && (
             <ReportsView
               units={units}
               periodicInspections={periodicInspections}
@@ -1304,6 +1514,7 @@ export function App() {
               governorates={governorates}
               oilfields={oilfields}
               orgEntities={orgEntities}
+              users={users}
               theme={theme}
               branding={branding}
             />
@@ -1328,7 +1539,7 @@ export function App() {
               onDeleteOrgEntity={handleDeleteOrgEntity}
               onToggleOrgEntityStatus={handleToggleOrgEntityStatus}
               onResetOrgEntitiesToDefault={handleResetOrgEntitiesToDefault}
-              onUpdateBranding={setBranding}
+              onUpdateBranding={handleUpdateBranding}
               onAddUser={handleAddUser}
               onUpdateUser={handleUpdateUser}
               onDeleteUser={handleDeleteUser}
@@ -1429,12 +1640,66 @@ export function App() {
           onAddRequest={handleAddMaintenanceRequest}
           onClose={() => setShowNewMaintenanceModal(false)}
           isLight={theme === 'light'}
+          currentUser={currentUser}
         />
       )}
 
       {/* Export Technical Dossier PDF Modal */}
       {showDossierModal && dossierUnit && (
         <ExportDossierModal unit={dossierUnit} branding={branding} onClose={() => setShowDossierModal(false)} />
+      )}
+
+      {/* Global Toast / Notification Banner */}
+      {toastMessage && (
+        <div
+          role="alert"
+          className="fixed top-4 left-1/2 -translate-x-1/2 z-50 max-w-md w-[calc(100%-2rem)] px-2 animate-in fade-in slide-in-from-top-4 duration-300 pointer-events-auto"
+        >
+          <div
+            className={`flex items-start gap-3 p-4 rounded-xl shadow-2xl border backdrop-blur-md ${
+              toastMessage.type === 'error'
+                ? theme === 'light'
+                  ? 'bg-rose-50 border-rose-300 text-rose-900 shadow-rose-200/50'
+                  : 'bg-rose-950/95 border-rose-700/80 text-rose-100 shadow-black/80'
+                : toastMessage.type === 'success'
+                ? theme === 'light'
+                  ? 'bg-emerald-50 border-emerald-300 text-emerald-900 shadow-emerald-200/50'
+                  : 'bg-emerald-950/95 border-emerald-700/80 text-emerald-100 shadow-black/80'
+                : theme === 'light'
+                ? 'bg-blue-50 border-blue-300 text-blue-900 shadow-blue-200/50'
+                : 'bg-blue-950/95 border-blue-700/80 text-blue-100 shadow-black/80'
+            }`}
+          >
+            <div className="shrink-0 mt-0.5">
+              {toastMessage.type === 'error' && (
+                <AlertTriangle className="w-5 h-5 text-rose-600 dark:text-rose-400" />
+              )}
+              {toastMessage.type === 'success' && (
+                <CheckCircle className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+              )}
+              {toastMessage.type === 'info' && (
+                <Info className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+              )}
+            </div>
+            <div className="flex-1 min-w-0">
+              {toastMessage.title && (
+                <h4 className="text-sm font-bold mb-0.5 text-inherit">
+                  {toastMessage.title}
+                </h4>
+              )}
+              <p className="text-xs leading-relaxed text-inherit opacity-95">
+                {toastMessage.text}
+              </p>
+            </div>
+            <button
+              onClick={() => setToastMessage(null)}
+              className="shrink-0 p-1 rounded-lg hover:bg-black/10 dark:hover:bg-white/10 transition-colors opacity-70 hover:opacity-100 cursor-pointer"
+              title="إغلاق التنبيه"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );
