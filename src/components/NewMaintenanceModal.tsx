@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import {
   Wrench,
   GitBranch,
@@ -22,6 +22,7 @@ import {
   Download,
   ImageIcon,
   FileText,
+  Lock,
 } from 'lucide-react';
 import { MaintenanceRequest, MaintenancePriority, UnitAsset, SystemUser, ReportAttachment } from '../types';
 
@@ -30,6 +31,7 @@ const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
 interface NewMaintenanceModalProps {
   units?: UnitAsset[];
   initialUnitCode?: string;
+  isUnitLocked?: boolean;
   onAddRequest: (req: MaintenanceRequest) => void;
   onClose: () => void;
   isLight?: boolean;
@@ -39,12 +41,20 @@ interface NewMaintenanceModalProps {
 export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
   units = [],
   initialUnitCode = 'WS-AHD-BLD-014',
+  isUnitLocked = false,
   onAddRequest,
   onClose,
   isLight = false,
   currentUser,
 }) => {
+  const isLocked = isUnitLocked || (currentUser?.role === 'موظف الكشف والصيانة' && Boolean(initialUnitCode));
   const [unitCode, setUnitCode] = useState(initialUnitCode || (units[0]?.code ?? 'WS-AHD-BLD-014'));
+
+  useEffect(() => {
+    if (initialUnitCode) {
+      setUnitCode(initialUnitCode);
+    }
+  }, [initialUnitCode]);
   const [unitPickerMode, setUnitPickerMode] = useState<'tree_vertical' | 'tree_horizontal' | 'dropdown'>('tree_vertical');
   const [unitSearch, setUnitSearch] = useState('');
   const [expandedGovs, setExpandedGovs] = useState<Record<string, boolean>>({});
@@ -207,10 +217,97 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
         <form onSubmit={handleSubmit} className="space-y-4 overflow-y-auto pr-1 flex-1">
           {/* SECTION 1: UNIT SELECTION */}
           <div className={`p-4 rounded-2xl border space-y-3.5 ${isLight ? 'bg-slate-50/80 border-slate-200' : 'bg-slate-950/60 border-slate-800'}`}>
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b pb-2 border-slate-200 dark:border-slate-800">
-              <label className={`block font-extrabold text-xs ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
-                1. تحديد الوحدة الهندسية / الأصل:
-              </label>
+            {isLocked ? (
+              /* LOCKED UNIT VIEW (e.g. Scanned QR Code) */
+              <div className="space-y-3">
+                <div className="flex items-center justify-between border-b pb-2 border-slate-200 dark:border-slate-800">
+                  <label className={`block font-extrabold text-xs ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                    1. المنشأة / الأصل المحدد للطلب:
+                  </label>
+                  <span className="px-2.5 py-1 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-700 dark:text-amber-300 font-black text-[11px] flex items-center gap-1.5 shadow-sm">
+                    <Lock className="w-3.5 h-3.5 text-amber-500" />
+                    <span>تم التحديد عبر المسح السريع (QR)</span>
+                  </span>
+                </div>
+
+                {/* Locked Unit Details Card */}
+                <div className={`p-3.5 rounded-2xl border transition ${
+                  isLight ? 'bg-amber-50/90 border-amber-300 text-amber-950 shadow-sm' : 'bg-amber-500/10 border-amber-500/30 text-amber-200'
+                }`}>
+                  <div className="flex items-start justify-between gap-3 flex-wrap sm:flex-nowrap">
+                    <div className="flex items-center gap-3">
+                      <div className="w-11 h-11 rounded-2xl bg-amber-500 text-slate-950 font-black flex items-center justify-center shrink-0 shadow-md">
+                        <Building2 className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-mono text-sm font-black text-amber-700 dark:text-amber-400 bg-amber-500/10 dark:bg-amber-500/20 px-2 py-0.5 rounded-lg border border-amber-500/20">
+                            {selectedUnitAsset?.code || unitCode}
+                          </span>
+                          <span className="opacity-60">•</span>
+                          <span className="font-extrabold text-sm text-slate-900 dark:text-slate-100">
+                            {selectedUnitAsset?.name || 'الوحدة الهندسية'}
+                          </span>
+                        </div>
+                        <div className="text-xs opacity-90 flex items-center gap-3 mt-1.5 flex-wrap font-medium">
+                          {selectedUnitAsset?.governorate && (
+                            <span className="flex items-center gap-1">
+                              <MapPin className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+                              محافظة {selectedUnitAsset.governorate}
+                            </span>
+                          )}
+                          {selectedUnitAsset?.field && (
+                            <span className="flex items-center gap-1">
+                              <Flame className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+                              حقل {selectedUnitAsset.field}
+                            </span>
+                          )}
+                          {selectedUnitAsset?.site && (
+                            <span className="text-[11px] text-slate-600 dark:text-slate-400">
+                              (الموقع: {selectedUnitAsset.site})
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-xs font-bold shrink-0">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                      <span>أصل معتمد ومقفل</span>
+                    </div>
+                  </div>
+
+                  {selectedUnitAsset?.department && (
+                    <div className="mt-3 pt-2.5 border-t border-amber-500/20 text-xs flex items-center justify-between flex-wrap gap-2 text-slate-700 dark:text-slate-300">
+                      <div className="flex items-center gap-1.5">
+                        <strong className="text-slate-900 dark:text-slate-100">الجهة الشاغلة:</strong>
+                        <span>{selectedUnitAsset.department}</span>
+                      </div>
+                      {selectedUnitAsset.conditionGrade && (
+                        <div className="flex items-center gap-1.5">
+                          <strong className="text-slate-900 dark:text-slate-100">التقييم الفني:</strong>
+                          <span className="font-mono font-bold text-amber-700 dark:text-amber-400 bg-amber-500/15 px-2 py-0.5 rounded-md">
+                            {selectedUnitAsset.conditionGrade}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                <div className={`p-2.5 rounded-xl text-xs flex items-center gap-2 border ${
+                  isLight ? 'bg-slate-100/90 border-slate-200 text-slate-700' : 'bg-slate-900/90 border-slate-800 text-slate-300'
+                }`}>
+                  <Lock className="w-4 h-4 text-amber-500 shrink-0" />
+                  <span>تم قفل طلب الصيانة مباشرة على هذه المنشأة لضمان عدم اختيار أصل آخر بالخطأ.</span>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b pb-2 border-slate-200 dark:border-slate-800">
+                  <label className={`block font-extrabold text-xs ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                    1. تحديد الوحدة الهندسية / الأصل:
+                  </label>
 
               {/* View Mode Switcher */}
               <div className={`flex items-center gap-1 p-1 rounded-xl border ${isLight ? 'bg-slate-100 border-slate-200' : 'bg-slate-950 border-slate-800'}`}>
@@ -638,6 +735,8 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
                   </option>
                 ))}
               </select>
+            )}
+              </>
             )}
           </div>
 

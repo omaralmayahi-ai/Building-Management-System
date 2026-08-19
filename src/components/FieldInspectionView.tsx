@@ -74,7 +74,7 @@ export const FieldInspectionView: React.FC<FieldInspectionViewProps> = ({
   const [viewMode, setViewMode] = useState<'overview' | 'new_inspection'>('overview');
 
   // New Inspection Form State
-  const [inspectionType, setInspectionType] = useState<InspectionType>('structural');
+  const [inspectionType] = useState<InspectionType>('comprehensive');
   const [inspectionTitle, setInspectionTitle] = useState<string>('كشف ميداني دوري شامل');
   const [conditionGrade, setConditionGrade] = useState<ConditionGrade>('B');
   const [findings, setFindings] = useState<string>('');
@@ -447,7 +447,7 @@ export const FieldInspectionView: React.FC<FieldInspectionViewProps> = ({
           </div>
 
           <div className="space-y-1.5 max-w-md mx-auto">
-            <h2 className="text-lg sm:text-xl font-black">مسح رمز QR للوحدة الهندسية</h2>
+            <h2 className="text-lg sm:text-xl font-black">مسح رمز QR الخاص بالوحدة</h2>
             <p className={`text-xs sm:text-sm leading-relaxed ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
               امسح رمز الاستجابة السريعة (QR Code) المثبت على الكرفان أو المنشأة لتحميل بياناتها وإجراء الكشف الفني الميداني.
             </p>
@@ -558,10 +558,15 @@ export const FieldInspectionView: React.FC<FieldInspectionViewProps> = ({
               </div>
             )}
 
-            {/* Rescan Button */}
+            {/* Rescan Button - Returns to QR Scan Landing Page */}
             <button
               type="button"
-              onClick={startScanner}
+              onClick={() => {
+                setSelectedUnitCode('');
+                setViewMode('overview');
+                setScanError(null);
+                setSubmitSuccessMsg(null);
+              }}
               className={`w-full py-2.5 px-3 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer ${
                 isLight
                   ? 'bg-slate-50 hover:bg-slate-100 border-slate-300 text-slate-700'
@@ -580,7 +585,7 @@ export const FieldInspectionView: React.FC<FieldInspectionViewProps> = ({
                 className="w-full py-3.5 px-4 rounded-xl font-black text-sm sm:text-base bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-lg hover:shadow-amber-500/25 transition flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
               >
                 <PlusCircle className="w-5 h-5" />
-                <span>بدء كشف هندسي جديد لهذي الوحدة</span>
+                <span>بدء كشف جديد لهذه الوحدة</span>
               </button>
 
               <button
@@ -638,33 +643,19 @@ export const FieldInspectionView: React.FC<FieldInspectionViewProps> = ({
               </div>
             )}
 
-            {/* 1. Inspection Type */}
+            {/* 1. Inspection Type (Fixed) */}
             <div className="space-y-1.5">
-              <label className="block text-xs font-bold text-slate-300">
-                نوع الكشف الفني <span className="text-rose-500">*</span>
+              <label className={`block text-xs font-bold ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                نوع الكشف الفني
               </label>
-              <div className="grid grid-cols-2 gap-2">
-                {[
-                  { id: 'structural' as InspectionType, label: 'سلامة إنشائية وهيكل' },
-                  { id: 'safety_hse' as InspectionType, label: 'أمن وسلامة HSE' },
-                  { id: 'mechanical_electrical' as InspectionType, label: 'كهرباء وميكانيك' },
-                  { id: 'comprehensive' as InspectionType, label: 'كشف دوري شامل' },
-                ].map((t) => (
-                  <button
-                    key={t.id}
-                    type="button"
-                    onClick={() => setInspectionType(t.id)}
-                    className={`py-2.5 px-3 rounded-xl text-xs font-bold border transition text-center cursor-pointer ${
-                      inspectionType === t.id
-                        ? 'bg-amber-500 text-slate-950 border-amber-500 shadow-md font-black'
-                        : isLight
-                        ? 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
-                        : 'bg-slate-950 border-slate-800 text-slate-300 hover:bg-slate-800'
-                    }`}
-                  >
-                    {t.label}
-                  </button>
-                ))}
+              <div className={`p-3 rounded-xl border flex items-center justify-between ${
+                isLight ? 'bg-amber-50/80 border-amber-300 text-amber-950' : 'bg-amber-500/10 border-amber-500/30 text-amber-300'
+              }`}>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-amber-500 shrink-0" />
+                  <span className="font-bold text-xs sm:text-sm">كشف دوري شامل</span>
+                </div>
+                <span className="text-[11px] font-semibold opacity-75">نوع موحد معتمد</span>
               </div>
             </div>
 

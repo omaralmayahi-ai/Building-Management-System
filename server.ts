@@ -1668,6 +1668,8 @@ async function startServer() {
     } catch (err: any) {
       console.warn(`⚠️ [HTTPS] Failed to initialize SSL/TLS server (${err.message}). Falling back to HTTP...`);
     }
+  } else {
+    console.warn('⚠️ HTTPS not configured — running over insecure HTTP. Set HTTPS_CERT_PATH and HTTPS_KEY_PATH environment variables to enable HTTPS.');
   }
 
   if (!isHttpsStarted) {

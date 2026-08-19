@@ -529,6 +529,7 @@ export function App() {
   // Modals
   const [showNewMaintenanceModal, setShowNewMaintenanceModal] = useState(false);
   const [maintenanceUnitCode, setMaintenanceUnitCode] = useState('WS-AHD-BLD-014');
+  const [isMaintenanceUnitLocked, setIsMaintenanceUnitLocked] = useState(false);
   const [showDossierModal, setShowDossierModal] = useState(false);
   const [dossierUnit, setDossierUnit] = useState<UnitAsset | null>(null);
 
@@ -1041,9 +1042,10 @@ export function App() {
     });
   };
 
-  // Open maintenance modal for specific unit
-  const handleOpenMaintenanceForUnit = (code: string) => {
+  // Open maintenance modal for specific unit (locked to scanned or targeted unit)
+  const handleOpenMaintenanceForUnit = (code: string, isLocked: boolean = true) => {
     setMaintenanceUnitCode(code);
+    setIsMaintenanceUnitLocked(isLocked);
     setShowNewMaintenanceModal(true);
   };
 
@@ -1355,6 +1357,7 @@ export function App() {
           !isRoleUser && !isRoleInspector
             ? () => {
                 setMaintenanceUnitCode(selectedUnitCode);
+                setIsMaintenanceUnitLocked(false);
                 setShowNewMaintenanceModal(true);
               }
             : undefined
@@ -1517,6 +1520,7 @@ export function App() {
               units={units}
               onOpenNewMaintenanceModal={() => {
                 setMaintenanceUnitCode(selectedUnitCode);
+                setIsMaintenanceUnitLocked(false);
                 setShowNewMaintenanceModal(true);
               }}
               onUpdateMaintenanceRequest={handleUpdateMaintenanceRequest}
@@ -1657,6 +1661,7 @@ export function App() {
         <NewMaintenanceModal
           units={units}
           initialUnitCode={maintenanceUnitCode}
+          isUnitLocked={isMaintenanceUnitLocked}
           onAddRequest={handleAddMaintenanceRequest}
           onClose={() => setShowNewMaintenanceModal(false)}
           isLight={theme === 'light'}
