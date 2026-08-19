@@ -66,6 +66,7 @@ interface SettingsViewProps {
   branding: SystemBranding;
   onUpdateBranding: (branding: SystemBranding) => void;
 
+  currentUser?: SystemUser | null;
   users: SystemUser[];
   onAddUser: (user: SystemUser) => void;
   onUpdateUser: (user: SystemUser) => void;
@@ -161,6 +162,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   units,
   branding,
   onUpdateBranding,
+  currentUser,
   users,
   onAddUser,
   onUpdateUser,
@@ -423,6 +425,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
   // Open Horizontal User Form for Edit
   const handleOpenEditUserInline = (usr: SystemUser) => {
+    const isPrimaryAdmin = usr.id === 'USR-101' || usr.username === 'admin';
+    const isCurrentAdmin = currentUser?.id === 'USR-101' || currentUser?.username === 'admin';
+
+    if (isPrimaryAdmin && !isCurrentAdmin) {
+      triggerSaveToast('تنبيه: حساب مدير النظام الأساسي (admin) محمي، ولا يمكن تعديله إلا من خلال تسجيل الدخول بحساب admin نفسه');
+      return;
+    }
+
     setUserFormEditingId(usr.id);
     setUserDisplayName(usr.name || '');
     setUserAccountName(usr.username || usr.email?.split('@')[0] || '');
@@ -467,6 +477,15 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       return;
     }
 
+    // Protection check for primary admin
+    if (userFormEditingId === 'USR-101') {
+      const isCurrentAdmin = currentUser?.id === 'USR-101' || currentUser?.username === 'admin';
+      if (!isCurrentAdmin) {
+        setUserFormError('لا يمكن تعديل بيانات مدير النظام الأساسي إلا بواسطة حساب admin نفسه');
+        return;
+      }
+    }
+
     // Check duplicate username
     const duplicate = users.find(
       (u) =>
@@ -488,9 +507,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         name: cleanDisplayName,
         username: cleanAccountName,
         password: cleanPassword,
-        role: userRole,
+        role: userFormEditingId === 'USR-101' ? 'مدير النظام' : userRole,
         phone: cleanPhone,
-        status: userStatus,
+        status: userFormEditingId === 'USR-101' ? 'active' : userStatus,
         lastActive: existing?.lastActive || 'الآن',
       });
       triggerSaveToast(`تم تحديث بيانات وصلاحيات الحساب «${cleanDisplayName}» بنجاح`);
@@ -736,6 +755,12 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const handleExecuteDelete = () => {
     if (!deleteConfirm) return;
     const { type, id } = deleteConfirm;
+
+    if (type === 'user' && id === 'USR-101') {
+      triggerSaveToast('خطأ: لا يمكن حذف حساب مدير النظام الأساسي (admin) نهائياً');
+      setDeleteConfirm(null);
+      return;
+    }
 
     if (type === 'governorate') onDeleteGovernorate(id);
     else if (type === 'oilfield') onDeleteOilfield(id);
@@ -1842,6 +1867,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       const isAdm = usr.role === 'مدير النظام' || usr.role === 'admin';
                       const isOp = usr.role === 'مشغل النظام' || usr.role === 'operator';
                       const isEditingThis = userFormEditingId === usr.id && showUserInlineForm;
+                      const isPrimaryAdmin = usr.id === 'USR-101' || usr.username === 'admin';
+                      const isCurrentAdmin = currentUser?.id === 'USR-101' || currentUser?.username === 'admin';
 
                       return (
                         <tr
@@ -1875,6 +1902,19 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                                   }`}
                                 >
                                   <span>{usr.name}</span>
+                                  {isPrimaryAdmin && (
+                                    <span
+                                      className={`text-[9px] px-1.5 py-0.5 rounded-full border font-bold flex items-center gap-0.5 ${
+                                        isLight
+                                          ? 'bg-amber-100 text-amber-900 border-amber-300'
+                                          : 'bg-amber-500/20 text-amber-400 border-amber-500/40'
+                                      }`}
+                                      title="حساب مدير النظام الأساسي - محمي من الحذف والتعديل الخارجي"
+                                    >
+                                      <Lock className="w-2.5 h-2.5" />
+                                      <span>حساب محمي</span>
+                                    </span>
+                                  )}
                                   {isEditingThis && (
                                     <span
                                       className={`text-[9px] px-1.5 py-0.2 rounded border font-mono ${
@@ -1969,68 +2009,111 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
                           {/* 6. Status & Activation Toggle */}
                           <td className="p-3 text-center">
-                            <button
-                              onClick={() => onToggleUserStatus(usr.id)}
-                              className={`px-2.5 py-1 rounded-xl font-bold text-[11px] border inline-flex items-center gap-1.5 transition cursor-pointer shadow-sm ${
-                                usr.status === 'active'
-                                  ? isLight
-                                    ? 'bg-emerald-100 text-emerald-900 border-emerald-300 hover:bg-emerald-200/80'
-                                    : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/30'
-                                  : isLight
-                                  ? 'bg-rose-100 text-rose-900 border-rose-300 hover:bg-rose-200/80'
-                                  : 'bg-rose-500/20 text-rose-400 border-rose-500/30 hover:bg-rose-500/30'
-                              }`}
-                              title={usr.status === 'active' ? 'انقر لتعطيل الحساب' : 'انقر لتنشيط الحساب'}
-                            >
-                              {usr.status === 'active' ? (
-                                <>
-                                  <ToggleRight
-                                    className={`w-4 h-4 ${isLight ? 'text-emerald-700' : 'text-emerald-400'}`}
-                                  />
-                                  <span>نشط</span>
-                                </>
-                              ) : (
-                                <>
-                                  <ToggleLeft
-                                    className={`w-4 h-4 ${isLight ? 'text-rose-700' : 'text-rose-400'}`}
-                                  />
-                                  <span>معطّل وموقوف</span>
-                                </>
-                              )}
-                            </button>
+                            {isPrimaryAdmin ? (
+                              <span
+                                className={`px-2.5 py-1 rounded-xl font-bold text-[11px] border inline-flex items-center gap-1.5 opacity-90 ${
+                                  isLight
+                                    ? 'bg-emerald-100 text-emerald-900 border-emerald-300'
+                                    : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                                }`}
+                                title="حساب مدير النظام الأساسي نشط ومحمي دائماً ولا يمكن تعطيله"
+                              >
+                                <Lock className={`w-3.5 h-3.5 ${isLight ? 'text-emerald-700' : 'text-emerald-400'}`} />
+                                <span>نشط دائم (محمي)</span>
+                              </span>
+                            ) : (
+                              <button
+                                onClick={() => onToggleUserStatus(usr.id)}
+                                className={`px-2.5 py-1 rounded-xl font-bold text-[11px] border inline-flex items-center gap-1.5 transition cursor-pointer shadow-sm ${
+                                  usr.status === 'active'
+                                    ? isLight
+                                      ? 'bg-emerald-100 text-emerald-900 border-emerald-300 hover:bg-emerald-200/80'
+                                      : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/30'
+                                    : isLight
+                                    ? 'bg-rose-100 text-rose-900 border-rose-300 hover:bg-rose-200/80'
+                                    : 'bg-rose-500/20 text-rose-400 border-rose-500/30 hover:bg-rose-500/30'
+                                }`}
+                                title={usr.status === 'active' ? 'انقر لتعطيل الحساب' : 'انقر لتنشيط الحساب'}
+                              >
+                                {usr.status === 'active' ? (
+                                  <>
+                                    <ToggleRight
+                                      className={`w-4 h-4 ${isLight ? 'text-emerald-700' : 'text-emerald-400'}`}
+                                    />
+                                    <span>نشط</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <ToggleLeft
+                                      className={`w-4 h-4 ${isLight ? 'text-rose-700' : 'text-rose-400'}`}
+                                    />
+                                    <span>معطّل وموقوف</span>
+                                  </>
+                                )}
+                              </button>
+                            )}
                           </td>
 
                           {/* 7. Actions: Edit and Delete only */}
                           <td className="p-3 text-center">
                             <div className="flex items-center justify-center gap-1.5">
-                              <button
-                                onClick={() => handleOpenEditUserInline(usr)}
-                                className={`p-1.5 rounded-lg border transition cursor-pointer ${
-                                  isLight
-                                    ? 'bg-slate-100 hover:bg-amber-100 text-slate-700 hover:text-amber-900 border-slate-300 hover:border-amber-300'
-                                    : 'bg-slate-800 hover:bg-amber-500/20 text-slate-400 hover:text-amber-400 border-slate-700 hover:border-amber-500/40'
-                                }`}
-                                title="تعديل بيانات وصلاحيات الحساب"
-                              >
-                                <Edit2 className="w-3.5 h-3.5" />
-                              </button>
-                              <button
-                                onClick={() =>
-                                  setDeleteConfirm({
-                                    type: 'user',
-                                    id: usr.id,
-                                    name: usr.name,
-                                  })
-                                }
-                                className={`p-1.5 rounded-lg border transition cursor-pointer ${
-                                  isLight
-                                    ? 'bg-slate-100 hover:bg-rose-100 text-slate-700 hover:text-rose-900 border-slate-300 hover:border-rose-300'
-                                    : 'bg-slate-800 hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 border-slate-700 hover:border-rose-500/40'
-                                }`}
-                                title="حذف الحساب نهائياً"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
+                              {isPrimaryAdmin && !isCurrentAdmin ? (
+                                <button
+                                  disabled
+                                  className={`p-1.5 rounded-lg border transition cursor-not-allowed opacity-50 ${
+                                    isLight
+                                      ? 'bg-slate-100 text-slate-400 border-slate-200'
+                                      : 'bg-slate-800 text-slate-600 border-slate-700'
+                                  }`}
+                                  title="لا يمكن تعديل هذا الحساب إلا من خلال الحساب نفسه"
+                                >
+                                  <Lock className="w-3.5 h-3.5" />
+                                </button>
+                              ) : (
+                                <button
+                                  onClick={() => handleOpenEditUserInline(usr)}
+                                  className={`p-1.5 rounded-lg border transition cursor-pointer ${
+                                    isLight
+                                      ? 'bg-slate-100 hover:bg-amber-100 text-slate-700 hover:text-amber-900 border-slate-300 hover:border-amber-300'
+                                      : 'bg-slate-800 hover:bg-amber-500/20 text-slate-400 hover:text-amber-400 border-slate-700 hover:border-amber-500/40'
+                                  }`}
+                                  title="تعديل بيانات وصلاحيات الحساب"
+                                >
+                                  <Edit2 className="w-3.5 h-3.5" />
+                                </button>
+                              )}
+
+                              {isPrimaryAdmin ? (
+                                <button
+                                  disabled
+                                  className={`p-1.5 rounded-lg border transition cursor-not-allowed opacity-40 ${
+                                    isLight
+                                      ? 'bg-slate-100 text-slate-400 border-slate-200'
+                                      : 'bg-slate-800 text-slate-600 border-slate-700'
+                                  }`}
+                                  title="لا يمكن حذف هذا الحساب أبداً (حساب مدير النظام الأساسي)"
+                                >
+                                  <Lock className="w-3.5 h-3.5" />
+                                </button>
+                              ) : (
+                                <button
+                                  onClick={() =>
+                                    setDeleteConfirm({
+                                      type: 'user',
+                                      id: usr.id,
+                                      name: usr.name,
+                                    })
+                                  }
+                                  className={`p-1.5 rounded-lg border transition cursor-pointer ${
+                                    isLight
+                                      ? 'bg-slate-100 hover:bg-rose-100 text-slate-700 hover:text-rose-900 border-slate-300 hover:border-rose-300'
+                                      : 'bg-slate-800 hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 border-slate-700 hover:border-rose-500/40'
+                                  }`}
+                                  title="حذف الحساب نهائياً"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              )}
                             </div>
                           </td>
                         </tr>

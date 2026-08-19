@@ -73,7 +73,7 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
 
     Array.from(files).forEach((file: File) => {
       if (file.size > MAX_FILE_SIZE) {
-        setValidationError('حجم الملف المرفق يتجاوز الحد المسموح به (5 ميجابايت). الرجاء اختيار ملف أصغر.');
+        setValidationError('حجم الملف كبير جداً (الحد الأقصى 5 ميجابايت)، الرجاء ضغط الصورة أو اختيار ملف أصغر.');
         return;
       }
 

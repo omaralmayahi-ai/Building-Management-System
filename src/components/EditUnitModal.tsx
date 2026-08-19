@@ -207,8 +207,27 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
   const [newAttNotes, setNewAttNotes] = useState('');
 
   // Handle Uploading Files from Desktop or Drag & Drop
+  const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+
   const processFilesAndAdd = (files: File[]) => {
-    const filePromises = files.map((file, idx) => {
+    const validFiles: File[] = [];
+    let hasOverSized = false;
+
+    for (const file of files) {
+      if (file.size > MAX_FILE_SIZE) {
+        hasOverSized = true;
+      } else {
+        validFiles.push(file);
+      }
+    }
+
+    if (hasOverSized) {
+      alert('حجم الملف كبير جداً (الحد الأقصى 5 ميجابايت)، الرجاء ضغط الصورة أو اختيار ملف أصغر.');
+    }
+
+    if (validFiles.length === 0) return;
+
+    const filePromises = validFiles.map((file, idx) => {
       return new Promise<UnitAttachment>((resolve) => {
         const ext = file.name.split('.').pop()?.toLowerCase() || 'file';
         let docType = 'pdf';
@@ -271,6 +290,12 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
   const handleModalFileSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (file.size > MAX_FILE_SIZE) {
+        alert('حجم الملف كبير جداً (الحد الأقصى 5 ميجابايت)، الرجاء ضغط الصورة أو اختيار ملف أصغر.');
+        e.target.value = '';
+        return;
+      }
+
       if (!newAttName.trim()) {
         setNewAttName(file.name);
       }

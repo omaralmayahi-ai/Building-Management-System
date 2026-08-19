@@ -18,14 +18,17 @@ import {
   Eye,
   Camera,
   Image as ImageIcon,
+  Layers,
+  Paperclip,
 } from 'lucide-react';
-import { MaintenanceRequest, MaintenanceStatus, MaintenancePriority, UnitAsset } from '../types';
+import { MaintenanceRequest, MaintenanceStatus, MaintenancePriority, UnitAsset, ReportAttachment } from '../types';
 import {
   toArabicDigits,
   formatDateOnly,
   getCompletionOrCancellationDate,
   calculateMaintenanceDurationDays,
 } from '../utils/arabicUtils';
+import { AttachmentViewerModal, AttachmentViewerItem } from './AttachmentViewerModal';
 
 interface MaintenanceViewProps {
   requests: MaintenanceRequest[];
@@ -65,7 +68,11 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
   const [editStatus, setEditStatus] = useState<MaintenanceStatus>('open');
 
   // Preview Attachment Modal State
-  const [previewItem, setPreviewItem] = useState<{ title: string; url: string; fileName: string } | null>(null);
+  const [previewAttachment, setPreviewAttachment] = useState<{
+    attachments: AttachmentViewerItem[];
+    initialIndex: number;
+    unitCode?: string;
+  } | null>(null);
 
   const filteredRequests = requests.filter((r) => {
     const matchStatus =
@@ -321,29 +328,145 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
                   <td className="p-3 font-mono text-[11px] font-semibold">{getCompletionOrCancellationDate(req.completedAt, req.status)}</td>
                   <td className="p-3 font-bold text-amber-400 text-[11px]">{calculateMaintenanceDurationDays(req.createdAt, req.completedAt, req.status)}</td>
                   <td className="p-3 text-center whitespace-nowrap">
-                    {req.attachmentUrl || req.attachmentName ? (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setPreviewItem({
-                            title: `مرفق طلب الصيانة (${toArabicDigits(req.id)})`,
-                            url: req.attachmentUrl || '#',
-                            fileName: req.attachmentName || 'صورة_البلاغ.jpg',
-                          });
-                        }}
-                        className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold transition cursor-pointer border shadow-sm ${
-                          isLight
-                            ? 'bg-amber-50 text-amber-800 border-amber-300 hover:bg-amber-100'
-                            : 'bg-amber-500/20 text-amber-300 border-amber-500/40 hover:bg-amber-500/30'
-                        }`}
-                        title="معاينة الصورة المرفقة بطلب الصيانة"
-                      >
-                        <Eye className="w-3.5 h-3.5" />
-                        <span className="truncate max-w-[70px]">{req.attachmentName || 'معاينة'}</span>
-                      </button>
-                    ) : (
-                      <span className="text-slate-500 text-[10px]">لا يوجد</span>
-                    )}
+                    {(() => {
+                      const reqAttachments: ReportAttachment[] =
+                        req.attachments && req.attachments.length > 0
+                          ? req.attachments
+                          : req.attachmentUrl || req.attachmentName
+                          ? [
+                              {
+                                id: `maint-att-${req.id}`,
+                                name: req.attachmentName || 'صورة_البلاغ.jpg',
+                                url: req.attachmentUrl,
+                                type: 'image/jpeg',
+                              },
+                            ]
+                          : [];
+
+                      if (reqAttachments.length === 0) {
+                        return <span className="text-slate-500 text-[10px]">لا يوجد</span>;
+                      }
+
+                      if (reqAttachments.length === 1) {
+                        const single = reqAttachments[0];
+                        const isImg =
+                          single.url &&
+                          (single.url.startsWith('data:image/') ||
+                            single.name.match(/\.(jpeg|jpg|png|webp|gif|svg)$/i));
+
+                        return (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setPreviewAttachment({
+                                attachments: [
+                                  {
+                                    id: single.id || `maint-att-${req.id}`,
+                                    name: single.name || req.attachmentName || 'صورة_البلاغ.jpg',
+                                    type: single.type || 'image/jpeg',
+                                    url: single.url || req.attachmentUrl || '#',
+                                    uploadDate: formatDateOnly(req.createdAt),
+                                    category: 'صورة بلاغ صيانة',
+                                  },
+                                ],
+                                initialIndex: 0,
+                                unitCode: req.unitCode,
+                              });
+                            }}
+                            className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[10px] font-bold transition cursor-pointer border shadow-sm ${
+                              isLight
+                                ? 'bg-amber-50 text-amber-800 border-amber-300 hover:bg-amber-100'
+                                : 'bg-amber-500/20 text-amber-300 border-amber-500/40 hover:bg-amber-500/30'
+                            }`}
+                            title="معاينة المرفق"
+                          >
+                            {isImg ? (
+                              <ImageIcon className="w-3.5 h-3.5 text-amber-500" />
+                            ) : (
+                              <FileText className="w-3.5 h-3.5 text-amber-500" />
+                            )}
+                            <span className="truncate max-w-[80px]">{single.name || 'معاينة'}</span>
+                          </button>
+                        );
+                      }
+
+                      // Multiple attachments (e.g. 2, 3 or more)
+                      return (
+                        <div className="flex flex-col items-center gap-1.5">
+                          {/* Thumbnails row for all attachments */}
+                          <div className="flex items-center justify-center gap-1">
+                            {reqAttachments.map((att, idx) => {
+                              const isImg =
+                                att.url &&
+                                (att.url.startsWith('data:image/') ||
+                                  att.name.match(/\.(jpeg|jpg|png|webp|gif|svg)$/i));
+
+                              return (
+                                <button
+                                  key={att.id || idx}
+                                  type="button"
+                                  onClick={() => {
+                                    setPreviewAttachment({
+                                      attachments: reqAttachments.map((a, i) => ({
+                                        id: a.id || `maint-att-${req.id}-${i}`,
+                                        name: a.name || `مرفق_${i + 1}`,
+                                        type: a.type || 'image/jpeg',
+                                        url: a.url || '#',
+                                        uploadDate: formatDateOnly(req.createdAt),
+                                        category: `مرفق طلب صيانة (${toArabicDigits(i + 1)} من ${toArabicDigits(reqAttachments.length)})`,
+                                      })),
+                                      initialIndex: idx,
+                                      unitCode: req.unitCode,
+                                    });
+                                  }}
+                                  className="w-7 h-7 rounded-lg overflow-hidden border border-amber-500/40 hover:border-amber-400 bg-slate-900 transition hover:scale-110 cursor-pointer shrink-0 shadow-xs flex items-center justify-center group"
+                                  title={`معاينة المرفق ${toArabicDigits(idx + 1)}: ${att.name}`}
+                                >
+                                  {isImg ? (
+                                    <img
+                                      src={att.url}
+                                      alt={att.name}
+                                      className="w-full h-full object-cover"
+                                      referrerPolicy="no-referrer"
+                                    />
+                                  ) : (
+                                    <FileText className="w-3.5 h-3.5 text-amber-400 group-hover:text-amber-300" />
+                                  )}
+                                </button>
+                              );
+                            })}
+                          </div>
+
+                          {/* View all button */}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setPreviewAttachment({
+                                attachments: reqAttachments.map((a, i) => ({
+                                  id: a.id || `maint-att-${req.id}-${i}`,
+                                  name: a.name || `مرفق_${i + 1}`,
+                                  type: a.type || 'image/jpeg',
+                                  url: a.url || '#',
+                                  uploadDate: formatDateOnly(req.createdAt),
+                                  category: `مرفق طلب صيانة (${toArabicDigits(i + 1)} من ${toArabicDigits(reqAttachments.length)})`,
+                                })),
+                                initialIndex: 0,
+                                unitCode: req.unitCode,
+                              });
+                            }}
+                            className={`px-2 py-0.5 rounded-lg text-[9.5px] font-bold transition cursor-pointer border flex items-center gap-1 shadow-xs ${
+                              isLight
+                                ? 'bg-amber-50 text-amber-900 border-amber-200 hover:bg-amber-100'
+                                : 'bg-amber-500/10 text-amber-300 border-amber-500/30 hover:bg-amber-500/20'
+                            }`}
+                            title="استعراض ومعاينة جميع المرفقات"
+                          >
+                            <Layers className="w-3 h-3 text-amber-500" />
+                            <span>عرض الكل ({toArabicDigits(reqAttachments.length)} مرفقات)</span>
+                          </button>
+                        </div>
+                      );
+                    })()}
                   </td>
                   <td className="p-3">
                     {req.resolutionNotes ? (
@@ -650,54 +773,15 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
         </div>
       )}
 
-      {/* FULL PREVIEW MODAL FOR ATTACHMENT */}
-      {previewItem && (
-        <div className="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 animate-fadeIn">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-4 sm:p-5 w-full max-w-2xl space-y-4 shadow-2xl flex flex-col max-h-[90vh]">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <div className="flex items-center gap-2">
-                <ImageIcon className="w-5 h-5 text-amber-500" />
-                <h3 className="font-bold text-sm sm:text-base text-white">{previewItem.title}</h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setPreviewItem(null)}
-                className="p-1.5 rounded-xl bg-slate-800 text-slate-400 hover:text-white transition cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="flex-1 overflow-auto rounded-2xl bg-black/50 border border-slate-800/80 flex items-center justify-center p-2 min-h-[220px]">
-              {previewItem.url.startsWith('data:image/') ||
-              previewItem.fileName.match(/\.(jpeg|jpg|png|webp|gif|svg)$/i) ? (
-                <img
-                  src={previewItem.url}
-                  alt={previewItem.fileName}
-                  className="max-h-[55vh] max-w-full object-contain rounded-xl shadow-lg"
-                  referrerPolicy="no-referrer"
-                />
-              ) : (
-                <div className="text-center p-6 space-y-3">
-                  <FileText className="w-16 h-16 text-amber-500 mx-auto" />
-                  <p className="text-sm font-bold text-white">{previewItem.fileName}</p>
-                  <p className="text-xs text-slate-400">مستند مرفق</p>
-                </div>
-              )}
-            </div>
-
-            <div className="flex items-center justify-between pt-2 border-t border-slate-800">
-              <span className="text-xs text-slate-400 font-mono">{previewItem.fileName}</span>
-              <button
-                type="button"
-                onClick={() => setPreviewItem(null)}
-                className="px-4 py-1.5 rounded-xl bg-slate-800 text-white font-bold text-xs hover:bg-slate-700 transition cursor-pointer"
-              >
-                إغلاق
-              </button>
-            </div>
-          </div>
-        </div>
+      {/* ATTACHMENT VIEWER MODAL */}
+      {previewAttachment && (
+        <AttachmentViewerModal
+          attachments={previewAttachment.attachments}
+          initialIndex={previewAttachment.initialIndex}
+          unitCode={previewAttachment.unitCode}
+          theme={theme}
+          onClose={() => setPreviewAttachment(null)}
+        />
       )}
     </div>
   );

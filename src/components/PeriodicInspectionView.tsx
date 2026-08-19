@@ -447,6 +447,11 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
         if (reportFileInputRef.current) reportFileInputRef.current.value = '';
         return;
       }
+      if (file.size > 5 * 1024 * 1024) {
+        alert('حجم الملف كبير جداً (الحد الأقصى 5 ميجابايت)، الرجاء ضغط الصورة أو اختيار ملف أصغر.');
+        if (reportFileInputRef.current) reportFileInputRef.current.value = '';
+        return;
+      }
       setReportFile(file);
       setReportFileName(file.name);
     }
@@ -2000,61 +2005,6 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                         isLight ? 'bg-slate-100 border-slate-200 text-slate-700' : 'bg-slate-950 border-slate-800 text-amber-400'
                       }`}
                     />
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                      <label className={`block font-bold mb-1 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
-                        فريق الكشف المكلف:
-                      </label>
-                      <input
-                        type="text"
-                        value={newAssignedTeam}
-                        onChange={(e) => setNewAssignedTeam(e.target.value)}
-                        placeholder="فريق الكشف (اختياري)..."
-                        className={`w-full rounded-xl p-2.5 font-bold outline-none border ${
-                          isLight ? 'bg-white border-slate-200 text-slate-900 focus:border-amber-500' : 'bg-slate-900 border-slate-800 text-slate-100 focus:border-amber-500'
-                        }`}
-                      />
-                    </div>
-
-                    <div>
-                      <label className={`block font-bold mb-1 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
-                        القائم بالكشف / المهندس المسؤول:
-                      </label>
-                      <div className="space-y-1.5">
-                        <select
-                          value={newInspectorName}
-                          onChange={(e) => setNewInspectorName(e.target.value)}
-                          className={`w-full rounded-xl px-3 py-2 font-bold outline-none border cursor-pointer text-xs ${
-                            isLight ? 'bg-white border-slate-200 text-slate-900 focus:border-amber-500' : 'bg-slate-900 border-slate-800 text-slate-100 focus:border-amber-500'
-                          }`}
-                        >
-                          <option value="">-- اختر المستخدم أو حدد صفته --</option>
-                          <optgroup label="المستخدمون في النظام">
-                            {(users && users.length > 0 ? users : INITIAL_USERS).map((u) => (
-                              <option key={u.id} value={u.name}>
-                                {u.name} — ({u.role})
-                              </option>
-                            ))}
-                          </optgroup>
-                          <optgroup label="الصفات المعتمدة">
-                            <option value="مشغل النظام">مشغل النظام</option>
-                            <option value="موظف الكشف">موظف الكشف</option>
-                            <option value="مدير النظام">مدير النظام</option>
-                          </optgroup>
-                        </select>
-                        <input
-                          type="text"
-                          value={newInspectorName}
-                          onChange={(e) => setNewInspectorName(e.target.value)}
-                          placeholder="أو اكتب اسماً مخصصاً (مثال: م. سيف الدين علي)..."
-                          className={`w-full rounded-lg px-2.5 py-1 text-[11px] font-bold outline-none border ${
-                            isLight ? 'bg-white border-slate-200 text-slate-900 focus:border-amber-500' : 'bg-slate-900 border-slate-800 text-slate-100 focus:border-amber-500'
-                          }`}
-                        />
-                      </div>
-                    </div>
                   </div>
 
                   <div>

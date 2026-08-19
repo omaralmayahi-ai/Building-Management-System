@@ -18,6 +18,9 @@ import {
 
 async function startServer() {
   const app = express();
+  // Trust first proxy (Cloud Run / Nginx reverse proxy)
+  app.set('trust proxy', 1);
+
   const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
   const API_SECRET_KEY = process.env.API_SECRET_KEY || 'CHANGE_ME_BEFORE_DEPLOY';
 
@@ -68,12 +71,12 @@ async function startServer() {
     users: [
       {
         id: 'USR-101',
-        name: 'م. أحمد كريم الحلي (مدير النظام)',
+        name: 'عمر المياحي',
         username: 'admin',
         password: 'admin123',
         role: 'مدير النظام',
-        email: 'ahmed.kareem@mdoc.gov.iq',
-        phone: '07701234567',
+        email: 'admin@mdoc.gov.iq',
+        phone: '07701784629',
         governorate: 'واسط',
         field: 'الأحدب',
         status: 'active',
@@ -275,6 +278,11 @@ async function startServer() {
     max: 300,
     standardHeaders: true,
     legacyHeaders: false,
+    validate: {
+      xForwardedForHeader: false,
+      forwardedHeader: false,
+      trustProxy: false,
+    },
     skip: (req) => req.path === '/health' || req.path === '/health/',
     message: { error: 'عدد الطلبات كبير جداً، الرجاء المحاولة بعد قليل' },
     statusCode: 429,
@@ -1440,7 +1448,25 @@ async function startServer() {
   });
 
   app.post('/api/users/bulk', async (req, res) => {
-    const users = req.body.users || [];
+    let users = req.body.users || [];
+    // Ensure default primary admin USR-101 is always present in users array
+    const hasAdmin = users.some((u: any) => u.id === 'USR-101' || u.username === 'admin');
+    if (!hasAdmin) {
+      const defaultAdmin = memStore.users.find((u) => u.id === 'USR-101') || {
+        id: 'USR-101',
+        name: 'عمر المياحي',
+        username: 'admin',
+        password: 'admin123',
+        role: 'مدير النظام',
+        email: 'admin@mdoc.gov.iq',
+        phone: '07701784629',
+        governorate: 'واسط',
+        field: 'الأحدب',
+        status: 'active',
+        lastActive: 'الآن',
+      };
+      users = [defaultAdmin, ...users];
+    }
     try {
       if (getDbPool()) {
         await query(
@@ -1501,6 +1527,13 @@ async function startServer() {
 
   app.put('/api/users/:id', async (req, res) => {
     const user = req.body;
+    // Primary Admin USR-101 structural protection
+    if (req.params.id === 'USR-101' || user.id === 'USR-101' || user.username === 'admin') {
+      user.id = 'USR-101';
+      user.username = 'admin';
+      user.role = 'مدير النظام';
+      user.status = 'active';
+    }
     try {
       const idx = memStore.users.findIndex((u) => u.id === req.params.id);
       if (idx >= 0) memStore.users[idx] = user;
@@ -1524,6 +1557,13 @@ async function startServer() {
   });
 
   app.delete('/api/users/:id', async (req, res) => {
+    // Primary Admin USR-101 cannot be deleted
+    if (req.params.id === 'USR-101' || req.params.id === 'admin') {
+      return res.status(403).json({
+        success: false,
+        error: 'لا يمكن حذف حساب مدير النظام الأساسي (admin) أبداً',
+      });
+    }
     try {
       memStore.users = memStore.users.filter((u) => u.id !== req.params.id);
       if (getDbPool()) {

@@ -154,20 +154,30 @@ const PdfCanvasViewer: React.FC<PdfCanvasViewerProps> = ({
   if (pdfDoc && !error) {
     return (
       <div className="w-full flex flex-col items-center gap-3 max-w-3xl">
-        <div className="w-full max-h-[60vh] overflow-auto flex items-center justify-center p-3 rounded-2xl border border-slate-300 dark:border-slate-800 bg-slate-950 shadow-2xl">
+        <div className={`w-full max-h-[60vh] overflow-auto flex items-center justify-center p-3 rounded-2xl border ${
+          isLight
+            ? 'bg-slate-200/90 border-slate-300 shadow-inner'
+            : 'bg-slate-950 border-slate-800 shadow-2xl'
+        }`}>
           <canvas
             ref={canvasRef}
-            className="max-w-full object-contain rounded-xl shadow-xl border border-slate-800"
+            className={`max-w-full object-contain rounded-xl shadow-xl border bg-white ${
+              isLight ? 'border-slate-300' : 'border-slate-800'
+            }`}
           />
         </div>
 
-        <div className={`w-full p-3 rounded-2xl border flex flex-wrap items-center justify-between gap-3 text-xs ${
+        <div className={`w-full p-3 rounded-2xl border flex flex-wrap items-center justify-between gap-3 text-xs shadow-xs ${
           isLight ? 'bg-white border-slate-200 text-slate-800' : 'bg-slate-900 border-slate-800 text-slate-200'
         }`}>
           <div className="flex items-center gap-2">
             <FileText className="w-4 h-4 text-rose-500" />
-            <span className="font-bold text-slate-900 dark:text-slate-100 truncate max-w-xs">{attachment.name}</span>
-            <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-500 font-bold border border-emerald-500/20">
+            <span className={`font-bold truncate max-w-xs ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>{attachment.name}</span>
+            <span className={`text-[10px] px-2 py-0.5 rounded font-bold border ${
+              isLight
+                ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
+                : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+            }`}>
               معاينة مباشرة مفعلة
             </span>
           </div>
@@ -281,8 +291,10 @@ export interface AttachmentViewerItem {
   fileUrl?: string;
 }
 
-interface AttachmentViewerModalProps {
-  attachment: AttachmentViewerItem;
+export interface AttachmentViewerModalProps {
+  attachment?: AttachmentViewerItem;
+  attachments?: AttachmentViewerItem[];
+  initialIndex?: number;
   unitCode?: string;
   theme?: 'dark' | 'light';
   onClose: () => void;
@@ -290,21 +302,53 @@ interface AttachmentViewerModalProps {
 
 export const AttachmentViewerModal: React.FC<AttachmentViewerModalProps> = ({
   attachment,
+  attachments,
+  initialIndex = 0,
   unitCode,
   theme = 'dark',
   onClose,
 }) => {
-  const isLight = theme === 'light';
+  // Respect prop or detect document html theme
+  const isLight =
+    theme === 'light' ||
+    (typeof document !== 'undefined' &&
+      !document.documentElement.classList.contains('dark') &&
+      document.documentElement.classList.contains('light'));
 
-  // Effective URL checking
-  const effectiveUrl = attachment.url || attachment.fileUrl;
+  // Normalize list of attachments
+  const items: AttachmentViewerItem[] = React.useMemo(() => {
+    if (attachments && Array.isArray(attachments) && attachments.length > 0) {
+      return attachments.filter(Boolean);
+    }
+    if (attachment) {
+      return [attachment];
+    }
+    return [];
+  }, [attachments, attachment]);
+
+  const [currentIndex, setCurrentIndex] = useState<number>(() => {
+    if (typeof initialIndex === 'number' && initialIndex >= 0) {
+      return initialIndex;
+    }
+    return 0;
+  });
+
+  React.useEffect(() => {
+    if (typeof initialIndex === 'number' && initialIndex >= 0) {
+      setCurrentIndex(initialIndex);
+    }
+  }, [initialIndex]);
+
+  // Safe Index
+  const safeIndex = items.length > 0 ? Math.min(Math.max(0, currentIndex), items.length - 1) : 0;
+  const activeAttachment = items[safeIndex] || attachment || { name: 'document', url: '' };
 
   // Image load error state
   const [imageError, setImageError] = useState(false);
 
   // Extract file extension and category
-  const fileName = attachment.name || 'document';
-  const rawType = (attachment.type || '').toLowerCase();
+  const fileName = activeAttachment.name || 'document';
+  const rawType = (activeAttachment.type || '').toLowerCase();
   let ext = fileName.split('.').pop()?.toLowerCase() || 'file';
 
   if (rawType.includes('pdf')) ext = 'pdf';
@@ -328,15 +372,25 @@ export const AttachmentViewerModal: React.FC<AttachmentViewerModalProps> = ({
   const [rotation, setRotation] = useState(0);
   const [activeCadLayer, setActiveCadLayer] = useState<'all' | 'structural' | 'pipes' | 'electrical'>('all');
 
+  // Effective URL checking
+  const effectiveUrl = activeAttachment.url || activeAttachment.fileUrl;
+
+  React.useEffect(() => {
+    setImageError(false);
+    setZoomLevel(100);
+    setRotation(0);
+    setCurrentPage(1);
+  }, [safeIndex, effectiveUrl]);
+
   // Format file size string
-  const displaySize = attachment.size
-    ? attachment.size
-    : attachment.sizeMB
-    ? `${toArabicDigits(attachment.sizeMB)} MB`
+  const displaySize = activeAttachment.size
+    ? activeAttachment.size
+    : activeAttachment.sizeMB
+    ? `${toArabicDigits(activeAttachment.sizeMB)} MB`
     : '1.5 MB';
 
-  const categoryLabel = attachment.category || 'مستند رسمي معتمد';
-  const uploadDateLabel = attachment.uploadDate || '2026-08-13';
+  const categoryLabel = activeAttachment.category || 'مستند رسمي معتمد';
+  const uploadDateLabel = activeAttachment.uploadDate || '2026-08-13';
 
   // Icon & Type Name
   let programName = 'مستعرض المستندات الرقمي المعتمد';
@@ -349,7 +403,7 @@ export const AttachmentViewerModal: React.FC<AttachmentViewerModalProps> = ({
     programName = 'مستندات PDF الرسمية والموثقة';
     programIcon = <FileText className="w-5 h-5 text-rose-500" />;
   } else if (isImage) {
-    programName = 'معاين الصور والخراط والمخططات الميدانية';
+    programName = 'معاين الصور والخرائط والمخططات الميدانية';
     programIcon = <ImageIcon className="w-5 h-5 text-emerald-500" />;
   } else if (isVideo) {
     programName = 'مشغل مقاطع الفيديو والمشاهد الميدانية';
@@ -364,31 +418,47 @@ export const AttachmentViewerModal: React.FC<AttachmentViewerModalProps> = ({
 
   const handleDownload = () => {
     downloadAttachment({
-      id: attachment.id || 'DOC-001',
-      name: attachment.name,
+      id: activeAttachment.id || 'DOC-001',
+      name: activeAttachment.name,
       type: ext,
       category: categoryLabel,
       uploadDate: uploadDateLabel,
-      notes: attachment.notes,
+      notes: activeAttachment.notes,
       url: effectiveUrl,
       fileUrl: effectiveUrl,
-      sizeMB: attachment.sizeMB || 1.5,
+      sizeMB: activeAttachment.sizeMB || 1.5,
     });
   };
 
+  const hasMultiple = items.length > 1;
+
+  const handlePrevItem = () => {
+    setCurrentIndex((prev) => (prev > 0 ? prev - 1 : items.length - 1));
+  };
+
+  const handleNextItem = () => {
+    setCurrentIndex((prev) => (prev < items.length - 1 ? prev + 1 : 0));
+  };
+
+  if (items.length === 0 && !attachment) {
+    return null;
+  }
+
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 animate-fadeIn dir-rtl">
+    <div className={`fixed inset-0 z-50 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 animate-fadeIn dir-rtl ${
+      isLight ? 'bg-slate-900/60' : 'bg-slate-950/80'
+    }`}>
       <div
         className={`border rounded-3xl max-w-5xl w-full flex flex-col max-h-[94vh] shadow-2xl overflow-hidden transition-all ${
           isLight
-            ? 'bg-white border-slate-200 text-slate-900'
-            : 'bg-slate-900 border-slate-800 text-white'
+            ? 'bg-white border-slate-200 text-slate-900 shadow-2xl ring-1 ring-slate-900/5'
+            : 'bg-slate-900 border-slate-800 text-white shadow-2xl'
         }`}
       >
         {/* ==================== HEADER ==================== */}
         <div
           className={`p-4 sm:p-5 border-b flex flex-wrap items-center justify-between gap-3 shrink-0 ${
-            isLight ? 'bg-slate-50/80 border-slate-200' : 'bg-slate-950/60 border-slate-800'
+            isLight ? 'bg-slate-50/90 border-slate-200' : 'bg-slate-950/60 border-slate-800'
           }`}
         >
           <div className="flex items-center gap-3 min-w-0">
@@ -403,14 +473,27 @@ export const AttachmentViewerModal: React.FC<AttachmentViewerModalProps> = ({
             <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
                 <h3 className={`font-black text-sm sm:text-base truncate max-w-md ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
-                  {attachment.name}
+                  {activeAttachment.name}
                 </h3>
-                <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${
+                  isLight
+                    ? 'bg-amber-500/10 text-amber-800 border-amber-300'
+                    : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                }`}>
                   {categoryLabel}
                 </span>
-                <span className={`text-[10px] font-mono uppercase px-2 py-0.5 rounded ${isLight ? 'bg-slate-200 text-slate-700' : 'bg-slate-800 text-slate-300'}`}>
+                <span className={`text-[10px] font-mono uppercase px-2 py-0.5 rounded border ${
+                  isLight ? 'bg-slate-100 text-slate-700 border-slate-300' : 'bg-slate-800 text-slate-300 border-slate-700'
+                }`}>
                   {ext}
                 </span>
+                {hasMultiple && (
+                  <span className={`text-[10px] font-mono font-black px-2 py-0.5 rounded shadow-xs ${
+                    isLight ? 'bg-amber-500 text-slate-950' : 'bg-amber-500 text-slate-950'
+                  }`}>
+                    مرفق {toArabicDigits(safeIndex + 1)} من {toArabicDigits(items.length)}
+                  </span>
+                )}
               </div>
               <p className={`text-[11px] mt-0.5 font-mono ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
                 {displaySize} • تاريخ الإرفاق: {toArabicDigits(uploadDateLabel)} • {programName}
@@ -418,8 +501,48 @@ export const AttachmentViewerModal: React.FC<AttachmentViewerModalProps> = ({
             </div>
           </div>
 
-          {/* Explicit Header Action Buttons: Download & Exit/Close */}
+          {/* Navigation & Action Buttons */}
           <div className="flex flex-wrap items-center gap-2 shrink-0 w-full sm:w-auto justify-end">
+            {hasMultiple && (
+              <div className={`flex items-center gap-1 p-1 rounded-xl border ${
+                isLight
+                  ? 'bg-amber-50/90 border-amber-200 text-slate-800'
+                  : 'bg-slate-800/80 border-slate-700 text-slate-200'
+              }`}>
+                <button
+                  type="button"
+                  onClick={handlePrevItem}
+                  className={`px-2.5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition cursor-pointer ${
+                    isLight
+                      ? 'text-slate-800 hover:bg-amber-200/60 active:bg-amber-200'
+                      : 'text-slate-200 hover:bg-slate-700'
+                  }`}
+                  title="المرفق السابق"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                  <span>السابق</span>
+                </button>
+                <span className={`text-[11px] font-mono px-1 font-black ${
+                  isLight ? 'text-amber-800' : 'text-amber-400'
+                }`}>
+                  {toArabicDigits(safeIndex + 1)} / {toArabicDigits(items.length)}
+                </span>
+                <button
+                  type="button"
+                  onClick={handleNextItem}
+                  className={`px-2.5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition cursor-pointer ${
+                    isLight
+                      ? 'text-slate-800 hover:bg-amber-200/60 active:bg-amber-200'
+                      : 'text-slate-200 hover:bg-slate-700'
+                  }`}
+                  title="المرفق التالي"
+                >
+                  <span>التالي</span>
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+
             <button
               type="button"
               onClick={handleDownload}
@@ -446,28 +569,84 @@ export const AttachmentViewerModal: React.FC<AttachmentViewerModalProps> = ({
           </div>
         </div>
 
+        {/* Multi-attachment Gallery / Thumbnails Bar */}
+        {hasMultiple && (
+          <div className={`px-4 py-2.5 border-b flex items-center gap-2 overflow-x-auto shrink-0 ${
+            isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-950/80 border-slate-800'
+          }`}>
+            <span className={`text-[11px] font-bold shrink-0 ml-1 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+              المرفقات ({toArabicDigits(items.length)}):
+            </span>
+            {items.map((item, idx) => {
+              const isSelected = idx === safeIndex;
+              const itemUrl = item.url || item.fileUrl;
+              const itemExt = item.name.split('.').pop()?.toLowerCase() || '';
+              const isItemImg = ['png', 'jpg', 'jpeg', 'webp', 'gif', 'svg'].includes(itemExt) || (item.type || '').includes('image') || (item.type || '').includes('صورة');
+
+              return (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => setCurrentIndex(idx)}
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-bold transition cursor-pointer shrink-0 ${
+                    isSelected
+                      ? isLight
+                        ? 'bg-amber-500 text-slate-950 border-amber-500 shadow-sm ring-2 ring-amber-400/40 font-black'
+                        : 'bg-amber-500 text-slate-950 border-amber-400 shadow-sm ring-2 ring-amber-400/50 font-black'
+                      : isLight
+                      ? 'bg-white hover:bg-slate-100 border-slate-200 text-slate-700'
+                      : 'bg-slate-900 hover:bg-slate-800 border-slate-800 text-slate-300'
+                  }`}
+                >
+                  {isItemImg && itemUrl ? (
+                    <img
+                      src={itemUrl}
+                      alt={item.name}
+                      className="w-5 h-5 rounded object-cover border border-slate-300 dark:border-slate-700"
+                    />
+                  ) : (
+                    <Paperclip className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                  )}
+                  <span className="truncate max-w-[120px]">{item.name}</span>
+                  <span className={`text-[9px] px-1 py-0.2 rounded font-mono ${
+                    isSelected
+                      ? 'bg-slate-950/20 text-slate-950 font-black'
+                      : isLight
+                      ? 'bg-slate-100 text-slate-500'
+                      : 'bg-slate-800 text-slate-400'
+                  }`}>
+                    #{toArabicDigits(idx + 1)}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        )}
+
         {/* ==================== TOOLBAR ==================== */}
         <div
           className={`px-4 py-2 border-b flex items-center justify-between text-xs overflow-x-auto gap-3 shrink-0 ${
-            isLight ? 'bg-slate-100/90 border-slate-200 text-slate-700' : 'bg-slate-950 border-slate-800 text-slate-300'
+            isLight ? 'bg-slate-100/90 border-slate-200 text-slate-800' : 'bg-slate-950 border-slate-800 text-slate-300'
           }`}
         >
           <div className="flex items-center gap-2">
-            <span className="text-[11px] font-bold text-slate-500">أدوات العرض:</span>
+            <span className={`text-[11px] font-bold ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>أدوات العرض:</span>
             <button
               onClick={() => setZoomLevel((prev) => Math.min(prev + 25, 200))}
               className={`p-1.5 rounded-lg border cursor-pointer ${
-                isLight ? 'bg-white hover:bg-slate-200 border-slate-300 text-slate-800' : 'bg-slate-900 hover:bg-slate-800 border-slate-800 text-slate-200'
+                isLight ? 'bg-white hover:bg-slate-200 border-slate-300 text-slate-800 shadow-xs active:bg-slate-100' : 'bg-slate-900 hover:bg-slate-800 border-slate-800 text-slate-200'
               }`}
               title="تكبير"
             >
               <ZoomIn className="w-3.5 h-3.5" />
             </button>
-            <span className="font-mono text-[11px] w-12 text-center text-amber-500 font-bold">{toArabicDigits(zoomLevel)}%</span>
+            <span className={`font-mono text-[11px] w-12 text-center font-bold ${isLight ? 'text-amber-700 font-black' : 'text-amber-400'}`}>
+              {toArabicDigits(zoomLevel)}%
+            </span>
             <button
               onClick={() => setZoomLevel((prev) => Math.max(prev - 25, 50))}
               className={`p-1.5 rounded-lg border cursor-pointer ${
-                isLight ? 'bg-white hover:bg-slate-200 border-slate-300 text-slate-800' : 'bg-slate-900 hover:bg-slate-800 border-slate-800 text-slate-200'
+                isLight ? 'bg-white hover:bg-slate-200 border-slate-300 text-slate-800 shadow-xs active:bg-slate-100' : 'bg-slate-900 hover:bg-slate-800 border-slate-800 text-slate-200'
               }`}
               title="تصغير"
             >
@@ -479,7 +658,7 @@ export const AttachmentViewerModal: React.FC<AttachmentViewerModalProps> = ({
                 setRotation(0);
               }}
               className={`p-1.5 rounded-lg border cursor-pointer ${
-                isLight ? 'bg-white hover:bg-slate-200 border-slate-300 text-slate-800' : 'bg-slate-900 hover:bg-slate-800 border-slate-800 text-slate-200'
+                isLight ? 'bg-white hover:bg-slate-200 border-slate-300 text-slate-800 shadow-xs active:bg-slate-100' : 'bg-slate-900 hover:bg-slate-800 border-slate-800 text-slate-200'
               }`}
               title="إعادة ضبط الحجم والتدوير"
             >
@@ -488,7 +667,7 @@ export const AttachmentViewerModal: React.FC<AttachmentViewerModalProps> = ({
             <button
               onClick={() => setRotation((prev) => (prev + 90) % 360)}
               className={`p-1.5 rounded-lg border cursor-pointer ${
-                isLight ? 'bg-white hover:bg-slate-200 border-slate-300 text-slate-800' : 'bg-slate-900 hover:bg-slate-800 border-slate-800 text-slate-200'
+                isLight ? 'bg-white hover:bg-slate-200 border-slate-300 text-slate-800 shadow-xs active:bg-slate-100' : 'bg-slate-900 hover:bg-slate-800 border-slate-800 text-slate-200'
               }`}
               title="تدوير 90 درجة"
             >
@@ -503,19 +682,19 @@ export const AttachmentViewerModal: React.FC<AttachmentViewerModalProps> = ({
                 disabled={currentPage <= 1}
                 onClick={() => setCurrentPage((p) => p - 1)}
                 className={`p-1 rounded cursor-pointer disabled:opacity-30 ${
-                  isLight ? 'bg-white hover:bg-slate-200 border border-slate-300' : 'bg-slate-900 hover:bg-slate-800'
+                  isLight ? 'bg-white hover:bg-slate-200 border border-slate-300 text-slate-800' : 'bg-slate-900 hover:bg-slate-800'
                 }`}
               >
                 <ChevronRight className="w-4 h-4" />
               </button>
-              <span className="font-bold text-[11px]">
+              <span className={`font-bold text-[11px] ${isLight ? 'text-slate-800' : 'text-slate-200'}`}>
                 صفحة <strong className="text-amber-500">{toArabicDigits(currentPage)}</strong> من {toArabicDigits(totalPages)}
               </span>
               <button
                 disabled={currentPage >= totalPages}
                 onClick={() => setCurrentPage((p) => p + 1)}
                 className={`p-1 rounded cursor-pointer disabled:opacity-30 ${
-                  isLight ? 'bg-white hover:bg-slate-200 border border-slate-300' : 'bg-slate-900 hover:bg-slate-800'
+                  isLight ? 'bg-white hover:bg-slate-200 border border-slate-300 text-slate-800' : 'bg-slate-900 hover:bg-slate-800'
                 }`}
               >
                 <ChevronLeft className="w-4 h-4" />
@@ -550,7 +729,11 @@ export const AttachmentViewerModal: React.FC<AttachmentViewerModalProps> = ({
           )}
 
           <div className="flex items-center gap-2">
-            <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+            <span className={`text-[10px] font-bold flex items-center gap-1 px-2 py-0.5 rounded border ${
+              isLight
+                ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+            }`}>
               <ShieldCheck className="w-3.5 h-3.5" />
               <span>موثق رسمياً - وزارة النفط</span>
             </span>
@@ -559,8 +742,8 @@ export const AttachmentViewerModal: React.FC<AttachmentViewerModalProps> = ({
 
         {/* ==================== MAIN CANVAS & CONTENT VIEW ==================== */}
         <div
-          className={`flex-1 overflow-auto p-4 sm:p-6 relative flex items-center justify-center min-h-[420px] ${
-            isLight ? 'bg-slate-100/70' : 'bg-slate-950'
+          className={`flex-1 overflow-auto p-4 sm:p-6 relative flex flex-col items-center justify-center min-h-[420px] ${
+            isLight ? 'bg-slate-100/90' : 'bg-slate-950'
           }`}
         >
           {/* IMAGE VIEW */}
@@ -572,13 +755,17 @@ export const AttachmentViewerModal: React.FC<AttachmentViewerModalProps> = ({
                     transform: `scale(${zoomLevel / 100}) rotate(${rotation}deg)`,
                     transition: 'transform 0.2s ease',
                   }}
-                  className="max-w-full max-h-[62vh] flex items-center justify-center overflow-hidden rounded-2xl shadow-xl p-2"
+                  className={`max-w-full max-h-[62vh] flex items-center justify-center overflow-hidden rounded-2xl p-2 shadow-xl ${
+                    isLight ? 'bg-white border border-slate-200' : 'bg-slate-900/70 border border-slate-800'
+                  }`}
                 >
                   <img
                     src={effectiveUrl}
-                    alt={attachment.name}
+                    alt={activeAttachment.name}
                     onError={() => setImageError(true)}
-                    className="max-h-[58vh] max-w-full object-contain rounded-xl border border-slate-300 dark:border-slate-800 shadow-xl"
+                    className={`max-h-[58vh] max-w-full object-contain rounded-xl shadow-lg border ${
+                      isLight ? 'border-slate-200' : 'border-slate-800'
+                    }`}
                   />
                 </div>
               ) : (
@@ -588,7 +775,7 @@ export const AttachmentViewerModal: React.FC<AttachmentViewerModalProps> = ({
                     transition: 'transform 0.2s ease',
                   }}
                   className={`w-full max-w-2xl border rounded-2xl p-6 sm:p-8 space-y-4 shadow-2xl relative overflow-hidden text-right ${
-                    isLight ? 'bg-white border-slate-200' : 'bg-slate-900 border-slate-800'
+                    isLight ? 'bg-white border-slate-200 text-slate-900' : 'bg-slate-900 border-slate-800 text-white'
                   }`}
                 >
                   {/* Camera Viewfinder Header Overlay */}
@@ -601,9 +788,7 @@ export const AttachmentViewerModal: React.FC<AttachmentViewerModalProps> = ({
                   </div>
 
                   {/* Photographed Asset Graphic Canvas */}
-                  <div className={`h-64 border-2 border-emerald-500/30 rounded-xl relative overflow-hidden flex flex-col items-center justify-center p-4 ${
-                    isLight ? 'bg-slate-950 text-white' : 'bg-slate-950 text-white'
-                  }`}>
+                  <div className="h-64 border-2 border-emerald-500/30 rounded-xl relative overflow-hidden flex flex-col items-center justify-center p-4 bg-slate-950 text-white">
                     {/* Viewfinder crosshairs */}
                     <Crosshair className="absolute top-4 right-4 w-5 h-5 text-emerald-500/40" />
                     <Crosshair className="absolute top-4 left-4 w-5 h-5 text-emerald-500/40" />
@@ -618,7 +803,7 @@ export const AttachmentViewerModal: React.FC<AttachmentViewerModalProps> = ({
                           <span>{unitCode || 'UNIT-001'}</span>
                         </div>
                         <ImageIcon className="w-10 h-10 text-amber-400 my-auto" />
-                        <span className="text-[10px] font-black text-slate-100 truncate w-full">{attachment.name}</span>
+                        <span className="text-[10px] font-black text-slate-100 truncate w-full">{activeAttachment.name}</span>
                       </div>
                       <p className="text-[11px] text-emerald-400 font-mono font-bold">
                         صورة فوتوغرافية وثائقية معتمدة ملتقطة موقعياً للمنشأة النفطية
@@ -629,9 +814,9 @@ export const AttachmentViewerModal: React.FC<AttachmentViewerModalProps> = ({
                   <div className={`p-3 rounded-xl border text-xs ${
                     isLight ? 'bg-slate-50 border-slate-200 text-slate-700' : 'bg-slate-950 border-slate-800 text-slate-300'
                   }`}>
-                    <p className="font-bold text-amber-500 mb-1">{attachment.name}</p>
+                    <p className="font-bold text-amber-500 mb-1">{activeAttachment.name}</p>
                     <p className="text-[11px]">
-                      {attachment.notes || 'صورة توثيقية موقعية بدقة عالية محفوظة ضمن السجل الأرشيفي الهندسي للمبنى.'}
+                      {activeAttachment.notes || 'صورة توثيقية موقعية بدقة عالية محفوظة ضمن السجل الأرشيفي الهندسي للمبنى.'}
                     </p>
                   </div>
                 </div>
@@ -646,17 +831,19 @@ export const AttachmentViewerModal: React.FC<AttachmentViewerModalProps> = ({
                 <video
                   src={effectiveUrl}
                   controls
-                  className="w-full max-h-[60vh] rounded-2xl shadow-xl border border-slate-300 dark:border-slate-800"
+                  className={`w-full max-h-[60vh] rounded-2xl shadow-xl border ${
+                    isLight ? 'border-slate-300 bg-black' : 'border-slate-800 bg-black'
+                  }`}
                 />
               ) : (
                 <div
                   className={`w-full p-8 border rounded-2xl text-center space-y-4 ${
-                    isLight ? 'bg-white border-slate-200' : 'bg-slate-900 border-slate-800'
+                    isLight ? 'bg-white border-slate-200 text-slate-900' : 'bg-slate-900 border-slate-800 text-white'
                   }`}
                 >
                   <Film className="w-16 h-16 text-purple-500 mx-auto" />
-                  <h4 className="font-bold text-sm">{attachment.name}</h4>
-                  <p className="text-xs text-slate-500">مقطع فيديو توثيقي موقعي</p>
+                  <h4 className="font-bold text-sm">{activeAttachment.name}</h4>
+                  <p className={`text-xs ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>مقطع فيديو توثيقي موقعي</p>
                 </div>
               )}
             </div>
@@ -670,7 +857,7 @@ export const AttachmentViewerModal: React.FC<AttachmentViewerModalProps> = ({
               rotation={rotation}
               currentPage={currentPage}
               onTotalPagesChange={(num) => setTotalPages(num)}
-              attachment={attachment}
+              attachment={activeAttachment}
               unitCode={unitCode}
               isLight={isLight}
               uploadDateLabel={uploadDateLabel}
@@ -686,7 +873,7 @@ export const AttachmentViewerModal: React.FC<AttachmentViewerModalProps> = ({
                 transition: 'transform 0.2s ease',
               }}
               className={`w-full max-w-2xl border rounded-2xl p-6 shadow-2xl relative overflow-hidden text-right ${
-                isLight ? 'bg-white border-slate-200' : 'bg-slate-900 border-slate-800'
+                isLight ? 'bg-white border-slate-200 text-slate-900' : 'bg-slate-900 border-slate-800 text-white'
               }`}
             >
               <div className="space-y-4 relative z-10">
@@ -698,9 +885,7 @@ export const AttachmentViewerModal: React.FC<AttachmentViewerModalProps> = ({
                   <span className="font-mono text-[10px] text-slate-500">X: 324.15 | Y: 188.90 | Z: 0.00</span>
                 </div>
 
-                <div className={`h-60 border-2 border-sky-500/30 rounded-xl relative overflow-hidden flex items-center justify-center p-4 ${
-                  isLight ? 'bg-slate-950 text-white' : 'bg-slate-950'
-                }`}>
+                <div className="h-60 border-2 border-sky-500/30 rounded-xl relative overflow-hidden flex items-center justify-center p-4 bg-slate-950 text-white">
                   {/* Grid Lines */}
                   <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:16px_16px]" />
 
@@ -720,7 +905,7 @@ export const AttachmentViewerModal: React.FC<AttachmentViewerModalProps> = ({
                       <circle cx="120" cy="100" r="18" fill="none" stroke="#eab308" strokeWidth="2" />
                     )}
                     <text x="200" y="105" fill="#f8fafc" fontSize="12" fontWeight="bold" textAnchor="middle">
-                      {attachment.name}
+                      {activeAttachment.name}
                     </text>
                   </svg>
                 </div>
@@ -728,7 +913,7 @@ export const AttachmentViewerModal: React.FC<AttachmentViewerModalProps> = ({
                 <p className={`text-xs p-3 rounded-xl border ${
                   isLight ? 'bg-slate-50 border-slate-200 text-slate-700' : 'bg-slate-950 border-slate-800 text-slate-300'
                 }`}>
-                  {attachment.notes || 'مخطط هيدروليكي إنشائي مصمم بواسطة برنامج AutoCAD.'}
+                  {activeAttachment.notes || 'مخطط هيدروليكي إنشائي مصمم بواسطة برنامج AutoCAD.'}
                 </p>
               </div>
             </div>
@@ -748,9 +933,9 @@ export const AttachmentViewerModal: React.FC<AttachmentViewerModalProps> = ({
               <div className={`p-4 rounded-xl border space-y-2 text-xs ${
                 isLight ? 'bg-slate-50 border-slate-200 text-slate-700' : 'bg-slate-950 border-slate-800 text-slate-300'
               }`}>
-                <h3 className="font-bold text-amber-500 text-sm">{attachment.name}</h3>
+                <h3 className={`font-bold text-sm ${isLight ? 'text-amber-800' : 'text-amber-500'}`}>{activeAttachment.name}</h3>
                 <p className="leading-relaxed">
-                  {attachment.notes || 'مستند رسمي معتمد يتضمن كافة البنود التعاقدية ومواصفات الاستلام الفني والتشغيلي للوحدة.'}
+                  {activeAttachment.notes || 'مستند رسمي معتمد يتضمن كافة البنود التعاقدية ومواصفات الاستلام الفني والتشغيلي للوحدة.'}
                 </p>
               </div>
             </div>
@@ -776,7 +961,7 @@ export const AttachmentViewerModal: React.FC<AttachmentViewerModalProps> = ({
                   <div
                     key={i}
                     className={`flex items-center justify-between p-3 border rounded-xl ${
-                      isLight ? 'bg-slate-50 border-slate-200 text-slate-800' : 'bg-slate-950 border-slate-800 text-slate-200'
+                      isLight ? 'bg-slate-50 border-slate-200 text-slate-800 hover:bg-slate-100' : 'bg-slate-950 border-slate-800 text-slate-200 hover:bg-slate-900'
                     }`}
                   >
                     <div className="flex items-center gap-2">
@@ -794,11 +979,11 @@ export const AttachmentViewerModal: React.FC<AttachmentViewerModalProps> = ({
         {/* ==================== FOOTER ==================== */}
         <div
           className={`p-4 border-t flex flex-wrap items-center justify-between gap-3 text-xs shrink-0 ${
-            isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-950/80 border-slate-800'
+            isLight ? 'bg-slate-50/90 border-slate-200 text-slate-800' : 'bg-slate-950/80 border-slate-800 text-slate-200'
           }`}
         >
           <div className="text-slate-500 text-[11px] flex items-center gap-2">
-            <span>الرمز الأرشيفي للوحدة: <strong className="text-amber-500 font-mono">{unitCode || 'UNIT-001'}</strong></span>
+            <span>الرمز الأرشيفي للوحدة: <strong className={`font-mono font-bold ${isLight ? 'text-amber-700' : 'text-amber-400'}`}>{unitCode || 'UNIT-001'}</strong></span>
           </div>
 
           <div className="flex items-center gap-2">

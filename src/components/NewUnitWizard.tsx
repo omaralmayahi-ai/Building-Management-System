@@ -544,6 +544,12 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
         return;
       }
 
+      if (file.size > 5 * 1024 * 1024) {
+        alert('حجم الملف كبير جداً (الحد الأقصى 5 ميجابايت)، الرجاء ضغط الصورة أو اختيار ملف أصغر.');
+        e.target.value = '';
+        return;
+      }
+
       const fileTypeLabel = isImage ? 'صورة' : isPdf ? 'وثيقة PDF' : 'مقطع فيديو';
 
       // Accurate human readable file size calculation

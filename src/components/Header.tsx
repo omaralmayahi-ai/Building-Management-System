@@ -185,10 +185,10 @@ export const Header: React.FC<HeaderProps> = ({
   return (
     <>
       <header
-        className={`sticky top-0 z-30 border-b px-4 py-2.5 shadow-md transition-colors duration-300 ${
+        className={`sticky top-0 z-30 border-b px-4 py-2.5 shadow-md backdrop-blur-md transition-colors duration-300 ${
           isLight
-            ? 'bg-white border-slate-200 text-slate-900 shadow-slate-200/50'
-            : 'bg-slate-900 border-slate-800 text-white'
+            ? 'bg-white/95 border-slate-200 text-slate-900 shadow-slate-200/50'
+            : 'bg-slate-900/95 border-slate-800 text-white shadow-slate-950/50'
         }`}
       >
         <div className="w-full px-2 sm:px-4 flex items-center justify-between gap-4">

@@ -806,12 +806,12 @@ export const INITIAL_BRANDING: SystemBranding = {
 export const INITIAL_USERS: SystemUser[] = [
   {
     id: 'USR-101',
-    name: 'م. أحمد كريم الحلي (مدير النظام)',
+    name: 'عمر المياحي',
     username: 'admin',
     password: 'admin123',
     role: 'مدير النظام',
-    email: 'ahmed.kareem@mdoc.gov.iq',
-    phone: '07701234567',
+    email: 'admin@mdoc.gov.iq',
+    phone: '07701784629',
     governorate: 'واسط',
     field: 'الأحدب',
     status: 'active',

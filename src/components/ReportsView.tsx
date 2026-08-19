@@ -42,6 +42,7 @@ import {
   OrgEntity,
   SystemBranding,
   SystemUser,
+  ReportAttachment,
 } from '../types';
 import { AttachmentViewerModal } from './AttachmentViewerModal';
 import {
@@ -1250,7 +1251,15 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
             <td style="font-weight: 600; color: #0f172a;">${getCleanReporterName(m.reportedBy)}</td>
             <td style="font-family: monospace;">${formatDateOnly(m.createdAt)}</td>
             <td style="font-family: monospace;">${getCompletionOrCancellationDate(m.completedAt, m.status)}</td>
-            <td style="text-align: center; font-size: 8pt;">${m.attachmentName ? `📷 ${m.attachmentName}` : (m.attachmentUrl ? '📷 صورة مرفقة' : '-')}</td>
+            <td style="text-align: center; font-size: 8pt;">${
+              m.attachments && m.attachments.length > 1
+                ? `📷 ${toArabicDigits(m.attachments.length)} مرفقات`
+                : m.attachmentName
+                ? `📷 ${m.attachmentName}`
+                : m.attachmentUrl
+                ? '📷 صورة مرفقة'
+                : '-'
+            }</td>
             <td style="text-align: center; font-weight: bold; color: #78350f;">${translateMaintenanceStatus(m.status)}</td>
           </tr>
         `;
@@ -1979,29 +1988,80 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                     {getCompletionOrCancellationDate(m.completedAt, m.status)}
                   </td>
                   <td className="border border-slate-400 p-1.5 text-center whitespace-nowrap">
-                    {m.attachmentUrl || m.attachmentName ? (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const ext = m.attachmentName?.split('.').pop() || 'jpg';
-                          setPreviewAttachment({
-                            id: 'rep-maint-' + m.id,
-                            name: m.attachmentName || 'صورة_البلاغ.jpg',
-                            type: ext,
-                            url: m.attachmentUrl || '#',
-                            uploadedAt: formatDateOnly(m.createdAt),
-                            size: '1.2 MB',
-                          });
-                        }}
-                        className="text-amber-800 hover:text-amber-950 font-bold underline cursor-pointer text-[9px] inline-flex items-center gap-1"
-                        title="معاينة الصورة المرفقة"
-                      >
-                        <Eye className="w-3 h-3" />
-                        <span>معاينة الصورة</span>
-                      </button>
-                    ) : (
-                      <span className="text-slate-400">-</span>
-                    )}
+                    {(() => {
+                      const reqAttachments: ReportAttachment[] =
+                        m.attachments && m.attachments.length > 0
+                          ? m.attachments
+                          : m.attachmentUrl || m.attachmentName
+                          ? [
+                              {
+                                id: `rep-maint-${m.id}`,
+                                name: m.attachmentName || 'صورة_البلاغ.jpg',
+                                url: m.attachmentUrl || '#',
+                                type: 'image/jpeg',
+                              },
+                            ]
+                          : [];
+
+                      if (reqAttachments.length === 0) {
+                        return <span className="text-slate-400">-</span>;
+                      }
+
+                      if (reqAttachments.length === 1) {
+                        const single = reqAttachments[0];
+                        return (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setPreviewAttachment({
+                                attachments: [
+                                  {
+                                    id: single.id || `rep-maint-${m.id}`,
+                                    name: single.name || m.attachmentName || 'صورة_البلاغ.jpg',
+                                    type: single.type || 'image/jpeg',
+                                    url: single.url || m.attachmentUrl || '#',
+                                    uploadDate: formatDateOnly(m.createdAt),
+                                    category: 'صورة بلاغ صيانة',
+                                  },
+                                ],
+                                initialIndex: 0,
+                                unitCode: m.unitCode,
+                              });
+                            }}
+                            className="text-amber-800 hover:text-amber-950 font-bold underline cursor-pointer text-[9px] inline-flex items-center gap-1"
+                            title="معاينة الصورة المرفقة"
+                          >
+                            <Eye className="w-3 h-3" />
+                            <span>معاينة الصورة</span>
+                          </button>
+                        );
+                      }
+
+                      return (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setPreviewAttachment({
+                              attachments: reqAttachments.map((a, i) => ({
+                                id: a.id || `rep-maint-${m.id}-${i}`,
+                                name: a.name || `صورة_${i + 1}.jpg`,
+                                type: a.type || 'image/jpeg',
+                                url: a.url || '#',
+                                uploadDate: formatDateOnly(m.createdAt),
+                                category: `صورة بلاغ صيانة (${toArabicDigits(i + 1)} من ${toArabicDigits(reqAttachments.length)})`,
+                              })),
+                              initialIndex: 0,
+                              unitCode: m.unitCode,
+                            });
+                          }}
+                          className="text-amber-800 hover:text-amber-950 font-bold underline cursor-pointer text-[9px] inline-flex items-center gap-1 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-300"
+                          title="عرض جميع الصور المحملة مع الطلب"
+                        >
+                          <Layers className="w-3 h-3" />
+                          <span>عرض ({toArabicDigits(reqAttachments.length)} صور)</span>
+                        </button>
+                      );
+                    })()}
                   </td>
                   <td className="border border-slate-400 p-1.5 text-center font-bold text-amber-900">
                     {translateMaintenanceStatus(m.status)}
@@ -2956,33 +3016,125 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                       <td className="p-2.5 font-mono whitespace-nowrap">{getCompletionOrCancellationDate(req.completedAt, req.status)}</td>
                       <td className="p-2.5 font-bold text-amber-400 whitespace-nowrap">{calculateMaintenanceDurationDays(req.createdAt, req.completedAt, req.status)}</td>
                       <td className="p-2.5 text-center whitespace-nowrap">
-                        {req.attachmentUrl || req.attachmentName ? (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const ext = req.attachmentName?.split('.').pop() || 'jpg';
-                              setPreviewAttachment({
-                                id: 'rep-live-maint-' + req.id,
-                                name: req.attachmentName || 'صورة_البلاغ.jpg',
-                                type: ext,
-                                url: req.attachmentUrl || '#',
-                                uploadedAt: formatDateOnly(req.createdAt),
-                                size: '1.2 MB',
-                              });
-                            }}
-                            className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold transition cursor-pointer border shadow-sm ${
-                              isLight
-                                ? 'bg-amber-50 text-amber-800 border-amber-300 hover:bg-amber-100'
-                                : 'bg-amber-500/20 text-amber-300 border-amber-500/40 hover:bg-amber-500/30'
-                            }`}
-                            title="معاينة الصورة المرفقة بطلب الصيانة"
-                          >
-                            <Eye className="w-3.5 h-3.5" />
-                            <span className="truncate max-w-[70px]">{req.attachmentName || 'معاينة'}</span>
-                          </button>
-                        ) : (
-                          <span className="text-slate-500 text-[10px]">لا يوجد</span>
-                        )}
+                        {(() => {
+                          const reqAttachments: ReportAttachment[] =
+                            req.attachments && req.attachments.length > 0
+                              ? req.attachments
+                              : req.attachmentUrl || req.attachmentName
+                              ? [
+                                  {
+                                    id: `rep-live-maint-${req.id}`,
+                                    name: req.attachmentName || 'صورة_البلاغ.jpg',
+                                    url: req.attachmentUrl,
+                                    type: 'image/jpeg',
+                                  },
+                                ]
+                              : [];
+
+                          if (reqAttachments.length === 0) {
+                            return <span className="text-slate-500 text-[10px]">لا يوجد</span>;
+                          }
+
+                          if (reqAttachments.length === 1) {
+                            const single = reqAttachments[0];
+                            return (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setPreviewAttachment({
+                                    attachments: [
+                                      {
+                                        id: single.id || `rep-live-maint-${req.id}`,
+                                        name: single.name || req.attachmentName || 'صورة_البلاغ.jpg',
+                                        type: single.type || 'image/jpeg',
+                                        url: single.url || req.attachmentUrl || '#',
+                                        uploadDate: formatDateOnly(req.createdAt),
+                                        category: 'صورة بلاغ صيانة',
+                                      },
+                                    ],
+                                    initialIndex: 0,
+                                    unitCode: req.unitCode,
+                                  });
+                                }}
+                                className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold transition cursor-pointer border shadow-sm ${
+                                  isLight
+                                    ? 'bg-amber-50 text-amber-800 border-amber-300 hover:bg-amber-100'
+                                    : 'bg-amber-500/20 text-amber-300 border-amber-500/40 hover:bg-amber-500/30'
+                                }`}
+                                title="معاينة الصورة المرفقة بطلب الصيانة"
+                              >
+                                <Eye className="w-3.5 h-3.5" />
+                                <span className="truncate max-w-[70px]">{single.name || 'معاينة'}</span>
+                              </button>
+                            );
+                          }
+
+                          return (
+                            <div className="flex flex-col items-center gap-1">
+                              <div className="flex items-center justify-center gap-1">
+                                {reqAttachments.slice(0, 3).map((att, idx) => (
+                                  <button
+                                    key={att.id || idx}
+                                    type="button"
+                                    onClick={() => {
+                                      setPreviewAttachment({
+                                        attachments: reqAttachments.map((a, i) => ({
+                                          id: a.id || `rep-live-maint-${req.id}-${i}`,
+                                          name: a.name || `صورة_${i + 1}.jpg`,
+                                          type: a.type || 'image/jpeg',
+                                          url: a.url || '#',
+                                          uploadDate: formatDateOnly(req.createdAt),
+                                          category: `صورة بلاغ صيانة (${toArabicDigits(i + 1)} من ${toArabicDigits(reqAttachments.length)})`,
+                                        })),
+                                        initialIndex: idx,
+                                        unitCode: req.unitCode,
+                                      });
+                                    }}
+                                    className="w-6 h-6 rounded-md overflow-hidden border border-amber-500/40 hover:border-amber-400 bg-black/40 transition hover:scale-110 cursor-pointer shrink-0 shadow-xs flex items-center justify-center"
+                                    title={`معاينة الصورة ${toArabicDigits(idx + 1)}`}
+                                  >
+                                    {att.url && (att.url.startsWith('data:image/') || att.name.match(/\.(jpeg|jpg|png|webp|gif|svg)$/i)) ? (
+                                      <img src={att.url} alt={att.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                                    ) : (
+                                      <FileText className="w-3 h-3 text-amber-400" />
+                                    )}
+                                  </button>
+                                ))}
+                                {reqAttachments.length > 3 && (
+                                  <span className="w-6 h-6 rounded-md bg-slate-800 text-amber-400 border border-slate-700 font-mono text-[9px] font-bold flex items-center justify-center">
+                                    +{toArabicDigits(reqAttachments.length - 3)}
+                                  </span>
+                                )}
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setPreviewAttachment({
+                                    attachments: reqAttachments.map((a, i) => ({
+                                      id: a.id || `rep-live-maint-${req.id}-${i}`,
+                                      name: a.name || `صورة_${i + 1}.jpg`,
+                                      type: a.type || 'image/jpeg',
+                                      url: a.url || '#',
+                                      uploadDate: formatDateOnly(req.createdAt),
+                                      category: `صورة بلاغ صيانة (${toArabicDigits(i + 1)} من ${toArabicDigits(reqAttachments.length)})`,
+                                    })),
+                                    initialIndex: 0,
+                                    unitCode: req.unitCode,
+                                  });
+                                }}
+                                className={`px-2 py-0.5 rounded text-[9px] font-bold transition cursor-pointer border flex items-center gap-1 ${
+                                  isLight
+                                    ? 'bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100'
+                                    : 'bg-amber-500/10 text-amber-300 border-amber-500/30 hover:bg-amber-500/20'
+                                }`}
+                                title="عرض جميع الصور المحملة مع الطلب"
+                              >
+                                <Layers className="w-2.5 h-2.5 text-amber-400" />
+                                <span>عرض الكل ({toArabicDigits(reqAttachments.length)} صور)</span>
+                              </button>
+                            </div>
+                          );
+                        })()}
                       </td>
                       <td className="p-2.5 whitespace-nowrap font-bold">
                         {req.status === 'completed' ? (
@@ -3438,7 +3590,10 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
       {/* Attachment Viewer Modal */}
       {previewAttachment && (
         <AttachmentViewerModal
-          attachment={previewAttachment}
+          attachment={previewAttachment.attachments ? undefined : previewAttachment}
+          attachments={previewAttachment.attachments}
+          initialIndex={previewAttachment.initialIndex}
+          unitCode={previewAttachment.unitCode}
           theme={theme}
           onClose={() => setPreviewAttachment(null)}
         />

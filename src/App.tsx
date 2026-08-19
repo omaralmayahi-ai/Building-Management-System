@@ -263,7 +263,26 @@ export function App() {
         if (apiLogs && apiLogs.length > 0) setAuditLogs(apiLogs);
         if (apiEntities && apiEntities.length > 0) setOrgEntities(apiEntities);
         if (apiBranding && apiBranding.systemName) setBranding(apiBranding);
-        if (apiUsers && apiUsers.length > 0) setUsers(apiUsers);
+        if (apiUsers && apiUsers.length > 0) {
+          const sanitized = apiUsers.map((u) => {
+            if (u.id === 'USR-101' || u.username === 'admin') {
+              return {
+                ...u,
+                id: 'USR-101',
+                name: u.name === 'م. أحمد كريم الحلي (مدير النظام)' ? 'عمر المياحي' : (u.name || 'عمر المياحي'),
+                username: 'admin',
+                phone: u.phone === '07701234567' ? '07701784629' : (u.phone || '07701784629'),
+                role: 'مدير النظام' as const,
+                status: 'active' as const,
+              };
+            }
+            return u;
+          });
+          if (!sanitized.some((u) => u.id === 'USR-101' || u.username === 'admin')) {
+            sanitized.unshift(INITIAL_USERS[0]);
+          }
+          setUsers(sanitized);
+        }
       } catch (err) {
         console.warn('Initial API data fetch note:', err);
       }
@@ -1366,13 +1385,13 @@ export function App() {
           currentUserRole={currentUserRole}
         />
 
-        <main className="flex-1 p-2 sm:p-3 md:p-5 pb-20 md:pb-5 min-w-0 max-w-full overflow-x-hidden space-y-3.5 sm:space-y-4 md:space-y-5">
-          {/* Mobile Main Navigation Bar: Compact small icons without horizontal/vertical scrolling */}
+        <main className="flex-1 p-2 sm:p-3 md:p-5 pb-24 md:pb-5 min-w-0 max-w-full overflow-x-clip space-y-3.5 sm:space-y-4 md:space-y-5">
+          {/* Mobile Main Navigation Bar: Sticky as user scrolls down for effortless navigation */}
           <div
-            className={`md:hidden w-full rounded-2xl p-1 shadow-md border transition select-none ${
+            className={`md:hidden w-full rounded-2xl p-1 shadow-md border transition select-none sticky top-[61px] z-20 backdrop-blur-md ${
               theme === 'light'
-                ? 'bg-white border-slate-200 shadow-slate-200/50'
-                : 'bg-slate-900 border-slate-800'
+                ? 'bg-white/95 border-slate-200 shadow-slate-200/60'
+                : 'bg-slate-900/95 border-slate-800 shadow-slate-950/60'
             }`}
           >
             <div className="flex items-center justify-between w-full gap-0.5">
@@ -1524,6 +1543,7 @@ export function App() {
             <SettingsView
               units={units}
               branding={branding}
+              currentUser={currentUser}
               users={users}
               unitTypes={unitTypes}
               governorates={governorates}

@@ -151,7 +151,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         theme === 'light'
           ? 'bg-white border-slate-200 text-slate-700 shadow-sm'
           : 'bg-slate-900 border-slate-800 text-slate-300'
-      } border-l shrink-0 hidden md:flex flex-col justify-between p-2.5 select-none sticky top-[61px] h-[calc(100vh-61px)] overflow-y-auto overflow-x-hidden transition-all duration-300 z-20 [&::-webkit-scrollbar:horizontal]:hidden`}
+      } border-l shrink-0 hidden md:flex flex-col justify-between p-2.5 select-none sticky top-[61px] self-start h-[calc(100vh-61px)] overflow-y-auto overflow-x-hidden transition-all duration-300 z-20 [&::-webkit-scrollbar:horizontal]:hidden`}
     >
       {/* Navigation Links */}
       <div className="space-y-1">
