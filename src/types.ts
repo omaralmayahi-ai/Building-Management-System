@@ -99,6 +99,14 @@ export interface SiteHierarchyItem {
   description?: string;
 }
 
+export interface ReportAttachment {
+  id?: string;
+  name: string;
+  url: string;
+  type?: string;
+  size?: number;
+}
+
 export interface MaintenanceRequest {
   id: string; // e.g. "MR-2024-001" or "REQ-9921"
   unitCode: string;
@@ -119,6 +127,7 @@ export interface MaintenanceRequest {
   sourceInspectionId?: string;
   attachmentName?: string;
   attachmentUrl?: string;
+  attachments?: ReportAttachment[];
 }
 
 export interface OccupancyRecord {
@@ -161,6 +170,7 @@ export interface PeriodicInspectionSchedule {
   recommendations?: string;
   reportFileName?: string;
   reportFileUrl?: string;
+  attachments?: ReportAttachment[];
   createdMaintenanceRequestId?: string;
 }
 

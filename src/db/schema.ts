@@ -69,6 +69,9 @@ export interface DbMaintenanceRequestRow {
   completed_by?: string;
   completed_at?: string;
   source_inspection_id?: string;
+  attachment_name?: string;
+  attachment_url?: string;
+  attachments?: any;
   created_at: string;
 }
 
@@ -108,6 +111,7 @@ export interface DbPeriodicInspectionRow {
   recommendations?: string;
   report_file_name?: string;
   report_file_url?: string;
+  attachments?: any;
   created_maintenance_request_id?: string;
   created_at: string;
 }

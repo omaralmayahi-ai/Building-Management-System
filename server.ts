@@ -1,6 +1,8 @@
 import express from 'express';
 import path from 'path';
 import fs from 'fs';
+import https from 'https';
+import rateLimit from 'express-rate-limit';
 import { createServer as createViteServer } from 'vite';
 import { getDbPool, query } from './src/db/dbClient';
 import {
@@ -264,6 +266,20 @@ async function startServer() {
       timestamp: Date.now(),
     });
   });
+
+  // ==========================================================================
+  // Rate Limiting Middleware (Protected Routes under /api, excluding /health)
+  // ==========================================================================
+  const apiLimiter = rateLimit({
+    windowMs: 60 * 1000,
+    max: 300,
+    standardHeaders: true,
+    legacyHeaders: false,
+    skip: (req) => req.path === '/health' || req.path === '/health/',
+    message: { error: 'عدد الطلبات كبير جداً، الرجاء المحاولة بعد قليل' },
+    statusCode: 429,
+  });
+  app.use('/api', apiLimiter);
 
   // ==========================================================================
   // API Authentication Middleware (Protected Routes under /api)
@@ -548,6 +564,9 @@ async function startServer() {
           completedBy: r.completed_by,
           completedAt: r.completed_at,
           sourceInspectionId: r.source_inspection_id,
+          attachmentName: r.attachment_name,
+          attachmentUrl: r.attachment_url,
+          attachments: r.attachments || [],
         })));
       }
     } catch (err) {
@@ -563,18 +582,23 @@ async function startServer() {
         await query(
           `INSERT INTO maintenance_requests (
             id, unit_code, unit_name, field, issue, priority, sla_deadline,
-            assigned_to, status, reported_by, details, source_inspection_id
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+            assigned_to, status, reported_by, details, source_inspection_id,
+            attachment_name, attachment_url, attachments
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
           ON CONFLICT (id) DO UPDATE SET
             status = EXCLUDED.status,
             assigned_to = EXCLUDED.assigned_to,
             issue = EXCLUDED.issue,
             priority = EXCLUDED.priority,
-            resolution_notes = EXCLUDED.resolution_notes`,
+            resolution_notes = EXCLUDED.resolution_notes,
+            attachment_name = EXCLUDED.attachment_name,
+            attachment_url = EXCLUDED.attachment_url,
+            attachments = EXCLUDED.attachments`,
           [
             r.id, r.unitCode, r.unitName || null, r.field, r.issue, r.priority || 'normal',
             r.slaDeadline || null, r.assignedTo, r.status || 'open', r.reportedBy,
-            r.details || null, r.sourceInspectionId || null
+            r.details || null, r.sourceInspectionId || null,
+            r.attachmentName || null, r.attachmentUrl || null, JSON.stringify(r.attachments || [])
           ]
         );
       }
@@ -600,11 +624,14 @@ async function startServer() {
         await query(
           `UPDATE maintenance_requests SET
             status = $1, assigned_to = $2, issue = $3, priority = $4,
-            resolution_notes = $5, completed_by = $6, completed_at = $7
-          WHERE id = $8`,
+            resolution_notes = $5, completed_by = $6, completed_at = $7,
+            attachment_name = $8, attachment_url = $9, attachments = $10
+          WHERE id = $11`,
           [
             r.status, r.assignedTo, r.issue, r.priority,
-            r.resolutionNotes || null, r.completedBy || null, r.completedAt || null, req.params.id
+            r.resolutionNotes || null, r.completedBy || null, r.completedAt || null,
+            r.attachmentName || null, r.attachmentUrl || null, JSON.stringify(r.attachments || []),
+            req.params.id
           ]
         );
       }
@@ -659,8 +686,9 @@ async function startServer() {
                 `INSERT INTO maintenance_requests (
                   id, unit_code, unit_name, field, issue, priority, sla_deadline,
                   assigned_to, status, reported_by, details, source_inspection_id,
-                  resolution_notes, completed_by, completed_at
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+                  resolution_notes, completed_by, completed_at,
+                  attachment_name, attachment_url, attachments
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
                 ON CONFLICT (id) DO UPDATE SET
                   unit_code = EXCLUDED.unit_code,
                   unit_name = EXCLUDED.unit_name,
@@ -675,12 +703,16 @@ async function startServer() {
                   source_inspection_id = EXCLUDED.source_inspection_id,
                   resolution_notes = EXCLUDED.resolution_notes,
                   completed_by = EXCLUDED.completed_by,
-                  completed_at = EXCLUDED.completed_at`,
+                  completed_at = EXCLUDED.completed_at,
+                  attachment_name = EXCLUDED.attachment_name,
+                  attachment_url = EXCLUDED.attachment_url,
+                  attachments = EXCLUDED.attachments`,
                 [
                   r.id, r.unitCode, r.unitName || null, r.field, r.issue, r.priority || 'normal',
                   r.slaDeadline || null, r.assignedTo, r.status || 'open', r.reportedBy,
                   r.details || null, r.sourceInspectionId || null,
-                  r.resolutionNotes || null, r.completedBy || null, r.completedAt || null
+                  r.resolutionNotes || null, r.completedBy || null, r.completedAt || null,
+                  r.attachmentName || null, r.attachmentUrl || null, JSON.stringify(r.attachments || [])
                 ]
               );
             }
@@ -888,6 +920,7 @@ async function startServer() {
           recommendations: r.recommendations,
           reportFileName: r.report_file_name,
           reportFileUrl: r.report_file_url,
+          attachments: r.attachments || [],
           createdMaintenanceRequestId: r.created_maintenance_request_id,
         })));
       }
@@ -907,13 +940,13 @@ async function startServer() {
             frequency, custom_interval_days, last_inspection_date, next_due_date,
             assigned_team, inspector_name, performed_by_name, status, notes, condition_grade_given,
             completion_date, findings, recommendations, report_file_name, report_file_url,
-            created_maintenance_request_id
+            attachments, created_maintenance_request_id
           ) VALUES (
             $1, $2, $3, $4, $5, $6, $7,
             $8, $9, $10, $11,
             $12, $13, $14, $15, $16, $17,
             $18, $19, $20, $21, $22,
-            $23
+            $23, $24
           ) ON CONFLICT (id) DO UPDATE SET
             status = EXCLUDED.status,
             performed_by_name = EXCLUDED.performed_by_name,
@@ -921,13 +954,16 @@ async function startServer() {
             condition_grade_given = EXCLUDED.condition_grade_given,
             findings = EXCLUDED.findings,
             recommendations = EXCLUDED.recommendations,
-            next_due_date = EXCLUDED.next_due_date`,
+            next_due_date = EXCLUDED.next_due_date,
+            report_file_name = EXCLUDED.report_file_name,
+            report_file_url = EXCLUDED.report_file_url,
+            attachments = EXCLUDED.attachments`,
           [
             s.id, s.unitCode, s.unitName || null, s.field, s.governorate, s.inspectionType, s.title,
             s.frequency || 'quarterly', s.customIntervalDays || null, s.lastInspectionDate, s.nextDueDate,
             s.assignedTeam, s.inspectorName, s.performedByName || null, s.status || 'scheduled', s.notes || null, s.conditionGradeGiven || null,
             s.completionDate || null, s.findings || null, s.recommendations || null, s.reportFileName || null, s.reportFileUrl || null,
-            s.createdMaintenanceRequestId || null
+            JSON.stringify(s.attachments || []), s.createdMaintenanceRequestId || null
           ]
         );
       }
@@ -958,8 +994,8 @@ async function startServer() {
             assigned_team = $10, title = $11, frequency = $12,
             custom_interval_days = $13, last_inspection_date = $14,
             report_file_name = $15, report_file_url = $16,
-            created_maintenance_request_id = $17
-          WHERE id = $18`,
+            attachments = $17, created_maintenance_request_id = $18
+          WHERE id = $19`,
           [
             s.status, s.completionDate || null, s.conditionGradeGiven || null,
             s.findings || null, s.recommendations || null, s.nextDueDate,
@@ -967,7 +1003,7 @@ async function startServer() {
             s.assignedTeam || 'فريق الفحص', s.title || 'كشف دوري', s.frequency || 'quarterly',
             s.customIntervalDays || null, s.lastInspectionDate,
             s.reportFileName || null, s.reportFileUrl || null,
-            s.createdMaintenanceRequestId || null,
+            JSON.stringify(s.attachments || []), s.createdMaintenanceRequestId || null,
             req.params.id
           ]
         );
@@ -1025,13 +1061,13 @@ async function startServer() {
                   frequency, custom_interval_days, last_inspection_date, next_due_date,
                   assigned_team, inspector_name, performed_by_name, status, notes, condition_grade_given,
                   completion_date, findings, recommendations, report_file_name, report_file_url,
-                  created_maintenance_request_id
+                  attachments, created_maintenance_request_id
                 ) VALUES (
                   $1, $2, $3, $4, $5, $6, $7,
                   $8, $9, $10, $11,
                   $12, $13, $14, $15, $16, $17,
                   $18, $19, $20, $21, $22,
-                  $23
+                  $23, $24
                 ) ON CONFLICT (id) DO UPDATE SET
                   unit_code = EXCLUDED.unit_code,
                   unit_name = EXCLUDED.unit_name,
@@ -1054,13 +1090,14 @@ async function startServer() {
                   recommendations = EXCLUDED.recommendations,
                   report_file_name = EXCLUDED.report_file_name,
                   report_file_url = EXCLUDED.report_file_url,
+                  attachments = EXCLUDED.attachments,
                   created_maintenance_request_id = EXCLUDED.created_maintenance_request_id`,
                 [
                   s.id, s.unitCode, s.unitName || null, s.field, s.governorate, s.inspectionType, s.title,
                   s.frequency || 'quarterly', s.customIntervalDays || null, s.lastInspectionDate, s.nextDueDate,
                   s.assignedTeam, s.inspectorName, s.performedByName || null, s.status || 'scheduled', s.notes || null, s.conditionGradeGiven || null,
                   s.completionDate || null, s.findings || null, s.recommendations || null, s.reportFileName || null, s.reportFileUrl || null,
-                  s.createdMaintenanceRequestId || null
+                  JSON.stringify(s.attachments || []), s.createdMaintenanceRequestId || null
                 ]
               );
             }
@@ -1569,9 +1606,35 @@ async function startServer() {
     });
   }
 
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Midland Oil Assets Backend & UI Server running on http://0.0.0.0:${PORT}`);
-  });
+  // ==========================================================================
+  // HTTPS & HTTP Server Initialization (Native Node.js SSL / Standalone Deployment)
+  // ==========================================================================
+  const certPath = process.env.HTTPS_CERT_PATH;
+  const keyPath = process.env.HTTPS_KEY_PATH;
+
+  let isHttpsStarted = false;
+  if (certPath && keyPath) {
+    try {
+      if (fs.existsSync(certPath) && fs.existsSync(keyPath)) {
+        const cert = fs.readFileSync(certPath);
+        const key = fs.readFileSync(keyPath);
+        https.createServer({ cert, key }, app).listen(PORT, '0.0.0.0', () => {
+          console.log(`🔒 Midland Oil Assets Backend & UI Server running SECURELY via HTTPS on https://0.0.0.0:${PORT}`);
+        });
+        isHttpsStarted = true;
+      } else {
+        console.warn('⚠️ [HTTPS] Specified certificate or key file not found on disk. Falling back to HTTP...');
+      }
+    } catch (err: any) {
+      console.warn(`⚠️ [HTTPS] Failed to initialize SSL/TLS server (${err.message}). Falling back to HTTP...`);
+    }
+  }
+
+  if (!isHttpsStarted) {
+    app.listen(PORT, '0.0.0.0', () => {
+      console.log(`Midland Oil Assets Backend & UI Server running on http://0.0.0.0:${PORT}`);
+    });
+  }
 }
 
 startServer();

@@ -5,19 +5,12 @@ import {
   MapPin,
   Calendar,
   Layers,
-  Search,
   PlusCircle,
   Wrench,
   CheckCircle2,
   AlertTriangle,
   FileText,
-  ShieldCheck,
-  Award,
   ChevronLeft,
-  Flame,
-  ArrowRight,
-  Info,
-  Clock,
   UserCheck,
   QrCode,
   Camera,
@@ -26,21 +19,24 @@ import {
   Trash2,
   Image as ImageIcon,
   FileCheck,
-  Archive,
   Download,
   X,
+  RefreshCw,
+  Zap,
 } from 'lucide-react';
+import { Html5Qrcode } from 'html5-qrcode';
 import {
   UnitAsset,
   PeriodicInspectionSchedule,
   InspectionType,
   ConditionGrade,
-  InspectionStatus,
   SystemUser,
-  MaintenanceRequest,
+  ReportAttachment,
 } from '../types';
 import { toArabicDigits } from '../utils/arabicUtils';
 import * as api from '../services/apiClient';
+
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
 
 interface FieldInspectionViewProps {
   units: UnitAsset[];
@@ -55,7 +51,6 @@ interface FieldInspectionViewProps {
 
 export const FieldInspectionView: React.FC<FieldInspectionViewProps> = ({
   units,
-  periodicInspections,
   currentUser,
   onAddInspection,
   onUpdateGrade,
@@ -65,18 +60,18 @@ export const FieldInspectionView: React.FC<FieldInspectionViewProps> = ({
 }) => {
   const isLight = theme === 'light';
 
-  // Selected Unit state
+  // Selected Unit state (starts empty or from initialUnitCode)
   const [selectedUnitCode, setSelectedUnitCode] = useState<string>(initialUnitCode || '');
-  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [scanError, setScanError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (initialUnitCode) {
-      setSelectedUnitCode(initialUnitCode);
-    }
-  }, [initialUnitCode]);
+  // Scanner Modal State
+  const [isScannerOpen, setIsScannerOpen] = useState<boolean>(false);
+  const [cameraActive, setCameraActive] = useState<boolean>(false);
+  const qrScannerRef = useRef<Html5Qrcode | null>(null);
+  const qrFileInputRef = useRef<HTMLInputElement | null>(null);
 
-  // Mode: 'overview' | 'new_inspection' | 'unit_archive'
-  const [viewMode, setViewMode] = useState<'overview' | 'new_inspection' | 'unit_archive'>('overview');
+  // Mode: 'overview' | 'new_inspection'
+  const [viewMode, setViewMode] = useState<'overview' | 'new_inspection'>('overview');
 
   // New Inspection Form State
   const [inspectionType, setInspectionType] = useState<InspectionType>('structural');
@@ -85,82 +80,207 @@ export const FieldInspectionView: React.FC<FieldInspectionViewProps> = ({
   const [findings, setFindings] = useState<string>('');
   const [recommendations, setRecommendations] = useState<string>('');
   const [notes, setNotes] = useState<string>('');
-  
-  // File & Camera upload state
-  const [reportFileName, setReportFileName] = useState<string>('');
-  const [reportFileUrl, setReportFileUrl] = useState<string>('');
-  const [reportFileType, setReportFileType] = useState<string>('');
+
+  // Multi-file Attachments State
+  const [attachments, setAttachments] = useState<ReportAttachment[]>([]);
+  const [fileError, setFileError] = useState<string | null>(null);
   const cameraInputRef = useRef<HTMLInputElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  // Photo / Document Viewer Modal State
+  // Photo / Document Preview Modal State
   const [previewItem, setPreviewItem] = useState<{ title: string; url: string; fileName: string } | null>(null);
 
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [submitSuccessMsg, setSubmitSuccessMsg] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  // Selected Unit Asset
+  useEffect(() => {
+    if (initialUnitCode) {
+      setSelectedUnitCode(initialUnitCode);
+    }
+  }, [initialUnitCode]);
+
+  // Selected Unit Asset Lookup
   const currentUnit = useMemo(() => {
-    return units.find((u) => u.code === selectedUnitCode) || null;
+    if (!selectedUnitCode) return null;
+    return units.find((u) => u.code.toLowerCase() === selectedUnitCode.toLowerCase()) || null;
   }, [units, selectedUnitCode]);
 
-  // All completed inspections recorded for this unit
-  const unitCompletedInspections = useMemo(() => {
-    if (!selectedUnitCode) return [];
-    return periodicInspections
-      .filter((ins) => ins.unitCode === selectedUnitCode && ins.status === 'completed')
-      .sort((a, b) => {
-        const dateA = a.completionDate || a.lastInspectionDate || a.createdAt;
-        const dateB = b.completionDate || b.lastInspectionDate || b.createdAt;
-        return dateB.localeCompare(dateA);
-      });
-  }, [periodicInspections, selectedUnitCode]);
+  // Helper to extract unit code from scanned text or URL
+  const parseScannedCode = (decodedText: string): string => {
+    const trimmed = decodedText.trim();
+    try {
+      if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+        const url = new URL(trimmed);
+        const unitParam =
+          url.searchParams.get('unit') ||
+          url.searchParams.get('code') ||
+          url.searchParams.get('id') ||
+          url.searchParams.get('unitCode');
+        if (unitParam) return unitParam.trim();
+      }
+    } catch {
+      // Not a valid URL, proceed to direct match
+    }
 
-  // Last inspection recorded for this unit
-  const lastInspection = useMemo(() => {
-    return unitCompletedInspections[0] || null;
-  }, [unitCompletedInspections]);
+    const patternMatch = trimmed.match(/[A-Za-z0-9]+-[A-Za-z0-9]+-[A-Za-z0-9]+-[A-Za-z0-9]+/);
+    if (patternMatch) return patternMatch[0];
 
-  // Handle Camera and File Pickers
-  const handleFileSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
+    return trimmed;
+  };
+
+  const handleProcessDecodedText = (decodedText: string) => {
+    const targetCode = parseScannedCode(decodedText);
+    const matched = units.find(
+      (u) =>
+        u.code.toLowerCase() === targetCode.toLowerCase() ||
+        u.id.toLowerCase() === targetCode.toLowerCase()
+    );
+
+    if (matched) {
+      setSelectedUnitCode(matched.code);
+      setScanError(null);
+      closeScanner();
+      setViewMode('overview');
+    } else {
+      setScanError('لم يتم العثور على الوحدة الهندسية في النظام');
+    }
+  };
+
+  // Start QR Camera Scanner
+  const startScanner = async () => {
+    setIsScannerOpen(true);
+    setScanError(null);
+
+    // Wait for container to be in DOM
+    setTimeout(async () => {
+      try {
+        const scannerElement = document.getElementById('qr-scanner-region');
+        if (!scannerElement) return;
+
+        if (qrScannerRef.current) {
+          try {
+            await qrScannerRef.current.stop();
+            qrScannerRef.current.clear();
+          } catch {
+            // ignore cleanup error
+          }
+        }
+
+        const scanner = new Html5Qrcode('qr-scanner-region');
+        qrScannerRef.current = scanner;
+
+        await scanner.start(
+          { facingMode: 'environment' },
+          {
+            fps: 15,
+            qrbox: { width: 250, height: 250 },
+            aspectRatio: 1.0,
+          },
+          (decodedText) => {
+            handleProcessDecodedText(decodedText);
+          },
+          () => {
+            // Ignore scan frame misses
+          }
+        );
+        setCameraActive(true);
+      } catch (err: any) {
+        console.error('Camera access error:', err);
+        setCameraActive(false);
+        setScanError('تعذر الوصول إلى الكاميرا. يرجى التأكد من صلاحيات الكاميرا أو استخدام خيار رفع صورة الرمز.');
+      }
+    }, 200);
+  };
+
+  // Close QR Scanner
+  const closeScanner = async () => {
+    if (qrScannerRef.current) {
+      try {
+        if (qrScannerRef.current.isScanning) {
+          await qrScannerRef.current.stop();
+        }
+        qrScannerRef.current.clear();
+      } catch (err) {
+        console.error('Error stopping scanner:', err);
+      }
+      qrScannerRef.current = null;
+    }
+    setCameraActive(false);
+    setIsScannerOpen(false);
+  };
+
+  // Scan QR from image file
+  const handleQrFileScan = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    setReportFileName(file.name);
-    setReportFileType(file.type);
-
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      if (event.target?.result) {
-        setReportFileUrl(event.target.result as string);
+    try {
+      let scanner = qrScannerRef.current;
+      if (!scanner) {
+        scanner = new Html5Qrcode('qr-scanner-region');
+        qrScannerRef.current = scanner;
       }
-    };
-    reader.readAsDataURL(file);
-    // Reset file input value so selecting the same file triggers onChange again
+      const result = await scanner.scanFile(file, true);
+      if (result) {
+        handleProcessDecodedText(result);
+      }
+    } catch (err: any) {
+      console.error('Failed to read QR image:', err);
+      setScanError('تعذر قراءة رمز QR من الصورة المحددة. يرجى اختيار صورة واضحة.');
+    }
     e.target.value = '';
   };
 
-  const handleRemoveFile = () => {
-    setReportFileName('');
-    setReportFileUrl('');
-    setReportFileType('');
+  // Cleanup scanner on unmount
+  useEffect(() => {
+    return () => {
+      if (qrScannerRef.current) {
+        if (qrScannerRef.current.isScanning) {
+          qrScannerRef.current.stop().catch(() => {});
+        }
+        qrScannerRef.current.clear();
+      }
+    };
+  }, []);
+
+  // Multi-file selection with 5MB validation
+  const handleFilesSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setFileError(null);
+
+    Array.from(files).forEach((file: File) => {
+      if (file.size > MAX_FILE_SIZE) {
+        setFileError('حجم الملف المرفق يتجاوز الحد المسموح به (5 ميجابايت). الرجاء اختيار ملف أصغر.');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        if (event.target?.result) {
+          const newAtt: ReportAttachment = {
+            id: `att-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
+            name: file.name,
+            url: event.target.result as string,
+            type: file.type,
+            size: file.size,
+          };
+          setAttachments((prev) => [...prev, newAtt]);
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+
+    e.target.value = '';
   };
 
-  // Filtered units list for manual selection
-  const filteredUnits = useMemo(() => {
-    if (!searchQuery.trim()) return units;
-    const query = searchQuery.toLowerCase().trim();
-    return units.filter(
-      (u) =>
-        u.code.toLowerCase().includes(query) ||
-        u.name.toLowerCase().includes(query) ||
-        (u.field && u.field.toLowerCase().includes(query)) ||
-        (u.governorate && u.governorate.toLowerCase().includes(query))
-    );
-  }, [units, searchQuery]);
+  const handleRemoveAttachment = (id: string) => {
+    setAttachments((prev) => prev.filter((a) => a.id !== id));
+  };
 
-  // Handle Form Submit
+  // Form Submit Handler
   const handleSaveInspection = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentUnit) {
@@ -194,13 +314,13 @@ export const FieldInspectionView: React.FC<FieldInspectionViewProps> = ({
       findings: findings.trim() || 'تمت معاينة الهيكل الإنشائي وكافة الملحقات الميدانية.',
       recommendations: recommendations.trim() || 'استمرار التشغيل والمراقبة الدورية.',
       notes: notes.trim() || '',
-      reportFileName: reportFileName || undefined,
-      reportFileUrl: reportFileUrl || undefined,
+      reportFileName: attachments[0]?.name || undefined,
+      reportFileUrl: attachments[0]?.url || undefined,
+      attachments: attachments,
       createdAt: nowIso,
     };
 
     try {
-      // Direct single record API addition as required
       const saved = await api.addPeriodicInspection(newInspection);
       onAddInspection(saved);
       if (onUpdateGrade && currentUnit.code) {
@@ -209,33 +329,36 @@ export const FieldInspectionView: React.FC<FieldInspectionViewProps> = ({
 
       setSubmitSuccessMsg(`تم تسجيل واعتماد تقرير الكشف بنجاح بالرقم: ${newInspection.id}`);
       setIsSubmitting(false);
-      setViewMode('overview');
 
-      // Reset Form fields
+      // Reset state cleanly back to initial state
+      setSelectedUnitCode('');
+      setViewMode('overview');
       setFindings('');
       setRecommendations('');
       setNotes('');
-      setReportFileName('');
-      setReportFileUrl('');
-      setReportFileType('');
+      setAttachments([]);
+      setFileError(null);
 
       setTimeout(() => setSubmitSuccessMsg(null), 6000);
     } catch (err: any) {
       console.error('Failed to save inspection:', err);
-      // Fallback local addition
       onAddInspection(newInspection);
       if (onUpdateGrade && currentUnit.code) {
         onUpdateGrade(currentUnit.code, conditionGrade);
       }
-      setSubmitSuccessMsg(`تم حفظ الكشف محلياً بنجاح بالرقم: ${newInspection.id}`);
+
+      setSubmitSuccessMsg(`تم حفظ الكشف بنجاح بالرقم: ${newInspection.id}`);
       setIsSubmitting(false);
+
+      // Reset state
+      setSelectedUnitCode('');
       setViewMode('overview');
       setFindings('');
       setRecommendations('');
       setNotes('');
-      setReportFileName('');
-      setReportFileUrl('');
-      setReportFileType('');
+      setAttachments([]);
+      setFileError(null);
+
       setTimeout(() => setSubmitSuccessMsg(null), 6000);
     }
   };
@@ -257,7 +380,7 @@ export const FieldInspectionView: React.FC<FieldInspectionViewProps> = ({
 
   return (
     <div className="w-full max-w-2xl mx-auto px-3 py-4 sm:py-6 space-y-4 font-sans antialiased text-right" dir="rtl">
-      {/* Header Banner - Field Inspector Mobile Optimized */}
+      {/* Header Banner - Field Inspector Mobile */}
       <div
         className={`rounded-2xl p-4 sm:p-5 border shadow-xl flex items-center justify-between gap-3 transition-colors ${
           isLight
@@ -273,7 +396,7 @@ export const FieldInspectionView: React.FC<FieldInspectionViewProps> = ({
             <div className="flex items-center gap-2">
               <h1 className="font-black text-base sm:text-lg tracking-tight">نظام الكشف الميداني السريع</h1>
               <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-500 border border-amber-500/40">
-                QR Mobile
+                QR Scanner
               </span>
             </div>
             <p className={`text-xs mt-0.5 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
@@ -300,86 +423,51 @@ export const FieldInspectionView: React.FC<FieldInspectionViewProps> = ({
         </div>
       )}
 
-      {/* Manual Search & Selector (Fallback when not using QR or switching) */}
-      <div
-        className={`rounded-2xl p-3.5 sm:p-4 border shadow-sm space-y-2.5 transition-colors ${
-          isLight ? 'bg-white border-slate-200 text-slate-900' : 'bg-slate-900 border-slate-800 text-slate-100'
-        }`}
-      >
-        <div className="flex items-center justify-between text-xs font-bold">
-          <span className="flex items-center gap-1.5 text-amber-500">
-            <Building className="w-4 h-4" />
-            <span>اختيار أو تغيير الوحدة المستهدفة للكشف</span>
-          </span>
-          <span className="text-[11px] text-slate-500">({filteredUnits.length} وحدة متاحة)</span>
-        </div>
-
-        <div className="relative">
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="ابحث برمز الوحدة (مثال: WS-AHD-BLD-014) أو اسم المنشأة..."
-            className={`w-full rounded-xl pr-9 pl-3 py-2.5 text-xs sm:text-sm font-medium focus:outline-none transition border ${
-              isLight
-                ? 'bg-slate-50 border-slate-300 text-slate-900 focus:border-amber-500 focus:bg-white'
-                : 'bg-slate-950 border-slate-800 text-white focus:border-amber-500'
-            }`}
-          />
-          <Search className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-        </div>
-
-        {/* Quick Horizontal Chips or Select Dropdown for units */}
-        <div className="space-y-1.5">
-          <select
-            value={selectedUnitCode}
-            onChange={(e) => {
-              setSelectedUnitCode(e.target.value);
-              setViewMode('overview');
-            }}
-            className={`w-full rounded-xl px-3 py-2.5 text-xs sm:text-sm font-bold font-mono focus:outline-none transition cursor-pointer border ${
-              isLight
-                ? 'bg-amber-50/60 border-amber-200 text-slate-900 focus:border-amber-500'
-                : 'bg-slate-950 border-slate-800 text-amber-400 focus:border-amber-500'
-            }`}
-          >
-            <option value="" disabled className={isLight ? 'bg-white text-slate-500' : 'bg-slate-900 text-slate-400'}>
-              -- اضغط لاختيار الوحدة المستهدفة للكشف --
-            </option>
-            {filteredUnits.map((u) => (
-              <option key={u.code} value={u.code} className={isLight ? 'bg-white text-slate-900' : 'bg-slate-900 text-white'}>
-                {u.code} - {u.name} ({u.field || u.governorate})
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
-
-      {/* Guidance Message when no unit is selected */}
-      {!currentUnit && (
-        <div
-          className={`rounded-2xl p-6 sm:p-8 border shadow-lg text-center space-y-3 transition-colors ${
-            isLight
-              ? 'bg-white border-slate-200 text-slate-900 shadow-slate-200/60'
-              : 'bg-slate-900/90 border-slate-800 text-slate-100 shadow-2xl'
-          }`}
-        >
-          <div className="w-16 h-16 rounded-2xl bg-amber-500/15 border border-amber-500/30 text-amber-500 flex items-center justify-center mx-auto shadow-inner">
-            <QrCode className="w-8 h-8" />
-          </div>
-          <div className="space-y-1.5 max-w-md mx-auto">
-            <h3 className="text-base sm:text-lg font-black">لم يتم اختيار أي وحدة بعد</h3>
-            <p className={`text-xs sm:text-sm leading-relaxed ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
-              يرجى مسح رمز QR الخاص بالوحدة أو اختيار وحدة يدوياً من قائمة البحث أعلاه لبدء كشف هندسي جديد أو تسجيل طلب صيانة.
-            </p>
+      {/* Scan Error Alert */}
+      {scanError && (
+        <div className="p-4 rounded-2xl bg-rose-500/15 border border-rose-500/40 text-rose-400 text-xs sm:text-sm font-bold flex items-center gap-3 shadow-lg animate-fadeIn">
+          <AlertTriangle className="w-5 h-5 shrink-0 text-rose-400" />
+          <div className="flex-1">
+            <span>{scanError}</span>
           </div>
         </div>
       )}
 
-      {/* Main Container - Overview Mode */}
+      {/* Prominent QR Code Scan Trigger Button (When No Unit is Selected) */}
+      {!currentUnit && (
+        <div
+          className={`rounded-2xl p-6 sm:p-8 border shadow-xl text-center space-y-5 transition-colors ${
+            isLight
+              ? 'bg-white border-slate-200 text-slate-900 shadow-slate-200/60'
+              : 'bg-slate-900 border-slate-800 text-slate-100 shadow-2xl'
+          }`}
+        >
+          <div className="w-20 h-20 rounded-3xl bg-amber-500/15 border border-amber-500/30 text-amber-500 flex items-center justify-center mx-auto shadow-inner">
+            <QrCode className="w-10 h-10" />
+          </div>
+
+          <div className="space-y-1.5 max-w-md mx-auto">
+            <h2 className="text-lg sm:text-xl font-black">مسح رمز QR للوحدة الهندسية</h2>
+            <p className={`text-xs sm:text-sm leading-relaxed ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+              امسح رمز الاستجابة السريعة (QR Code) المثبت على الكرفان أو المنشأة لتحميل بياناتها وإجراء الكشف الفني الميداني.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={startScanner}
+            className="w-full sm:w-auto px-8 py-4 rounded-2xl font-black text-sm sm:text-base bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-xl hover:shadow-amber-500/25 transition flex items-center justify-center gap-3 cursor-pointer mx-auto active:scale-95"
+          >
+            <Camera className="w-5 h-5" />
+            <span>مسح رمز QR الآن</span>
+          </button>
+        </div>
+      )}
+
+      {/* Main Container - Overview Mode (Unit Scanned) */}
       {currentUnit && viewMode === 'overview' && (
         <div className="space-y-4 animate-fadeIn">
-          {/* Unit Summary Card - Big and Clear for Mobile */}
+          {/* Unit Summary Card */}
           <div
             className={`rounded-2xl p-4 sm:p-5 border shadow-xl space-y-4 transition-colors ${
               isLight
@@ -465,111 +553,27 @@ export const FieldInspectionView: React.FC<FieldInspectionViewProps> = ({
                   isLight ? 'bg-slate-50 border-slate-200 text-slate-700' : 'bg-slate-950/50 border-slate-800 text-slate-300'
                 }`}
               >
-                <Info className="w-4 h-4 text-amber-500 shrink-0" />
+                <Building className="w-4 h-4 text-amber-500 shrink-0" />
                 <span><strong>الجهة الشاغلة:</strong> {currentUnit.department}</span>
               </div>
             )}
 
-            {/* Last Inspection Info Card with Findings, Recommendations & Attached Photo */}
-            <div
-              className={`p-3.5 rounded-xl border space-y-2 ${
-                isLight ? 'bg-amber-50/50 border-amber-200' : 'bg-amber-500/10 border-amber-500/20'
+            {/* Rescan Button */}
+            <button
+              type="button"
+              onClick={startScanner}
+              className={`w-full py-2.5 px-3 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer ${
+                isLight
+                  ? 'bg-slate-50 hover:bg-slate-100 border-slate-300 text-slate-700'
+                  : 'bg-slate-950/60 hover:bg-slate-800 border-slate-800 text-slate-300'
               }`}
             >
-              <div className="flex items-center justify-between text-xs font-bold text-amber-600 dark:text-amber-400">
-                <span className="flex items-center gap-1.5">
-                  <Clock className="w-3.5 h-3.5" />
-                  <span>آخر كشف فني مسجل لهذه المنشأة</span>
-                </span>
-                {lastInspection ? (
-                  <span className="font-mono">{toArabicDigits(lastInspection.completionDate || lastInspection.lastInspectionDate)}</span>
-                ) : (
-                  <span className="text-slate-500 text-[11px]">لا يوجد كشف سابق مسجل</span>
-                )}
-              </div>
+              <QrCode className="w-4 h-4 text-amber-500" />
+              <span>مسح وحدة أخرى عبر QR</span>
+            </button>
 
-              {lastInspection ? (
-                <div className="text-xs space-y-1.5 pt-1 text-slate-700 dark:text-slate-300">
-                  <div className="flex items-center justify-between flex-wrap gap-1">
-                    <p><strong>مُنفِّذ الكشف:</strong> {lastInspection.performedByName || lastInspection.inspectorName}</p>
-                    {lastInspection.conditionGradeGiven && (
-                      <span className="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">
-                        Grade {lastInspection.conditionGradeGiven}
-                      </span>
-                    )}
-                  </div>
-
-                  {lastInspection.findings && (
-                    <div className="p-2 rounded-lg bg-black/5 dark:bg-black/20 text-slate-700 dark:text-slate-300 text-xs">
-                      <span className="font-bold text-amber-500 block mb-0.5">الملاحظات والنتائج الميدانية:</span>
-                      <p className="leading-relaxed">{lastInspection.findings}</p>
-                    </div>
-                  )}
-
-                  {lastInspection.recommendations && (
-                    <div className="p-2 rounded-lg bg-black/5 dark:bg-black/20 text-slate-700 dark:text-slate-300 text-xs">
-                      <span className="font-bold text-emerald-500 block mb-0.5">التوصيات والإجراءات المطلوب اتخاذها:</span>
-                      <p className="leading-relaxed">{lastInspection.recommendations}</p>
-                    </div>
-                  )}
-
-                  {/* Attached File / Photo Preview */}
-                  {lastInspection.reportFileName && (
-                    <div className="flex items-center justify-between gap-2 p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/30">
-                      <div className="flex items-center gap-1.5 min-w-0">
-                        <FileCheck className="w-4 h-4 text-emerald-500 shrink-0" />
-                        <span className="text-[11px] font-bold text-emerald-400 truncate" title={lastInspection.reportFileName}>
-                          {lastInspection.reportFileName}
-                        </span>
-                      </div>
-
-                      <div className="flex items-center gap-1 shrink-0">
-                        {lastInspection.reportFileUrl && (
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setPreviewItem({
-                                title: `مرفق الكشف - ${lastInspection.title}`,
-                                url: lastInspection.reportFileUrl!,
-                                fileName: lastInspection.reportFileName!,
-                              })
-                            }
-                            className="px-2 py-1 rounded-lg bg-emerald-500 text-slate-950 font-bold text-[10px] flex items-center gap-1 hover:bg-emerald-400 cursor-pointer"
-                          >
-                            <Eye className="w-3 h-3" />
-                            <span>معاينة الصورة / الملف</span>
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <p className="text-xs text-slate-500">هذه المنشأة لم تخضع لكشف فني مؤخراً. يوصى ببدء كشف ميداني فوري.</p>
-              )}
-            </div>
-
-            {/* Previous Inspections Archive Link */}
-            {unitCompletedInspections.length > 0 && (
-              <button
-                type="button"
-                onClick={() => setViewMode('unit_archive')}
-                className={`w-full py-2.5 px-3 rounded-xl border text-xs font-bold transition flex items-center justify-between cursor-pointer ${
-                  isLight
-                    ? 'bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-700'
-                    : 'bg-slate-950/60 hover:bg-slate-800 border-slate-800 text-slate-300'
-                }`}
-              >
-                <span className="flex items-center gap-2">
-                  <Archive className="w-4 h-4 text-amber-500" />
-                  <span>عرض سجل وكافة كشوفات هذه الوحدة السابقة ({toArabicDigits(unitCompletedInspections.length)})</span>
-                </span>
-                <ChevronLeft className="w-4 h-4 text-slate-400" />
-              </button>
-            )}
-
-            {/* Primary Action Buttons - Large Touch Targets */}
-            <div className="space-y-2.5 pt-2">
+            {/* Primary Action Buttons */}
+            <div className="space-y-2.5 pt-1">
               <button
                 type="button"
                 onClick={() => setViewMode('new_inspection')}
@@ -591,121 +595,6 @@ export const FieldInspectionView: React.FC<FieldInspectionViewProps> = ({
                 <Wrench className="w-4 h-4 text-amber-500" />
                 <span>تسجيل طلب صيانة لهذي الوحدة</span>
               </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Unit Archive Mode - Full history of completed inspections */}
-      {currentUnit && viewMode === 'unit_archive' && (
-        <div className="space-y-4 animate-fadeIn">
-          <div
-            className={`rounded-2xl p-4 sm:p-5 border shadow-xl space-y-4 transition-colors ${
-              isLight ? 'bg-white border-slate-200 text-slate-900' : 'bg-slate-900 border-slate-800 text-slate-100'
-            }`}
-          >
-            <div className="flex items-center justify-between border-b pb-3 border-slate-200 dark:border-slate-800">
-              <div>
-                <h2 className="text-base sm:text-lg font-black text-amber-500 flex items-center gap-2">
-                  <Archive className="w-5 h-5" />
-                  <span>أرشيف كشوفات الوحدة ({currentUnit.code})</span>
-                </h2>
-                <p className="text-xs text-slate-500">{currentUnit.name}</p>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setViewMode('overview')}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition flex items-center gap-1 cursor-pointer ${
-                  isLight ? 'bg-slate-100 hover:bg-slate-200 border-slate-300 text-slate-700' : 'bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-300'
-                }`}
-              >
-                <span>رجوع</span>
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-            </div>
-
-            <div className="space-y-3">
-              {unitCompletedInspections.map((ins, idx) => (
-                <div
-                  key={ins.id}
-                  className={`p-3.5 rounded-xl border space-y-2 ${
-                    isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-950/70 border-slate-800'
-                  }`}
-                >
-                  <div className="flex items-center justify-between flex-wrap gap-2 pb-2 border-b border-slate-800/30">
-                    <div>
-                      <div className="font-bold text-xs sm:text-sm text-slate-900 dark:text-slate-100">{ins.title}</div>
-                      <div className="text-[11px] text-slate-500 font-mono mt-0.5">
-                        التاريخ: {toArabicDigits(ins.completionDate || ins.lastInspectionDate)} • المعاين: {ins.performedByName || ins.inspectorName}
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      {ins.conditionGradeGiven && (
-                        <span className={`px-2 py-0.5 rounded-lg text-xs font-bold border ${getGradeBadge(ins.conditionGradeGiven)}`}>
-                          Grade {ins.conditionGradeGiven}
-                        </span>
-                      )}
-                      <span className="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                        مكتمل
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Findings */}
-                  <div className="space-y-1 text-xs">
-                    <span className="font-bold text-amber-500 block text-[11px]">الملاحظات والنتائج الميدانية:</span>
-                    <p className={`p-2 rounded-lg ${isLight ? 'bg-white border border-slate-200' : 'bg-slate-900 border border-slate-800'} text-slate-700 dark:text-slate-300 leading-relaxed`}>
-                      {ins.findings || 'لا توجد ملاحظات مدونة'}
-                    </p>
-                  </div>
-
-                  {/* Recommendations */}
-                  {ins.recommendations && (
-                    <div className="space-y-1 text-xs">
-                      <span className="font-bold text-emerald-500 block text-[11px]">التوصيات والإجراءات المطلوب اتخاذها:</span>
-                      <p className={`p-2 rounded-lg ${isLight ? 'bg-white border border-slate-200' : 'bg-slate-900 border border-slate-800'} text-slate-700 dark:text-slate-300 leading-relaxed`}>
-                        {ins.recommendations}
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Notes */}
-                  {ins.notes && (
-                    <div className="text-[11px] text-slate-400 italic">
-                      ملاحظات إضافية: {ins.notes}
-                    </div>
-                  )}
-
-                  {/* Attached File / Photo */}
-                  {ins.reportFileName && (
-                    <div className="flex items-center justify-between gap-2 p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-xs">
-                      <div className="flex items-center gap-1.5 min-w-0">
-                        <FileCheck className="w-4 h-4 text-emerald-500 shrink-0" />
-                        <span className="font-bold text-emerald-400 truncate max-w-[160px]">{ins.reportFileName}</span>
-                      </div>
-
-                      {ins.reportFileUrl && (
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setPreviewItem({
-                              title: `مرفق الكشف - ${ins.title}`,
-                              url: ins.reportFileUrl!,
-                              fileName: ins.reportFileName!,
-                            })
-                          }
-                          className="px-2.5 py-1 rounded-lg bg-emerald-600 text-white font-bold text-[11px] flex items-center gap-1 hover:bg-emerald-500 cursor-pointer shadow-sm"
-                        >
-                          <Eye className="w-3.5 h-3.5" />
-                          <span>معاينة الصورة</span>
-                        </button>
-                      )}
-                    </div>
-                  )}
-                </div>
-              ))}
             </div>
           </div>
         </div>
@@ -786,10 +675,10 @@ export const FieldInspectionView: React.FC<FieldInspectionViewProps> = ({
               </label>
               <div className="grid grid-cols-4 gap-2">
                 {[
-                  { grade: 'A' as ConditionGrade, label: 'A - ممتاز / جديد', color: 'border-emerald-500 text-emerald-400' },
-                  { grade: 'B' as ConditionGrade, label: 'B - جيد / تشغيلي', color: 'border-blue-500 text-blue-400' },
-                  { grade: 'C' as ConditionGrade, label: 'C - متوسط / صيانة', color: 'border-amber-500 text-amber-400' },
-                  { grade: 'D' as ConditionGrade, label: 'D - حرج / متضرر', color: 'border-red-500 text-red-400' },
+                  { grade: 'A' as ConditionGrade, label: 'A - ممتاز / جديد' },
+                  { grade: 'B' as ConditionGrade, label: 'B - جيد / تشغيلي' },
+                  { grade: 'C' as ConditionGrade, label: 'C - متوسط / صيانة' },
+                  { grade: 'D' as ConditionGrade, label: 'D - حرج / متضرر' },
                 ].map((g) => (
                   <button
                     key={g.grade}
@@ -810,7 +699,7 @@ export const FieldInspectionView: React.FC<FieldInspectionViewProps> = ({
               </div>
             </div>
 
-            {/* 3. Findings / الملاحظات والنتائج الميدانية */}
+            {/* 3. Findings */}
             <div className="space-y-1.5">
               <label className="block text-xs font-bold text-slate-300">
                 الملاحظات والنتائج الميدانية (Findings) <span className="text-rose-500">*</span>
@@ -829,7 +718,7 @@ export const FieldInspectionView: React.FC<FieldInspectionViewProps> = ({
               />
             </div>
 
-            {/* 4. Recommendations / التوصيات والإجراءات المطلوب اتخاذها */}
+            {/* 4. Recommendations */}
             <div className="space-y-1.5">
               <label className="block text-xs font-bold text-slate-300">
                 التوصيات والإجراءات المطلوب اتخاذها (Recommendations)
@@ -847,7 +736,7 @@ export const FieldInspectionView: React.FC<FieldInspectionViewProps> = ({
               />
             </div>
 
-            {/* 5. Notes / ملاحظات إضافية */}
+            {/* 5. Notes */}
             <div className="space-y-1.5">
               <label className="block text-xs font-bold text-slate-300">
                 ملاحظات إضافية (اختياري)
@@ -865,38 +754,46 @@ export const FieldInspectionView: React.FC<FieldInspectionViewProps> = ({
               />
             </div>
 
-            {/* 6. File / Camera Upload - رفع ملف و فتح كاميرا الهاتف */}
-            <div className={`p-3.5 rounded-2xl border space-y-2.5 ${
-              isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-950/70 border-slate-800'
-            }`}>
+            {/* 6. Multi-file / Camera Upload (Max 5MB per file) */}
+            <div
+              className={`p-3.5 rounded-2xl border space-y-2.5 ${
+                isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-950/70 border-slate-800'
+              }`}
+            >
               <div className="flex items-center justify-between">
                 <label className="text-xs font-bold text-amber-500 flex items-center gap-1.5">
                   <Camera className="w-4 h-4" />
-                  <span>رفع ملف أو التقاط صورة عبر الكاميرا</span>
+                  <span>المرفقات والصور الميدانية (حتى 5 ميجابايت لكل ملف)</span>
                 </label>
-                <span className="text-[10px] text-slate-400">(اختياري)</span>
+                <span className="text-[10px] text-slate-400">({attachments.length} مرفق مضاف)</span>
               </div>
 
-              {/* Hidden File Inputs */}
-              {/* Direct Camera Capture */}
+              {fileError && (
+                <div className="p-2.5 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-400 text-xs flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 shrink-0" />
+                  <span>{fileError}</span>
+                </div>
+              )}
+
+              {/* Hidden Inputs */}
               <input
                 type="file"
                 accept="image/*"
                 capture="environment"
                 ref={cameraInputRef}
-                onChange={handleFileSelected}
+                onChange={handleFilesSelected}
                 className="hidden"
               />
-              {/* Device File/Image Browser */}
               <input
                 type="file"
+                multiple
                 accept="image/*,.pdf,.doc,.docx,.xls,.xlsx"
                 ref={fileInputRef}
-                onChange={handleFileSelected}
+                onChange={handleFilesSelected}
                 className="hidden"
               />
 
-              {/* Upload Buttons */}
+              {/* Upload Action Buttons */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <button
                   type="button"
@@ -904,7 +801,7 @@ export const FieldInspectionView: React.FC<FieldInspectionViewProps> = ({
                   className="py-2.5 px-3 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-slate-950 flex items-center justify-center gap-2 shadow-md transition cursor-pointer active:scale-95"
                 >
                   <Camera className="w-4 h-4" />
-                  <span>فتح كاميرا الهاتف لالتقاط صورة</span>
+                  <span>التقاط صورة عبر الكاميرا</span>
                 </button>
 
                 <button
@@ -917,63 +814,72 @@ export const FieldInspectionView: React.FC<FieldInspectionViewProps> = ({
                   }`}
                 >
                   <Upload className="w-4 h-4 text-emerald-400" />
-                  <span>اختيار ملف / صورة من الجهاز</span>
+                  <span>اختيار ملفات / صور من الجهاز</span>
                 </button>
               </div>
 
-              {/* Uploaded File Status / Preview Bar */}
-              {reportFileName ? (
-                <div className="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-xs animate-fadeIn">
-                  <div className="flex items-center gap-2 min-w-0">
-                    {reportFileType.startsWith('image/') || reportFileUrl.startsWith('data:image/') ? (
-                      <img
-                        src={reportFileUrl}
-                        alt="Preview"
-                        className="w-10 h-10 object-cover rounded-lg border border-emerald-500/40 shrink-0"
-                        referrerPolicy="no-referrer"
-                      />
-                    ) : (
-                      <FileCheck className="w-6 h-6 text-emerald-400 shrink-0" />
-                    )}
-                    <div className="min-w-0">
-                      <div className="font-bold text-emerald-400 truncate max-w-[170px]" title={reportFileName}>
-                        {reportFileName}
-                      </div>
-                      <div className="text-[10px] text-emerald-500/80">تم إرفاق الملف بنجاح</div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    {reportFileUrl && (
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setPreviewItem({
-                            title: 'معاينة المرفق الميداني',
-                            url: reportFileUrl,
-                            fileName: reportFileName,
-                          })
-                        }
-                        className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] flex items-center gap-1 cursor-pointer transition shadow-sm"
-                      >
-                        <Eye className="w-3.5 h-3.5" />
-                        <span>معاينة</span>
-                      </button>
-                    )}
-
-                    <button
-                      type="button"
-                      onClick={handleRemoveFile}
-                      className="p-1.5 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 border border-rose-500/40 transition cursor-pointer"
-                      title="إزالة الملف"
+              {/* List of Uploaded Attachments */}
+              {attachments.length > 0 ? (
+                <div className="space-y-2 pt-1">
+                  {attachments.map((att) => (
+                    <div
+                      key={att.id}
+                      className="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-xs animate-fadeIn"
                     >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
+                      <div className="flex items-center gap-2 min-w-0">
+                        {att.type?.startsWith('image/') || att.url.startsWith('data:image/') ? (
+                          <img
+                            src={att.url}
+                            alt="Preview"
+                            className="w-10 h-10 object-cover rounded-lg border border-emerald-500/40 shrink-0"
+                            referrerPolicy="no-referrer"
+                          />
+                        ) : (
+                          <FileCheck className="w-6 h-6 text-emerald-400 shrink-0" />
+                        )}
+                        <div className="min-w-0">
+                          <div className="font-bold text-emerald-400 truncate max-w-[170px]" title={att.name}>
+                            {att.name}
+                          </div>
+                          {att.size && (
+                            <div className="text-[10px] text-emerald-500/80">
+                              {(att.size / (1024 * 1024)).toFixed(2)} MB
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setPreviewItem({
+                              title: 'معاينة المرفق الميداني',
+                              url: att.url,
+                              fileName: att.name,
+                            })
+                          }
+                          className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] flex items-center gap-1 cursor-pointer transition shadow-sm"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                          <span>معاينة</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveAttachment(att.id)}
+                          className="p-1.5 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 border border-rose-500/40 transition cursor-pointer"
+                          title="إزالة الملف"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               ) : (
                 <div className="text-[11px] text-slate-400 text-center py-1">
-                  يمكنك التقاط صورة من الكاميرا مباشرة لتوثيق المشاهدات الميدانية.
+                  يمكنك إرفاق صور متعددة لتوثيق الحالة الإنشائية والمشاهدات الميدانية.
                 </div>
               )}
             </div>
@@ -1003,6 +909,72 @@ export const FieldInspectionView: React.FC<FieldInspectionViewProps> = ({
             </div>
           </div>
         </form>
+      )}
+
+      {/* QR SCANNER MODAL */}
+      {isScannerOpen && (
+        <div className="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 animate-fadeIn">
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-4 sm:p-5 w-full max-w-md space-y-4 shadow-2xl flex flex-col">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <QrCode className="w-5 h-5 text-amber-500" />
+                <h3 className="font-bold text-sm sm:text-base text-white">مسح رمز QR للوحدة</h3>
+              </div>
+              <button
+                type="button"
+                onClick={closeScanner}
+                className="p-1.5 rounded-xl bg-slate-800 text-slate-400 hover:text-white transition cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {scanError && (
+              <div className="p-3 rounded-xl bg-rose-500/20 border border-rose-500/40 text-rose-400 text-xs font-bold flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 shrink-0" />
+                <span>{scanError}</span>
+              </div>
+            )}
+
+            {/* Html5Qrcode reader container */}
+            <div className="relative rounded-2xl overflow-hidden bg-black border border-slate-800 flex flex-col items-center justify-center min-h-[280px]">
+              <div id="qr-scanner-region" className="w-full h-full" />
+              {!cameraActive && (
+                <div className="text-center p-4 space-y-2">
+                  <RefreshCw className="w-8 h-8 text-amber-500 animate-spin mx-auto" />
+                  <p className="text-xs text-slate-400">جاري تشغيل الكاميرا...</p>
+                </div>
+              )}
+            </div>
+
+            {/* Fallback File Scanner */}
+            <div className="pt-2 border-t border-slate-800 flex items-center justify-between gap-2">
+              <input
+                type="file"
+                accept="image/*"
+                ref={qrFileInputRef}
+                onChange={handleQrFileScan}
+                className="hidden"
+              />
+              <button
+                type="button"
+                onClick={() => qrFileInputRef.current?.click()}
+                className="flex-1 py-2.5 px-3 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition cursor-pointer border border-slate-700"
+              >
+                <Upload className="w-4 h-4 text-amber-500" />
+                <span>رفع صورة رمز QR من الجهاز</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={closeScanner}
+                className="py-2.5 px-4 bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 border border-rose-500/40 font-bold rounded-xl text-xs transition cursor-pointer"
+              >
+                إغلاق
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* FULL PREVIEW MODAL FOR IMAGES / ATTACHMENTS */}

@@ -85,6 +85,9 @@ CREATE TABLE IF NOT EXISTS maintenance_requests (
     completed_by VARCHAR(255),
     completed_at TIMESTAMPTZ,
     source_inspection_id VARCHAR(64),
+    attachment_name VARCHAR(255),
+    attachment_url TEXT,
+    attachments JSONB NOT NULL DEFAULT '[]'::jsonb,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -137,6 +140,7 @@ CREATE TABLE IF NOT EXISTS periodic_inspections (
     recommendations TEXT,
     report_file_name VARCHAR(255),
     report_file_url TEXT,
+    attachments JSONB NOT NULL DEFAULT '[]'::jsonb,
     created_maintenance_request_id VARCHAR(64),
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
