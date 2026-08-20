@@ -39,11 +39,8 @@ export const INITIAL_UNITS: UnitAsset[] = [
       { id: 'EQ-02', name: 'خزان ماء علوي خرساني', type: 'Plumbing', capacity: '2000 Liters', location: 'Water Deck', status: 'Active', lastServiceDate: '2026-05-10' },
       { id: 'EQ-03', name: 'مولدة طوارئ Perkins', type: 'Generator', capacity: '250 kVA', location: 'Power Room', status: 'Active', lastServiceDate: '2026-07-01' },
     ],
-    attachments: [
-      { id: 'ATT-001', name: 'المخطط المعماري الهيكلي المعتمد (3D Floor Plan).pdf', type: 'pdf', sizeMB: 4.8, uploadDate: '2026-05-12', category: 'مخططات هندسية', notes: 'معتمد رسمياً من الهيئة الهندسية والفحص الفني' },
-      { id: 'ATT-002', name: 'محضر الاستلام الأولي للمبنى وشبكة الكهرباء.pdf', type: 'pdf', sizeMB: 2.1, uploadDate: '2026-06-01', category: 'محاضر استلام', notes: 'موقع من شركة الفاو العامة للمقاولات' },
-    ],
-    attachmentsCount: 2,
+    attachments: [],
+    attachmentsCount: 0,
     lastUpdated: '2026-08-08 08:45',
   },
   {
@@ -144,7 +141,7 @@ export const INITIAL_UNITS: UnitAsset[] = [
     equipment: [
       { id: 'EQ-MYS-01', name: 'رافعة شوكية هيدروليكية 5 طن', type: 'Forklift', location: 'Warehouse Main', status: 'Active' },
     ],
-    attachmentsCount: 1,
+    attachmentsCount: 0,
     lastUpdated: '2026-08-02 16:45',
   },
   {

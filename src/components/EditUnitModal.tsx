@@ -167,31 +167,10 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
   const [rooms, setRooms] = useState<Room[]>(unit.rooms || []);
   const [equipment, setEquipment] = useState<EquipmentItem[]>(unit.equipment || []);
   const [attachments, setAttachments] = useState<UnitAttachment[]>(
-    unit.attachments && unit.attachments.length > 0
-      ? unit.attachments
-      : [
-          {
-            id: 'ATT-001',
-            name: 'المخطط المعماري الهيكلي المعتمد (3D Floor Plan).pdf',
-            type: 'pdf',
-            sizeMB: 4.8,
-            uploadDate: '2026-05-12',
-            category: 'مخططات هندسية',
-            notes: 'معتمد رسمياً من الهيئة الهندسية والفحص الفني',
-          },
-          {
-            id: 'ATT-002',
-            name: 'محضر الاستلام الأولي للمبنى وشبكة الكهرباء.pdf',
-            type: 'pdf',
-            sizeMB: 2.1,
-            uploadDate: '2026-06-01',
-            category: 'محاضر استلام',
-            notes: 'موقع من شركة الفاو العامة للمقاولات',
-          },
-        ]
+    unit.attachments && Array.isArray(unit.attachments) ? unit.attachments : []
   );
   const [attachmentsCount, setAttachmentsCount] = useState<number>(
-    unit.attachments ? unit.attachments.length : unit.attachmentsCount ?? 0
+    unit.attachments && Array.isArray(unit.attachments) ? unit.attachments.length : 0
   );
 
   // Attachment Modal & Form States

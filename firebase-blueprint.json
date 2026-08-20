@@ -1,0 +1,65 @@
+{
+  "entities": {
+    "units": {
+      "title": "Unit Assets",
+      "description": "Fixed assets, caravans, and engineered buildings in Midland Oil Company fields",
+      "type": "object",
+      "properties": {
+        "code": { "type": "string" },
+        "name": { "type": "string" },
+        "type": { "type": "string" },
+        "governorate": { "type": "string" },
+        "field": { "type": "string" },
+        "conditionGrade": { "type": "string" },
+        "status": { "type": "string" }
+      },
+      "required": ["code", "name", "governorate", "field"]
+    },
+    "maintenance_requests": {
+      "title": "Maintenance Requests",
+      "description": "Maintenance orders and status",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "unitCode": { "type": "string" },
+        "status": { "type": "string" },
+        "priority": { "type": "string" }
+      },
+      "required": ["id", "unitCode", "status"]
+    },
+    "system_users": {
+      "title": "System Users",
+      "description": "User accounts and credentials",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "username": { "type": "string" },
+        "name": { "type": "string" },
+        "role": { "type": "string" }
+      },
+      "required": ["id", "username", "role"]
+    },
+    "audit_logs": {
+      "title": "Audit Logs",
+      "description": "System transaction and action logs",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "action": { "type": "string" },
+        "user": { "type": "string" },
+        "timestamp": { "type": "string" }
+      },
+      "required": ["id", "action", "timestamp"]
+    }
+  },
+  "firestore": {
+    "units": { "path": "units/{unitId}" },
+    "maintenance_requests": { "path": "maintenance_requests/{reqId}" },
+    "occupancy_records": { "path": "occupancy_records/{occId}" },
+    "periodic_inspections": { "path": "periodic_inspections/{inspId}" },
+    "audit_logs": { "path": "audit_logs/{logId}" },
+    "org_entities": { "path": "org_entities/{entityId}" },
+    "system_users": { "path": "system_users/{userId}" },
+    "system_settings": { "path": "system_settings/{settingId}" }
+  }
+}

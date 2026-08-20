@@ -1530,7 +1530,7 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            المرفقات والمخططات الرسمية ({toArabicDigits(selectedUnit.attachmentsCount)})
+            المرفقات والمخططات الرسمية ({toArabicDigits(selectedUnit.attachments?.length || 0)})
           </button>
         </div>
 
@@ -1610,43 +1610,24 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
           <div className="space-y-4">
             <div className="flex items-center justify-between pb-2 border-b border-slate-800/40">
               <span className={`text-xs font-bold ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
-                الوثائق والمرفقات الرقمية الأرشيفية للوحدة ({toArabicDigits(selectedUnit.attachments?.length || selectedUnit.attachmentsCount || 0)})
+                الوثائق والمرفقات الرقمية الأرشيفية للوحدة ({toArabicDigits(selectedUnit.attachments?.length || 0)})
               </span>
               <span className="text-[11px] text-slate-400 font-mono">
                 معاينة وتنزيل المرفقات الرقمية
               </span>
             </div>
 
-            {(!selectedUnit.attachments || selectedUnit.attachments.length === 0) && selectedUnit.attachmentsCount === 0 ? (
+            {(!selectedUnit.attachments || selectedUnit.attachments.length === 0) ? (
               <div className={`p-8 border border-dashed rounded-2xl text-center space-y-2 ${
                 isLight ? 'bg-slate-50 border-slate-300' : 'bg-slate-950/60 border-slate-800'
               }`}>
                 <Paperclip className={`w-8 h-8 mx-auto opacity-50 ${isLight ? 'text-slate-400' : 'text-slate-600'}`} />
                 <p className={`text-xs font-bold ${isLight ? 'text-slate-800' : 'text-slate-300'}`}>لا توجد مرفقات أو مخططات رسمية مضافة لهذه المنشأة.</p>
-                <p className={`text-[11px] ${isLight ? 'text-slate-500' : 'text-slate-500'}`}>يمكنك إضافة وتعديل المرفقات الرقمية من خلال نافذة تعديل كافة بيانات وتصميم المنشأة.</p>
+                <p className={`text-[11px] ${isLight ? 'text-slate-500' : 'text-slate-500'}`}>يمكنك إضافة وتعديل المرفقات الرقمية يدوياً من خلال نافذة تعديل كافة بيانات وتصميم المنشأة.</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                {(selectedUnit.attachments && selectedUnit.attachments.length > 0 ? selectedUnit.attachments : [
-                  {
-                    id: 'ATT-001',
-                    name: 'المخطط_الانشائي_المعتمد.pdf',
-                    type: 'pdf',
-                    sizeMB: 2.4,
-                    uploadDate: '2026-05-12',
-                    category: 'مخططات هندسية',
-                    notes: 'المخطط الإنشائي الأساسي المعماري معتمد رسمياً',
-                  },
-                  ...(selectedUnit.attachmentsCount > 1 ? [{
-                    id: 'ATT-002',
-                    name: 'محضر_الاستلام_الفني.pdf',
-                    type: 'pdf',
-                    sizeMB: 1.1,
-                    uploadDate: '2026-06-01',
-                    category: 'محاضر استلام',
-                    notes: 'محضر الاستلام الأولي من شركة المقاولات',
-                  }] : [])
-                ]).map((att) => (
+                {selectedUnit.attachments.map((att) => (
                   <div key={att.id} className={`p-3.5 border rounded-xl flex items-start justify-between gap-3 text-xs transition ${
                     isLight ? 'bg-slate-50 border-slate-200 hover:border-amber-400' : 'bg-slate-950 border-slate-800 hover:border-slate-700'
                   }`}>

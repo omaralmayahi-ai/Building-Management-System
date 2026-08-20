@@ -29,6 +29,7 @@ import {
 } from 'lucide-react';
 import {
   UnitAsset,
+  UnitAttachment,
   ConditionGrade,
   GovernorateRef,
   OilfieldRef,
@@ -681,6 +682,24 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
 
     const finalDept = selectedDepartments.length > 0 ? selectedDepartments.join(' ، ') : (department || 'غير محدد');
 
+    const convertedAttachments: UnitAttachment[] = attachments.map((att, idx) => ({
+      id: att.id || `ATT-${Date.now()}-${idx}`,
+      name: att.name,
+      type: att.name.toLowerCase().endsWith('.pdf')
+        ? 'pdf'
+        : att.name.toLowerCase().match(/\.(jpg|jpeg|png|webp|gif|svg|bmp)$/)
+        ? 'image'
+        : att.name.toLowerCase().match(/\.(mp4|avi|mov|webm)$/)
+        ? 'video'
+        : 'doc',
+      sizeMB: att.size ? parseFloat(att.size) || 1.5 : 1.5,
+      uploadDate: att.uploadDate || toArabicDigits(new Date().toLocaleDateString('ar-IQ')),
+      category: 'وثائق ومرفقات رسمية',
+      notes: 'ملف مرفق تم رفعه بواسطة المستخدم',
+      fileUrl: att.url,
+      url: att.url,
+    }));
+
     const newUnit: UnitAsset = {
       id: generatedCode,
       code: generatedCode,
@@ -711,7 +730,8 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
       floorsCount: Number(floorsCount),
       rooms: aggregatedRoomsList,
       equipment: selectedEquipmentList,
-      attachmentsCount: attachments.length,
+      attachments: convertedAttachments,
+      attachmentsCount: convertedAttachments.length,
       lastUpdated: toArabicDigits(new Date().toLocaleDateString('ar-IQ')),
     };
 
