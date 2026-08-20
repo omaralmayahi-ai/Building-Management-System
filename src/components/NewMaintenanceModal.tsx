@@ -24,7 +24,15 @@ import {
   FileText,
   Lock,
 } from 'lucide-react';
-import { MaintenanceRequest, MaintenancePriority, UnitAsset, SystemUser, ReportAttachment } from '../types';
+import {
+  MaintenanceRequest,
+  MaintenancePriority,
+  UnitAsset,
+  SystemUser,
+  ReportAttachment,
+  MaintenanceDepartmentRef,
+} from '../types';
+import { INITIAL_MAINTENANCE_DEPARTMENTS } from '../data/mockData';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
 
@@ -36,6 +44,7 @@ interface NewMaintenanceModalProps {
   onClose: () => void;
   isLight?: boolean;
   currentUser?: SystemUser | null;
+  maintenanceDepartments?: MaintenanceDepartmentRef[];
 }
 
 export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
@@ -46,6 +55,7 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
   onClose,
   isLight = false,
   currentUser,
+  maintenanceDepartments = INITIAL_MAINTENANCE_DEPARTMENTS,
 }) => {
   const isLocked = isUnitLocked || (currentUser?.role === 'موظف الكشف والصيانة' && Boolean(initialUnitCode));
   const [unitCode, setUnitCode] = useState(initialUnitCode || (units[0]?.code ?? 'WS-AHD-BLD-014'));
@@ -65,6 +75,10 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
   const [requestDate, setRequestDate] = useState(new Date().toISOString().split('T')[0]);
   const [issue, setIssue] = useState('');
   const [priority, setPriority] = useState<MaintenancePriority>('normal');
+  const [maintenanceDepartment, setMaintenanceDepartment] = useState<string>(() => {
+    const activeDepts = maintenanceDepartments.filter((d) => d.status === 'active');
+    return activeDepts[0]?.nameAr || 'الصيانة الكهربائية';
+  });
   const [assignedTo, setAssignedTo] = useState('فريق الصيانة الميدانية بالموقع');
   const [validationError, setValidationError] = useState('');
 
@@ -167,6 +181,7 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
       priority,
       slaDeadline: new Date(Date.now() + 86400000 * 2).toISOString(),
       assignedTo,
+      maintenanceDepartment: maintenanceDepartment || 'الصيانة الكهربائية',
       status: 'open',
       createdAt: requestDate || new Date().toISOString().split('T')[0],
       reportedBy: currentUser?.name || 'غير معروف',
@@ -801,15 +816,46 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
                 </select>
               </div>
 
-              <div className="sm:col-span-2">
+              <div>
                 <label className={`block font-bold mb-1 text-xs ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
-                  الجهة / الفريق المكلف بالصيانة:
+                  جهة الصيانة المختصة (توجيه الطلب):
+                </label>
+                <select
+                  value={maintenanceDepartment}
+                  onChange={(e) => setMaintenanceDepartment(e.target.value)}
+                  className={`w-full rounded-xl p-2.5 font-bold outline-none cursor-pointer border transition ${
+                    isLight
+                      ? 'bg-white border-slate-200 text-slate-900 focus:border-amber-500'
+                      : 'bg-slate-900 border-slate-800 text-slate-100 focus:border-amber-500'
+                  }`}
+                  required
+                >
+                  {maintenanceDepartments
+                    .filter((d) => d.status === 'active')
+                    .map((dept) => (
+                      <option key={dept.id} value={dept.nameAr}>
+                        {dept.nameAr} {dept.nameEn ? `(${dept.nameEn})` : ''}
+                      </option>
+                    ))}
+                  {maintenanceDepartments.filter((d) => d.status === 'active').length === 0 && (
+                    <>
+                      <option value="الصيانة الكهربائية">الصيانة الكهربائية</option>
+                      <option value="الصيانة الميكانيكية">الصيانة الميكانيكية</option>
+                      <option value="الصيانة الإنشائية">الصيانة الإنشائية</option>
+                    </>
+                  )}
+                </select>
+              </div>
+
+              <div>
+                <label className={`block font-bold mb-1 text-xs ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                  الفريق الفني / المقاول المكلف:
                 </label>
                 <input
                   type="text"
                   value={assignedTo}
                   onChange={(e) => setAssignedTo(e.target.value)}
-                  placeholder="اسم الفريق الفني أو المقاول المكلف..."
+                  placeholder="اسم الفني أو الفرقة المكلفة..."
                   className={`w-full rounded-xl p-2.5 font-bold outline-none border transition ${
                     isLight
                       ? 'bg-white border-slate-200 text-slate-900 focus:border-amber-500'

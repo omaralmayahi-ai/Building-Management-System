@@ -26,14 +26,16 @@ export const UnitQrCodeModal: React.FC<UnitQrCodeModalProps> = ({
   const isLight = theme === 'light';
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
 
-  // Payload encoded inside the Quick Access QR Code: Web link for immediate smart inspection
+  // Payload encoded inside the Quick Access QR Code:
+  // When scanned from OUTSIDE the app (camera/browser) -> Directly leads to the unit's location on the map & GPS directions
+  // When scanned from INSIDE the app -> In-app scanner detects the code and offers the 3 choices (Location, Inspection, Maintenance)
   const appBaseUrl =
     (import.meta as any).env?.VITE_APP_URL ||
     (import.meta as any).env?.APP_URL ||
     (typeof window !== 'undefined'
       ? `${window.location.protocol}//${window.location.host}`
       : '');
-  const qrPayload = `${appBaseUrl}/?view=inspect&unit=${encodeURIComponent(unit.code)}`;
+  const qrPayload = `${appBaseUrl}/?view=map&unit=${encodeURIComponent(unit.code)}&lat=${unit.coordinates?.lat || ''}&lng=${unit.coordinates?.lng || ''}&name=${encodeURIComponent(unit.name || '')}&gov=${encodeURIComponent(unit.governorate || '')}&field=${encodeURIComponent(unit.field || '')}&src=external_qr`;
 
   useEffect(() => {
     let isMounted = true;
@@ -295,14 +297,30 @@ export const UnitQrCodeModal: React.FC<UnitQrCodeModalProps> = ({
               </div>
             </div>
 
-            {/* Bottom Certification Badge */}
-            <div
-              className={`flex items-center justify-center gap-1.5 text-[10px] font-bold pt-1 ${
-                isLight ? 'text-emerald-700' : 'text-emerald-400'
-              }`}
-            >
-              <ShieldCheck className="w-3.5 h-3.5" />
-              <span>رمز وصول سريع موثق إلكترونياً ومربوط بالدليل الجغرافي MOC</span>
+            {/* Bottom Certification Badge & Behavior Notice */}
+            <div className="space-y-2 pt-1 border-t border-slate-800/40">
+              <div
+                className={`flex items-center justify-center gap-1.5 text-[10px] font-bold ${
+                  isLight ? 'text-emerald-700' : 'text-emerald-400'
+                }`}
+              >
+                <ShieldCheck className="w-3.5 h-3.5" />
+                <span>رمز وصول سريع موثق إلكترونياً ومربوط بالدليل الجغرافي MOC</span>
+              </div>
+              <div
+                className={`p-2.5 rounded-xl text-[10px] leading-relaxed text-right border ${
+                  isLight
+                    ? 'bg-amber-50/80 text-amber-900 border-amber-200'
+                    : 'bg-amber-500/10 text-amber-300 border-amber-500/20'
+                }`}
+              >
+                <div className="font-bold flex items-center gap-1 mb-0.5 text-amber-500">
+                  <Compass className="w-3 h-3" />
+                  <span>آلية المسح الذكي المزدوج:</span>
+                </div>
+                <p>• <strong>من خارج البرنامج (كاميرا الهاتف):</strong> يقود مباشرة إلى موقع المنشأة على الخريطة التفاعلية والاتجاهات في Google Maps.</p>
+                <p>• <strong>من داخل البرنامج:</strong> يتيح خيارات الوصول السريع (خيار الموقع / خيار الكشف / خيار الصيانة).</p>
+              </div>
             </div>
           </div>
         </div>

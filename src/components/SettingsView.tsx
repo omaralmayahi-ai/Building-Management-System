@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
   Settings,
+  Plus,
   PlusCircle,
   Edit2,
   Trash2,
@@ -50,6 +51,7 @@ import {
   SiteRef,
   RoomTypeRef,
   EquipmentTypeRef,
+  MaintenanceDepartmentRef,
   SystemBranding,
   SystemUser,
   UserAccountRole,
@@ -86,6 +88,7 @@ interface SettingsViewProps {
   sites: SiteRef[];
   roomTypes: RoomTypeRef[];
   equipmentTypes: EquipmentTypeRef[];
+  maintenanceDepartments?: MaintenanceDepartmentRef[];
 
   orgEntities?: OrgEntity[];
   onAddOrgEntity?: (newEntity: OrgEntity) => void;
@@ -117,6 +120,13 @@ interface SettingsViewProps {
   onAddEquipmentType: (eq: EquipmentTypeRef) => void;
   onUpdateEquipmentType: (eq: EquipmentTypeRef) => void;
   onDeleteEquipmentType: (id: string) => void;
+
+  onAddMaintenanceDepartment?: (dept: MaintenanceDepartmentRef) => void;
+  onUpdateMaintenanceDepartment?: (dept: MaintenanceDepartmentRef) => void;
+  onDeleteMaintenanceDepartment?: (id: string) => void;
+  onToggleMaintenanceDepartmentStatus?: (id: string) => void;
+  onClearMaintenanceDepartments?: () => void;
+  onResetMaintenanceDepartmentsToDefault?: () => void;
 
   onToggleStatus: (
     category: 'unitType' | 'governorate' | 'oilfield' | 'site' | 'roomType' | 'equipmentType',
@@ -179,6 +189,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   sites,
   roomTypes,
   equipmentTypes,
+  maintenanceDepartments = [],
   orgEntities = [],
   onAddOrgEntity,
   onUpdateOrgEntity,
@@ -203,6 +214,12 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   onAddEquipmentType,
   onUpdateEquipmentType,
   onDeleteEquipmentType,
+  onAddMaintenanceDepartment,
+  onUpdateMaintenanceDepartment,
+  onDeleteMaintenanceDepartment,
+  onToggleMaintenanceDepartmentStatus,
+  onClearMaintenanceDepartments,
+  onResetMaintenanceDepartmentsToDefault,
   onToggleStatus,
   onClearUnits,
   onResetUnitsToDefault,
@@ -238,6 +255,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     | 'unit_types'
     | 'rooms'
     | 'equipment'
+    | 'maintenance_depts'
     | 'audit'
     | 'reset'
   >('branding');
@@ -340,7 +358,15 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
   // Confirm Delete Modal State
   const [deleteConfirm, setDeleteConfirm] = useState<{
-    type: 'governorate' | 'oilfield' | 'site' | 'unitType' | 'roomType' | 'equipmentType' | 'user';
+    type:
+      | 'governorate'
+      | 'oilfield'
+      | 'site'
+      | 'unitType'
+      | 'roomType'
+      | 'equipmentType'
+      | 'maintenanceDepartment'
+      | 'user';
     id: string;
     name: string;
   } | null>(null);
@@ -396,6 +422,12 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const [eqGeometry, setEqGeometry] = useState<'box' | 'cylinder' | 'wall_panel' | 'camera' | 'pump'>('box');
   const [eqCapacity, setEqCapacity] = useState('قياسي');
 
+  // Maintenance Departments
+  const [mdeptCode, setMdeptCode] = useState('');
+  const [mdeptNameAr, setMdeptNameAr] = useState('');
+  const [mdeptNameEn, setMdeptNameEn] = useState('');
+  const [mdeptDescription, setMdeptDescription] = useState('');
+
   // Inline User Form State (Horizontal Design)
   const [showUserInlineForm, setShowUserInlineForm] = useState(false);
   const [userFormEditingId, setUserFormEditingId] = useState<string | null>(null);
@@ -404,6 +436,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const [userPassword, setUserPassword] = useState('123');
   const [userRole, setUserRole] = useState<UserAccountRole>('مشغل النظام');
   const [userPhone, setUserPhone] = useState('');
+  const [userMaintDept, setUserMaintDept] = useState<string>('');
   const [userStatus, setUserStatus] = useState<'active' | 'disabled'>('active');
   const [showFormPassword, setShowFormPassword] = useState(false);
   const [userFormError, setUserFormError] = useState<string | null>(null);
@@ -417,6 +450,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     setUserPassword('123');
     setUserRole('مشغل النظام');
     setUserPhone('');
+    setUserMaintDept(maintenanceDepartments[0]?.nameAr || 'الصيانة العامة');
     setUserStatus('active');
     setUserFormError(null);
     setShowFormPassword(false);
@@ -439,6 +473,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     setUserPassword(usr.password || '123');
     setUserRole(usr.role || 'مشغل النظام');
     setUserPhone(usr.phone || '');
+    setUserMaintDept(usr.maintenanceDepartment || maintenanceDepartments[0]?.nameAr || 'الصيانة العامة');
     setUserStatus(usr.status || 'active');
     setUserFormError(null);
     setShowFormPassword(false);
@@ -509,6 +544,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         password: cleanPassword,
         role: userFormEditingId === 'USR-101' ? 'مدير النظام' : userRole,
         phone: cleanPhone,
+        maintenanceDepartment: userRole === 'موظف الصيانة' ? (userMaintDept || maintenanceDepartments[0]?.nameAr || 'الصيانة العامة') : undefined,
         status: userFormEditingId === 'USR-101' ? 'active' : userStatus,
         lastActive: existing?.lastActive || 'الآن',
       });
@@ -521,6 +557,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         password: cleanPassword,
         role: userRole,
         phone: cleanPhone,
+        maintenanceDepartment: userRole === 'موظف الصيانة' ? (userMaintDept || maintenanceDepartments[0]?.nameAr || 'الصيانة العامة') : undefined,
         status: userStatus,
         lastActive: 'الآن',
       });
@@ -567,6 +604,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     setEqGeometry('box');
     setEqCapacity('قياسي');
 
+    setMdeptCode('');
+    setMdeptNameAr('');
+    setMdeptNameEn('');
+    setMdeptDescription('');
+
     setShowModal(true);
   };
 
@@ -606,6 +648,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       setEqNameEn(item.nameEn || '');
       setEqGeometry(item.renderGeometry || 'box');
       setEqCapacity(item.defaultCapacity || 'قياسي');
+    } else if (activeTab === 'maintenance_depts') {
+      setMdeptCode(item.code || '');
+      setMdeptNameAr(item.nameAr || '');
+      setMdeptNameEn(item.nameEn || '');
+      setMdeptDescription(item.description || '');
     }
 
     setShowModal(true);
@@ -746,6 +793,28 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         });
         triggerSaveToast('تم إضافة المعدة المرجعية الجديدة');
       }
+    } else if (activeTab === 'maintenance_depts') {
+      if (!mdeptNameAr) return;
+      if (editingItem) {
+        onUpdateMaintenanceDepartment?.({
+          ...editingItem,
+          nameAr: mdeptNameAr,
+          nameEn: mdeptNameEn || mdeptNameAr,
+          code: (mdeptCode || mdeptNameAr.slice(0, 4)).toUpperCase(),
+          description: mdeptDescription,
+        });
+        triggerSaveToast('تم تحديث بيانات جهة الصيانة بنجاح');
+      } else {
+        onAddMaintenanceDepartment?.({
+          id: `MAINT-DEPT-${Date.now()}`,
+          nameAr: mdeptNameAr,
+          nameEn: mdeptNameEn || mdeptNameAr,
+          code: (mdeptCode || mdeptNameAr.slice(0, 4)).toUpperCase(),
+          description: mdeptDescription,
+          status: 'active',
+        });
+        triggerSaveToast('تم إضافة جهة الصيانة الجديدة بنجاح');
+      }
     }
 
     setShowModal(false);
@@ -768,6 +837,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     else if (type === 'unitType') onDeleteUnitType(id);
     else if (type === 'roomType') onDeleteRoomType(id);
     else if (type === 'equipmentType') onDeleteEquipmentType(id);
+    else if (type === 'maintenanceDepartment') onDeleteMaintenanceDepartment?.(id);
     else if (type === 'user') onDeleteUser(id);
 
     triggerSaveToast(`تم حذف العنصر بنجاح`);
@@ -1085,6 +1155,31 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               }`}
             >
               {equipmentTypes.length}
+            </span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('maintenance_depts')}
+            className={`w-full text-right p-3 rounded-xl font-bold transition flex items-center justify-between cursor-pointer ${
+              activeTab === 'maintenance_depts'
+                ? isLight
+                  ? 'bg-amber-100 text-amber-900 border border-amber-300'
+                  : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                : isLight
+                ? 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'
+            }`}
+          >
+            <span className="flex items-center gap-2">
+              <Wrench className={`w-4 h-4 ${isLight ? 'text-amber-600' : 'text-amber-400'}`} />
+              <span>جهات وأقسام الصيانة</span>
+            </span>
+            <span
+              className={`px-2 py-0.5 rounded-full text-[10px] font-mono ${
+                isLight ? 'bg-slate-100 text-slate-600' : 'bg-slate-950 text-slate-400'
+              }`}
+            >
+              {maintenanceDepartments.length}
             </span>
           </button>
 
@@ -1718,12 +1813,51 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                             value="موظف الكشف والصيانة"
                             className={isLight ? 'bg-white text-orange-800' : 'bg-slate-900 text-orange-400'}
                           >
-                            موظف الكشف والصيانة (Field Inspector)
+                            موظف الكشف الميداني (Field Inspector)
+                          </option>
+                          <option
+                            value="موظف الصيانة"
+                            className={isLight ? 'bg-white text-amber-800' : 'bg-slate-900 text-amber-400'}
+                          >
+                            موظف الصيانة (Maintenance Staff)
                           </option>
                         </select>
                       </div>
 
-                      {/* 5. Phone Number (Optional) */}
+                      {/* 5. Maintenance Department Selection (If role is موظف الصيانة) */}
+                      {userRole === 'موظف الصيانة' && (
+                        <div className="space-y-1.5">
+                          <label
+                            className={`block text-[11px] font-bold ${
+                              isLight ? 'text-amber-900' : 'text-amber-400'
+                            }`}
+                          >
+                            جهة الصيانة المخصصة <span className="text-rose-500">*</span>
+                          </label>
+                          <select
+                            required
+                            value={userMaintDept}
+                            onChange={(e) => setUserMaintDept(e.target.value)}
+                            className={`w-full rounded-xl px-2.5 py-2 text-xs font-bold focus:outline-none transition cursor-pointer border ${
+                              isLight
+                                ? 'bg-amber-50 border-amber-300 text-amber-950 focus:border-amber-600 focus:ring-1 focus:ring-amber-500'
+                                : 'bg-slate-950 border-amber-500/40 text-amber-400 focus:border-amber-500'
+                            }`}
+                          >
+                            {maintenanceDepartments.map((dept) => (
+                              <option
+                                key={dept.id}
+                                value={dept.nameAr}
+                                className={isLight ? 'bg-white text-slate-900' : 'bg-slate-900 text-slate-100'}
+                              >
+                                {dept.nameAr}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+
+                      {/* 6. Phone Number */}
                       <div className="space-y-1.5">
                         <label
                           className={`block text-[11px] font-bold ${
@@ -1748,7 +1882,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                         />
                       </div>
 
-                      {/* 6. Status Toggle Button */}
+                      {/* 7. Status Toggle Button */}
                       <div className="space-y-1.5">
                         <label
                           className={`block text-[11px] font-bold ${
@@ -1799,6 +1933,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                         {userRole === 'مدير النظام' && '• صلاحيات كاملة لإدارة الوحدات والمستخدمين وضبط النظام'}
                         {userRole === 'مشغل النظام' && '• صلاحيات تشغيلية وتعديل ومطابقة بدون تعديل إعدادات النظام'}
                         {userRole === 'مستخدم' && '• صلاحيات استعراض وبحث وطباعة التقارير وإجراء التفتيش الدوري'}
+                        {userRole === 'موظف الكشف والصيانة' && '• صلاحيات المسح الميداني وتوثيق الكشف الدوري ورفع بلاغات الصيانة'}
+                        {userRole === 'موظف الصيانة' && '• صلاحيات استقبال ومعالجة طلبات الصيانة الموجهة لقسمه وتوثيق إنجازها فقط'}
                       </div>
 
                       <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
@@ -1953,7 +2089,19 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
                           {/* 3. Password */}
                           <td className="p-3 font-mono">
-                            {showPasswordsTable ? (
+                            {isPrimaryAdmin && !isCurrentAdmin ? (
+                              <span
+                                className={`text-[11px] font-bold px-2 py-0.5 rounded border inline-flex items-center gap-1 opacity-80 ${
+                                  isLight
+                                    ? 'text-amber-900 bg-amber-50 border-amber-300'
+                                    : 'text-amber-400 bg-amber-500/10 border-amber-500/30'
+                                }`}
+                                title="كلمة مرور مدير النظام محجوبة ولا تظهر إلا لحساب المدير نفسه"
+                              >
+                                <Lock className="w-3 h-3" />
+                                <span>•••••••• (محمية)</span>
+                              </span>
+                            ) : showPasswordsTable ? (
                               <span
                                 className={`font-bold px-2 py-0.5 rounded border ${
                                   isLight
@@ -1976,24 +2124,46 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
                           {/* 4. Role */}
                           <td className="p-3">
-                            <span
-                              className={`px-2.5 py-1 rounded-full font-bold text-[10px] border inline-flex items-center gap-1 ${
-                                isAdm
-                                  ? isLight
-                                    ? 'bg-amber-100 text-amber-900 border-amber-300'
-                                    : 'bg-amber-500/20 text-amber-400 border-amber-500/40'
-                                  : isOp
-                                  ? isLight
-                                    ? 'bg-sky-100 text-sky-900 border-sky-300'
-                                    : 'bg-sky-500/20 text-sky-400 border-sky-500/40'
-                                  : isLight
-                                  ? 'bg-emerald-100 text-emerald-900 border-emerald-300'
-                                  : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40'
-                              }`}
-                            >
-                              <ShieldCheck className="w-3 h-3" />
-                              <span>{usr.role}</span>
-                            </span>
+                            <div className="flex flex-col gap-1 items-start">
+                              <span
+                                className={`px-2.5 py-1 rounded-full font-bold text-[10px] border inline-flex items-center gap-1 ${
+                                  isAdm
+                                    ? isLight
+                                      ? 'bg-amber-100 text-amber-900 border-amber-300'
+                                      : 'bg-amber-500/20 text-amber-400 border-amber-500/40'
+                                    : isOp
+                                    ? isLight
+                                      ? 'bg-sky-100 text-sky-900 border-sky-300'
+                                      : 'bg-sky-500/20 text-sky-400 border-sky-500/40'
+                                    : usr.role === 'موظف الصيانة'
+                                    ? isLight
+                                      ? 'bg-amber-100 text-amber-900 border-amber-300'
+                                      : 'bg-amber-500/20 text-amber-400 border-amber-500/40'
+                                    : usr.role === 'موظف الكشف والصيانة'
+                                    ? isLight
+                                      ? 'bg-orange-100 text-orange-900 border-orange-300'
+                                      : 'bg-orange-500/20 text-orange-400 border-orange-500/40'
+                                    : isLight
+                                    ? 'bg-emerald-100 text-emerald-900 border-emerald-300'
+                                    : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40'
+                                }`}
+                              >
+                                <ShieldCheck className="w-3 h-3" />
+                                <span>{usr.role}</span>
+                              </span>
+                              {usr.role === 'موظف الصيانة' && usr.maintenanceDepartment && (
+                                <span
+                                  className={`text-[10px] px-2 py-0.5 rounded-md border font-semibold flex items-center gap-1 ${
+                                    isLight
+                                      ? 'bg-slate-100 text-amber-900 border-amber-200'
+                                      : 'bg-slate-900 text-amber-300 border-amber-500/30'
+                                  }`}
+                                >
+                                  <Wrench className="w-2.5 h-2.5" />
+                                  <span>{usr.maintenanceDepartment}</span>
+                                </span>
+                              )}
+                            </div>
                           </td>
 
                           {/* 5. Phone */}
@@ -2606,6 +2776,150 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                         </td>
                       </tr>
                     ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 7.5: Maintenance Departments Table */}
+          {activeTab === 'maintenance_depts' && (
+            <div className="space-y-3">
+              <div
+                className={`flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b gap-3 ${
+                  isLight ? 'border-slate-200' : 'border-slate-800'
+                }`}
+              >
+                <div>
+                  <h3
+                    className={`font-bold text-sm flex items-center gap-2 ${
+                      isLight ? 'text-slate-900' : 'text-slate-100'
+                    }`}
+                  >
+                    <Wrench className={`w-4 h-4 ${isLight ? 'text-amber-600' : 'text-amber-400'}`} />
+                    <span>سجل جهات وأقسام الصيانة الهندسية والفنية</span>
+                  </h3>
+                  <p className={`text-xs mt-0.5 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                    إدارة جهات الصيانة (الكهربائية، الميكانيكية، الإنشائية، تكييف، أجهزة دقيقة...) وتوجيه البلاغات إليها
+                  </p>
+                </div>
+                <button
+                  onClick={handleOpenCreateModal}
+                  className={`font-bold px-3.5 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow transition cursor-pointer ${
+                    isLight
+                      ? 'bg-amber-600 hover:bg-amber-700 text-white shadow-amber-600/20'
+                      : 'bg-amber-500 hover:bg-amber-400 text-slate-950'
+                  }`}
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>إضافة جهة صيانة جديدة</span>
+                </button>
+              </div>
+
+              <div
+                className={`overflow-x-auto rounded-2xl border shadow-lg ${
+                  isLight
+                    ? 'bg-white border-slate-200 shadow-slate-200/50'
+                    : 'bg-slate-950/60 border-slate-800/80'
+                }`}
+              >
+                <table className="w-full text-right text-xs">
+                  <thead>
+                    <tr
+                      className={`border-b ${
+                        isLight
+                          ? 'bg-slate-50 text-slate-700 border-slate-200 font-bold'
+                          : 'bg-slate-950 text-slate-400 border-slate-800'
+                      }`}
+                    >
+                      <th className="p-3 font-bold">كود الجهة</th>
+                      <th className="p-3 font-bold">اسم جهة / قسم الصيانة</th>
+                      <th className="p-3 font-bold">الاسم بالإنجليزية</th>
+                      <th className="p-3 font-bold">الوصف والتخصص</th>
+                      <th className="p-3 font-bold text-center">الحالة</th>
+                      <th className="p-3 font-bold text-center">إجراءات</th>
+                    </tr>
+                  </thead>
+                  <tbody
+                    className={`divide-y ${
+                      isLight
+                        ? 'divide-slate-200 text-slate-800'
+                        : 'divide-slate-800/80 text-slate-300'
+                    }`}
+                  >
+                    {maintenanceDepartments.map((dept) => (
+                      <tr
+                        key={dept.id}
+                        className={`transition ${isLight ? 'hover:bg-slate-50' : 'hover:bg-slate-800/40'}`}
+                      >
+                        <td className="p-3 font-mono font-bold text-amber-500">{dept.code}</td>
+                        <td className="p-3 font-bold">
+                          <div className="flex items-center gap-2">
+                            <Wrench className={`w-3.5 h-3.5 ${isLight ? 'text-amber-600' : 'text-amber-400'}`} />
+                            <span className={isLight ? 'text-slate-900' : 'text-slate-100'}>{dept.nameAr}</span>
+                          </div>
+                        </td>
+                        <td className="p-3 font-mono text-slate-400">{dept.nameEn || dept.nameAr}</td>
+                        <td className="p-3 text-slate-400">{dept.description || '--'}</td>
+                        <td className="p-3 text-center">
+                          <span
+                            className={`px-2.5 py-0.5 rounded font-bold ${
+                              dept.status === 'active'
+                                ? isLight
+                                  ? 'bg-emerald-100 text-emerald-900 border border-emerald-300'
+                                  : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                                : isLight
+                                ? 'bg-slate-100 text-slate-600'
+                                : 'bg-slate-800 text-slate-500'
+                            }`}
+                          >
+                            {dept.status === 'active' ? 'نشط' : 'معطل'}
+                          </span>
+                        </td>
+                        <td className="p-3 text-center">
+                          <div className="flex items-center justify-center gap-2">
+                            <button
+                              onClick={() => onToggleMaintenanceDepartmentStatus?.(dept.id)}
+                              className="p-1 text-slate-400 hover:text-amber-400 transition cursor-pointer"
+                              title="تبديل الحالة"
+                            >
+                              {dept.status === 'active' ? (
+                                <ToggleRight className="w-5 h-5 text-emerald-400" />
+                              ) : (
+                                <ToggleLeft className="w-5 h-5 text-slate-500" />
+                              )}
+                            </button>
+                            <button
+                              onClick={() => handleOpenEditModal(dept)}
+                              className="p-1 text-slate-400 hover:text-amber-400 transition cursor-pointer"
+                              title="تعديل"
+                            >
+                              <Edit2 className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() =>
+                                setDeleteConfirm({
+                                  type: 'maintenanceDepartment',
+                                  id: dept.id,
+                                  name: dept.nameAr,
+                                })
+                              }
+                              className="p-1 text-slate-400 hover:text-red-400 transition cursor-pointer"
+                              title="حذف"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                    {maintenanceDepartments.length === 0 && (
+                      <tr>
+                        <td colSpan={6} className="p-8 text-center text-slate-500">
+                          لا توجد جهات صيانة مسجلة حالياً. اضغط على «إضافة جهة صيانة جديدة» لإضافة أقسام الصيانة.
+                        </td>
+                      </tr>
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -3462,6 +3776,54 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       onChange={(e) => setEqCapacity(e.target.value)}
                       placeholder="400V 3-Phase / 5000 Liters"
                       className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 font-mono text-slate-300"
+                    />
+                  </div>
+                </>
+              )}
+
+              {/* Maintenance Department Inputs */}
+              {activeTab === 'maintenance_depts' && (
+                <>
+                  <div>
+                    <label className="block text-slate-300 font-bold mb-1">كود جهة الصيانة (Code):</label>
+                    <input
+                      type="text"
+                      required
+                      value={mdeptCode}
+                      onChange={(e) => setMdeptCode(e.target.value)}
+                      placeholder="ELEC-MAINT / MECH-MAINT"
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 font-mono text-amber-400 font-bold"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-slate-300 font-bold mb-1">اسم جهة / قسم الصيانة بالعربية:</label>
+                    <input
+                      type="text"
+                      required
+                      value={mdeptNameAr}
+                      onChange={(e) => setMdeptNameAr(e.target.value)}
+                      placeholder="الصيانة الكهربائية / الصيانة الميكانيكية / الصيانة الإنشائية"
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-slate-100"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-slate-300 font-bold mb-1">الاسم بالإنجليزية (اختياري):</label>
+                    <input
+                      type="text"
+                      value={mdeptNameEn}
+                      onChange={(e) => setMdeptNameEn(e.target.value)}
+                      placeholder="Electrical Maintenance Department"
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 font-mono text-slate-300"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-slate-300 font-bold mb-1">الوصف والتخصص الهندسي:</label>
+                    <textarea
+                      value={mdeptDescription}
+                      onChange={(e) => setMdeptDescription(e.target.value)}
+                      placeholder="صيانة القواطع الكهربائية والمولدات ولوحات التوزيع والإنارة"
+                      rows={2}
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-slate-100 resize-none"
                     />
                   </div>
                 </>

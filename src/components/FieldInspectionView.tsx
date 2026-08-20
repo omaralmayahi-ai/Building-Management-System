@@ -35,6 +35,8 @@ import {
 } from '../types';
 import { toArabicDigits } from '../utils/arabicUtils';
 import * as api from '../services/apiClient';
+import { UnitScanChoiceModal } from './UnitScanChoiceModal';
+import { UnitLocationMapModal } from './UnitLocationMapModal';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
 
@@ -45,6 +47,7 @@ interface FieldInspectionViewProps {
   onAddInspection: (inspection: PeriodicInspectionSchedule) => void;
   onUpdateGrade?: (unitCode: string, newGrade: ConditionGrade) => void;
   onOpenMaintenanceModal: (unitCode: string) => void;
+  onOpenLocationMap?: (unit: UnitAsset) => void;
   theme?: 'dark' | 'light';
   initialUnitCode?: string;
 }
@@ -55,6 +58,7 @@ export const FieldInspectionView: React.FC<FieldInspectionViewProps> = ({
   onAddInspection,
   onUpdateGrade,
   onOpenMaintenanceModal,
+  onOpenLocationMap,
   theme = 'dark',
   initialUnitCode = '',
 }) => {
@@ -63,6 +67,10 @@ export const FieldInspectionView: React.FC<FieldInspectionViewProps> = ({
   // Selected Unit state (starts empty or from initialUnitCode)
   const [selectedUnitCode, setSelectedUnitCode] = useState<string>(initialUnitCode || '');
   const [scanError, setScanError] = useState<string | null>(null);
+
+  // Unit Choice and Location Modals
+  const [scannedUnitForChoice, setScannedUnitForChoice] = useState<UnitAsset | null>(null);
+  const [selectedUnitForMap, setSelectedUnitForMap] = useState<UnitAsset | null>(null);
 
   // Scanner Modal State
   const [isScannerOpen, setIsScannerOpen] = useState<boolean>(false);
@@ -134,16 +142,17 @@ export const FieldInspectionView: React.FC<FieldInspectionViewProps> = ({
     const matched = units.find(
       (u) =>
         u.code.toLowerCase() === targetCode.toLowerCase() ||
-        u.id.toLowerCase() === targetCode.toLowerCase()
+        u.id.toLowerCase() === targetCode.toLowerCase() ||
+        u.name.toLowerCase().includes(targetCode.toLowerCase())
     );
 
     if (matched) {
-      setSelectedUnitCode(matched.code);
       setScanError(null);
       closeScanner();
-      setViewMode('overview');
+      // Present the 3 in-app choices: Location, Inspection, Maintenance
+      setScannedUnitForChoice(matched);
     } else {
-      setScanError('لم يتم العثور على الوحدة الهندسية في النظام');
+      setScanError(`لم يتم العثور على منشأة مطابقة للرمز (${targetCode})`);
     }
   };
 
@@ -1024,6 +1033,50 @@ export const FieldInspectionView: React.FC<FieldInspectionViewProps> = ({
             </div>
           </div>
         </div>
+      )}
+
+      {/* In-App QR Scan Choices Modal (Location / Inspection / Maintenance) */}
+      {scannedUnitForChoice && (
+        <UnitScanChoiceModal
+          unit={scannedUnitForChoice}
+          theme={theme}
+          onClose={() => setScannedUnitForChoice(null)}
+          onSelectLocation={(unit) => {
+            setScannedUnitForChoice(null);
+            if (onOpenLocationMap) {
+              onOpenLocationMap(unit);
+            } else {
+              setSelectedUnitForMap(unit);
+            }
+          }}
+          onSelectInspection={(unit) => {
+            setScannedUnitForChoice(null);
+            setSelectedUnitCode(unit.code);
+            setViewMode('overview');
+          }}
+          onSelectMaintenance={(unit) => {
+            setScannedUnitForChoice(null);
+            onOpenMaintenanceModal(unit.code);
+          }}
+        />
+      )}
+
+      {/* Unit Location Map Modal */}
+      {selectedUnitForMap && (
+        <UnitLocationMapModal
+          unit={selectedUnitForMap}
+          theme={theme}
+          onClose={() => setSelectedUnitForMap(null)}
+          onOpenInspection={(code) => {
+            setSelectedUnitForMap(null);
+            setSelectedUnitCode(code);
+            setViewMode('overview');
+          }}
+          onOpenMaintenance={(code) => {
+            setSelectedUnitForMap(null);
+            onOpenMaintenanceModal(code);
+          }}
+        />
       )}
     </div>
   );

@@ -82,58 +82,6 @@ async function startServer() {
         status: 'active',
         lastActive: 'الآن',
       },
-      {
-        id: 'USR-102',
-        name: 'م. سيف الدين علي (مشغل النظام)',
-        username: 'operator',
-        password: 'Op3r@t0r_W@sit99#',
-        role: 'مشغل النظام',
-        email: 'saif.ali@mdoc.gov.iq',
-        phone: '07809876543',
-        governorate: 'بغداد',
-        field: 'شرق بغداد',
-        status: 'active',
-        lastActive: 'منذ ساعتين',
-      },
-      {
-        id: 'USR-103',
-        name: 'م. زينب القيسي (مستخدم)',
-        username: 'user',
-        password: 'Us3r%Qasim!Moc88',
-        role: 'مستخدم',
-        email: 'zainab.qasim@mdoc.gov.iq',
-        phone: '07711223344',
-        governorate: 'البصرة',
-        field: 'الرميلة',
-        status: 'active',
-        lastActive: 'أمس',
-      },
-      {
-        id: 'USR-104',
-        name: 'علي حسن الساعدي (مشغل موقف)',
-        username: 'ali.hassan',
-        password: 'Ali#Hass@n2026_Bdr',
-        role: 'مشغل النظام',
-        email: 'ali.hassan@mdoc.gov.iq',
-        phone: '07505554433',
-        governorate: 'واسط',
-        field: 'بدرة',
-        status: 'disabled',
-        lastActive: 'منذ أسبوع',
-      },
-      {
-        id: 'USR-105',
-        name: 'م. حيدر العبيدي (مفتش ميداني)',
-        username: 'inspector',
-        password: 'Insp#2026_Moc!Field',
-        role: 'موظف الكشف والصيانة',
-        email: 'haider.inspect@mdoc.gov.iq',
-        phone: '07705558899',
-        governorate: 'واسط',
-        field: 'الأحدب',
-        status: 'active',
-        lastActive: 'الآن',
-      },
     ] as any[],
     referenceData: null as any,
   };
@@ -145,12 +93,12 @@ async function startServer() {
     if (fs.existsSync(PERSISTENCE_FILE_PATH)) {
       const diskRaw = fs.readFileSync(PERSISTENCE_FILE_PATH, 'utf-8');
       const diskData = JSON.parse(diskRaw);
-      if (diskData.units && Array.isArray(diskData.units) && diskData.units.length > 0) memStore.units = diskData.units;
-      if (diskData.maintenance && Array.isArray(diskData.maintenance) && diskData.maintenance.length > 0) memStore.maintenance = diskData.maintenance;
-      if (diskData.occupancy && Array.isArray(diskData.occupancy) && diskData.occupancy.length > 0) memStore.occupancy = diskData.occupancy;
-      if (diskData.inspections && Array.isArray(diskData.inspections) && diskData.inspections.length > 0) memStore.inspections = diskData.inspections;
-      if (diskData.auditLogs && Array.isArray(diskData.auditLogs) && diskData.auditLogs.length > 0) memStore.auditLogs = diskData.auditLogs;
-      if (diskData.orgEntities && Array.isArray(diskData.orgEntities) && diskData.orgEntities.length > 0) memStore.orgEntities = diskData.orgEntities;
+      if (diskData.units && Array.isArray(diskData.units)) memStore.units = diskData.units;
+      if (diskData.maintenance && Array.isArray(diskData.maintenance)) memStore.maintenance = diskData.maintenance;
+      if (diskData.occupancy && Array.isArray(diskData.occupancy)) memStore.occupancy = diskData.occupancy;
+      if (diskData.inspections && Array.isArray(diskData.inspections)) memStore.inspections = diskData.inspections;
+      if (diskData.auditLogs && Array.isArray(diskData.auditLogs)) memStore.auditLogs = diskData.auditLogs;
+      if (diskData.orgEntities && Array.isArray(diskData.orgEntities)) memStore.orgEntities = diskData.orgEntities;
       if (diskData.branding && diskData.branding.systemName) {
         memStore.branding = {
           ...memStore.branding,
@@ -160,8 +108,16 @@ async function startServer() {
       }
       if (diskData.users && Array.isArray(diskData.users) && diskData.users.length > 0) {
         memStore.users = diskData.users.map((u: any) => {
-          if (u.username === 'admin' && (!u.password || u.password === '123' || u.password === 'Moc#Adm!n2026$Krm')) {
-            return { ...u, password: 'admin123' };
+          if (u.username === 'admin') {
+            return {
+              ...u,
+              id: 'USR-101',
+              name: u.name || 'عمر المياحي',
+              phone: u.phone || '07701784629',
+              role: 'مدير النظام',
+              status: 'active',
+              password: u.password || 'admin123',
+            };
           }
           return u;
         });

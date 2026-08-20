@@ -20,8 +20,10 @@ import {
   Image as ImageIcon,
   Layers,
   Paperclip,
+  ShieldAlert,
+  Building2,
 } from 'lucide-react';
-import { MaintenanceRequest, MaintenanceStatus, MaintenancePriority, UnitAsset, ReportAttachment } from '../types';
+import { MaintenanceRequest, MaintenanceStatus, MaintenancePriority, UnitAsset, ReportAttachment, SystemUser } from '../types';
 import {
   toArabicDigits,
   formatDateOnly,
@@ -33,6 +35,7 @@ import { AttachmentViewerModal, AttachmentViewerItem } from './AttachmentViewerM
 interface MaintenanceViewProps {
   requests: MaintenanceRequest[];
   units?: UnitAsset[];
+  currentUser?: SystemUser | null;
   onOpenNewMaintenanceModal: () => void;
   onUpdateMaintenanceRequest?: (updated: MaintenanceRequest) => void;
   onDeleteMaintenanceRequest?: (id: string) => void;
@@ -42,12 +45,16 @@ interface MaintenanceViewProps {
 export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
   requests,
   units = [],
+  currentUser,
   onOpenNewMaintenanceModal,
   onUpdateMaintenanceRequest,
   onDeleteMaintenanceRequest,
   theme = 'dark',
 }) => {
   const isLight = theme === 'light';
+  const isMaintenanceEmployee = currentUser?.role === 'موظف الصيانة' || currentUser?.role === 'maintenance_employee';
+  const employeeDept = currentUser?.maintenanceDepartment;
+
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [searchCode, setSearchCode] = useState<string>('');
 
@@ -74,7 +81,15 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
     unitCode?: string;
   } | null>(null);
 
-  const filteredRequests = requests.filter((r) => {
+  // Filter requests based on status, search, and maintenance employee department
+  const visibleRequests = requests.filter((r) => {
+    if (isMaintenanceEmployee && employeeDept) {
+      return r.maintenanceDepartment === employeeDept;
+    }
+    return true;
+  });
+
+  const filteredRequests = visibleRequests.filter((r) => {
     const matchStatus =
       filterStatus === 'all' ||
       r.status === filterStatus ||
@@ -83,6 +98,7 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
     const matchedUnit = units.find((u) => u.code === r.unitCode || u.id === r.unitCode);
     const unitName = r.unitName || matchedUnit?.name || '';
     const department = matchedUnit?.department || '';
+    const reqMaintDept = r.maintenanceDepartment || '';
 
     const matchSearch =
       !searchCode ||
@@ -90,15 +106,16 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
       r.unitCode.toLowerCase().includes(searchCode.toLowerCase()) ||
       unitName.toLowerCase().includes(searchCode.toLowerCase()) ||
       department.toLowerCase().includes(searchCode.toLowerCase()) ||
+      reqMaintDept.toLowerCase().includes(searchCode.toLowerCase()) ||
       r.issue.toLowerCase().includes(searchCode.toLowerCase());
     return matchStatus && matchSearch;
   });
 
-  // Dynamic Metrics Calculations
-  const openCount = requests.filter((r) => r.status !== 'completed' && r.status !== 'cancelled').length;
-  const cancelledCount = requests.filter((r) => r.status === 'cancelled').length;
-  const assignedContractorCount = requests.filter((r) => r.status !== 'completed' && r.status !== 'cancelled').length;
-  const completedCount = requests.filter((r) => r.status === 'completed').length;
+  // Dynamic Metrics Calculations (Based on visible requests)
+  const openCount = visibleRequests.filter((r) => r.status !== 'completed' && r.status !== 'cancelled').length;
+  const cancelledCount = visibleRequests.filter((r) => r.status === 'cancelled').length;
+  const assignedContractorCount = visibleRequests.filter((r) => r.status !== 'completed' && r.status !== 'cancelled').length;
+  const completedCount = visibleRequests.filter((r) => r.status === 'completed').length;
 
   const handleOpenEditModal = (req: MaintenanceRequest) => {
     setSelectedReq(req);
@@ -115,7 +132,7 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
       ...selectedReq,
       status: status,
       resolutionNotes: resolutionNotes,
-      completedBy: 'موظف مدخل البيانات',
+      completedBy: currentUser?.name || 'موظف الصيانة',
       completedAt: completedAtDate || new Date().toISOString().split('T')[0],
       daysOverdue: status === 'completed' || status === 'cancelled' ? 0 : selectedReq.daysOverdue,
     };
@@ -125,6 +142,7 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
   };
 
   const handleOpenFullEdit = (req: MaintenanceRequest) => {
+    if (isMaintenanceEmployee) return; // Prevented for maintenance employee
     setFullEditReq(req);
     setEditCreatedAt(req.createdAt ? req.createdAt.split(' ')[0] : new Date().toISOString().split('T')[0]);
     setEditUnitCode(req.unitCode || '');
@@ -154,6 +172,28 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
 
   return (
     <div className="space-y-6">
+      {/* Maintenance Employee Department Notification Banner */}
+      {isMaintenanceEmployee && (
+        <div className="rounded-2xl p-4 bg-amber-500/10 border border-amber-500/30 flex items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-xl bg-amber-500 text-slate-950 font-bold">
+              <Wrench className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="font-extrabold text-amber-500 text-sm">
+                حساب موظف صيانة معتمد ({currentUser?.name})
+              </div>
+              <div className={isLight ? 'text-slate-700' : 'text-slate-300'}>
+                جهة الصيانة المخصصة للحساب: <strong className="text-amber-400 font-black underline">{employeeDept || 'غير محدد'}</strong>. يتم عرض الطلبات الموجهة لقسمك فقط وتمتلك صلاحية إنجاز الطلب وتوثيق الحل.
+              </div>
+            </div>
+          </div>
+          <span className="px-3 py-1 bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded-xl font-bold">
+            صلاحية إنجاز فقط
+          </span>
+        </div>
+      )}
+
       {/* Header Banner */}
       <div className={`rounded-2xl p-5 shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4 border ${isLight ? 'bg-white border-slate-200' : 'bg-slate-900 border-slate-800'}`}>
         <div>
@@ -162,17 +202,21 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
             <span>إدارة طلبات الصيانة</span>
           </h2>
           <p className={`text-xs mt-0.5 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
-            متابعة بلاغات الأعطال، معالجة وتعديل حالة الطلب من قبل موظف الإدخال، ورفع تقرير بحالة الصيانة
+            {isMaintenanceEmployee
+              ? `متابعة وإنجاز طلبات ${employeeDept || 'الصيانة'} الموجهة لحسابك وتوثيق الأعمال المنفذة`
+              : 'متابعة بلاغات الأعطال، معالجة وتعديل حالة الطلب، وتوجيهها لجهات الصيانة المختصة'}
           </p>
         </div>
 
-        <button
-          onClick={onOpenNewMaintenanceModal}
-          className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow-lg shadow-amber-500/10 transition cursor-pointer"
-        >
-          <Plus className="w-4 h-4" />
-          <span>+ طلب صيانة جديد</span>
-        </button>
+        {!isMaintenanceEmployee && (
+          <button
+            onClick={onOpenNewMaintenanceModal}
+            className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow-lg shadow-amber-500/10 transition cursor-pointer"
+          >
+            <Plus className="w-4 h-4" />
+            <span>+ طلب صيانة جديد</span>
+          </button>
+        )}
       </div>
 
       {/* SLA Metrics Cards */}
@@ -254,6 +298,7 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
               <tr className={`border-b ${isLight ? 'bg-slate-100 text-slate-700' : 'bg-slate-950 text-slate-400 border-slate-800'}`}>
                 <th className="p-3 font-semibold">رقم الطلب</th>
                 <th className="p-3 font-semibold min-w-[200px]">رمز الأصل واسم الوحدة</th>
+                <th className="p-3 font-semibold">جهة الصيانة</th>
                 <th className="p-3 font-semibold">العطل / المشكلة</th>
                 <th className="p-3 font-semibold">الأولية</th>
                 <th className="p-3 font-semibold">مقدّم الطلب</th>
@@ -289,6 +334,11 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
                           <span className="font-medium">{occupyingEntity}</span>
                         </div>
                       </div>
+                    </td>
+                    <td className="p-3">
+                      <span className="px-2 py-0.5 rounded-lg text-[10.5px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 whitespace-nowrap">
+                        {req.maintenanceDepartment || 'الصيانة العامة'}
+                      </span>
                     </td>
                     <td className="p-3 font-bold">{req.issue}</td>
                   <td className="p-3">
@@ -477,22 +527,28 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
                   </td>
                   <td className="p-3 text-center">
                     <div className="flex items-center justify-center gap-1.5 flex-wrap">
-                      <button
-                        onClick={() => setDeleteConfirmReq(req)}
-                        className="px-2 py-1 bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 border border-rose-500/30 rounded-lg text-[10px] font-bold transition cursor-pointer flex items-center gap-1 shadow-sm"
-                        title="حذف طلب الصيانة"
-                      >
-                        <Trash2 className="w-3 h-3" />
-                        <span>حذف الطلب</span>
-                      </button>
+                      {!isMaintenanceEmployee && (
+                        <button
+                          onClick={() => setDeleteConfirmReq(req)}
+                          className="px-2 py-1 bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 border border-rose-500/30 rounded-lg text-[10px] font-bold transition cursor-pointer flex items-center gap-1 shadow-sm"
+                          title="حذف طلب الصيانة"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                          <span>حذف الطلب</span>
+                        </button>
+                      )}
 
                       <button
                         onClick={() => handleOpenEditModal(req)}
-                        className="px-2 py-1 bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 border border-amber-500/30 rounded-lg text-[10px] font-bold transition cursor-pointer flex items-center gap-1"
-                        title="معالجة وتغيير حالة الصيانة وتوثيق تاريخ الإنجاز"
+                        className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition cursor-pointer flex items-center gap-1 shadow-sm ${
+                          req.status === 'completed'
+                            ? 'bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/30'
+                            : 'bg-amber-500 text-slate-950 hover:bg-amber-400 font-extrabold shadow-amber-500/20'
+                        }`}
+                        title={isMaintenanceEmployee ? 'إنجاز الطلب وتوثيق الصيانة المنفذة' : 'معالجة وتغيير حالة الصيانة وتوثيق تاريخ الإنجاز'}
                       >
-                        <CheckCircle2 className="w-3 h-3" />
-                        <span>تحديث الحالة</span>
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        <span>{isMaintenanceEmployee ? (req.status === 'completed' ? 'تحديث التقرير' : 'إنجاز الطلب') : 'تحديث الحالة'}</span>
                       </button>
                     </div>
                   </td>
@@ -510,7 +566,7 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
           <div className={`rounded-3xl p-6 w-full max-w-lg space-y-4 shadow-2xl relative border ${isLight ? 'bg-white border-slate-200 text-slate-900' : 'bg-slate-900 border-slate-800 text-slate-100'}`}>
             <div className={`flex items-center justify-between border-b pb-3 ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
               <h3 className={`font-bold text-base ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
-                معالجة وتغيير حالة طلب الصيانة ({toArabicDigits(selectedReq.id)})
+                {isMaintenanceEmployee ? 'توثيق إنجاز طلب الصيانة' : `معالجة وتغيير حالة طلب الصيانة (${toArabicDigits(selectedReq.id)})`}
               </h3>
               <button onClick={() => setSelectedReq(null)} className={`p-1 cursor-pointer ${isLight ? 'text-slate-400 hover:text-slate-700' : 'text-slate-400 hover:text-slate-200'}`}>
                 <X className="w-5 h-5" />
@@ -518,29 +574,36 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
             </div>
 
             <form onSubmit={handleSaveUpdate} className="space-y-3 text-xs">
-              <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl text-amber-400 font-bold">
-                الوحدة: {toArabicDigits(selectedReq.unitCode)} | المشكلة: {selectedReq.issue}
+              <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl text-amber-400 font-bold space-y-1">
+                <div>الوحدة: {toArabicDigits(selectedReq.unitCode)} | المشكلة: {selectedReq.issue}</div>
+                <div className="text-[11px] text-amber-300/80">جهة الصيانة: {selectedReq.maintenanceDepartment || 'عامة'}</div>
               </div>
+
+              {isMaintenanceEmployee ? (
+                <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-semibold text-[11px]">
+                  سيتم تعيين حالة الطلب إلى <strong>(منجز)</strong> وتسجيل اسمك ({currentUser?.name}) كمسؤول الإنجاز وتوثيق التقرير الفني.
+                </div>
+              ) : (
+                <div>
+                  <label className={`block font-bold mb-1 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                    تعديل حالة طلب الصيانة:
+                  </label>
+                  <select
+                    value={status}
+                    onChange={(e) => setStatus(e.target.value as MaintenanceStatus)}
+                    className={`w-full rounded-xl p-2.5 font-bold outline-none border ${
+                      isLight ? 'bg-slate-50 border-slate-200 text-slate-900' : 'bg-slate-950 border-slate-800 text-slate-100'
+                    }`}
+                  >
+                    <option value="completed">منجز</option>
+                    <option value="cancelled">ملغى</option>
+                  </select>
+                </div>
+              )}
 
               <div>
                 <label className={`block font-bold mb-1 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
-                  تعديل حالة طلب الصيانة:
-                </label>
-                <select
-                  value={status}
-                  onChange={(e) => setStatus(e.target.value as MaintenanceStatus)}
-                  className={`w-full rounded-xl p-2.5 font-bold outline-none border ${
-                    isLight ? 'bg-slate-50 border-slate-200 text-slate-900' : 'bg-slate-950 border-slate-800 text-slate-100'
-                  }`}
-                >
-                  <option value="completed">منجز</option>
-                  <option value="cancelled">ملغى</option>
-                </select>
-              </div>
-
-              <div>
-                <label className={`block font-bold mb-1 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
-                  تاريخ الإنجاز أو الإلغاء:
+                  تاريخ الإنجاز:
                 </label>
                 <input
                   type="date"
@@ -554,12 +617,12 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
 
               <div>
                 <label className={`block font-bold mb-1 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
-                  ملاحظات وتفاصيل المعالجة والإصلاح:
+                  ملاحظات وتفاصيل المعالجة والإصلاح الفني:
                 </label>
                 <textarea
                   value={resolutionNotes}
                   onChange={(e) => setResolutionNotes(e.target.value)}
-                  placeholder="سجل التفاصيل الفنية لأعمال الإصلاح والصيانة المنفذة..."
+                  placeholder="سجل التفاصيل الفنية لأعمال الإصلاح والصيانة المنفذة وقطع الغيار المستخدمة..."
                   rows={3}
                   className={`w-full rounded-xl p-2.5 outline-none border ${
                     isLight ? 'bg-slate-50 border-slate-200 text-slate-900' : 'bg-slate-950 border-slate-800 text-slate-100'
@@ -581,7 +644,7 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
                   type="submit"
                   className="px-5 py-2 bg-amber-500 text-slate-950 font-black rounded-xl hover:bg-amber-400 transition cursor-pointer"
                 >
-                  حفظ وتحديث حالة الصيانة
+                  {isMaintenanceEmployee ? 'تأكيد وحفظ إنجاز الصيانة' : 'حفظ وتحديث حالة الصيانة'}
                 </button>
               </div>
             </form>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   ShieldCheck,
   Lock,
@@ -12,22 +12,35 @@ import {
   Moon,
   QrCode,
 } from 'lucide-react';
-import { SystemUser, SystemBranding } from '../types';
+import { SystemUser, SystemBranding, UnitAsset } from '../types';
 import { INITIAL_BRANDING, INITIAL_USERS } from '../data/mockData';
 import { safeParse } from '../utils/storageUtils';
 import * as api from '../services/apiClient';
+import { MapPin, Navigation, ExternalLink, Compass, Copy, Check } from 'lucide-react';
+import { toArabicDigits } from '../utils/arabicUtils';
 
 interface LoginViewProps {
   users: SystemUser[];
+  units?: UnitAsset[];
   branding?: SystemBranding;
   theme: 'dark' | 'light';
   onToggleTheme: () => void;
   onLogin: (user: SystemUser) => void;
-  pendingDeepLink?: { view: string; unit: string } | null;
+  pendingDeepLink?: {
+    view: string;
+    unit: string;
+    lat?: number;
+    lng?: number;
+    name?: string;
+    gov?: string;
+    field?: string;
+    src?: string;
+  } | null;
 }
 
 export const LoginView: React.FC<LoginViewProps> = ({
   users: propUsers,
+  units = [],
   branding: propBranding,
   theme,
   onToggleTheme,
@@ -35,6 +48,17 @@ export const LoginView: React.FC<LoginViewProps> = ({
   pendingDeepLink,
 }) => {
   const isLight = theme === 'light';
+  const [copiedCoords, setCopiedCoords] = useState(false);
+
+  // Find matched unit if present in units list
+  const deepLinkUnitObj = useMemo(() => {
+    if (!pendingDeepLink || !pendingDeepLink.unit) return null;
+    return units.find(
+      (u) =>
+        u.code.toLowerCase() === pendingDeepLink.unit.toLowerCase() ||
+        u.id.toLowerCase() === pendingDeepLink.unit.toLowerCase()
+    );
+  }, [pendingDeepLink, units]);
 
   // Live and synchronized users list & branding
   const [internalUsers, setInternalUsers] = useState<SystemUser[]>(() => {
@@ -286,31 +310,105 @@ export const LoginView: React.FC<LoginViewProps> = ({
 
       {/* Main Login Card Container */}
       <main className="relative z-10 w-full max-w-lg mx-auto my-auto px-4 py-6">
-        {/* Deep Link Quick Access Notification Banner */}
-        {pendingDeepLink && pendingDeepLink.unit && (
-          <div
-            className={`mb-4 p-4 rounded-2xl border flex items-start gap-3 shadow-lg animate-fadeIn ${
-              isLight
-                ? 'bg-amber-50/95 border-amber-300 text-amber-950'
-                : 'bg-amber-500/15 border-amber-500/40 text-amber-200'
-            }`}
-          >
-            <div className="w-9 h-9 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-500 shrink-0">
-              <QrCode className="w-5 h-5" />
-            </div>
-            <div className="space-y-1 text-right flex-1">
-              <div className="font-black text-xs sm:text-sm flex items-center gap-1.5">
-                <span>تم الوصول عبر مسح رمز الـ QR للوحدة:</span>
-                <span className="font-mono bg-amber-500/20 px-2 py-0.5 rounded border border-amber-500/30 text-amber-500">
-                  {pendingDeepLink.unit}
-                </span>
+        {/* Deep Link Quick Access & External QR Location Card */}
+        {pendingDeepLink && pendingDeepLink.unit && (() => {
+          const lat = deepLinkUnitObj?.coordinates?.lat ?? pendingDeepLink.lat ?? 32.6189;
+          const lng = deepLinkUnitObj?.coordinates?.lng ?? pendingDeepLink.lng ?? 45.7531;
+          const unitName = deepLinkUnitObj?.name ?? pendingDeepLink.name ?? 'منشأة تابعة لشركة نفط الوسط';
+          const unitGov = deepLinkUnitObj?.governorate ?? pendingDeepLink.gov ?? 'الموقع الميداني';
+          const unitField = deepLinkUnitObj?.field ?? pendingDeepLink.field ?? '';
+          const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+          const grade = deepLinkUnitObj?.conditionGrade;
+
+          const handleCopyGps = () => {
+            navigator.clipboard.writeText(`${lat}, ${lng}`);
+            setCopiedCoords(true);
+            setTimeout(() => setCopiedCoords(false), 2500);
+          };
+
+          return (
+            <div
+              className={`mb-5 p-4 sm:p-5 rounded-3xl border shadow-xl animate-fadeIn space-y-3.5 transition-all ${
+                isLight
+                  ? 'bg-gradient-to-br from-amber-50 via-white to-slate-50 border-amber-300 text-slate-900 shadow-amber-500/10'
+                  : 'bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900 border-amber-500/40 text-white shadow-2xl'
+              }`}
+            >
+              {/* Header */}
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-amber-500 text-slate-950 flex items-center justify-center font-black shadow-lg shrink-0">
+                    <MapPin className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[11px] font-bold text-amber-600 dark:text-amber-400">
+                        موقع المنشأة الجغرافي (مسح رمز QR):
+                      </span>
+                      {grade && (
+                        <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                          Grade {grade}
+                        </span>
+                      )}
+                    </div>
+                    <h3 className="font-extrabold text-base text-slate-900 dark:text-slate-100 mt-0.5">
+                      {unitName}
+                    </h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                      {unitGov} {unitField ? `• ${unitField}` : ''} • الرمز: <span className="font-mono font-bold text-amber-500">{toArabicDigits(pendingDeepLink.unit)}</span>
+                    </p>
+                  </div>
+                </div>
               </div>
-              <p className="text-[11px] leading-relaxed opacity-90">
-                يرجى تسجيل الدخول بحسابك للفتح المباشر لشاشة الكشف الميداني وتسجيل الفحص لهذه الوحدة.
-              </p>
+
+              {/* GPS Coordinates & Actions */}
+              <div className="bg-slate-950/70 dark:bg-slate-950/80 p-3 rounded-2xl border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                <div className="flex items-center gap-2">
+                  <Compass className="w-4 h-4 text-amber-500 shrink-0" />
+                  <div className="text-xs">
+                    <span className="text-slate-400">الإحداثيات GPS: </span>
+                    <span className="font-mono font-bold text-amber-400">
+                      {toArabicDigits(lat.toFixed(5))}°, {toArabicDigits(lng.toFixed(5))}°
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleCopyGps}
+                    className="p-1 px-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] flex items-center gap-1 transition cursor-pointer"
+                  >
+                    {copiedCoords ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                    <span>{copiedCoords ? 'تم النسخ' : 'نسخ'}</span>
+                  </button>
+                </div>
+
+                <a
+                  href={googleMapsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3.5 py-2 rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-lg transition cursor-pointer shrink-0"
+                >
+                  <Navigation className="w-3.5 h-3.5" />
+                  <span>فتح الاتجاهات في Google Maps</span>
+                  <ExternalLink className="w-3 h-3 opacity-80" />
+                </a>
+              </div>
+
+              {/* Map Preview Embed */}
+              <div className="relative w-full h-44 rounded-2xl overflow-hidden border border-slate-800 shadow-inner bg-slate-950">
+                <iframe
+                  title="موقع المنشأة الجغرافي"
+                  src={`https://www.openstreetmap.org/export/embed.html?bbox=${lng - 0.008}%2C${lat - 0.006}%2C${lng + 0.008}%2C${lat + 0.006}&layer=mapnik&marker=${lat}%2C${lng}`}
+                  className="w-full h-full border-0"
+                  loading="lazy"
+                />
+              </div>
+
+              <div className="text-[11px] text-slate-500 dark:text-slate-400 text-center leading-relaxed">
+                تم مسح رمز الوصول السريع من خارج النظام. يمكنك الانتقال الميداني لموقع المنشأة عبر خرائط Google أعلاه، أو تسجيل الدخول بحسابك بالأسفل لإجراء الكشف الفني وتسجيل الصيانة.
+              </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
 
         <div
           className={`border rounded-3xl p-6 sm:p-8 shadow-2xl backdrop-blur-md transition-all ${

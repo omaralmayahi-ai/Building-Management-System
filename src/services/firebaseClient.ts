@@ -334,6 +334,11 @@ export async function saveOrgEntitiesToFirestore(entities: OrgEntity[]): Promise
   await batch.commit();
 }
 
+export async function deleteOrgEntityFromFirestore(id: string): Promise<void> {
+  const ref = doc(db, 'org_entities', id);
+  await deleteDoc(ref);
+}
+
 // ============================================================================
 // 8. System Branding & Reference Data
 // ============================================================================

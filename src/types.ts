@@ -107,6 +107,15 @@ export interface ReportAttachment {
   size?: number;
 }
 
+export interface MaintenanceDepartmentRef {
+  id: string;
+  code: string;
+  nameAr: string;
+  nameEn?: string;
+  description?: string;
+  status: 'active' | 'disabled';
+}
+
 export interface MaintenanceRequest {
   id: string; // e.g. "MR-2024-001" or "REQ-9921"
   unitCode: string;
@@ -117,6 +126,7 @@ export interface MaintenanceRequest {
   slaDeadline?: string; // e.g. "2026-08-09T10:00:00"
   daysOverdue?: number;
   assignedTo: string; // e.g. "فريق ميكانيك الأحدب" / "شركة الصيانة السريعة"
+  maintenanceDepartment?: string; // e.g. "الصيانة الكهربائية" / "الصيانة الميكانيكية" / "الصيانة الإنشائية"
   status: MaintenanceStatus;
   createdAt: string;
   reportedBy: string;
@@ -272,6 +282,58 @@ export interface DepartmentRef {
   status: 'active' | 'disabled';
 }
 
+export interface MaintenanceDepartmentRef {
+  id: string;
+  code: string;
+  nameAr: string;
+  nameEn?: string;
+  description?: string;
+  status: 'active' | 'disabled';
+}
+
+export const INITIAL_MAINTENANCE_DEPARTMENTS: MaintenanceDepartmentRef[] = [
+  {
+    id: 'MDEPT-ELEC',
+    code: 'ELEC-MAINT',
+    nameAr: 'الصيانة الكهربائية',
+    nameEn: 'Electrical Maintenance',
+    description: 'صيانة القواطع الكهربائية، المولدات، التغذية، ولوحات التوزيع الرئيسية والفرعية',
+    status: 'active',
+  },
+  {
+    id: 'MDEPT-MECH',
+    code: 'MECH-MAINT',
+    nameAr: 'الصيانة الميكانيكية',
+    nameEn: 'Mechanical Maintenance',
+    description: 'صيانة المضخات، الصمامات، المحركات، والمعدات الميكانيكية الثقيلة والخفيفة',
+    status: 'active',
+  },
+  {
+    id: 'MDEPT-CIVIL',
+    code: 'CIVIL-MAINT',
+    nameAr: 'الصيانة الإنشائية',
+    nameEn: 'Civil & Structural Maintenance',
+    description: 'أعمال الترميم، الهياكل الإنشائية، الصبغ، العزل، والواجهات والأبواب',
+    status: 'active',
+  },
+  {
+    id: 'MDEPT-HVAC',
+    code: 'HVAC-MAINT',
+    nameAr: 'صيانة التكييف والتبريد',
+    nameEn: 'HVAC Maintenance',
+    description: 'صيانة منظومات التكييف المركزي، الوحدات المنفصلة Split، والتثليج',
+    status: 'active',
+  },
+  {
+    id: 'MDEPT-SAFETY',
+    code: 'SAFETY-MAINT',
+    nameAr: 'السلامة والإطفاء',
+    nameEn: 'Safety & Firefighting',
+    description: 'صيانة شبكات إطفاء الحريق، كواشف الدخان، ومنظومات الإنذار والسلامة المهنية',
+    status: 'active',
+  },
+];
+
 export interface SystemBranding {
   systemName: string;
   companyName: string;
@@ -287,6 +349,7 @@ export type UserAccountRole =
   | 'مشغل النظام'
   | 'مستخدم'
   | 'موظف الكشف والصيانة'
+  | 'موظف الصيانة'
   | string;
 
 export interface SystemUser {
@@ -295,6 +358,7 @@ export interface SystemUser {
   username: string;
   password?: string;
   role: UserAccountRole;
+  maintenanceDepartment?: string;
   email?: string;
   phone?: string;
   governorate?: string;

@@ -26,6 +26,9 @@ import { FieldInspectionView } from './components/FieldInspectionView';
 import { NewMaintenanceModal } from './components/NewMaintenanceModal';
 import { ExportDossierModal } from './components/ExportDossierModal';
 import { LoginView } from './components/LoginView';
+import { InAppQrScannerModal } from './components/InAppQrScannerModal';
+import { UnitScanChoiceModal } from './components/UnitScanChoiceModal';
+import { UnitLocationMapModal } from './components/UnitLocationMapModal';
 
 import {
   INITIAL_UNITS,
@@ -43,6 +46,7 @@ import {
   INITIAL_BRANDING,
   INITIAL_USERS,
   INITIAL_ORG_ENTITIES,
+  INITIAL_MAINTENANCE_DEPARTMENTS,
 } from './data/mockData';
 
 import {
@@ -57,6 +61,7 @@ import {
   SiteRef,
   RoomTypeRef,
   EquipmentTypeRef,
+  MaintenanceDepartmentRef,
   SystemBranding,
   SystemUser,
   AuditLogItem,
@@ -105,15 +110,30 @@ export function App() {
     }, 7000);
   };
 
-  // Deep Link Inspection Query Parameter Handling
-  const [pendingDeepLink, setPendingDeepLink] = useState<{ view: string; unit: string } | null>(() => {
+  // Deep Link Inspection / Map Query Parameter Handling
+  const [pendingDeepLink, setPendingDeepLink] = useState<{
+    view: string;
+    unit: string;
+    lat?: number;
+    lng?: number;
+    name?: string;
+    gov?: string;
+    field?: string;
+    src?: string;
+  } | null>(() => {
     if (typeof window === 'undefined') return null;
     try {
       const params = new URLSearchParams(window.location.search);
-      const view = params.get('view') || 'inspect';
+      const view = params.get('view') || (params.get('src') === 'external_qr' ? 'map' : 'inspect');
       const unit = params.get('unit') || params.get('code') || params.get('id');
+      const lat = params.get('lat') ? parseFloat(params.get('lat')!) : undefined;
+      const lng = params.get('lng') ? parseFloat(params.get('lng')!) : undefined;
+      const name = params.get('name') || undefined;
+      const gov = params.get('gov') || undefined;
+      const field = params.get('field') || undefined;
+      const src = params.get('src') || undefined;
       if (unit) {
-        return { view, unit };
+        return { view, unit, lat, lng, name, gov, field, src };
       }
     } catch (e) {
       console.warn('Error reading deep link query parameters:', e);
@@ -125,7 +145,7 @@ export function App() {
     safeSetItem('app_current_user', currentUser);
   }, [currentUser]);
 
-  // Enforce role-based active tab restrictions (Inspector locked strictly to 'field_inspection')
+  // Enforce role-based active tab restrictions (Inspector locked strictly to 'field_inspection', Maintenance employee locked to 'maintenance' or 'reports')
   useEffect(() => {
     if (currentUser) {
       const role = currentUser.role;
@@ -133,9 +153,18 @@ export function App() {
         if (activeTab !== 'field_inspection') {
           setActiveTab('field_inspection');
         }
+      } else if (role === 'موظف الصيانة' || role === 'maintenance_employee') {
+        if (activeTab !== 'maintenance' && activeTab !== 'reports') {
+          setActiveTab('maintenance');
+        }
       }
     }
   }, [currentUser, activeTab]);
+
+  // Global In-App QR Scanner & Choice & Map Modal states
+  const [showInAppQrScanner, setShowInAppQrScanner] = useState<boolean>(false);
+  const [scannedUnitForChoice, setScannedUnitForChoice] = useState<UnitAsset | null>(null);
+  const [locationMapUnit, setLocationMapUnit] = useState<UnitAsset | null>(null);
 
   const handleLogin = (user: SystemUser) => {
     setCurrentUser(user);
@@ -143,6 +172,8 @@ export function App() {
       setSelectedUnitCode(pendingDeepLink.unit);
       if (pendingDeepLink.view === 'maintenance') {
         setActiveTab('maintenance');
+      } else if (pendingDeepLink.view === 'map' || pendingDeepLink.src === 'external_qr') {
+        setActiveTab('units');
       } else {
         setActiveTab('field_inspection');
       }
@@ -155,6 +186,8 @@ export function App() {
     const role = user.role;
     if (role === 'موظف الكشف والصيانة' || role === 'inspector') {
       setActiveTab('field_inspection');
+    } else if (role === 'موظف الصيانة' || role === 'maintenance_employee') {
+      setActiveTab('maintenance');
     } else if (role === 'مستخدم' || role === 'user') {
       setActiveTab('dashboard');
     }
@@ -192,8 +225,18 @@ export function App() {
     if (currentUser && pendingDeepLink) {
       if (pendingDeepLink.unit) {
         setSelectedUnitCode(pendingDeepLink.unit);
+        const matched = units.find(
+          (u) =>
+            u.code.toLowerCase() === pendingDeepLink.unit.toLowerCase() ||
+            u.id.toLowerCase() === pendingDeepLink.unit.toLowerCase()
+        );
         if (pendingDeepLink.view === 'maintenance') {
           setActiveTab('maintenance');
+        } else if (pendingDeepLink.view === 'map' || pendingDeepLink.src === 'external_qr') {
+          if (matched) {
+            setLocationMapUnit(matched);
+          }
+          setActiveTab('units');
         } else {
           setActiveTab('field_inspection');
         }
@@ -206,7 +249,7 @@ export function App() {
         }
       }
     }
-  }, [currentUser, pendingDeepLink]);
+  }, [currentUser, pendingDeepLink, units]);
   const [maintenanceRequests, setMaintenanceRequests] = useState<MaintenanceRequest[]>(() =>
     safeParse('app_maintenance_requests', SEED_WITH_DEMO_DATA ? INITIAL_MAINTENANCE_REQUESTS : [])
   );
@@ -409,6 +452,10 @@ export function App() {
     safeParse('app_ref_equipment_types', INITIAL_EQUIPMENT_TYPES)
   );
 
+  const [maintenanceDepartments, setMaintenanceDepartments] = useState<MaintenanceDepartmentRef[]>(() =>
+    safeParse('app_ref_maintenance_depts', INITIAL_MAINTENANCE_DEPARTMENTS)
+  );
+
   const [orgEntities, setOrgEntities] = useState<OrgEntity[]>(() => {
     const rawEntities: OrgEntity[] = safeParse('app_ref_org_entities', INITIAL_ORG_ENTITIES);
     return rawEntities.map((e) => {
@@ -428,8 +475,9 @@ export function App() {
     safeSetItem('app_ref_sites', sites);
     safeSetItem('app_ref_room_types', roomTypes);
     safeSetItem('app_ref_equipment_types', equipmentTypes);
+    safeSetItem('app_ref_maintenance_depts', maintenanceDepartments);
     safeSetItem('app_ref_org_entities', orgEntities);
-  }, [unitTypes, governorates, oilfields, sites, roomTypes, equipmentTypes, orgEntities]);
+  }, [unitTypes, governorates, oilfields, sites, roomTypes, equipmentTypes, maintenanceDepartments, orgEntities]);
 
   const handleAddOrgEntity = (newEntity: OrgEntity) => {
     setOrgEntities((prev) => {
@@ -524,6 +572,84 @@ export function App() {
   const handleResetOrgEntitiesToDefault = () => {
     setOrgEntities(INITIAL_ORG_ENTITIES);
     safeSetItem('app_ref_org_entities', INITIAL_ORG_ENTITIES);
+  };
+
+  // Maintenance Departments Handlers
+  const handleAddMaintenanceDepartment = (newDept: MaintenanceDepartmentRef) => {
+    setMaintenanceDepartments((prev) => {
+      const updated = [newDept, ...prev];
+      safeSetItem('app_ref_maintenance_depts', updated);
+      return updated;
+    });
+    appendAuditLog({
+      id: `LOG-${Date.now()}`,
+      timestamp: toArabicDigits(new Date().toLocaleString('ar-IQ')),
+      action: 'إضافة جهة صيانة',
+      user: currentUser?.name || 'غير معروف',
+      userInitials: currentUser?.name ? currentUser.name.split(' ').map((w) => w[0]).join('').slice(0, 2) : '—',
+      affectedField: 'جهات الصيانة',
+      previousValue: '-',
+      newValue: newDept.nameAr,
+    });
+  };
+
+  const handleUpdateMaintenanceDepartment = (updatedDept: MaintenanceDepartmentRef) => {
+    setMaintenanceDepartments((prev) => {
+      const updated = prev.map((d) => (d.id === updatedDept.id ? updatedDept : d));
+      safeSetItem('app_ref_maintenance_depts', updated);
+      return updated;
+    });
+    appendAuditLog({
+      id: `LOG-${Date.now()}`,
+      timestamp: toArabicDigits(new Date().toLocaleString('ar-IQ')),
+      action: 'تعديل جهة صيانة',
+      user: currentUser?.name || 'غير معروف',
+      userInitials: currentUser?.name ? currentUser.name.split(' ').map((w) => w[0]).join('').slice(0, 2) : '—',
+      affectedField: 'جهات الصيانة',
+      previousValue: 'بيانات سابقة',
+      newValue: updatedDept.nameAr,
+    });
+  };
+
+  const handleDeleteMaintenanceDepartment = (id: string) => {
+    const dept = maintenanceDepartments.find((d) => d.id === id);
+    setMaintenanceDepartments((prev) => {
+      const updated = prev.filter((d) => d.id !== id);
+      safeSetItem('app_ref_maintenance_depts', updated);
+      return updated;
+    });
+    if (dept) {
+      appendAuditLog({
+        id: `LOG-${Date.now()}`,
+        timestamp: toArabicDigits(new Date().toLocaleString('ar-IQ')),
+        action: 'حذف جهة صيانة',
+        user: currentUser?.name || 'غير معروف',
+        userInitials: currentUser?.name ? currentUser.name.split(' ').map((w) => w[0]).join('').slice(0, 2) : '—',
+        affectedField: 'جهات الصيانة',
+        previousValue: dept.nameAr,
+        newValue: 'تم الحذف',
+      });
+    }
+  };
+
+  const handleToggleMaintenanceDepartmentStatus = (id: string) => {
+    setMaintenanceDepartments((prev) => {
+      const updated = prev.map((d) =>
+        d.id === id ? { ...d, status: d.status === 'active' ? 'disabled' : 'active' } : d
+      );
+      safeSetItem('app_ref_maintenance_depts', updated);
+      return updated;
+    });
+  };
+
+  const handleClearMaintenanceDepartments = () => {
+    setMaintenanceDepartments([]);
+    safeSetItem('app_ref_maintenance_depts', []);
+  };
+
+  const handleResetMaintenanceDepartmentsToDefault = () => {
+    setMaintenanceDepartments(INITIAL_MAINTENANCE_DEPARTMENTS);
+    safeSetItem('app_ref_maintenance_depts', INITIAL_MAINTENANCE_DEPARTMENTS);
   };
 
   // Modals
@@ -1270,6 +1396,7 @@ export function App() {
       <LoginView
         branding={branding}
         users={users}
+        units={units}
         onLogin={handleLogin}
         theme={theme}
         onToggleTheme={handleToggleTheme}
@@ -1282,6 +1409,7 @@ export function App() {
   const isRoleAdmin = currentUserRole === 'مدير النظام' || currentUserRole === 'admin';
   const isRoleOperator = currentUserRole === 'مشغل النظام' || currentUserRole === 'operator';
   const isRoleInspector = currentUserRole === 'موظف الكشف والصيانة' || currentUserRole === 'inspector';
+  const isRoleMaintenance = currentUserRole === 'موظف الصيانة' || currentUserRole === 'maintenance_employee';
   const isRoleUser = currentUserRole === 'مستخدم' || currentUserRole === 'user';
 
   // Responsive Mobile Navigation Items (Tailored to permissions)
@@ -1320,13 +1448,13 @@ export function App() {
       id: 'maintenance' as NavTab,
       label: 'صيانة',
       icon: Wrench,
-      roles: ['مدير النظام', 'مشغل النظام'],
+      roles: ['مدير النظام', 'مشغل النظام', 'موظف الصيانة'],
     },
     {
       id: 'reports' as NavTab,
       label: 'تقارير',
       icon: FileText,
-      roles: ['مدير النظام', 'مشغل النظام', 'مستخدم'],
+      roles: ['مدير النظام', 'مشغل النظام', 'مستخدم', 'موظف الصيانة'],
     },
     {
       id: 'settings' as NavTab,
@@ -1338,6 +1466,9 @@ export function App() {
     if (isRoleAdmin) return true;
     if (isRoleInspector) {
       return ['field_inspection'].includes(item.id);
+    }
+    if (isRoleMaintenance) {
+      return ['maintenance', 'reports'].includes(item.id);
     }
     if (isRoleOperator) return item.id !== 'settings' && item.id !== 'field_inspection';
     return item.roles.includes('مستخدم') && item.id !== 'field_inspection';
@@ -1352,9 +1483,9 @@ export function App() {
     >
       {/* Top Navigation Header */}
       <Header
-        onOpenNewAssetModal={!isRoleUser && !isRoleInspector ? () => setActiveTab('new_unit') : undefined}
+        onOpenNewAssetModal={!isRoleUser && !isRoleInspector && !isRoleMaintenance ? () => setActiveTab('new_unit') : undefined}
         onOpenNewMaintenanceModal={
-          !isRoleUser && !isRoleInspector
+          !isRoleUser && !isRoleInspector && !isRoleMaintenance
             ? () => {
                 setMaintenanceUnitCode(selectedUnitCode);
                 setIsMaintenanceUnitLocked(false);
@@ -1362,6 +1493,7 @@ export function App() {
               }
             : undefined
         }
+        onOpenQrScanner={() => setShowInAppQrScanner(true)}
         searchTerm={globalSearchTerm}
         onSearchChange={setGlobalSearchTerm}
         theme={theme}
@@ -1384,6 +1516,7 @@ export function App() {
           maintenanceCount={maintenanceRequests.length}
           isCollapsed={isSidebarCollapsed}
           onToggleCollapse={() => setIsSidebarCollapsed((prev) => !prev)}
+          onOpenQrScanner={() => setShowInAppQrScanner(true)}
           theme={theme}
           currentUserRole={currentUserRole}
         />
@@ -1518,6 +1651,7 @@ export function App() {
             <MaintenanceView
               requests={maintenanceRequests}
               units={units}
+              currentUser={currentUser}
               onOpenNewMaintenanceModal={() => {
                 setMaintenanceUnitCode(selectedUnitCode);
                 setIsMaintenanceUnitLocked(false);
@@ -1538,6 +1672,7 @@ export function App() {
               oilfields={oilfields}
               orgEntities={orgEntities}
               users={users}
+              currentUser={currentUser}
               theme={theme}
               branding={branding}
             />
@@ -1555,6 +1690,13 @@ export function App() {
               sites={sites}
               roomTypes={roomTypes}
               equipmentTypes={equipmentTypes}
+              maintenanceDepartments={maintenanceDepartments}
+              onAddMaintenanceDepartment={handleAddMaintenanceDepartment}
+              onUpdateMaintenanceDepartment={handleUpdateMaintenanceDepartment}
+              onDeleteMaintenanceDepartment={handleDeleteMaintenanceDepartment}
+              onToggleMaintenanceDepartmentStatus={handleToggleMaintenanceDepartmentStatus}
+              onClearMaintenanceDepartments={handleClearMaintenanceDepartments}
+              onResetMaintenanceDepartmentsToDefault={handleResetMaintenanceDepartmentsToDefault}
               auditLogs={auditLogs}
               onAddAuditLog={appendAuditLog}
               orgEntities={orgEntities}
@@ -1666,12 +1808,72 @@ export function App() {
           onClose={() => setShowNewMaintenanceModal(false)}
           isLight={theme === 'light'}
           currentUser={currentUser}
+          maintenanceDepartments={maintenanceDepartments}
         />
       )}
 
       {/* Export Technical Dossier PDF Modal */}
       {showDossierModal && dossierUnit && (
         <ExportDossierModal unit={dossierUnit} branding={branding} onClose={() => setShowDossierModal(false)} />
+      )}
+
+      {/* Global In-App QR Scanner Modal */}
+      {showInAppQrScanner && (
+        <InAppQrScannerModal
+          units={units}
+          theme={theme}
+          onClose={() => setShowInAppQrScanner(false)}
+          onUnitDetected={(matched) => {
+            setShowInAppQrScanner(false);
+            setScannedUnitForChoice(matched);
+          }}
+        />
+      )}
+
+      {/* In-App QR Scan Choices Modal (Location / Inspection / Maintenance / 3D) */}
+      {scannedUnitForChoice && (
+        <UnitScanChoiceModal
+          unit={scannedUnitForChoice}
+          theme={theme}
+          onClose={() => setScannedUnitForChoice(null)}
+          onSelectLocation={(unit) => {
+            setScannedUnitForChoice(null);
+            setSelectedUnitCode(unit.code);
+            setLocationMapUnit(unit);
+          }}
+          onSelectInspection={(unit) => {
+            setScannedUnitForChoice(null);
+            setSelectedUnitCode(unit.code);
+            setActiveTab('field_inspection');
+          }}
+          onSelectMaintenance={(unit) => {
+            setScannedUnitForChoice(null);
+            handleOpenMaintenanceForUnit(unit.code);
+          }}
+          onSelect3D={(unit) => {
+            setScannedUnitForChoice(null);
+            setSelectedUnitCode(unit.code);
+            setActiveTab('units');
+          }}
+        />
+      )}
+
+      {/* Global Unit Location Map Modal */}
+      {locationMapUnit && (
+        <UnitLocationMapModal
+          unit={locationMapUnit}
+          theme={theme}
+          onClose={() => setLocationMapUnit(null)}
+          onOpenInspection={(code) => {
+            setLocationMapUnit(null);
+            setSelectedUnitCode(code);
+            setActiveTab('field_inspection');
+          }}
+          onOpenMaintenance={(code) => {
+            setLocationMapUnit(null);
+            handleOpenMaintenanceForUnit(code);
+          }}
+        />
       )}
 
       {/* Global Toast / Notification Banner */}

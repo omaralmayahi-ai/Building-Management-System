@@ -451,7 +451,18 @@ export async function updateOrgEntity(entity: OrgEntity): Promise<OrgEntity> {
 export async function deleteOrgEntity(id: string): Promise<boolean> {
   const current = await getOrgEntities();
   const updated = current.filter((e) => e.id !== id);
-  await saveOrgEntities(updated);
+  safeSetItem('app_ref_org_entities', updated);
+  try {
+    await firestoreClient.deleteOrgEntityFromFirestore(id);
+  } catch (err) {
+    console.warn('Firestore deleteOrgEntity note:', err);
+  }
+  fetchJson<{ success: boolean }>(`${BASE_API_URL}/org-entities/${id}`, {
+    method: 'DELETE',
+  }).catch(() => {
+    // fallback to bulk sync
+    saveOrgEntities(updated).catch(() => {});
+  });
   return true;
 }
 

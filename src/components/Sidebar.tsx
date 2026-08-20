@@ -15,6 +15,7 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   ClipboardCheck,
+  QrCode,
 } from 'lucide-react';
 
 import { SystemBranding } from '../types';
@@ -39,6 +40,7 @@ interface SidebarProps {
   maintenanceCount?: number;
   isCollapsed?: boolean;
   onToggleCollapse?: () => void;
+  onOpenQrScanner?: () => void;
   theme?: 'dark' | 'light';
   currentUserRole?: string;
 }
@@ -52,6 +54,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   maintenanceCount = 0,
   isCollapsed: externalCollapsed,
   onToggleCollapse,
+  onOpenQrScanner,
   theme = 'dark',
   currentUserRole = 'مدير النظام',
 }) => {
@@ -69,61 +72,50 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const allMenuItems = [
     {
       id: 'field_inspection' as NavTab,
-      label: 'كشف وصيانة ميدانية',
+      label: 'كشف وصيانة',
       icon: ClipboardCheck,
-      badge: 'ميداني',
-      badgeColor: 'bg-amber-500/20 text-amber-400 border border-amber-500/30',
       roles: ['موظف الكشف والصيانة'],
     },
     {
       id: 'dashboard' as NavTab,
       label: 'لوحة القيادة',
       icon: LayoutDashboard,
-      badge: null,
       roles: ['مدير النظام', 'مشغل النظام', 'مستخدم'],
     },
     {
       id: 'units' as NavTab,
-      label: 'الوحدات و 3D',
+      label: 'الوحدات الكرفانية',
       icon: Box,
-      badge: `${toArabicDigits(unitsCount)} أصل`,
       roles: ['مدير النظام', 'مشغل النظام', 'مستخدم'],
     },
     {
       id: 'new_unit' as NavTab,
-      label: 'تسجيل وحدة جديدة',
+      label: 'تسجيل وحدة',
       icon: PlusCircle,
-      badge: 'جديد',
       roles: ['مدير النظام', 'مشغل النظام'],
     },
     {
       id: 'periodic_inspection' as NavTab,
-      label: 'سجل الكشوفات الدورية',
+      label: 'الكشوفات الدورية',
       icon: CalendarCheck,
-      badge: 'مجدول',
       roles: ['مدير النظام', 'مشغل النظام'],
     },
     {
       id: 'maintenance' as NavTab,
-      label: 'طلبات الصيانة',
+      label: 'الصيانة',
       icon: Wrench,
-      badge: `${toArabicDigits(maintenanceCount)} طلب`,
-      badgeColor: maintenanceCount > 0 ? 'bg-red-500 text-white' : undefined,
-      roles: ['مدير النظام', 'مشغل النظام'],
+      roles: ['مدير النظام', 'مشغل النظام', 'موظف الصيانة'],
     },
     {
       id: 'reports' as NavTab,
       label: 'التقارير',
       icon: FileText,
-      badge: 'تقرير',
-      badgeColor: 'bg-amber-500/20 text-amber-400 border border-amber-500/30',
-      roles: ['مدير النظام', 'مشغل النظام', 'مستخدم'],
+      roles: ['مدير النظام', 'مشغل النظام', 'مستخدم', 'موظف الصيانة'],
     },
     {
       id: 'settings' as NavTab,
       label: 'إعدادات النظام',
       icon: Settings,
-      badge: null,
       roles: ['مدير النظام'],
     },
   ];
@@ -134,6 +126,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
     // If field inspector, show only field_inspection
     if (currentUserRole === 'موظف الكشف والصيانة' || currentUserRole === 'inspector') {
       return ['field_inspection'].includes(item.id);
+    }
+    // If maintenance employee, show ONLY maintenance and reports
+    if (currentUserRole === 'موظف الصيانة' || currentUserRole === 'maintenance_employee') {
+      return ['maintenance', 'reports'].includes(item.id);
     }
     // If operator, show all except settings & field_inspection
     if (currentUserRole === 'مشغل النظام' || currentUserRole === 'operator') {
@@ -222,22 +218,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 {!isCollapsed && <span className="truncate">{item.label}</span>}
               </div>
 
-              {!isCollapsed && item.badge && (
-                <span
-                  className={`text-[10px] px-2 py-0.5 rounded-full font-bold shrink-0 ${
-                    item.badgeColor
-                      ? item.badgeColor
-                      : isActive
-                      ? 'bg-amber-500 text-slate-950'
-                      : theme === 'light'
-                      ? 'bg-slate-100 text-slate-600 border border-slate-200'
-                      : 'bg-slate-800 text-slate-400 border border-slate-700'
-                  }`}
-                >
-                  {item.badge}
-                </span>
-              )}
-
               {/* Tooltip on Collapsed Mode */}
               {isCollapsed && (
                 <div
@@ -248,13 +228,31 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   }`}
                 >
                   {item.label}
-                  {item.badge && <span className="mr-1.5 text-[10px] text-amber-400">({item.badge})</span>}
                 </div>
               )}
             </button>
           );
         })}
       </div>
+
+      {/* Quick QR Scanner Action Button in Sidebar */}
+      {onOpenQrScanner && (
+        <div className="mt-3 px-1">
+          <button
+            type="button"
+            onClick={onOpenQrScanner}
+            className={`w-full flex items-center justify-center gap-2 p-2.5 rounded-xl border font-bold text-xs transition-all shadow-xs cursor-pointer ${
+              theme === 'light'
+                ? 'bg-amber-500/15 hover:bg-amber-500/25 border-amber-400/60 text-amber-950'
+                : 'bg-amber-500/20 hover:bg-amber-500/30 border-amber-500/40 text-amber-300'
+            }`}
+            title="مسح رمز الاستجابة السريعة QR للوحدة (الموقع / الكشف / الصيانة)"
+          >
+            <QrCode className="w-4 h-4 text-amber-500 shrink-0" />
+            {!isCollapsed && <span>مسح رمز QR للوحدة</span>}
+          </button>
+        </div>
+      )}
 
       {/* Footer Info Box (Center-Aligned Copyright) */}
       <div

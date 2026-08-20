@@ -44,6 +44,7 @@ import { ThreeBuildingCanvas } from './ThreeBuildingCanvas';
 import { EditUnitModal } from './EditUnitModal';
 import { AttachmentViewerModal } from './AttachmentViewerModal';
 import { UnitQrCodeModal } from './UnitQrCodeModal';
+import { UnitLocationMapModal } from './UnitLocationMapModal';
 import { downloadAttachment } from '../utils/fileUtils';
 import { BUILDING_SHAPE_OPTIONS } from './NewUnitWizard';
 import { toArabicDigits } from '../utils/arabicUtils';
@@ -191,6 +192,7 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
   const [showDecommissionModal, setShowDecommissionModal] = useState<boolean>(false);
   const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
   const [showQrModal, setShowQrModal] = useState<boolean>(false);
+  const [showLocationMapModal, setShowLocationMapModal] = useState<boolean>(false);
   const [decommissionReasonInput, setDecommissionReasonInput] = useState<string>('');
   const [previewAttachment, setPreviewAttachment] = useState<UnitAttachment | null>(null);
 
@@ -1146,6 +1148,20 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
 
           {/* Action Buttons Toolbar - Formatted in a single row */}
           <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto shrink-0">
+            {/* Direct Map Location & GPS Navigation Button */}
+            <button
+              onClick={() => setShowLocationMapModal(true)}
+              className={`font-black py-2 px-3 rounded-xl text-xs flex items-center gap-1.5 border transition cursor-pointer whitespace-nowrap shadow-xs ${
+                isLight
+                  ? 'bg-emerald-100 hover:bg-emerald-200 text-emerald-950 border-emerald-300'
+                  : 'bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border-emerald-500/40'
+              }`}
+              title="عرض موقع المنشأة على الخريطة التفاعلية وتوجيه الملاحة GPS"
+            >
+              <MapPin className="w-3.5 h-3.5 shrink-0 text-emerald-500" />
+              <span>الموقع على الخريطة</span>
+            </button>
+
             <button
               onClick={() => onSelectUnit('')}
               className={`font-black py-2 px-3 rounded-xl text-xs flex items-center gap-1.5 border transition cursor-pointer whitespace-nowrap shadow-xs ${
@@ -1819,6 +1835,19 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
           unit={selectedUnit}
           theme={theme}
           onClose={() => setShowQrModal(false)}
+        />
+      )}
+
+      {/* Unit Location Map Modal */}
+      {selectedUnit && showLocationMapModal && (
+        <UnitLocationMapModal
+          unit={selectedUnit}
+          theme={theme}
+          onClose={() => setShowLocationMapModal(false)}
+          onOpenMaintenance={(code) => {
+            setShowLocationMapModal(false);
+            onOpenMaintenanceModal(code);
+          }}
         />
       )}
     </div>

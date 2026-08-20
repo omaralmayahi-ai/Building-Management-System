@@ -292,6 +292,7 @@ interface ReportsViewProps {
   oilfields?: OilfieldRef[];
   orgEntities?: OrgEntity[];
   users?: SystemUser[];
+  currentUser?: SystemUser | null;
   theme?: 'dark' | 'light';
   branding?: SystemBranding;
 }
@@ -304,13 +305,26 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
   oilfields = [],
   orgEntities = [],
   users = [],
+  currentUser = null,
   theme = 'dark',
   branding,
 }) => {
   const isLight = theme === 'light';
 
+  // Maintenance Employee check & restrictions
+  const isRoleMaintenance = currentUser?.role === 'موظف الصيانة' || currentUser?.role === 'maintenance_employee';
+  const userMaintDept = currentUser?.maintenanceDepartment || '';
+
   // Category Tab
-  const [activeTab, setActiveTab] = useState<'all' | 'inspections' | 'maintenance' | 'units' | 'decommissioned'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'inspections' | 'maintenance' | 'units' | 'decommissioned'>(() => {
+    return isRoleMaintenance ? 'maintenance' : 'all';
+  });
+
+  useEffect(() => {
+    if (isRoleMaintenance && activeTab !== 'maintenance') {
+      setActiveTab('maintenance');
+    }
+  }, [isRoleMaintenance, activeTab]);
 
   // Attachment Viewer Preview State
   const [previewAttachment, setPreviewAttachment] = useState<any>(null);
@@ -642,6 +656,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
 
   // Filtered Inspections
   const filteredInspections = useMemo(() => {
+    if (isRoleMaintenance) return [];
     return periodicInspections.filter((item) => {
       const targetUnit = unitByCode.get(item.unitCode);
 
@@ -682,6 +697,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
       return true;
     });
   }, [
+    isRoleMaintenance,
     periodicInspections,
     searchKeyword,
     selectedField,
@@ -701,6 +717,12 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
   // Filtered Maintenance Requests
   const filteredMaintenance = useMemo(() => {
     return maintenanceRequests.filter((item) => {
+      // Role maintenance restriction to assigned department
+      if (isRoleMaintenance && userMaintDept) {
+        const itemDept = item.maintenanceDepartment || '';
+        if (itemDept !== userMaintDept) return false;
+      }
+
       const targetUnit = unitByCode.get(item.unitCode);
 
       // Keyword search
@@ -712,7 +734,8 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
         const matchesAssigned = (item.assignedTo || '').toLowerCase().includes(kw);
         const matchesReported = (item.reportedBy || '').toLowerCase().includes(kw);
         const matchesUnitDept = (targetUnit?.department || '').toLowerCase().includes(kw);
-        if (!matchesId && !matchesCode && !matchesIssue && !matchesAssigned && !matchesReported && !matchesUnitDept) {
+        const matchesMaintDept = (item.maintenanceDepartment || '').toLowerCase().includes(kw);
+        if (!matchesId && !matchesCode && !matchesIssue && !matchesAssigned && !matchesReported && !matchesUnitDept && !matchesMaintDept) {
           return false;
         }
       }
@@ -744,6 +767,8 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
       return true;
     });
   }, [
+    isRoleMaintenance,
+    userMaintDept,
     maintenanceRequests,
     searchKeyword,
     selectedField,
@@ -761,6 +786,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
 
   // Filtered Units
   const filteredUnits = useMemo(() => {
+    if (isRoleMaintenance) return [];
     return units.filter((unit) => {
       if (unit.status === 'decommissioned') return false;
 
@@ -817,6 +843,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
   ]);
 
   const decommissionedUnits = useMemo(() => {
+    if (isRoleMaintenance) return [];
     return units.filter((unit) => {
       if (unit.status !== 'decommissioned') return false;
 
@@ -2537,82 +2564,106 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
         </div>
 
         {/* Report Domain Category Tabs */}
-        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 pb-1 text-xs font-bold">
-          <button
-            onClick={() => setActiveTab('all')}
-            className={`px-3 sm:px-4 py-2 rounded-xl flex items-center gap-1.5 sm:gap-2 transition cursor-pointer ${
-              activeTab === 'all'
-                ? 'bg-amber-500 text-slate-950 font-black shadow'
-                : isLight
-                ? 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                : 'bg-slate-800/80 text-slate-300 hover:bg-slate-800'
-            }`}
-          >
-            <Layers className="w-4 h-4" />
-            <span>التقرير الشامل التجميعي</span>
-            <span className="bg-slate-950/20 px-1.5 py-0.5 rounded text-[10px]">{toArabicDigits(totalFilteredRecords)}</span>
-          </button>
+        {isRoleMaintenance ? (
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 gap-3">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-amber-500/20 text-amber-400">
+                <Wrench className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-slate-100 flex items-center gap-2">
+                  <span>تقارير وأوامر الصيانة الموجهة إلى:</span>
+                  <span className="text-amber-400 font-black underline decoration-amber-500/40">{userMaintDept || 'جهة الصيانة المحددة'}</span>
+                </h3>
+                <p className="text-[11px] text-slate-400 mt-0.5">
+                  استعراض وطباعة وتصدير كافة بلاغات وأوامر الصيانة الخاصة باختصاصكم فقط
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="bg-amber-500 text-slate-950 font-black px-3 py-1.5 rounded-lg text-xs shadow">
+                {toArabicDigits(filteredMaintenance.length)} بلاغ صيانة
+              </span>
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 pb-1 text-xs font-bold">
+            <button
+              onClick={() => setActiveTab('all')}
+              className={`px-3 sm:px-4 py-2 rounded-xl flex items-center gap-1.5 sm:gap-2 transition cursor-pointer ${
+                activeTab === 'all'
+                  ? 'bg-amber-500 text-slate-950 font-black shadow'
+                  : isLight
+                  ? 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  : 'bg-slate-800/80 text-slate-300 hover:bg-slate-800'
+              }`}
+            >
+              <Layers className="w-4 h-4" />
+              <span>التقرير الشامل التجميعي</span>
+              <span className="bg-slate-950/20 px-1.5 py-0.5 rounded text-[10px]">{toArabicDigits(totalFilteredRecords)}</span>
+            </button>
 
-          <button
-            onClick={() => setActiveTab('inspections')}
-            className={`px-4 py-2 rounded-xl flex items-center gap-2 whitespace-nowrap transition cursor-pointer ${
-              activeTab === 'inspections'
-                ? 'bg-amber-500 text-slate-950 font-black shadow'
-                : isLight
-                ? 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                : 'bg-slate-800/80 text-slate-300 hover:bg-slate-800'
-            }`}
-          >
-            <CalendarCheck className="w-4 h-4" />
-            <span>الكشوفات والمعاينة الدورية</span>
-            <span className="bg-slate-950/20 px-1.5 py-0.5 rounded text-[10px]">{toArabicDigits(filteredInspections.length)}</span>
-          </button>
+            <button
+              onClick={() => setActiveTab('inspections')}
+              className={`px-4 py-2 rounded-xl flex items-center gap-2 whitespace-nowrap transition cursor-pointer ${
+                activeTab === 'inspections'
+                  ? 'bg-amber-500 text-slate-950 font-black shadow'
+                  : isLight
+                  ? 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  : 'bg-slate-800/80 text-slate-300 hover:bg-slate-800'
+              }`}
+            >
+              <CalendarCheck className="w-4 h-4" />
+              <span>الكشوفات والمعاينة الدورية</span>
+              <span className="bg-slate-950/20 px-1.5 py-0.5 rounded text-[10px]">{toArabicDigits(filteredInspections.length)}</span>
+            </button>
 
-          <button
-            onClick={() => setActiveTab('maintenance')}
-            className={`px-4 py-2 rounded-xl flex items-center gap-2 whitespace-nowrap transition cursor-pointer ${
-              activeTab === 'maintenance'
-                ? 'bg-amber-500 text-slate-950 font-black shadow'
-                : isLight
-                ? 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                : 'bg-slate-800/80 text-slate-300 hover:bg-slate-800'
-            }`}
-          >
-            <Wrench className="w-4 h-4" />
-            <span>الصيانة ومتابعتها</span>
-            <span className="bg-slate-950/20 px-1.5 py-0.5 rounded text-[10px]">{toArabicDigits(filteredMaintenance.length)}</span>
-          </button>
+            <button
+              onClick={() => setActiveTab('maintenance')}
+              className={`px-4 py-2 rounded-xl flex items-center gap-2 whitespace-nowrap transition cursor-pointer ${
+                activeTab === 'maintenance'
+                  ? 'bg-amber-500 text-slate-950 font-black shadow'
+                  : isLight
+                  ? 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  : 'bg-slate-800/80 text-slate-300 hover:bg-slate-800'
+              }`}
+            >
+              <Wrench className="w-4 h-4" />
+              <span>الصيانة ومتابعتها</span>
+              <span className="bg-slate-950/20 px-1.5 py-0.5 rounded text-[10px]">{toArabicDigits(filteredMaintenance.length)}</span>
+            </button>
 
-          <button
-            onClick={() => setActiveTab('units')}
-            className={`px-4 py-2 rounded-xl flex items-center gap-2 whitespace-nowrap transition cursor-pointer ${
-              activeTab === 'units'
-                ? 'bg-amber-500 text-slate-950 font-black shadow'
-                : isLight
-                ? 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                : 'bg-slate-800/80 text-slate-300 hover:bg-slate-800'
-            }`}
-          >
-            <Box className="w-4 h-4" />
-            <span>الأصول والوحدات</span>
-            <span className="bg-slate-950/20 px-1.5 py-0.5 rounded text-[10px]">{toArabicDigits(filteredUnits.length)}</span>
-          </button>
+            <button
+              onClick={() => setActiveTab('units')}
+              className={`px-4 py-2 rounded-xl flex items-center gap-2 whitespace-nowrap transition cursor-pointer ${
+                activeTab === 'units'
+                  ? 'bg-amber-500 text-slate-950 font-black shadow'
+                  : isLight
+                  ? 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  : 'bg-slate-800/80 text-slate-300 hover:bg-slate-800'
+              }`}
+            >
+              <Box className="w-4 h-4" />
+              <span>الأصول والوحدات</span>
+              <span className="bg-slate-950/20 px-1.5 py-0.5 rounded text-[10px]">{toArabicDigits(filteredUnits.length)}</span>
+            </button>
 
-          <button
-            onClick={() => setActiveTab('decommissioned')}
-            className={`px-4 py-2 rounded-xl flex items-center gap-2 whitespace-nowrap transition cursor-pointer ${
-              activeTab === 'decommissioned'
-                ? 'bg-rose-600 text-white font-black shadow'
-                : isLight
-                ? 'bg-rose-50 text-rose-800 border border-rose-200 hover:bg-rose-100'
-                : 'bg-rose-950/30 text-rose-400 border border-rose-900/40 hover:bg-rose-900/50'
-            }`}
-          >
-            <Archive className="w-4 h-4" />
-            <span>سجل الوحدات المشطوبة والمجمدة</span>
-            <span className="bg-black/20 px-1.5 py-0.5 rounded text-[10px]">{toArabicDigits(decommissionedUnits.length)}</span>
-          </button>
-        </div>
+            <button
+              onClick={() => setActiveTab('decommissioned')}
+              className={`px-4 py-2 rounded-xl flex items-center gap-2 whitespace-nowrap transition cursor-pointer ${
+                activeTab === 'decommissioned'
+                  ? 'bg-rose-600 text-white font-black shadow'
+                  : isLight
+                  ? 'bg-rose-50 text-rose-800 border border-rose-200 hover:bg-rose-100'
+                  : 'bg-rose-950/30 text-rose-400 border border-rose-900/40 hover:bg-rose-900/50'
+              }`}
+            >
+              <Archive className="w-4 h-4" />
+              <span>سجل الوحدات المشطوبة والمجمدة</span>
+              <span className="bg-black/20 px-1.5 py-0.5 rounded text-[10px]">{toArabicDigits(decommissionedUnits.length)}</span>
+            </button>
+          </div>
+        )}
 
         {/* Dynamic Multi-Filters Panel */}
         <div className={`p-4 rounded-xl border ${isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-950/60 border-slate-800'} space-y-3`}>
