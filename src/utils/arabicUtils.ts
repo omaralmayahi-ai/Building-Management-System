@@ -19,7 +19,7 @@ export const formatDateOnly = (dateStr?: string): string => {
 };
 
 export const getCompletionOrCancellationDate = (completedAt?: string, status?: string): string => {
-  if (status === 'completed' || status === 'cancelled') {
+  if (status === 'completed' || status === 'cancelled' || status === 'rejected') {
     if (completedAt) return formatDateOnly(completedAt);
     return formatDateOnly(new Date().toISOString().split('T')[0]);
   }
@@ -32,7 +32,7 @@ export const calculateMaintenanceDurationDays = (createdAt?: string, completedAt
   const start = new Date(startClean);
   if (isNaN(start.getTime())) return '-';
 
-  const isFinished = status === 'completed' || status === 'cancelled';
+  const isFinished = status === 'completed' || status === 'cancelled' || status === 'rejected';
   let end: Date;
   if (isFinished) {
     if (completedAt) {

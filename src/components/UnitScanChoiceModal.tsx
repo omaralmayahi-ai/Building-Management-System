@@ -113,8 +113,8 @@ export const UnitScanChoiceModal: React.FC<UnitScanChoiceModalProps> = ({
             <div className="flex items-start justify-between gap-3 pb-3 border-b border-slate-800/60">
               <div>
                 <span className="text-[10px] font-bold text-amber-500 block">المنشأة المحددة:</span>
-                <h4 className="font-black text-base sm:text-lg text-slate-100">{unit.name}</h4>
-                <p className="text-xs text-slate-400 mt-0.5">
+                <h4 className={`font-black text-base sm:text-lg ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>{unit.name}</h4>
+                <p className={`text-xs mt-0.5 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
                   {unit.governorate} • حقل {unit.field} ({unit.type === 'caravan' ? 'كرفان موقعي' : 'مبنى ثابت'})
                 </p>
               </div>
@@ -125,16 +125,16 @@ export const UnitScanChoiceModal: React.FC<UnitScanChoiceModalProps> = ({
 
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-3 text-[11px]">
               <div>
-                <span className="text-slate-500 block text-[10px]">المساحة والطوابق:</span>
-                <span className="font-bold text-slate-200">{toArabicDigits(unit.totalAreaSqM)} م² ({toArabicDigits(unit.floorsCount)} طابق)</span>
+                <span className={`block text-[10px] ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>المساحة والطوابق:</span>
+                <span className={`font-bold ${isLight ? 'text-slate-900' : 'text-slate-200'}`}>{toArabicDigits(unit.totalAreaSqM)} م² ({toArabicDigits(unit.floorsCount)} طابق)</span>
               </div>
               <div>
-                <span className="text-slate-500 block text-[10px]">الجهة الشاغلة:</span>
-                <span className="font-bold text-slate-200 truncate block">{unit.department || 'غير محدد'}</span>
+                <span className={`block text-[10px] ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>الجهة الشاغلة:</span>
+                <span className={`font-bold truncate block ${isLight ? 'text-slate-900' : 'text-slate-200'}`}>{unit.department || 'غير محدد'}</span>
               </div>
               <div className="col-span-2 sm:col-span-1">
-                <span className="text-slate-500 block text-[10px]">الإحداثيات GPS:</span>
-                <span className="font-mono font-bold text-amber-400">{toArabicDigits(unit.coordinates.lat.toFixed(4))}°, {toArabicDigits(unit.coordinates.lng.toFixed(4))}°</span>
+                <span className={`block text-[10px] ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>الإحداثيات GPS:</span>
+                <span className="font-mono font-bold text-amber-500">{toArabicDigits(unit.coordinates.lat.toFixed(4))}°, {toArabicDigits(unit.coordinates.lng.toFixed(4))}°</span>
               </div>
             </div>
           </div>

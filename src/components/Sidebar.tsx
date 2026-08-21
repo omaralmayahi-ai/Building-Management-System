@@ -4,6 +4,7 @@ import {
   Box,
   PlusCircle,
   MapPin,
+  Map as MapIcon,
   Users,
   CalendarCheck,
   Wrench,
@@ -24,6 +25,7 @@ import { toArabicDigits } from '../utils/arabicUtils';
 export type NavTab =
   | 'dashboard'
   | 'units'
+  | 'gis_map'
   | 'new_unit'
   | 'periodic_inspection'
   | 'maintenance'
@@ -84,8 +86,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
     },
     {
       id: 'units' as NavTab,
-      label: 'الوحدات الكرفانية',
+      label: 'الوحدات المسجلة',
       icon: Box,
+      roles: ['مدير النظام', 'مشغل النظام', 'مستخدم'],
+    },
+    {
+      id: 'gis_map' as NavTab,
+      label: 'خريطة الأصول GIS',
+      icon: MapIcon,
       roles: ['مدير النظام', 'مشغل النظام', 'مستخدم'],
     },
     {
@@ -138,6 +146,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
     // If user, only dashboard, units, reports
     return item.roles.includes('مستخدم') && item.id !== 'field_inspection';
   });
+
+  const isUserRoleForbiddenFromQr =
+    currentUserRole === 'مستخدم' ||
+    currentUserRole === 'user' ||
+    currentUserRole === 'موظف الصيانة' ||
+    currentUserRole === 'maintenance_employee';
+
+  const showQrScannerInSidebar = Boolean(onOpenQrScanner && !isUserRoleForbiddenFromQr);
 
   return (
     <aside
@@ -236,7 +252,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       {/* Quick QR Scanner Action Button in Sidebar */}
-      {onOpenQrScanner && (
+      {showQrScannerInSidebar && (
         <div className="mt-3 px-1">
           <button
             type="button"

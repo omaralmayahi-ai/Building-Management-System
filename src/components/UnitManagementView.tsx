@@ -1105,76 +1105,115 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
       <div className={`w-full border rounded-2xl p-5 sm:p-6 shadow-xl space-y-5 transition-colors ${
         isLight ? 'bg-white border-slate-200' : 'bg-slate-900 border-slate-800'
       }`}>
-        {/* Top Header Row of Asset Details */}
-        <div className={`flex flex-col lg:flex-row lg:items-center justify-between pb-4 border-b gap-4 ${
-          isLight ? 'border-slate-200' : 'border-slate-800'
+        {/* Top Header Section: Centered Identity Badges & Building Title over Centered Action Groups */}
+        <div className={`flex flex-col items-center justify-center text-center pb-5 border-b gap-4 ${
+          isLight ? 'border-slate-200/80' : 'border-slate-800'
         }`}>
-          <div className="flex items-start sm:items-center gap-3.5">
-            <div className="w-12 h-12 rounded-2xl bg-amber-500 text-slate-950 flex items-center justify-center font-black text-lg shadow-lg shrink-0">
-              <Box className="w-6 h-6" />
-            </div>
-            <div>
-              <div className="flex flex-wrap items-center gap-2">
-                <button
-                  onClick={() => setShowQrModal(true)}
-                  className={`font-mono text-xs px-3 py-1 rounded-full font-black border flex items-center gap-1.5 transition cursor-pointer shadow-xs ${
-                    isLight ? 'bg-amber-100 text-amber-900 border-amber-300 hover:bg-amber-200' : 'bg-amber-500/20 text-amber-400 border-amber-500/30 hover:bg-amber-500/30'
-                  }`}
-                  title="عرض وتنزيل وطباعة رمز الوصول السريع (Quick Access QR) والبيانات الجغرافية"
-                >
-                  <QrCode className="w-3.5 h-3.5 text-amber-500" />
-                  <span>{toArabicDigits(selectedUnit.code)}</span>
-                </button>
-                <span className={`text-xs px-2.5 py-1 rounded-full font-bold border ${
-                  isLight ? 'bg-slate-100 text-slate-700 border-slate-300' : 'bg-slate-800 text-slate-300 border-slate-700'
-                }`}>
-                  {getUnitTypeLabel(selectedUnit.type)}
-                </span>
-                {selectedUnit.status === 'decommissioned' ? (
-                  <span className="text-xs px-2.5 py-1 rounded-full font-black bg-rose-600 text-white flex items-center gap-1">
-                    <Archive className="w-3 h-3" />
-                    <span>مشطوبة ومجمدة</span>
-                  </span>
-                ) : (
-                  <span className="text-xs px-2.5 py-1 rounded-full font-black bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
-                    <CheckCircle className="w-3 h-3 text-emerald-400" />
-                    <span>نشطة وتشغيلية</span>
-                  </span>
-                )}
-              </div>
-              <h3 className={`font-extrabold text-lg sm:text-xl mt-1 ${isLight ? 'text-slate-900' : 'text-white'}`}>{selectedUnit.name}</h3>
-            </div>
+          {/* Identity Badges - Centered on Top */}
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            <span
+              className={`font-mono text-xs px-3.5 py-1 rounded-full font-black border flex items-center gap-1.5 shadow-xs ${
+                isLight ? 'bg-amber-100/90 text-amber-950 border-amber-300' : 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+              }`}
+              title="رمز المنشأة الفريد (Asset Code)"
+            >
+              <Box className="w-3.5 h-3.5 text-amber-500" />
+              <span>{toArabicDigits(selectedUnit.code)}</span>
+            </span>
+
+            <span className={`text-xs px-3 py-1 rounded-full font-bold border ${
+              isLight ? 'bg-slate-100 text-slate-800 border-slate-300' : 'bg-slate-800 text-slate-300 border-slate-700'
+            }`}>
+              {getUnitTypeLabel(selectedUnit.type)}
+            </span>
+
+            {selectedUnit.status === 'decommissioned' ? (
+              <span className="text-xs px-3 py-1 rounded-full font-black bg-rose-600 text-white flex items-center gap-1.5 shadow-xs">
+                <Archive className="w-3.5 h-3.5" />
+                <span>مشطوبة ومجمدة</span>
+              </span>
+            ) : (
+              <span className="text-xs px-3 py-1 rounded-full font-black bg-emerald-500/20 text-emerald-500 dark:text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5 shadow-xs">
+                <CheckCircle className="w-3.5 h-3.5 text-emerald-500 dark:text-emerald-400" />
+                <span>نشطة وتشغيلية</span>
+              </span>
+            )}
           </div>
 
-          {/* Action Buttons Toolbar - Formatted in a single row */}
-          <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto shrink-0">
-            {/* Direct Map Location & GPS Navigation Button */}
-            <button
-              onClick={() => setShowLocationMapModal(true)}
-              className={`font-black py-2 px-3 rounded-xl text-xs flex items-center gap-1.5 border transition cursor-pointer whitespace-nowrap shadow-xs ${
-                isLight
-                  ? 'bg-emerald-100 hover:bg-emerald-200 text-emerald-950 border-emerald-300'
-                  : 'bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border-emerald-500/40'
-              }`}
-              title="عرض موقع المنشأة على الخريطة التفاعلية وتوجيه الملاحة GPS"
-            >
-              <MapPin className="w-3.5 h-3.5 shrink-0 text-emerald-500" />
-              <span>الموقع على الخريطة</span>
-            </button>
+          {/* Building Name */}
+          <div className="flex items-center justify-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-500 border border-amber-500/30 flex items-center justify-center font-black shadow-xs">
+              <Box className="w-4.5 h-4.5" />
+            </div>
+            <h3 className={`font-black text-2xl sm:text-3xl tracking-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>
+              {selectedUnit.name}
+            </h3>
+          </div>
 
-            <button
-              onClick={() => onSelectUnit('')}
-              className={`font-black py-2 px-3 rounded-xl text-xs flex items-center gap-1.5 border transition cursor-pointer whitespace-nowrap shadow-xs ${
-                isLight
-                  ? 'bg-amber-100 hover:bg-amber-200 text-amber-900 border-amber-300'
-                  : 'bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border-amber-500/40'
-              }`}
-              title="إلغاء اختيار الوحدة الحالية والعودة إلى القائمة الرئيسية"
-            >
-              <ArrowRight className="w-3.5 h-3.5 shrink-0 text-amber-500" />
-              <span>العودة لاختيار منشأة</span>
-            </button>
+          {/* Action Buttons Hub - Centered Categorized Toolbar */}
+          <div className="flex flex-wrap items-center justify-center gap-3 w-full pt-1">
+            {/* Cluster 1: Navigation & Map & QR */}
+            <div className={`flex items-center gap-1.5 p-1 rounded-xl border ${
+              isLight ? 'bg-slate-100/80 border-slate-200 shadow-2xs' : 'bg-slate-950/60 border-slate-800'
+            }`}>
+              <button
+                onClick={() => onSelectUnit('')}
+                className={`font-bold py-1.5 px-3 rounded-lg text-xs flex items-center gap-1.5 transition cursor-pointer whitespace-nowrap ${
+                  isLight
+                    ? 'hover:bg-white text-slate-700 hover:text-slate-900 shadow-xs'
+                    : 'hover:bg-slate-800 text-slate-300 hover:text-white'
+                }`}
+                title="إلغاء اختيار الوحدة الحالية والعودة إلى قائمة المنشآت"
+              >
+                <ArrowRight className="w-3.5 h-3.5 shrink-0 text-amber-500" />
+                <span>العودة للمنشآت</span>
+              </button>
 
+              <div className={`w-px h-4 ${isLight ? 'bg-slate-300' : 'bg-slate-800'}`} />
+
+              <button
+                onClick={() => setShowLocationMapModal(true)}
+                className={`font-bold py-1.5 px-3 rounded-lg text-xs flex items-center gap-1.5 transition cursor-pointer whitespace-nowrap ${
+                  isLight
+                    ? 'hover:bg-white text-emerald-800 hover:text-emerald-950 shadow-xs'
+                    : 'hover:bg-emerald-500/20 text-emerald-400'
+                }`}
+                title="عرض موقع المنشأة على الخريطة التفاعلية وتوجيه الملاحة GPS"
+              >
+                <MapPin className="w-3.5 h-3.5 shrink-0 text-emerald-500" />
+                <span>الموقع على الخريطة</span>
+              </button>
+
+              <div className={`w-px h-4 ${isLight ? 'bg-slate-300' : 'bg-slate-800'}`} />
+
+              {/* QR Code button with unit code directly beside map location */}
+              <button
+                onClick={() => setShowQrModal(true)}
+                className={`font-mono font-bold py-1.5 px-3 rounded-lg text-xs flex items-center gap-1.5 transition cursor-pointer whitespace-nowrap shadow-xs ${
+                  isLight
+                    ? 'hover:bg-white text-amber-900 bg-amber-50/80 border border-amber-200 hover:border-amber-300'
+                    : 'hover:bg-slate-800 text-amber-400 bg-amber-500/10 border border-amber-500/30'
+                }`}
+                title="عرض وتنزيل وطباعة رمز الوصول السريع (Quick Access QR Code) للوحدة"
+              >
+                <QrCode className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                <span>رمز QR ({toArabicDigits(selectedUnit.code)})</span>
+              </button>
+            </div>
+
+            {/* Cluster 2: Primary Edit & 3D Customizer */}
+            {!isReadOnly && onUpdateUnit && (
+              <button
+                onClick={() => setShowEditModal(true)}
+                className="bg-linear-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black py-2 px-4 rounded-xl text-xs flex items-center gap-2 shadow-lg shadow-amber-500/20 transition-all cursor-pointer whitespace-nowrap transform active:scale-98"
+                title="تعديل كافة الخصائص، الأبعاد، الطوابق، والتصميم ثلاثي الأبعاد للمبنى"
+              >
+                <Edit3 className="w-4 h-4 shrink-0" />
+                <span>تعديل بيانات وتصميم المبنى (3D)</span>
+              </button>
+            )}
+
+            {/* Read-Only Badge */}
             {isReadOnly && (
               <div
                 className={`font-bold py-2 px-3 rounded-xl text-xs flex items-center gap-1.5 border whitespace-nowrap ${
@@ -1189,285 +1228,314 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
               </div>
             )}
 
-            {!isReadOnly && onUpdateUnit && (
-              <button
-                onClick={() => setShowEditModal(true)}
-                className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black py-2 px-3 rounded-xl text-xs flex items-center gap-1.5 shadow-lg transition cursor-pointer whitespace-nowrap"
-              >
-                <Edit3 className="w-3.5 h-3.5 shrink-0" />
-                <span>تعديل كافة بيانات وتصميم المبنى (3D)</span>
-              </button>
-            )}
+            {/* Cluster 3: Lifecycle & Deletion */}
+            {!isReadOnly && (
+              <div className={`flex items-center gap-1.5 p-1 rounded-xl border ${
+                isLight ? 'bg-slate-100/80 border-slate-200 shadow-2xs' : 'bg-slate-950/60 border-slate-800'
+              }`}>
+                {selectedUnit.status === 'decommissioned' ? (
+                  onReactivateUnit && (
+                    <button
+                      onClick={() => onReactivateUnit(selectedUnit.code)}
+                      className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-1.5 px-3 rounded-lg text-xs flex items-center gap-1.5 shadow-xs transition cursor-pointer whitespace-nowrap"
+                      title="إعادة تفعيل الوحدة وتغيير حالتها إلى نشطة"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5 shrink-0" />
+                      <span>إعادة تفعيل</span>
+                    </button>
+                  )
+                ) : (
+                  onDecommissionUnit && (
+                    <button
+                      onClick={() => {
+                        setDecommissionReasonInput('');
+                        setShowDecommissionModal(true);
+                      }}
+                      className={`font-bold py-1.5 px-3 rounded-lg text-xs flex items-center gap-1.5 transition cursor-pointer whitespace-nowrap ${
+                        isLight
+                          ? 'hover:bg-amber-100/80 text-amber-900'
+                          : 'hover:bg-amber-500/20 text-amber-400'
+                      }`}
+                      title="تجميد الوحدة ونقلها إلى حالة مشطوبة"
+                    >
+                      <Archive className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                      <span>شطب وتجميد</span>
+                    </button>
+                  )
+                )}
 
-            <button
-              onClick={() => setShowQrModal(true)}
-              className={`font-bold py-2 px-3 rounded-xl text-xs flex items-center gap-1.5 border transition cursor-pointer whitespace-nowrap shadow-xs ${
-                isLight
-                  ? 'bg-amber-50 hover:bg-amber-100 text-amber-900 border-amber-300'
-                  : 'bg-slate-950 hover:bg-slate-800 text-amber-400 border-amber-500/40'
-              }`}
-              title="عرض وطباعة رمز الوصول السريع (Quick Access QR Code) الخاص بهذه الوحدة"
-            >
-              <QrCode className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-              <span>رمز الوصول السريع (QR)</span>
-            </button>
-
-            {/* Decommission / Reactivate Button */}
-            {!isReadOnly && (selectedUnit.status === 'decommissioned' ? (
-              onReactivateUnit && (
-                <button
-                  onClick={() => onReactivateUnit(selectedUnit.code)}
-                  className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 px-3 rounded-xl text-xs flex items-center gap-1.5 shadow-md transition cursor-pointer whitespace-nowrap"
-                  title="إعادة تفعيل الوحدة وتغيير حالتها إلى نشطة"
-                >
-                  <RotateCcw className="w-3.5 h-3.5 shrink-0" />
-                  <span>إعادة تفعيل الوحدة</span>
-                </button>
-              )
-            ) : (
-              onDecommissionUnit && (
-                <button
-                  onClick={() => {
-                    setDecommissionReasonInput('');
-                    setShowDecommissionModal(true);
-                  }}
-                  className={`font-bold py-2 px-3 rounded-xl text-xs flex items-center gap-1.5 border transition cursor-pointer whitespace-nowrap ${
-                    isLight
-                      ? 'bg-amber-50 hover:bg-amber-100 text-amber-900 border-amber-300'
-                      : 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border-amber-500/30'
-                  }`}
-                  title="تجميد الوحدة ونقلها إلى حالة مشطوبة"
-                >
-                  <Archive className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-                  <span>شطب وتجميد المنشأة</span>
-                </button>
-              )
-            ))}
-
-            {/* Permanent Delete Button */}
-            {!isReadOnly && onDeleteUnit && (
-              <button
-                onClick={() => setShowDeleteModal(true)}
-                className="bg-rose-600 hover:bg-rose-500 text-white font-bold py-2 px-3 rounded-xl text-xs flex items-center gap-1.5 shadow-md transition cursor-pointer whitespace-nowrap"
-                title="حذف الوحدة نهائياً مع كافة معلوماتها وبياناتها من النظام وقاعدة البيانات"
-              >
-                <Trash2 className="w-3.5 h-3.5 shrink-0" />
-                <span>حذف نهائي</span>
-              </button>
+                {onDeleteUnit && (
+                  <>
+                    <div className={`w-px h-4 ${isLight ? 'bg-slate-300' : 'bg-slate-800'}`} />
+                    <button
+                      onClick={() => setShowDeleteModal(true)}
+                      className="bg-rose-600 hover:bg-rose-500 text-white font-bold py-1.5 px-3 rounded-lg text-xs flex items-center gap-1.5 shadow-xs transition cursor-pointer whitespace-nowrap"
+                      title="حذف الوحدة نهائياً مع كافة معلوماتها وبياناتها من النظام وقاعدة البيانات"
+                    >
+                      <Trash2 className="w-3.5 h-3.5 shrink-0" />
+                      <span>حذف نهائي</span>
+                    </button>
+                  </>
+                )}
+              </div>
             )}
           </div>
         </div>
 
-        {/* Combined & Well-Distributed Metadata Grid (ممتدة على عرض النافذة بدون بطاقات منفصلة وبدون أشرطة تمرير) */}
-        <div className="space-y-4">
-          {/* Row 1: Core 5 Metadata Columns */}
-          <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5 p-4 rounded-xl border text-xs ${
-            isLight ? 'bg-slate-50/90 border-slate-200' : 'bg-slate-950/70 border-slate-800'
+        {/* Structured Bento Grid of 5 Metadata Categories (عرض منظم، أنيق، وموزع بتوازن) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
+          {/* Card 1: الحقل والقطاع */}
+          <div className={`p-4 rounded-xl border flex flex-col justify-between transition ${
+            isLight ? 'bg-slate-50 border-slate-200/90 shadow-2xs hover:border-amber-300' : 'bg-slate-950/60 border-slate-800 hover:border-slate-700'
           }`}>
-            {/* 1. الحقل والقطاع */}
-            <div className="space-y-1">
-              <span className={`text-[11px] font-bold flex items-center gap-1.5 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+            <div className="space-y-1.5">
+              <span className={`text-xs font-bold flex items-center gap-1.5 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
                 <MapPin className="w-3.5 h-3.5 text-amber-500 shrink-0" />
                 <span>الحقل والقطاع:</span>
               </span>
-              <p className="font-extrabold text-sm text-amber-600 dark:text-amber-400">{selectedUnit.field}</p>
-              <span className={`text-[11px] font-medium block ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
-                {selectedUnit.governorate}
-              </span>
+              <p className="font-black text-base text-amber-600 dark:text-amber-400">{selectedUnit.field}</p>
             </div>
-
-            {/* 2. شكل وهندسة المبنى (3D) */}
-            <div className="space-y-1">
-              <span className={`text-[11px] font-bold flex items-center gap-1.5 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
-                <Box className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-                <span>شكل وهندسة المبنى (3D):</span>
-              </span>
-              {(() => {
-                const shapeObj = BUILDING_SHAPE_OPTIONS.find((s) => s.id === selectedUnit.buildingShape) || {
-                  nameAr: selectedUnit.buildingShape || 'مستطيل',
-                  symbol: '▭',
-                  category: 'الأشكال الأساسية',
-                };
-                return (
-                  <>
-                    <p className={`font-extrabold text-sm flex items-center gap-1.5 ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
-                      <span className="text-amber-500 font-black text-base leading-none">{shapeObj.symbol}</span>
-                      <span>{shapeObj.nameAr}</span>
-                    </p>
-                    <span className="text-[11px] text-slate-500 dark:text-slate-400 block">
-                      {shapeObj.category} {selectedUnit.lengthM && selectedUnit.widthM ? `(${toArabicDigits(selectedUnit.lengthM)}م × ${toArabicDigits(selectedUnit.widthM)}م)` : ''}
-                    </span>
-                  </>
-                );
-              })()}
-            </div>
-
-            {/* 3. المساحة والطوابق */}
-            <div className="space-y-1">
-              <span className={`text-[11px] font-bold flex items-center gap-1.5 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
-                <Maximize2 className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-                <span>المساحة والطوابق:</span>
-              </span>
-              <p className={`font-extrabold text-sm ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
-                {toArabicDigits(selectedUnit.totalAreaSqM)} م²
-              </p>
-              <span className="text-[11px] text-slate-500 dark:text-slate-400 block font-medium">
-                {toArabicDigits(selectedUnit.floorsCount)} طوابق | {toArabicDigits(selectedUnit.rooms?.length || 0)} غرفة
-              </span>
-            </div>
-
-            {/* 4. سنة الإنشاء والإحداثيات */}
-            <div className="space-y-1">
-              <span className={`text-[11px] font-bold flex items-center gap-1.5 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
-                <Calendar className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-                <span>سنة الإنشاء والإحداثيات:</span>
-              </span>
-              <p className={`font-extrabold text-sm ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
-                {toArabicDigits(selectedUnit.constructionYear)} م
-              </p>
-              <span className="text-[11px] font-mono text-amber-600 dark:text-amber-400/90 block">
-                {toArabicDigits(selectedUnit.coordinates.lat)}°, {toArabicDigits(selectedUnit.coordinates.lng)}°
-              </span>
-            </div>
-
-            {/* 5. التقييم الهندسي (Grade) */}
-            <div className="space-y-1">
-              <span className={`text-[11px] font-bold flex items-center gap-1.5 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
-                <AlertTriangle className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-                <span>التقييم الهندسي (Grade):</span>
-              </span>
-              {isReadOnly ? (
-                <div className="pt-0.5">
-                  <span
-                    className={`inline-flex items-center justify-center w-full py-1.5 rounded-lg text-xs font-black border ${
-                      selectedUnit.conditionGrade === 'A'
-                        ? 'bg-emerald-500/20 text-emerald-500 dark:text-emerald-400 border-emerald-500/40'
-                        : selectedUnit.conditionGrade === 'B'
-                        ? 'bg-blue-500/20 text-blue-500 dark:text-blue-400 border-blue-500/40'
-                        : selectedUnit.conditionGrade === 'C'
-                        ? 'bg-amber-500/20 text-amber-500 dark:text-amber-400 border-amber-500/40'
-                        : 'bg-red-500/20 text-red-500 dark:text-red-400 border-red-500/40'
-                    }`}
-                  >
-                    الدرجة {selectedUnit.conditionGrade}
-                  </span>
-                </div>
-              ) : (
-                <div className="grid grid-cols-4 gap-1 pt-0.5">
-                  {(['A', 'B', 'C', 'D'] as ConditionGrade[]).map((g) => {
-                    const isActive = selectedUnit.conditionGrade === g;
-                    return (
-                      <button
-                        key={g}
-                        onClick={() => onUpdateGrade(selectedUnit.code, g)}
-                        className={`py-1.5 rounded-lg text-xs font-black transition cursor-pointer border ${
-                          g === 'A'
-                            ? isActive
-                              ? 'bg-emerald-500 text-slate-950 border-emerald-400 shadow'
-                              : 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/30'
-                            : g === 'B'
-                            ? isActive
-                              ? 'bg-blue-500 text-slate-950 border-blue-400 shadow'
-                              : 'bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/30'
-                            : g === 'C'
-                            ? isActive
-                              ? 'bg-amber-500 text-slate-950 border-amber-400 shadow'
-                              : 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/30'
-                            : isActive
-                            ? 'bg-red-500 text-white border-red-400 shadow'
-                            : 'bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/30'
-                        }`}
-                        title={`تحديث التقييم الهندسي إلى الدرجة ${g}`}
-                      >
-                        {g}
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
+            <div className={`mt-2 pt-2 border-t text-[11px] font-medium flex items-center justify-between ${
+              isLight ? 'border-slate-200 text-slate-500' : 'border-slate-800/80 text-slate-400'
+            }`}>
+              <span>المحافظة:</span>
+              <span className="font-bold text-slate-700 dark:text-slate-300">{selectedUnit.governorate}</span>
             </div>
           </div>
 
-          {/* Row 2: Occupying Entities (الجهات الشاغلة للمنشأة) - ممتدة بعرض البطاقة وبدون أي شريط تمرير */}
-          {(() => {
-            const deptsSet = new Set<string>();
-            if (selectedUnit.departments && selectedUnit.departments.length > 0) {
-              selectedUnit.departments.forEach((d) => d && d.trim() && deptsSet.add(d.trim()));
-            }
-            if (selectedUnit.department && selectedUnit.department.trim()) {
-              selectedUnit.department
-                .split(/[\n،,;/|]+/)
-                .map((s) => s.trim())
-                .filter(Boolean)
-                .forEach((d) => deptsSet.add(d));
-            }
-            selectedUnit.rooms?.forEach((r) => {
-              if (r.occupiedBy && r.occupiedBy.trim()) {
-                deptsSet.add(r.occupiedBy.trim());
-              }
-            });
+          {/* Card 2: شكل وهندسة المبنى (3D) */}
+          <div className={`p-4 rounded-xl border flex flex-col justify-between transition ${
+            isLight ? 'bg-slate-50 border-slate-200/90 shadow-2xs hover:border-amber-300' : 'bg-slate-950/60 border-slate-800 hover:border-slate-700'
+          }`}>
+            {(() => {
+              const shapeObj = BUILDING_SHAPE_OPTIONS.find((s) => s.id === selectedUnit.buildingShape) || {
+                nameAr: selectedUnit.buildingShape || 'مستطيل',
+                symbol: '▭',
+                category: 'الأشكال الأساسية',
+              };
+              return (
+                <>
+                  <div className="space-y-1.5">
+                    <span className={`text-xs font-bold flex items-center gap-1.5 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                      <Box className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                      <span>شكل وهندسة المبنى (3D):</span>
+                    </span>
+                    <p className={`font-black text-sm flex items-center gap-1.5 ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                      <span className="text-amber-500 font-black text-lg leading-none">{shapeObj.symbol}</span>
+                      <span>{shapeObj.nameAr}</span>
+                    </p>
+                  </div>
+                  <div className={`mt-2 pt-2 border-t text-[10.5px] font-medium flex items-center justify-between gap-1 ${
+                    isLight ? 'border-slate-200 text-slate-500' : 'border-slate-800/80 text-slate-400'
+                  }`}>
+                    <span className="shrink-0 font-bold">الأبعاد:</span>
+                    <div
+                      className="flex items-center gap-1 font-mono text-[10.5px] text-slate-700 dark:text-slate-300 font-bold shrink-0"
+                      title={`الطول: ${selectedUnit.lengthM || 0}م | العرض: ${selectedUnit.widthM || 0}م | الارتفاع: ${selectedUnit.heightM || ((selectedUnit.floorsCount || 1) * 3.5)}م`}
+                    >
+                      <span className="px-1 py-0.5 rounded bg-slate-200/70 dark:bg-slate-800" title="الطول">
+                        <span className="text-[9.5px] font-sans text-slate-500 dark:text-slate-400 ml-0.5">ط:</span>
+                        {selectedUnit.lengthM ? `${toArabicDigits(selectedUnit.lengthM)}م` : '—'}
+                      </span>
+                      <span>×</span>
+                      <span className="px-1 py-0.5 rounded bg-slate-200/70 dark:bg-slate-800" title="العرض">
+                        <span className="text-[9.5px] font-sans text-slate-500 dark:text-slate-400 ml-0.5">ع:</span>
+                        {selectedUnit.widthM ? `${toArabicDigits(selectedUnit.widthM)}م` : '—'}
+                      </span>
+                      <span>×</span>
+                      <span className="px-1 py-0.5 rounded bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/20" title="الارتفاع">
+                        <span className="text-[9.5px] font-sans ml-0.5 opacity-80">ارتفاع:</span>
+                        {toArabicDigits(selectedUnit.heightM || ((selectedUnit.floorsCount || 1) * 3.5))}م
+                      </span>
+                    </div>
+                  </div>
+                </>
+              );
+            })()}
+          </div>
 
-            const depts = Array.from(deptsSet);
-            if (depts.length === 0) depts.push('غير محدد');
+          {/* Card 3: المساحة والطوابق */}
+          <div className={`p-4 rounded-xl border flex flex-col justify-between transition ${
+            isLight ? 'bg-slate-50 border-slate-200/90 shadow-2xs hover:border-amber-300' : 'bg-slate-950/60 border-slate-800 hover:border-slate-700'
+          }`}>
+            <div className="space-y-1.5">
+              <span className={`text-xs font-bold flex items-center gap-1.5 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                <Maximize2 className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                <span>المساحة والطوابق:</span>
+              </span>
+              <p className={`font-black text-base ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                {toArabicDigits(selectedUnit.totalAreaSqM)} م²
+              </p>
+            </div>
+            <div className={`mt-2 pt-2 border-t text-[11px] font-medium flex items-center justify-between ${
+              isLight ? 'border-slate-200 text-slate-500' : 'border-slate-800/80 text-slate-400'
+            }`}>
+              <span>{toArabicDigits(selectedUnit.floorsCount)} طوابق</span>
+              <span className="font-bold text-amber-600 dark:text-amber-400">
+                {toArabicDigits(selectedUnit.rooms?.length || 0)} غرفة
+              </span>
+            </div>
+          </div>
 
-            return (
-              <div className={`p-4 rounded-xl border flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs ${
-                isLight ? 'bg-amber-50/70 border-amber-200/90 text-slate-800' : 'bg-slate-950/80 border-slate-800 text-slate-200'
+          {/* Card 4: سنة الإنشاء والإحداثيات */}
+          <div className={`p-4 rounded-xl border flex flex-col justify-between transition ${
+            isLight ? 'bg-slate-50 border-slate-200/90 shadow-2xs hover:border-amber-300' : 'bg-slate-950/60 border-slate-800 hover:border-slate-700'
+          }`}>
+            <div className="space-y-1.5">
+              <span className={`text-xs font-bold flex items-center gap-1.5 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                <Calendar className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                <span>سنة الإنشاء والإحداثيات:</span>
+              </span>
+              <p className={`font-black text-base ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                {toArabicDigits(selectedUnit.constructionYear)} م
+              </p>
+            </div>
+            <div className={`mt-2 pt-2 border-t text-[10.5px] font-mono flex items-center justify-between ${
+              isLight ? 'border-slate-200 text-amber-800 font-bold' : 'border-slate-800/80 text-amber-400 font-bold'
+            }`}>
+              <span>GPS:</span>
+              <span>{toArabicDigits(selectedUnit.coordinates.lat)}°, {toArabicDigits(selectedUnit.coordinates.lng)}°</span>
+            </div>
+          </div>
+
+          {/* Card 5: التقييم الهندسي (Grade) */}
+          <div className={`p-4 rounded-xl border flex flex-col justify-between transition ${
+            isLight ? 'bg-slate-50 border-slate-200/90 shadow-2xs hover:border-amber-300' : 'bg-slate-950/60 border-slate-800 hover:border-slate-700'
+          }`}>
+            <div className="space-y-1.5">
+              <span className={`text-xs font-bold flex items-center gap-1.5 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                <AlertTriangle className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                <span>التقييم الهندسي (Grade):</span>
+              </span>
+              <div className="pt-0.5">
+                <span
+                  className={`inline-flex items-center justify-center w-full py-1.5 rounded-lg text-sm font-black border shadow-xs ${
+                    selectedUnit.conditionGrade === 'A'
+                      ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-500/40'
+                      : selectedUnit.conditionGrade === 'B'
+                      ? 'bg-blue-500/20 text-blue-600 dark:text-blue-400 border-blue-500/40'
+                      : selectedUnit.conditionGrade === 'C'
+                      ? 'bg-amber-500/20 text-amber-600 dark:text-amber-400 border-amber-500/40'
+                      : 'bg-red-500/20 text-red-600 dark:text-red-400 border-red-500/40'
+                  }`}
+                >
+                  الدرجة {selectedUnit.conditionGrade || 'غير محدد'}
+                </span>
+              </div>
+            </div>
+            <div className={`mt-2 pt-2 border-t text-[11px] font-medium flex items-center justify-between ${
+              isLight ? 'border-slate-200 text-slate-500' : 'border-slate-800/80 text-slate-400'
+            }`}>
+              <span>الحالة الإنشائية:</span>
+              <span className={`font-bold ${
+                selectedUnit.conditionGrade === 'A'
+                  ? 'text-emerald-600 dark:text-emerald-400'
+                  : selectedUnit.conditionGrade === 'B'
+                  ? 'text-blue-600 dark:text-blue-400'
+                  : selectedUnit.conditionGrade === 'C'
+                  ? 'text-amber-600 dark:text-amber-400'
+                  : 'text-red-600 dark:text-red-400'
               }`}>
-                <div className="flex flex-col sm:flex-row sm:items-center gap-2.5 flex-1">
-                  <div className="flex items-center gap-1.5 font-bold text-amber-600 dark:text-amber-400 shrink-0 text-xs">
-                    <Users className="w-4 h-4 text-amber-500 shrink-0" />
-                    <span>الجهات الشاغلة للمنشأة:</span>
-                  </div>
+                {selectedUnit.conditionGrade === 'A' ? 'ممتاز' : selectedUnit.conditionGrade === 'B' ? 'جيد جداً' : selectedUnit.conditionGrade === 'C' ? 'متوسط' : 'حرج / صيانة'}
+              </span>
+            </div>
+          </div>
+        </div>
 
-                  {/* All entities wrapped naturally with NO scrollbars */}
-                  <div className="flex flex-wrap items-center gap-2 flex-1">
-                    {depts.map((deptName, idx) => {
-                      const entityRooms = (selectedUnit.rooms || []).filter((r) => r.occupiedBy === deptName);
-                      const roomCount = entityRooms.length;
-                      return (
-                        <div
-                          key={idx}
-                          className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold border transition ${
-                            idx === 0
-                              ? isLight
-                                ? 'bg-white text-amber-950 border-amber-300 shadow-xs'
-                                : 'bg-amber-500/20 text-amber-300 border-amber-500/40'
-                              : isLight
-                              ? 'bg-white text-slate-800 border-slate-300 shadow-xs'
-                              : 'bg-slate-900 text-slate-200 border-slate-700'
-                          }`}
-                          title={`الجهة الشاغلة: ${deptName}${roomCount > 0 ? ` (تشغل ${roomCount} غرف في هذه المنشأة)` : ''}`}
-                        >
-                          <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0" />
-                          <span>{deptName}</span>
-                          {roomCount > 0 && (
-                            <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono font-bold ${
-                              isLight ? 'bg-amber-100 text-amber-900 border border-amber-200' : 'bg-amber-400/20 text-amber-300 border border-amber-400/30'
-                            }`}>
-                              {toArabicDigits(roomCount)} غرف
-                            </span>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
+        {/* Row 2: Occupying Entities Showcase (الجهات الشاغلة للمنشأة) - لوحة فاخرة منظمة وتوزيع متناسق */}
+        {(() => {
+          const deptsSet = new Set<string>();
+          if (selectedUnit.departments && selectedUnit.departments.length > 0) {
+            selectedUnit.departments.forEach((d) => d && d.trim() && deptsSet.add(d.trim()));
+          }
+          if (selectedUnit.department && selectedUnit.department.trim()) {
+            selectedUnit.department
+              .split(/[\n،,;/|]+/)
+              .map((s) => s.trim())
+              .filter(Boolean)
+              .forEach((d) => deptsSet.add(d));
+          }
+          selectedUnit.rooms?.forEach((r) => {
+            if (r.occupiedBy && r.occupiedBy.trim()) {
+              deptsSet.add(r.occupiedBy.trim());
+            }
+          });
+
+          const depts = Array.from(deptsSet);
+          if (depts.length === 0) depts.push('غير محدد');
+
+          return (
+            <div className={`p-4 rounded-xl border space-y-3 text-xs transition ${
+              isLight ? 'bg-amber-50/50 border-amber-200/80 text-slate-800' : 'bg-slate-950/70 border-slate-800 text-slate-200'
+            }`}>
+              {/* Header Title */}
+              <div className="flex items-center gap-2 font-black text-amber-600 dark:text-amber-400 text-xs">
+                <div className="p-1 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                  <Users className="w-3.5 h-3.5 text-amber-500 shrink-0" />
                 </div>
+                <span>الجهات الشاغلة للمنشأة:</span>
+              </div>
 
-                <div className="text-[11.5px] font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-2 shrink-0 pt-1 md:pt-0 border-t md:border-t-0 border-slate-200 dark:border-slate-800">
-                  <span>إجمالي الجهات:</span>
-                  <span className="px-2 py-0.5 rounded bg-amber-500/20 text-amber-600 dark:text-amber-400 font-mono font-bold">
+              {/* Horizontal List of Compact Entity Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+                {depts.map((deptName, idx) => {
+                  const entityRooms = (selectedUnit.rooms || []).filter((r) => r.occupiedBy === deptName);
+                  const roomCount = entityRooms.length;
+                  return (
+                    <div
+                      key={idx}
+                      className={`flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg border transition ${
+                        idx === 0
+                          ? isLight
+                            ? 'bg-white text-amber-950 border-amber-300 shadow-2xs'
+                            : 'bg-slate-900/90 text-amber-300 border-amber-500/40'
+                          : isLight
+                          ? 'bg-white text-slate-800 border-slate-200 shadow-2xs hover:border-slate-300'
+                          : 'bg-slate-900/80 text-slate-200 border-slate-800 hover:border-slate-700'
+                      }`}
+                      title={`الجهة الشاغلة: ${deptName}${roomCount > 0 ? ` (تشغل ${roomCount} غرف في هذه المنشأة)` : ''}`}
+                    >
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
+                        <span className="text-[11.5px] font-bold truncate">{deptName}</span>
+                      </div>
+                      {roomCount > 0 && (
+                        <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-mono font-bold shrink-0 ${
+                          isLight ? 'bg-amber-100 text-amber-900 border border-amber-200' : 'bg-amber-400/20 text-amber-300 border border-amber-400/30'
+                        }`}>
+                          {toArabicDigits(roomCount)} غرف
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Bottom Summary Cards (إجمالي الجهات وإجمالي الغرف) */}
+              <div className={`pt-2 border-t flex flex-wrap items-center justify-end gap-2.5 text-xs font-semibold ${
+                isLight ? 'border-amber-200/70 text-slate-600' : 'border-slate-800 text-slate-400'
+              }`}>
+                <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border shadow-2xs ${
+                  isLight ? 'bg-white border-amber-200 text-amber-900' : 'bg-slate-900 border-amber-500/30 text-amber-300'
+                }`}>
+                  <span className="text-[11px] font-bold">إجمالي الجهات:</span>
+                  <span className="font-mono font-black text-xs px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-600 dark:text-amber-400">
                     {toArabicDigits(depts.length)}
                   </span>
-                  <span className="mr-1">| إجمالي الغرف:</span>
-                  <span className="px-2 py-0.5 rounded bg-slate-200/70 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-mono font-bold">
+                </div>
+
+                <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border shadow-2xs ${
+                  isLight ? 'bg-white border-slate-200 text-slate-800' : 'bg-slate-900 border-slate-700 text-slate-200'
+                }`}>
+                  <span className="text-[11px] font-bold">إجمالي الغرف:</span>
+                  <span className="font-mono font-black text-xs px-1.5 py-0.2 rounded bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-200">
                     {toArabicDigits(selectedUnit.rooms?.length || 0)}
                   </span>
                 </div>
               </div>
-            );
-          })()}
-        </div>
+            </div>
+          );
+        })()}
       </div>
 
       {/* 2. HUGE 3D CANVAS VIEWPORT (المخطط ثلاثي الأبعاد بمساحة ممتدة ومتكاملة) */}

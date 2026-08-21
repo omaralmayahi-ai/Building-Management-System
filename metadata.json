@@ -1,6 +1,6 @@
 {
   "name": "Central Oil Company Iraq - Asset Management System",
   "description": "نظام إدارة الأصول والمباني والكرفانات - شركة نفط الوسط - لوحة القيادة، الوحدات، المحرر الهندسي، الصيانة، والإشغال",
-  "requestFramePermissions": ["camera"],
+  "requestFramePermissions": ["camera", "geolocation"],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

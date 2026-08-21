@@ -483,7 +483,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
   const [createMaintenance, setCreateMaintenance] = useState(false);
   const [maintIssue, setMaintIssue] = useState('');
   const [maintPriority, setMaintPriority] = useState<'critical' | 'normal' | 'low'>('normal');
-  const [maintAssignedTo, setMaintAssignedTo] = useState('فريق الصيانة الميدانية بالموقع');
+  const [maintDept, setMaintDept] = useState('الصيانة الكهربائية');
   const [maintDate, setMaintDate] = useState('');
 
   // Edit Schedule Form state
@@ -580,7 +580,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
       createMaintenance,
       maintenanceIssue: maintIssue,
       maintenancePriority: maintPriority,
-      maintenanceAssignedTo: maintAssignedTo,
+      maintenanceDepartment: maintDept,
       maintenanceDate: maintDate || completeDate || new Date().toISOString().split('T')[0],
     });
 
@@ -2340,16 +2340,22 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
 
                       <div className="sm:col-span-3">
                         <label className={`block font-bold mb-0.5 text-[11px] ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
-                          الجهة المكلفة:
+                          جهة الصيانة المختصة:
                         </label>
-                        <input
-                          type="text"
-                          value={maintAssignedTo}
-                          onChange={(e) => setMaintAssignedTo(e.target.value)}
+                        <select
+                          value={maintDept}
+                          onChange={(e) => setMaintDept(e.target.value)}
                           className={`w-full rounded-lg px-2.5 py-1.5 font-bold outline-none border ${
                             isLight ? 'bg-white border-slate-200 text-slate-900' : 'bg-slate-900 border-slate-800 text-slate-100'
                           }`}
-                        />
+                        >
+                          <option value="الصيانة الكهربائية">الصيانة الكهربائية</option>
+                          <option value="الصيانة الميكانيكية">الصيانة الميكانيكية</option>
+                          <option value="الصيانة الإنشائية">الصيانة الإنشائية</option>
+                          <option value="صيانة التبريد والتكييف">صيانة التبريد والتكييف</option>
+                          <option value="صيانة أنظمة السلامة والإطفاء">صيانة أنظمة السلامة والإطفاء</option>
+                          <option value="الصيانة العامة">الصيانة العامة</option>
+                        </select>
                       </div>
                     </div>
                   )}
@@ -2924,16 +2930,15 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                       <table className="w-full text-right text-xs">
                         <thead className={`font-bold border-b ${isLight ? 'bg-slate-100 text-slate-700' : 'bg-slate-950 text-slate-400'}`}>
                           <tr>
-                            <th className="p-2">رقم البلاغ</th>
-                            <th className="p-2">المشكلة / العطل</th>
-                            <th className="p-2">الفريق</th>
-                            <th className="p-2">حالة الطلب</th>
-                            <th className="p-2">تاريخ الطلب</th>
-                            <th className="p-2">تاريخ الإنجاز / الإلغاء</th>
-                            <th className="p-2">المدة (بالأيام)</th>
-                            <th className="p-2 text-center">المرفق / الصورة</th>
-                            <th className="p-2">ملاحظات الحل</th>
-                            <th className="p-2 text-center">إجراء الموظف</th>
+                            <th className="p-2 whitespace-nowrap">رقم الطلب</th>
+                            <th className="p-2 min-w-[130px] max-w-[180px]">العطل</th>
+                            <th className="p-2 whitespace-nowrap">جهة الصيانة</th>
+                            <th className="p-2 whitespace-nowrap">حالة الطلب</th>
+                            <th className="p-2 whitespace-nowrap">تاريخ الإنجاز / الإلغاء</th>
+                            <th className="p-2 whitespace-nowrap text-center">المدة (بالأيام)</th>
+                            <th className="p-2 text-center whitespace-nowrap">المرفقات</th>
+                            <th className="p-2 min-w-[110px] max-w-[150px]">النتائج</th>
+                            <th className="p-2 text-center whitespace-nowrap">الإجراءات</th>
                           </tr>
                         </thead>
                         <tbody className={`divide-y ${isLight ? 'divide-slate-200' : 'divide-slate-800/40'}`}>
@@ -2941,9 +2946,18 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                             .filter((r) => r.unitCode === showUnitArchiveModal.code)
                             .map((req) => (
                               <tr key={req.id} className={isLight ? 'hover:bg-slate-100/80' : 'hover:bg-slate-800/30'}>
-                                <td className={`p-2 font-mono font-bold text-[11px] ${isLight ? 'text-amber-700' : 'text-amber-400'}`}>{toArabicDigits(req.id)}</td>
-                                <td className="p-2 font-bold">
-                                  <div className={isLight ? 'text-slate-900' : 'text-slate-100'}>{req.issue}</div>
+                                <td className="p-2 whitespace-nowrap">
+                                  <div className="space-y-0.5">
+                                    <div className={`font-mono font-bold text-[11px] ${isLight ? 'text-amber-700' : 'text-amber-400'}`}>
+                                      {toArabicDigits(req.id)}
+                                    </div>
+                                    <div className={`text-[10px] font-mono ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                                      {formatDateOnly(req.createdAt)}
+                                    </div>
+                                  </div>
+                                </td>
+                                <td className="p-2 max-w-[180px]">
+                                  <div className={`font-bold text-xs line-clamp-2 ${isLight ? 'text-slate-900' : 'text-slate-100'}`} title={req.issue}>{req.issue}</div>
                                   <div className="mt-0.5">
                                     <span className={`px-1.5 py-0.2 rounded text-[9px] ${
                                       req.priority === 'critical'
@@ -2954,13 +2968,23 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                                     </span>
                                   </div>
                                 </td>
-                                <td className={`p-2 text-[11px] ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>{req.assignedTo}</td>
-                                <td className="p-2">
+                                <td className="p-2 whitespace-nowrap">
+                                  <span className={`px-2 py-0.5 rounded-lg text-[10px] font-bold ${isLight ? 'bg-amber-100 text-amber-900 border border-amber-300' : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'}`}>
+                                    {req.maintenanceDepartment || 'الصيانة العامة'}
+                                  </span>
+                                </td>
+                                <td className="p-2 whitespace-nowrap">
                                   {req.status === 'completed' ? (
                                     <span className={`px-2 py-0.5 rounded font-bold border text-[10px] ${
                                       isLight ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
                                     }`}>
                                       منجز
+                                    </span>
+                                  ) : req.status === 'rejected' ? (
+                                    <span className={`px-2 py-0.5 rounded font-bold border text-[10px] ${
+                                      isLight ? 'bg-rose-100 text-rose-800 border-rose-300' : 'bg-rose-500/20 text-rose-400 border-rose-500/30'
+                                    }`}>
+                                      مرفوض
                                     </span>
                                   ) : req.status === 'cancelled' ? (
                                     <span className={`px-2 py-0.5 rounded font-bold border text-[10px] ${
@@ -2976,9 +3000,8 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                                     </span>
                                   )}
                                 </td>
-                                <td className={`p-2 font-mono text-[11px] font-semibold ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>{formatDateOnly(req.createdAt)}</td>
-                                <td className={`p-2 font-mono text-[11px] font-semibold ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>{getCompletionOrCancellationDate(req.completedAt, req.status)}</td>
-                                <td className={`p-2 font-bold text-[11px] ${isLight ? 'text-amber-700' : 'text-amber-400'}`}>{calculateMaintenanceDurationDays(req.createdAt, req.completedAt, req.status)}</td>
+                                <td className={`p-2 font-mono text-[11px] font-semibold whitespace-nowrap ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>{getCompletionOrCancellationDate(req.completedAt, req.status)}</td>
+                                <td className={`p-2 font-bold text-[11px] text-center whitespace-nowrap ${isLight ? 'text-amber-700' : 'text-amber-400'}`}>{calculateMaintenanceDurationDays(req.createdAt, req.completedAt, req.status)}</td>
                                 <td className="p-2 text-center whitespace-nowrap">
                                   {req.attachmentUrl || req.attachmentName ? (
                                     <button
@@ -3008,14 +3031,14 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                                     <span className="text-slate-400 text-[10px]">لا يوجد مرفق</span>
                                   )}
                                 </td>
-                                <td className="p-2">
+                                <td className="p-2 max-w-[150px]">
                                   {req.resolutionNotes ? (
-                                    <span className={`text-[10px] truncate max-w-[120px] block ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>{req.resolutionNotes}</span>
+                                    <span className={`text-[10px] line-clamp-2 block ${isLight ? 'text-slate-700' : 'text-slate-300'}`} title={req.resolutionNotes}>{req.resolutionNotes}</span>
                                   ) : (
                                     <span className="text-slate-400 text-[10px]">لا توجد ملاحظات</span>
                                   )}
                                 </td>
-                                <td className="p-2 text-center">
+                                <td className="p-2 text-center whitespace-nowrap">
                                   <button
                                     onClick={() => {
                                       setEditMaintenanceReq(req);
@@ -3112,6 +3135,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                   }`}
                 >
                   <option value="completed">تمت المعالجة و الانجاز</option>
+                  <option value="rejected">تم رفض طلب الصيانة</option>
                   <option value="cancelled">تم الغاء طلب الصيانة</option>
                 </select>
               </div>

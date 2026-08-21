@@ -1116,11 +1116,11 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
             {/* Live Interactive Map Component */}
             <div className="space-y-3 pt-2">
               <div className="flex items-center justify-between">
-                <label className="text-slate-200 font-bold flex items-center gap-2 text-sm">
-                  <MapPin className="w-4 h-4 text-amber-400" />
+                <label className={`font-bold flex items-center gap-2 text-sm ${isLight ? 'text-slate-900' : 'text-slate-200'}`}>
+                  <MapPin className="w-4 h-4 text-amber-500" />
                   <span>التحديد الجغرافي المباشر عبر الخريطة الحية:</span>
                 </label>
-                <span className="text-[11px] text-slate-400">
+                <span className={`text-[11px] ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
                   يمكن تحديد الموقع بالنقر/السحب على الخريطة أو بإدخال القيم اليدوية أدناه
                 </span>
               </div>
@@ -1132,31 +1132,40 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                   setLat(newLat);
                   setLng(newLng);
                 }}
+                theme={theme}
               />
 
               {/* Manual Lat/Lng Inputs */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
-                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-3.5 space-y-1">
-                  <label className="block text-slate-400 font-bold text-[11px]">خط العرض (GPS Latitude):</label>
+                <div className={`border rounded-2xl p-3.5 space-y-1 ${isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-900 border-slate-800'}`}>
+                  <label className={`block font-bold text-[11px] ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>خط العرض (GPS Latitude):</label>
                   <input
                     type="number"
                     step="0.000001"
                     value={lat}
                     onChange={(e) => setLat(e.target.value === '' ? '' : Number(e.target.value))}
                     placeholder="مثال: 32.6189"
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 font-mono text-amber-400 font-bold text-sm focus:border-amber-500 outline-none"
+                    className={`w-full border rounded-xl p-2.5 font-mono font-bold text-sm focus:border-amber-500 outline-none transition ${
+                      isLight
+                        ? 'bg-white border-slate-300 text-amber-600 placeholder-slate-400'
+                        : 'bg-slate-950 border-slate-800 text-amber-400 placeholder-slate-600'
+                    }`}
                   />
                 </div>
 
-                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-3.5 space-y-1">
-                  <label className="block text-slate-400 font-bold text-[11px]">خط الطول (GPS Longitude):</label>
+                <div className={`border rounded-2xl p-3.5 space-y-1 ${isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-900 border-slate-800'}`}>
+                  <label className={`block font-bold text-[11px] ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>خط الطول (GPS Longitude):</label>
                   <input
                     type="number"
                     step="0.000001"
                     value={lng}
                     onChange={(e) => setLng(e.target.value === '' ? '' : Number(e.target.value))}
                     placeholder="مثال: 45.7531"
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 font-mono text-amber-400 font-bold text-sm focus:border-amber-500 outline-none"
+                    className={`w-full border rounded-xl p-2.5 font-mono font-bold text-sm focus:border-amber-500 outline-none transition ${
+                      isLight
+                        ? 'bg-white border-slate-300 text-amber-600 placeholder-slate-400'
+                        : 'bg-slate-950 border-slate-800 text-amber-400 placeholder-slate-600'
+                    }`}
                   />
                 </div>
               </div>

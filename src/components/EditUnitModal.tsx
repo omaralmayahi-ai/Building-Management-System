@@ -1216,6 +1216,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                     setLat(newLat);
                     setLng(newLng);
                   }}
+                  theme={theme}
                 />
               </div>
 

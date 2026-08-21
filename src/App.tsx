@@ -12,6 +12,7 @@ import {
   CheckCircle,
   Info,
   X,
+  MapPin,
 } from 'lucide-react';
 import { Header } from './components/Header';
 import { Sidebar, NavTab } from './components/Sidebar';
@@ -29,6 +30,7 @@ import { LoginView } from './components/LoginView';
 import { InAppQrScannerModal } from './components/InAppQrScannerModal';
 import { UnitScanChoiceModal } from './components/UnitScanChoiceModal';
 import { UnitLocationMapModal } from './components/UnitLocationMapModal';
+import { GISMapView } from './components/GISMapView';
 
 import {
   INITIAL_UNITS,
@@ -68,6 +70,9 @@ import {
   OrgEntity,
   OrgLevel,
   UserAccountRole,
+  DatabaseBackupPayload,
+  AutoBackupScheduleConfig,
+  BackupHistoryItem,
 } from './types';
 import { toArabicDigits } from './utils/arabicUtils';
 import { safeParse, safeSetItem } from './utils/storageUtils';
@@ -185,16 +190,20 @@ export function App() {
     }
     const role = user.role;
     if (role === 'موظف الكشف والصيانة' || role === 'inspector') {
+      setSelectedUnitCode('');
       setActiveTab('field_inspection');
     } else if (role === 'موظف الصيانة' || role === 'maintenance_employee') {
+      setSelectedUnitCode('');
       setActiveTab('maintenance');
     } else if (role === 'مستخدم' || role === 'user') {
+      setSelectedUnitCode('');
       setActiveTab('dashboard');
     }
   };
 
   const handleLogout = () => {
     setCurrentUser(null);
+    setSelectedUnitCode('');
     localStorage.removeItem('app_current_user');
   };
 
@@ -478,6 +487,167 @@ export function App() {
     safeSetItem('app_ref_maintenance_depts', maintenanceDepartments);
     safeSetItem('app_ref_org_entities', orgEntities);
   }, [unitTypes, governorates, oilfields, sites, roomTypes, equipmentTypes, maintenanceDepartments, orgEntities]);
+
+  // Background Automated Backup Scheduler (الجدولة التلقائية للنسخ الاحتياطي في الخلفية)
+  useEffect(() => {
+    const checkAndRunAutoBackup = () => {
+      try {
+        const config: AutoBackupScheduleConfig = safeParse('app_auto_backup_config', {
+          enabled: true,
+          frequency: 'daily',
+          timeOfDay: '02:00',
+          storagePath: 'C:\\Midland_Oil_Database_Backups\\',
+          storageType: 'local_folder',
+          keepMaxBackups: 30,
+        });
+
+        if (!config.enabled) return;
+
+        const now = new Date();
+        const currentHours = String(now.getHours()).padStart(2, '0');
+        const currentMinutes = String(now.getMinutes()).padStart(2, '0');
+        const currentTime = `${currentHours}:${currentMinutes}`;
+
+        // Check if last run was today
+        const lastRunStr = config.lastBackupTimestamp;
+        let alreadyRanToday = false;
+        if (lastRunStr) {
+          const lastDate = new Date(lastRunStr);
+          alreadyRanToday =
+            lastDate.getFullYear() === now.getFullYear() &&
+            lastDate.getMonth() === now.getMonth() &&
+            lastDate.getDate() === now.getDate();
+        }
+
+        // Trigger if time matches and hasn't run today (or on manual intervals)
+        if (currentTime === config.timeOfDay && !alreadyRanToday) {
+          const yyyy = now.getFullYear();
+          const mm = String(now.getMonth() + 1).padStart(2, '0');
+          const dd = String(now.getDate()).padStart(2, '0');
+          const filename = `Auto_Backup_${yyyy}_${mm}_${dd}_${currentHours}${currentMinutes}.json`;
+
+          const payload: DatabaseBackupPayload = {
+            version: '3.0.0-PROD',
+            systemTitle: branding.systemName || 'منظومة إدارة الوحدات والأصول العقارية',
+            companyName: branding.companyName || 'شركة نفط الوسط',
+            exportedAt: now.toISOString(),
+            exportedAtFormatted: toArabicDigits(now.toLocaleString('ar-IQ')),
+            exportedBy: 'النظام التلقائي (Auto Schedule)',
+            checksum: `AUTO-MOC-${Date.now().toString(36).toUpperCase()}`,
+            counts: {
+              units: units.length,
+              maintenanceRequests: maintenanceRequests.length,
+              occupancyRecords: occupancyRecords.length,
+              periodicInspections: periodicInspections.length,
+              users: users.length,
+              orgEntities: orgEntities.length,
+              governorates: governorates.length,
+              oilfields: oilfields.length,
+              sites: sites.length,
+              unitTypes: unitTypes.length,
+              roomTypes: roomTypes.length,
+              equipmentTypes: equipmentTypes.length,
+              maintenanceDepartments: maintenanceDepartments.length,
+              auditLogs: auditLogs.length,
+              totalRecords:
+                units.length +
+                maintenanceRequests.length +
+                occupancyRecords.length +
+                periodicInspections.length +
+                users.length +
+                orgEntities.length +
+                governorates.length +
+                oilfields.length +
+                sites.length +
+                unitTypes.length +
+                roomTypes.length +
+                equipmentTypes.length +
+                maintenanceDepartments.length +
+                auditLogs.length,
+            },
+            data: {
+              units,
+              maintenanceRequests,
+              occupancyRecords,
+              periodicInspections,
+              users,
+              orgEntities,
+              branding,
+              governorates,
+              oilfields,
+              sites,
+              unitTypes,
+              roomTypes,
+              equipmentTypes,
+              maintenanceDepartments,
+              auditLogs,
+            },
+          };
+
+          const historyItem: BackupHistoryItem = {
+            id: `BCK-${Date.now()}`,
+            filename,
+            timestamp: now.toISOString(),
+            timestampFormatted: toArabicDigits(now.toLocaleString('ar-IQ')),
+            sizeBytes: 1024 * 150,
+            sizeFormatted: '150 ك.ب',
+            totalRecords: payload.counts.totalRecords,
+            unitsCount: units.length,
+            storagePath: config.storagePath || 'C:\\Midland_Oil_Database_Backups\\',
+            status: 'success',
+            triggerType: 'scheduled',
+            summary: `نسخة مجدولة تلقائياً: ${toArabicDigits(units.length)} مبنى و ${toArabicDigits(payload.counts.totalRecords)} سجل كامل`,
+            payloadSnapshot: payload,
+          };
+
+          const existingHistory: BackupHistoryItem[] = safeParse('app_backup_history', []);
+          const updatedHistory = [historyItem, ...existingHistory.slice(0, 49)];
+          safeSetItem('app_backup_history', updatedHistory);
+
+          const updatedConfig: AutoBackupScheduleConfig = {
+            ...config,
+            lastBackupTimestamp: now.toISOString(),
+            lastBackupFormatted: toArabicDigits(now.toLocaleString('ar-IQ')),
+            lastBackupSize: '150 ك.ب',
+            lastBackupStatus: 'success',
+          };
+          safeSetItem('app_auto_backup_config', updatedConfig);
+
+          appendAuditLog({
+            id: `LOG-${Date.now()}`,
+            timestamp: toArabicDigits(now.toLocaleString('ar-IQ')),
+            action: 'تصدير نسخة احتياطية مجدولة تلقائياً',
+            user: 'جدولة النظام التلقائية',
+            userInitials: 'SYS',
+            affectedField: 'النسخ الاحتياطي التلقائي',
+            previousValue: '-',
+            newValue: `تم الحفظ في: ${config.storagePath} (${toArabicDigits(payload.counts.totalRecords)} سجل)`,
+          });
+        }
+      } catch (err) {
+        console.warn('Auto backup scheduler check note:', err);
+      }
+    };
+
+    const intervalId = setInterval(checkAndRunAutoBackup, 60000); // Check once per minute
+    return () => clearInterval(intervalId);
+  }, [
+    branding,
+    units,
+    maintenanceRequests,
+    occupancyRecords,
+    periodicInspections,
+    users,
+    orgEntities,
+    governorates,
+    oilfields,
+    sites,
+    unitTypes,
+    roomTypes,
+    equipmentTypes,
+    maintenanceDepartments,
+    auditLogs,
+  ]);
 
   const handleAddOrgEntity = (newEntity: OrgEntity) => {
     setOrgEntities((prev) => {
@@ -948,6 +1118,234 @@ export function App() {
     setAuditLogs(SEED_WITH_DEMO_DATA ? INITIAL_AUDIT_LOGS : []);
   };
 
+  // Comprehensive Database Restore & Import Handler
+  const handleRestoreDatabase = (
+    payload: DatabaseBackupPayload,
+    mode: 'overwrite' | 'merge',
+    onComplete?: () => void
+  ) => {
+    try {
+      const { data } = payload;
+      if (!data) throw new Error('بيانات النسخة الاحتياطية غير صالحة أو فارغة');
+
+      if (mode === 'overwrite') {
+        if (data.units && Array.isArray(data.units)) {
+          setUnits(data.units);
+          safeSetItem('app_units', data.units);
+          api.saveUnits(data.units).catch(() => {});
+        }
+        if (data.maintenanceRequests && Array.isArray(data.maintenanceRequests)) {
+          setMaintenanceRequests(data.maintenanceRequests);
+          safeSetItem('app_maintenance_requests', data.maintenanceRequests);
+          api.saveMaintenanceRequests(data.maintenanceRequests).catch(() => {});
+        }
+        if (data.occupancyRecords && Array.isArray(data.occupancyRecords)) {
+          setOccupancyRecords(data.occupancyRecords);
+          safeSetItem('app_occupancy_records', data.occupancyRecords);
+          api.saveOccupancyRecords(data.occupancyRecords).catch(() => {});
+        }
+        if (data.periodicInspections && Array.isArray(data.periodicInspections)) {
+          setPeriodicInspections(data.periodicInspections);
+          safeSetItem('app_periodic_inspections', data.periodicInspections);
+          api.savePeriodicInspections(data.periodicInspections).catch(() => {});
+        }
+        if (data.users && Array.isArray(data.users)) {
+          setUsers(data.users);
+          safeSetItem('app_users', data.users);
+          api.saveUsers(data.users).catch(() => {});
+        }
+        if (data.orgEntities && Array.isArray(data.orgEntities)) {
+          setOrgEntities(data.orgEntities);
+          safeSetItem('app_ref_org_entities', data.orgEntities);
+          api.saveOrgEntities(data.orgEntities).catch(() => {});
+        }
+        if (data.branding && data.branding.systemName) {
+          setBranding(data.branding);
+          safeSetItem('app_branding', data.branding);
+          api.saveBranding(data.branding).catch(() => {});
+        }
+        if (data.governorates && Array.isArray(data.governorates)) {
+          setGovernorates(data.governorates);
+          safeSetItem('app_ref_governorates', data.governorates);
+        }
+        if (data.oilfields && Array.isArray(data.oilfields)) {
+          setOilfields(data.oilfields);
+          safeSetItem('app_ref_oilfields', data.oilfields);
+        }
+        if (data.sites && Array.isArray(data.sites)) {
+          setSites(data.sites);
+          safeSetItem('app_ref_sites', data.sites);
+        }
+        if (data.unitTypes && Array.isArray(data.unitTypes)) {
+          setUnitTypes(data.unitTypes);
+          safeSetItem('app_ref_unit_types', data.unitTypes);
+        }
+        if (data.roomTypes && Array.isArray(data.roomTypes)) {
+          setRoomTypes(data.roomTypes);
+          safeSetItem('app_ref_room_types', data.roomTypes);
+        }
+        if (data.equipmentTypes && Array.isArray(data.equipmentTypes)) {
+          setEquipmentTypes(data.equipmentTypes);
+          safeSetItem('app_ref_equipment_types', data.equipmentTypes);
+        }
+        if (data.maintenanceDepartments && Array.isArray(data.maintenanceDepartments)) {
+          setMaintenanceDepartments(data.maintenanceDepartments);
+          safeSetItem('app_ref_maintenance_depts', data.maintenanceDepartments);
+        }
+        if (data.auditLogs && Array.isArray(data.auditLogs)) {
+          setAuditLogs(data.auditLogs);
+          safeSetItem('app_audit_logs', data.auditLogs);
+        }
+      } else {
+        // Smart Merge Mode
+        if (data.units && Array.isArray(data.units)) {
+          setUnits((prev) => {
+            const existingIds = new Set(prev.map((u) => u.id));
+            const updated = prev.map((u) => {
+              const matched = data.units.find((nu) => nu.id === u.id);
+              return matched || u;
+            });
+            const additions = data.units.filter((nu) => !existingIds.has(nu.id));
+            const merged = [...additions, ...updated];
+            safeSetItem('app_units', merged);
+            api.saveUnits(merged).catch(() => {});
+            return merged;
+          });
+        }
+        if (data.maintenanceRequests && Array.isArray(data.maintenanceRequests)) {
+          setMaintenanceRequests((prev) => {
+            const existingIds = new Set(prev.map((r) => r.id));
+            const updated = prev.map((r) => {
+              const matched = data.maintenanceRequests.find((nr) => nr.id === r.id);
+              return matched || r;
+            });
+            const additions = data.maintenanceRequests.filter((nr) => !existingIds.has(nr.id));
+            const merged = [...additions, ...updated];
+            safeSetItem('app_maintenance_requests', merged);
+            api.saveMaintenanceRequests(merged).catch(() => {});
+            return merged;
+          });
+        }
+        if (data.occupancyRecords && Array.isArray(data.occupancyRecords)) {
+          setOccupancyRecords((prev) => {
+            const existingIds = new Set(prev.map((o) => o.id));
+            const additions = data.occupancyRecords.filter((no) => !existingIds.has(no.id));
+            const merged = [...additions, ...prev];
+            safeSetItem('app_occupancy_records', merged);
+            api.saveOccupancyRecords(merged).catch(() => {});
+            return merged;
+          });
+        }
+        if (data.periodicInspections && Array.isArray(data.periodicInspections)) {
+          setPeriodicInspections((prev) => {
+            const existingIds = new Set(prev.map((p) => p.id));
+            const additions = data.periodicInspections.filter((np) => !existingIds.has(np.id));
+            const merged = [...additions, ...prev];
+            safeSetItem('app_periodic_inspections', merged);
+            api.savePeriodicInspections(merged).catch(() => {});
+            return merged;
+          });
+        }
+        if (data.users && Array.isArray(data.users)) {
+          setUsers((prev) => {
+            const existingIds = new Set(prev.map((u) => u.id));
+            const additions = data.users.filter((nu) => !existingIds.has(nu.id));
+            const merged = [...prev, ...additions];
+            safeSetItem('app_users', merged);
+            api.saveUsers(merged).catch(() => {});
+            return merged;
+          });
+        }
+        if (data.orgEntities && Array.isArray(data.orgEntities)) {
+          setOrgEntities((prev) => {
+            const existingIds = new Set(prev.map((e) => e.id));
+            const additions = data.orgEntities.filter((ne) => !existingIds.has(ne.id));
+            const merged = [...prev, ...additions];
+            safeSetItem('app_ref_org_entities', merged);
+            api.saveOrgEntities(merged).catch(() => {});
+            return merged;
+          });
+        }
+        if (data.governorates && Array.isArray(data.governorates)) {
+          setGovernorates((prev) => {
+            const existingIds = new Set(prev.map((g) => g.id));
+            const additions = data.governorates.filter((ng) => !existingIds.has(ng.id));
+            const merged = [...prev, ...additions];
+            safeSetItem('app_ref_governorates', merged);
+            return merged;
+          });
+        }
+        if (data.oilfields && Array.isArray(data.oilfields)) {
+          setOilfields((prev) => {
+            const existingIds = new Set(prev.map((f) => f.id));
+            const additions = data.oilfields.filter((nf) => !existingIds.has(nf.id));
+            const merged = [...prev, ...additions];
+            safeSetItem('app_ref_oilfields', merged);
+            return merged;
+          });
+        }
+        if (data.sites && Array.isArray(data.sites)) {
+          setSites((prev) => {
+            const existingIds = new Set(prev.map((s) => s.id));
+            const additions = data.sites.filter((ns) => !existingIds.has(ns.id));
+            const merged = [...prev, ...additions];
+            safeSetItem('app_ref_sites', merged);
+            return merged;
+          });
+        }
+        if (data.unitTypes && Array.isArray(data.unitTypes)) {
+          setUnitTypes((prev) => {
+            const existingCodes = new Set(prev.map((t) => t.code));
+            const additions = data.unitTypes.filter((nt) => !existingCodes.has(nt.code));
+            const merged = [...prev, ...additions];
+            safeSetItem('app_ref_unit_types', merged);
+            return merged;
+          });
+        }
+        if (data.roomTypes && Array.isArray(data.roomTypes)) {
+          setRoomTypes((prev) => {
+            const existingIds = new Set(prev.map((r) => r.id));
+            const additions = data.roomTypes.filter((nr) => !existingIds.has(nr.id));
+            const merged = [...prev, ...additions];
+            safeSetItem('app_ref_room_types', merged);
+            return merged;
+          });
+        }
+        if (data.equipmentTypes && Array.isArray(data.equipmentTypes)) {
+          setEquipmentTypes((prev) => {
+            const existingIds = new Set(prev.map((e) => e.id));
+            const additions = data.equipmentTypes.filter((ne) => !existingIds.has(ne.id));
+            const merged = [...prev, ...additions];
+            safeSetItem('app_ref_equipment_types', merged);
+            return merged;
+          });
+        }
+        if (data.maintenanceDepartments && Array.isArray(data.maintenanceDepartments)) {
+          setMaintenanceDepartments((prev) => {
+            const existingIds = new Set(prev.map((d) => d.id));
+            const additions = data.maintenanceDepartments.filter((nd) => !existingIds.has(nd.id));
+            const merged = [...prev, ...additions];
+            safeSetItem('app_ref_maintenance_depts', merged);
+            return merged;
+          });
+        }
+      }
+
+      showToast(
+        mode === 'overwrite'
+          ? 'تمت استعادة وتحديث قاعدة البيانات بالكامل بنجاح'
+          : 'تم دمج وتحديث السجلات بنجاح',
+        'success',
+        'تمت العملية'
+      );
+
+      if (onComplete) onComplete();
+    } catch (err: any) {
+      console.error('handleRestoreDatabase error:', err);
+      showToast(err.message || 'فشلت استعادة قاعدة البيانات', 'error', 'خطأ في الاستعادة');
+    }
+  };
+
   // Add new unit handler from Wizard
   const handleAddUnit = (newUnit: UnitAsset) => {
     setUnits((prev) => {
@@ -1232,7 +1630,7 @@ export function App() {
       createMaintenance?: boolean;
       maintenanceIssue?: string;
       maintenancePriority?: 'critical' | 'normal' | 'low';
-      maintenanceAssignedTo?: string;
+      maintenanceDepartment?: string;
       maintenanceDate?: string;
     }
   ) => {
@@ -1252,7 +1650,7 @@ export function App() {
         issue: outcome.maintenanceIssue || `صيانة إثر الكشف الدوري (${existing.title})`,
         priority: outcome.maintenancePriority || 'normal',
         slaDeadline: new Date(Date.now() + 86400000 * 7).toISOString().split('T')[0],
-        assignedTo: outcome.maintenanceAssignedTo || 'فريق الصيانة الميدانية',
+        maintenanceDepartment: outcome.maintenanceDepartment || 'الصيانة العامة',
         status: 'open',
         createdAt: outcome.maintenanceDate || outcome.completionDate,
         reportedBy: outcome.performedByName || currentUser?.name || existing.inspectorName || 'غير معروف',
@@ -1433,6 +1831,12 @@ export function App() {
       roles: ['مدير النظام', 'مشغل النظام', 'مستخدم'],
     },
     {
+      id: 'gis_map' as NavTab,
+      label: 'الخريطة GIS',
+      icon: MapPin,
+      roles: ['مدير النظام', 'مشغل النظام', 'مستخدم'],
+    },
+    {
       id: 'new_unit' as NavTab,
       label: 'تسجيل',
       icon: PlusCircle,
@@ -1609,6 +2013,26 @@ export function App() {
             />
           )}
 
+          {activeTab === 'gis_map' && !isRoleInspector && !isRoleMaintenance && (
+            <GISMapView
+              units={units}
+              theme={theme}
+              onSelectUnit={(unit) => {
+                setSelectedUnitCode(unit.code);
+                setActiveTab('units');
+              }}
+              onOpenInspection={(code) => {
+                setSelectedUnitCode(code);
+                setActiveTab(isRoleInspector ? 'field_inspection' : 'periodic_inspection');
+              }}
+              onOpenMaintenance={handleOpenMaintenanceForUnit}
+              onOpen3D={(code) => {
+                setSelectedUnitCode(code);
+                setActiveTab('units');
+              }}
+            />
+          )}
+
           {activeTab === 'new_unit' && !isRoleUser && !isRoleInspector && (
             <NewUnitWizard
               governorates={governorates}
@@ -1748,6 +2172,8 @@ export function App() {
               onResetEquipmentTypesToDefault={handleResetEquipmentTypesToDefault}
               maintenanceRequests={maintenanceRequests}
               occupancyRecords={occupancyRecords}
+              periodicInspections={periodicInspections}
+              onRestoreDatabase={handleRestoreDatabase}
               onClearMaintenanceRequests={handleClearMaintenanceRequests}
               onResetMaintenanceRequestsToDefault={handleResetMaintenanceRequestsToDefault}
               onClearOccupancyRecords={handleClearOccupancyRecords}

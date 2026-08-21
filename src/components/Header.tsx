@@ -279,24 +279,6 @@ export const Header: React.FC<HeaderProps> = ({
               </span>
             </div>
 
-            {/* In-App Quick Access QR Scanner Button */}
-            {onOpenQrScanner && (
-              <button
-                type="button"
-                id="header-open-qr-scanner-btn"
-                onClick={onOpenQrScanner}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition shadow-xs cursor-pointer ${
-                  isLight
-                    ? 'bg-amber-500/15 hover:bg-amber-500/25 text-amber-900 border border-amber-400/50'
-                    : 'bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40'
-                }`}
-                title="مسح رمز الاستجابة السريعة QR للوحدة (الموقع / الكشف / الصيانة)"
-              >
-                <QrCode className="w-4 h-4 text-amber-500" />
-                <span className="hidden sm:inline">مسح رمز QR</span>
-              </button>
-            )}
-
             {/* Unified User Profile Trigger & Dropdown Menu */}
             {currentUser && (
               <div className="relative shrink-0" ref={dropdownRef}>

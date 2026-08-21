@@ -22,6 +22,8 @@ import {
   Paperclip,
   ShieldAlert,
   Building2,
+  Ban,
+  Calendar,
 } from 'lucide-react';
 import { MaintenanceRequest, MaintenanceStatus, MaintenancePriority, UnitAsset, ReportAttachment, SystemUser } from '../types';
 import {
@@ -60,18 +62,21 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
 
   // Status Change / Resolution modal state
   const [selectedReq, setSelectedReq] = useState<MaintenanceRequest | null>(null);
+  const [actionModalType, setActionModalType] = useState<'complete' | 'reject' | 'edit_status' | null>(null);
   const [status, setStatus] = useState<MaintenanceStatus>('completed');
   const [completedAtDate, setCompletedAtDate] = useState('');
   const [resolutionNotes, setResolutionNotes] = useState('');
+  const [rejectionReason, setRejectionReason] = useState('');
+  const [formError, setFormError] = useState<string | null>(null);
 
-  // Full Edit Request modal state
+  // Full Edit Request modal state (Admin only)
   const [fullEditReq, setFullEditReq] = useState<MaintenanceRequest | null>(null);
   const [deleteConfirmReq, setDeleteConfirmReq] = useState<MaintenanceRequest | null>(null);
   const [editCreatedAt, setEditCreatedAt] = useState('');
   const [editUnitCode, setEditUnitCode] = useState('');
   const [editIssue, setEditIssue] = useState('');
   const [editPriority, setEditPriority] = useState<MaintenancePriority>('normal');
-  const [editAssignedTo, setEditAssignedTo] = useState('');
+  const [editMaintenanceDepartment, setEditMaintenanceDepartment] = useState('الصيانة الكهربائية');
   const [editStatus, setEditStatus] = useState<MaintenanceStatus>('open');
 
   // Preview Attachment Modal State
@@ -112,33 +117,75 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
   });
 
   // Dynamic Metrics Calculations (Based on visible requests)
-  const openCount = visibleRequests.filter((r) => r.status !== 'completed' && r.status !== 'cancelled').length;
+  const openCount = visibleRequests.filter((r) => r.status !== 'completed' && r.status !== 'cancelled' && r.status !== 'rejected').length;
+  const rejectedCount = visibleRequests.filter((r) => r.status === 'rejected').length;
   const cancelledCount = visibleRequests.filter((r) => r.status === 'cancelled').length;
-  const assignedContractorCount = visibleRequests.filter((r) => r.status !== 'completed' && r.status !== 'cancelled').length;
+  const inProgressCount = visibleRequests.filter((r) => r.status !== 'completed' && r.status !== 'cancelled' && r.status !== 'rejected').length;
   const completedCount = visibleRequests.filter((r) => r.status === 'completed').length;
 
-  const handleOpenEditModal = (req: MaintenanceRequest) => {
+  // Open Complete modal
+  const handleOpenCompleteModal = (req: MaintenanceRequest) => {
     setSelectedReq(req);
-    setStatus(req.status === 'cancelled' ? 'cancelled' : 'completed');
+    setActionModalType('complete');
+    setStatus('completed');
     setCompletedAtDate(req.completedAt?.split(' ')[0] || new Date().toISOString().split('T')[0]);
     setResolutionNotes(req.resolutionNotes || '');
+    setRejectionReason('');
+    setFormError(null);
+  };
+
+  // Open Reject modal (with mandatory rejection reason)
+  const handleOpenRejectModal = (req: MaintenanceRequest) => {
+    setSelectedReq(req);
+    setActionModalType('reject');
+    setStatus('rejected');
+    setCompletedAtDate(req.completedAt?.split(' ')[0] || new Date().toISOString().split('T')[0]);
+    setRejectionReason(req.rejectionReason || '');
+    setResolutionNotes('');
+    setFormError(null);
+  };
+
+  // Open generic status edit modal (for Admin/Management)
+  const handleOpenEditModal = (req: MaintenanceRequest) => {
+    setSelectedReq(req);
+    setActionModalType('edit_status');
+    setStatus(req.status || 'in_progress');
+    setCompletedAtDate(req.completedAt?.split(' ')[0] || new Date().toISOString().split('T')[0]);
+    setResolutionNotes(req.resolutionNotes || '');
+    setRejectionReason(req.rejectionReason || '');
+    setFormError(null);
   };
 
   const handleSaveUpdate = (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedReq || !onUpdateMaintenanceRequest) return;
 
+    if (actionModalType === 'reject' || status === 'rejected') {
+      if (!rejectionReason.trim()) {
+        setFormError('يرجى تسجيل سبب رفض طلب الصيانة بدقة (هذا الحقل إلزامي).');
+        return;
+      }
+    }
+
+    const isDoneOrClosed = status === 'completed' || status === 'cancelled' || status === 'rejected';
+
     const updated: MaintenanceRequest = {
       ...selectedReq,
       status: status,
-      resolutionNotes: resolutionNotes,
+      resolutionNotes:
+        status === 'rejected'
+          ? `تم رفض الطلب: ${rejectionReason.trim()}`
+          : resolutionNotes.trim(),
+      rejectionReason: status === 'rejected' ? rejectionReason.trim() : undefined,
       completedBy: currentUser?.name || 'موظف الصيانة',
       completedAt: completedAtDate || new Date().toISOString().split('T')[0],
-      daysOverdue: status === 'completed' || status === 'cancelled' ? 0 : selectedReq.daysOverdue,
+      daysOverdue: isDoneOrClosed ? 0 : selectedReq.daysOverdue,
     };
 
     onUpdateMaintenanceRequest(updated);
     setSelectedReq(null);
+    setActionModalType(null);
+    setFormError(null);
   };
 
   const handleOpenFullEdit = (req: MaintenanceRequest) => {
@@ -148,7 +195,7 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
     setEditUnitCode(req.unitCode || '');
     setEditIssue(req.issue || '');
     setEditPriority(req.priority || 'normal');
-    setEditAssignedTo(req.assignedTo || '');
+    setEditMaintenanceDepartment(req.maintenanceDepartment || 'الصيانة الكهربائية');
     setEditStatus(req.status || 'open');
   };
 
@@ -162,7 +209,7 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
       unitCode: editUnitCode,
       issue: editIssue,
       priority: editPriority,
-      assignedTo: editAssignedTo,
+      maintenanceDepartment: editMaintenanceDepartment,
       status: editStatus,
     };
 
@@ -184,12 +231,12 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
                 حساب موظف صيانة معتمد ({currentUser?.name})
               </div>
               <div className={isLight ? 'text-slate-700' : 'text-slate-300'}>
-                جهة الصيانة المخصصة للحساب: <strong className="text-amber-400 font-black underline">{employeeDept || 'غير محدد'}</strong>. يتم عرض الطلبات الموجهة لقسمك فقط وتمتلك صلاحية إنجاز الطلب وتوثيق الحل.
+                جهة الصيانة المخصصة للحساب: <strong className="text-amber-400 font-black underline">{employeeDept || 'غير محدد'}</strong>. يتم عرض الطلبات الموجهة لقسمك فقط مع صلاحية <strong className="text-emerald-400">إنجاز الطلب</strong> أو <strong className="text-rose-400">رفض الطلب مع ذكر السبب</strong>.
               </div>
             </div>
           </div>
           <span className="px-3 py-1 bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded-xl font-bold">
-            صلاحية إنجاز فقط
+            صلاحية الإنجاز والرفض
           </span>
         </div>
       )}
@@ -203,7 +250,7 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
           </h2>
           <p className={`text-xs mt-0.5 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
             {isMaintenanceEmployee
-              ? `متابعة وإنجاز طلبات ${employeeDept || 'الصيانة'} الموجهة لحسابك وتوثيق الأعمال المنفذة`
+              ? `متابعة وإنجاز أو رفض طلبات ${employeeDept || 'الصيانة'} الموجهة لحسابك وتوثيق الملاحظات`
               : 'متابعة بلاغات الأعطال، معالجة وتعديل حالة الطلب، وتوجيهها لجهات الصيانة المختصة'}
           </p>
         </div>
@@ -233,18 +280,8 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
 
         <div className={`rounded-xl p-4 flex items-center justify-between border ${isLight ? 'bg-white border-slate-200' : 'bg-slate-900 border-slate-800'}`}>
           <div>
-            <span className={`text-xs block ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>طلب صيانة ملغى:</span>
-            <span className="text-2xl font-black text-rose-400">{toArabicDigits(cancelledCount)} طلبات</span>
-          </div>
-          <div className="p-3 bg-rose-500/10 text-rose-400 rounded-xl">
-            <XCircle className="w-6 h-6" />
-          </div>
-        </div>
-
-        <div className={`rounded-xl p-4 flex items-center justify-between border ${isLight ? 'bg-white border-slate-200' : 'bg-slate-900 border-slate-800'}`}>
-          <div>
-            <span className={`text-xs block ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>قيد المعالجة والإحالة:</span>
-            <span className="text-2xl font-black text-sky-400">{toArabicDigits(assignedContractorCount)} طلب</span>
+            <span className={`text-xs block ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>قيد المعالجة والتنفيذ:</span>
+            <span className="text-2xl font-black text-sky-400">{toArabicDigits(inProgressCount)} طلب</span>
           </div>
           <div className="p-3 bg-sky-500/10 text-sky-400 rounded-xl">
             <UserCheck className="w-6 h-6" />
@@ -258,6 +295,16 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
           </div>
           <div className="p-3 bg-emerald-500/10 text-emerald-400 rounded-xl">
             <CheckCircle2 className="w-6 h-6" />
+          </div>
+        </div>
+
+        <div className={`rounded-xl p-4 flex items-center justify-between border ${isLight ? 'bg-white border-slate-200' : 'bg-slate-900 border-slate-800'}`}>
+          <div>
+            <span className={`text-xs block ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>طلبات مرفوضة / ملغاة:</span>
+            <span className="text-2xl font-black text-rose-400">{toArabicDigits(rejectedCount + cancelledCount)} طلب</span>
+          </div>
+          <div className="p-3 bg-rose-500/10 text-rose-400 rounded-xl">
+            <XCircle className="w-6 h-6" />
           </div>
         </div>
       </div>
@@ -274,9 +321,10 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
               className={`rounded-lg px-2.5 py-1.5 focus:outline-none border flex-1 sm:flex-none ${isLight ? 'bg-slate-50 border-slate-200 text-slate-800' : 'bg-slate-950 border-slate-800 text-slate-200'}`}
             >
               <option value="all">كافة الحالات</option>
-              <option value="completed">تمت المعالجة و الانجاز</option>
-              <option value="cancelled">تم إلغاء طلب الصيانة</option>
               <option value="in_progress">قيد المعالجة</option>
+              <option value="completed">تمت المعالجة والإنجاز</option>
+              <option value="rejected">تم رفض طلب الصيانة</option>
+              <option value="cancelled">تم إلغاء طلب الصيانة</option>
             </select>
 
             <div className="relative flex-1 sm:flex-none">
@@ -292,24 +340,21 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
           </div>
         </div>
 
-        <div className="overflow-x-auto no-scrollbar">
-          <table className="w-full text-right text-xs">
-            <thead>
-              <tr className={`border-b ${isLight ? 'bg-slate-100 text-slate-700' : 'bg-slate-950 text-slate-400 border-slate-800'}`}>
-                <th className="p-3 font-semibold">رقم الطلب</th>
-                <th className="p-3 font-semibold min-w-[200px]">رمز الأصل واسم الوحدة</th>
-                <th className="p-3 font-semibold">جهة الصيانة</th>
-                <th className="p-3 font-semibold">العطل / المشكلة</th>
-                <th className="p-3 font-semibold">الأولية</th>
-                <th className="p-3 font-semibold">مقدّم الطلب</th>
-                <th className="p-3 font-semibold">الفريق المكلف</th>
-                <th className="p-3 font-semibold">حالة الطلب</th>
-                <th className="p-3 font-semibold">تاريخ الطلب</th>
-                <th className="p-3 font-semibold">تاريخ الإنجاز / الإلغاء</th>
-                <th className="p-3 font-semibold">المدة (بالأيام)</th>
-                <th className="p-3 font-semibold text-center">المرفق / الصورة</th>
-                <th className="p-3 font-semibold">تفاصيل وملاحظات الحل</th>
-                <th className="p-3 font-semibold text-center">المعالجة والتحديث</th>
+        <div className="overflow-x-auto">
+          <table className="w-full text-right text-[11px] table-fixed">
+            <thead className={`border-b ${isLight ? 'bg-slate-50 border-slate-200 text-slate-700' : 'bg-slate-950/50 border-slate-800 text-slate-400'}`}>
+              <tr>
+                <th className="py-2.5 px-2 font-semibold w-[10%]">رقم وتاريخ الطلب</th>
+                <th className="py-2.5 px-2 font-semibold w-[14%]">رمز واسم الوحدة</th>
+                <th className="py-2.5 px-2 font-semibold w-[10%]">جهة الصيانة</th>
+                <th className="py-2.5 px-2 font-semibold w-[14%]">العطل</th>
+                <th className="py-2.5 px-1.5 font-semibold text-center w-[6%]">الأولوية</th>
+                <th className="py-2.5 px-2 font-semibold w-[9%]">مقدّم الطلب</th>
+                <th className="py-2.5 px-1.5 font-semibold text-center w-[9%]">حالة الطلب</th>
+                <th className="py-2.5 px-2 font-semibold text-center w-[9%]">تاريخ الإنجاز والمدة</th>
+                <th className="py-2.5 px-1.5 font-semibold text-center w-[7%]">المرفقات</th>
+                <th className="py-2.5 px-2 font-semibold w-[11%]">النتائج / الملاحظات</th>
+                <th className="py-2.5 px-1.5 font-semibold text-center w-[11%]">الإجراءات</th>
               </tr>
             </thead>
             <tbody className={`divide-y ${isLight ? 'divide-slate-200 text-slate-800' : 'divide-slate-800 text-slate-300'}`}>
@@ -320,64 +365,111 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
 
                 return (
                   <tr key={req.id} className="hover:bg-amber-50/20 dark:hover:bg-slate-800/40 transition">
-                    <td className="p-3 font-mono font-bold text-amber-400">{toArabicDigits(req.id)}</td>
-                    <td className="p-3">
+                    {/* رقم الطلب مدمج مع تاريخ الطلب */}
+                    <td className="py-2.5 px-2 align-middle">
                       <div className="space-y-0.5">
-                        <div className="font-mono font-bold text-amber-400 text-xs">
+                        <div className="font-mono font-bold text-amber-500 text-[11px]">
+                          {toArabicDigits(req.id)}
+                        </div>
+                        <div className={`text-[10px] font-mono flex items-center gap-1 ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                          <Calendar className="w-2.5 h-2.5 text-slate-400 shrink-0" />
+                          <span>{formatDateOnly(req.createdAt)}</span>
+                        </div>
+                      </div>
+                    </td>
+
+                    {/* رمز الأصل واسم الوحدة والجهة الشاغلة */}
+                    <td className="py-2.5 px-2 align-middle">
+                      <div className="space-y-0.5">
+                        <div className="font-mono font-bold text-amber-400 text-[11px]">
                           {toArabicDigits(req.unitCode)}
                         </div>
-                        <div className={`font-bold text-xs ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                        <div className={`font-bold text-[11px] truncate ${isLight ? 'text-slate-900' : 'text-slate-100'}`} title={unitName}>
                           {unitName}
                         </div>
-                        <div className={`text-[10.5px] leading-tight ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
-                          <span className="opacity-80">الجهة الشاغلة: </span>
+                        <div className={`text-[10px] leading-tight truncate ${isLight ? 'text-slate-600' : 'text-slate-400'}`} title={occupyingEntity}>
+                          <span className="opacity-80">الشاغل: </span>
                           <span className="font-medium">{occupyingEntity}</span>
                         </div>
                       </div>
                     </td>
-                    <td className="p-3">
-                      <span className="px-2 py-0.5 rounded-lg text-[10.5px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 whitespace-nowrap">
+
+                    {/* جهة الصيانة */}
+                    <td className="py-2.5 px-2 align-middle">
+                      <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 block truncate text-center" title={req.maintenanceDepartment || 'الصيانة العامة'}>
                         {req.maintenanceDepartment || 'الصيانة العامة'}
                       </span>
                     </td>
-                    <td className="p-3 font-bold">{req.issue}</td>
-                  <td className="p-3">
-                    <span
-                      className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                        req.priority === 'critical'
-                          ? 'bg-red-500/20 text-red-400 border border-red-500/30'
-                          : 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
-                      }`}
-                    >
-                      {req.priority === 'critical' ? 'حرج جداً' : 'عادي'}
-                    </span>
-                  </td>
-                  <td className="p-3">
-                    <div className="flex items-center gap-1.5 font-bold text-xs">
-                      <UserCheck className={`w-3.5 h-3.5 shrink-0 ${isLight ? 'text-amber-600' : 'text-amber-400'}`} />
-                      <span className={isLight ? 'text-slate-900' : 'text-slate-100'}>{req.reportedBy || 'غير معروف'}</span>
-                    </div>
-                  </td>
-                  <td className="p-3 text-slate-400">{req.assignedTo}</td>
-                  <td className="p-3">
-                    {req.status === 'completed' ? (
-                      <span className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded text-[10px] font-bold">
-                        منجز
+
+                    {/* العطل */}
+                    <td className="py-2.5 px-2 align-middle">
+                      <div className={`font-bold text-[11px] line-clamp-2 leading-relaxed ${isLight ? 'text-slate-800' : 'text-slate-200'}`} title={req.issue}>
+                        {req.issue}
+                      </div>
+                    </td>
+
+                    {/* الأولوية */}
+                    <td className="py-2.5 px-1.5 text-center align-middle">
+                      <span
+                        className={`px-1.5 py-0.5 rounded text-[9.5px] font-bold inline-block ${
+                          req.priority === 'critical'
+                            ? 'bg-red-500/20 text-red-400 border border-red-500/30'
+                            : 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
+                        }`}
+                      >
+                        {req.priority === 'critical' ? 'حرج جداً' : 'عادي'}
                       </span>
-                    ) : req.status === 'cancelled' ? (
-                      <span className="bg-slate-500/20 text-slate-400 border border-slate-500/30 px-2 py-0.5 rounded text-[10px] font-bold">
-                        ملغى
-                      </span>
-                    ) : (
-                      <span className="bg-amber-500/20 text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded text-[10px] font-bold">
-                        قيد المعالجة
-                      </span>
-                    )}
-                  </td>
-                  <td className="p-3 font-mono text-[11px] font-semibold">{formatDateOnly(req.createdAt)}</td>
-                  <td className="p-3 font-mono text-[11px] font-semibold">{getCompletionOrCancellationDate(req.completedAt, req.status)}</td>
-                  <td className="p-3 font-bold text-amber-400 text-[11px]">{calculateMaintenanceDurationDays(req.createdAt, req.completedAt, req.status)}</td>
-                  <td className="p-3 text-center whitespace-nowrap">
+                    </td>
+
+                    {/* مقدّم الطلب */}
+                    <td className="py-2.5 px-2 align-middle">
+                      <div className="flex items-center gap-1 font-bold text-[11px]">
+                        <UserCheck className={`w-3 h-3 shrink-0 ${isLight ? 'text-amber-600' : 'text-amber-400'}`} />
+                        <span className={`truncate ${isLight ? 'text-slate-900' : 'text-slate-100'}`} title={req.reportedBy}>
+                          {req.reportedBy || 'غير معروف'}
+                        </span>
+                      </div>
+                    </td>
+
+                    {/* حالة الطلب */}
+                    <td className="py-2.5 px-1.5 text-center align-middle">
+                      {req.status === 'completed' ? (
+                        <span className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1.5 py-0.5 rounded text-[9.5px] font-bold inline-flex items-center justify-center gap-1 w-full">
+                          <CheckCircle2 className="w-2.5 h-2.5 shrink-0" />
+                          <span>منجز</span>
+                        </span>
+                      ) : req.status === 'rejected' ? (
+                        <span className="bg-rose-500/20 text-rose-400 border border-rose-500/30 px-1.5 py-0.5 rounded text-[9.5px] font-bold inline-flex items-center justify-center gap-1 w-full">
+                          <Ban className="w-2.5 h-2.5 shrink-0" />
+                          <span>مرفوض</span>
+                        </span>
+                      ) : req.status === 'cancelled' ? (
+                        <span className="bg-slate-500/20 text-slate-400 border border-slate-500/30 px-1.5 py-0.5 rounded text-[9.5px] font-bold inline-flex items-center justify-center gap-1 w-full">
+                          <XCircle className="w-2.5 h-2.5 shrink-0" />
+                          <span>ملغى</span>
+                        </span>
+                      ) : (
+                        <span className="bg-amber-500/20 text-amber-400 border border-amber-500/30 px-1.5 py-0.5 rounded text-[9.5px] font-bold inline-flex items-center justify-center gap-1 w-full">
+                          <Clock className="w-2.5 h-2.5 shrink-0" />
+                          <span>قيد المعالجة</span>
+                        </span>
+                      )}
+                    </td>
+
+                    {/* تاريخ الإنجاز / الرفض + المدة مدمجة */}
+                    <td className="py-2.5 px-2 text-center align-middle font-mono text-[10px]">
+                      <div className="space-y-0.5">
+                        <div className="font-semibold truncate">
+                          {getCompletionOrCancellationDate(req.completedAt, req.status)}
+                        </div>
+                        <div className="text-amber-400 font-bold text-[9.5px]">
+                          المدة: {calculateMaintenanceDurationDays(req.createdAt, req.completedAt, req.status)}
+                        </div>
+                      </div>
+                    </td>
+
+                    {/* المرفقات */}
+                    <td className="py-2.5 px-1.5 text-center align-middle">
                     {(() => {
                       const reqAttachments: ReportAttachment[] =
                         req.attachments && req.attachments.length > 0
@@ -440,65 +532,20 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
                         );
                       }
 
-                      // Multiple attachments (e.g. 2, 3 or more)
+                      // Multiple attachments
                       return (
                         <div className="flex flex-col items-center gap-1.5">
-                          {/* Thumbnails row for all attachments */}
-                          <div className="flex items-center justify-center gap-1">
-                            {reqAttachments.map((att, idx) => {
-                              const isImg =
-                                att.url &&
-                                (att.url.startsWith('data:image/') ||
-                                  att.name.match(/\.(jpeg|jpg|png|webp|gif|svg)$/i));
-
-                              return (
-                                <button
-                                  key={att.id || idx}
-                                  type="button"
-                                  onClick={() => {
-                                    setPreviewAttachment({
-                                      attachments: reqAttachments.map((a, i) => ({
-                                        id: a.id || `maint-att-${req.id}-${i}`,
-                                        name: a.name || `مرفق_${i + 1}`,
-                                        type: a.type || 'image/jpeg',
-                                        url: a.url || '#',
-                                        uploadDate: formatDateOnly(req.createdAt),
-                                        category: `مرفق طلب صيانة (${toArabicDigits(i + 1)} من ${toArabicDigits(reqAttachments.length)})`,
-                                      })),
-                                      initialIndex: idx,
-                                      unitCode: req.unitCode,
-                                    });
-                                  }}
-                                  className="w-7 h-7 rounded-lg overflow-hidden border border-amber-500/40 hover:border-amber-400 bg-slate-900 transition hover:scale-110 cursor-pointer shrink-0 shadow-xs flex items-center justify-center group"
-                                  title={`معاينة المرفق ${toArabicDigits(idx + 1)}: ${att.name}`}
-                                >
-                                  {isImg ? (
-                                    <img
-                                      src={att.url}
-                                      alt={att.name}
-                                      className="w-full h-full object-cover"
-                                      referrerPolicy="no-referrer"
-                                    />
-                                  ) : (
-                                    <FileText className="w-3.5 h-3.5 text-amber-400 group-hover:text-amber-300" />
-                                  )}
-                                </button>
-                              );
-                            })}
-                          </div>
-
-                          {/* View all button */}
                           <button
                             type="button"
                             onClick={() => {
                               setPreviewAttachment({
                                 attachments: reqAttachments.map((a, i) => ({
                                   id: a.id || `maint-att-${req.id}-${i}`,
-                                  name: a.name || `مرفق_${i + 1}`,
+                                  name: a.name,
                                   type: a.type || 'image/jpeg',
-                                  url: a.url || '#',
+                                  url: a.url,
                                   uploadDate: formatDateOnly(req.createdAt),
-                                  category: `مرفق طلب صيانة (${toArabicDigits(i + 1)} من ${toArabicDigits(reqAttachments.length)})`,
+                                  category: `مرفق (${i + 1}) - بلاغ صيانة`,
                                 })),
                                 initialIndex: 0,
                                 unitCode: req.unitCode,
@@ -518,38 +565,103 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
                       );
                     })()}
                   </td>
-                  <td className="p-3">
-                    {req.resolutionNotes ? (
-                      <span className="text-slate-300 text-[11px]">{req.resolutionNotes}</span>
+                  {/* النتائج */}
+                  <td className="py-2.5 px-2 align-middle">
+                    {req.status === 'rejected' && req.rejectionReason ? (
+                      <div className="text-rose-400 text-[10px] font-bold bg-rose-500/10 border border-rose-500/20 rounded p-1" title={req.rejectionReason}>
+                        <span className="block text-[9px] text-rose-300 opacity-90">سبب الرفض:</span>
+                        <span className="line-clamp-2 leading-tight">{req.rejectionReason}</span>
+                      </div>
+                    ) : req.resolutionNotes ? (
+                      <div className={`text-[10px] line-clamp-2 leading-tight ${isLight ? 'text-slate-700' : 'text-slate-300'}`} title={req.resolutionNotes}>
+                        {req.resolutionNotes}
+                      </div>
                     ) : (
                       <span className="text-slate-500 text-[10px]">لا توجد ملاحظات</span>
                     )}
                   </td>
-                  <td className="p-3 text-center">
+                  <td className="py-2.5 px-1.5 text-center align-middle">
                     <div className="flex items-center justify-center gap-1.5 flex-wrap">
-                      {!isMaintenanceEmployee && (
-                        <button
-                          onClick={() => setDeleteConfirmReq(req)}
-                          className="px-2 py-1 bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 border border-rose-500/30 rounded-lg text-[10px] font-bold transition cursor-pointer flex items-center gap-1 shadow-sm"
-                          title="حذف طلب الصيانة"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                          <span>حذف الطلب</span>
-                        </button>
-                      )}
+                      {isMaintenanceEmployee ? (
+                        <>
+                          {req.status !== 'completed' && req.status !== 'rejected' && req.status !== 'cancelled' ? (
+                            <>
+                              {/* Complete Request Button */}
+                              <button
+                                type="button"
+                                onClick={() => handleOpenCompleteModal(req)}
+                                className="px-2.5 py-1 rounded-lg text-[10px] font-extrabold bg-emerald-500 hover:bg-emerald-400 text-slate-950 transition cursor-pointer flex items-center gap-1 shadow-sm shadow-emerald-500/20"
+                                title="إنجاز وتوثيق أعمال الصيانة"
+                              >
+                                <CheckCircle2 className="w-3.5 h-3.5" />
+                                <span>إنجاز الطلب</span>
+                              </button>
 
-                      <button
-                        onClick={() => handleOpenEditModal(req)}
-                        className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition cursor-pointer flex items-center gap-1 shadow-sm ${
-                          req.status === 'completed'
-                            ? 'bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/30'
-                            : 'bg-amber-500 text-slate-950 hover:bg-amber-400 font-extrabold shadow-amber-500/20'
-                        }`}
-                        title={isMaintenanceEmployee ? 'إنجاز الطلب وتوثيق الصيانة المنفذة' : 'معالجة وتغيير حالة الصيانة وتوثيق تاريخ الإنجاز'}
-                      >
-                        <CheckCircle2 className="w-3.5 h-3.5" />
-                        <span>{isMaintenanceEmployee ? (req.status === 'completed' ? 'تحديث التقرير' : 'إنجاز الطلب') : 'تحديث الحالة'}</span>
-                      </button>
+                              {/* Reject Request Button */}
+                              <button
+                                type="button"
+                                onClick={() => handleOpenRejectModal(req)}
+                                className="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 border border-rose-500/30 transition cursor-pointer flex items-center gap-1 shadow-sm"
+                                title="رفض الطلب مع تسجيل سبب الرفض"
+                              >
+                                <Ban className="w-3.5 h-3.5" />
+                                <span>رفض الطلب</span>
+                              </button>
+                            </>
+                          ) : req.status === 'completed' ? (
+                            <button
+                              type="button"
+                              onClick={() => handleOpenCompleteModal(req)}
+                              className="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/30 transition cursor-pointer flex items-center gap-1 shadow-sm"
+                              title="تعديل تقرير الإنجاز"
+                            >
+                              <CheckCircle2 className="w-3.5 h-3.5" />
+                              <span>تحديث التقرير</span>
+                            </button>
+                          ) : req.status === 'rejected' ? (
+                            <button
+                              type="button"
+                              onClick={() => handleOpenRejectModal(req)}
+                              className="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 border border-rose-500/30 transition cursor-pointer flex items-center gap-1 shadow-sm"
+                              title="تعديل سبب الرفض"
+                            >
+                              <Ban className="w-3.5 h-3.5" />
+                              <span>تحديث سبب الرفض</span>
+                            </button>
+                          ) : (
+                            <span className="text-slate-500 text-[10px]">مغلق</span>
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          {/* Admin / General operator actions */}
+                          <button
+                            type="button"
+                            onClick={() => setDeleteConfirmReq(req)}
+                            className="px-2 py-1 bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 border border-rose-500/30 rounded-lg text-[10px] font-bold transition cursor-pointer flex items-center gap-1 shadow-sm"
+                            title="حذف طلب الصيانة"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                            <span>حذف</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleOpenEditModal(req)}
+                            className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition cursor-pointer flex items-center gap-1 shadow-sm ${
+                              req.status === 'completed'
+                                ? 'bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/30'
+                                : req.status === 'rejected'
+                                ? 'bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 border border-rose-500/30'
+                                : 'bg-amber-500 text-slate-950 hover:bg-amber-400 font-extrabold shadow-amber-500/20'
+                            }`}
+                            title="معالجة وتغيير حالة الصيانة"
+                          >
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                            <span>تحديث الحالة</span>
+                          </button>
+                        </>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -560,18 +672,53 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
         </div>
       </div>
 
-      {/* UPDATE MAINTENANCE REQUEST MODAL */}
+      {/* UPDATE / COMPLETE / REJECT MAINTENANCE REQUEST MODAL */}
       {selectedReq && (
         <div className={`fixed inset-0 z-50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto ${isLight ? 'bg-slate-900/40' : 'bg-slate-950/80'}`}>
           <div className={`rounded-3xl p-6 w-full max-w-lg space-y-4 shadow-2xl relative border ${isLight ? 'bg-white border-slate-200 text-slate-900' : 'bg-slate-900 border-slate-800 text-slate-100'}`}>
             <div className={`flex items-center justify-between border-b pb-3 ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
-              <h3 className={`font-bold text-base ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
-                {isMaintenanceEmployee ? 'توثيق إنجاز طلب الصيانة' : `معالجة وتغيير حالة طلب الصيانة (${toArabicDigits(selectedReq.id)})`}
-              </h3>
-              <button onClick={() => setSelectedReq(null)} className={`p-1 cursor-pointer ${isLight ? 'text-slate-400 hover:text-slate-700' : 'text-slate-400 hover:text-slate-200'}`}>
+              <div className="flex items-center gap-2">
+                {actionModalType === 'reject' ? (
+                  <div className="p-2 rounded-xl bg-rose-500/20 text-rose-400 border border-rose-500/30">
+                    <Ban className="w-5 h-5" />
+                  </div>
+                ) : (
+                  <div className="p-2 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                    <CheckCircle2 className="w-5 h-5" />
+                  </div>
+                )}
+                <div>
+                  <h3 className={`font-bold text-base ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                    {actionModalType === 'reject'
+                      ? 'توثيق رفض طلب الصيانة'
+                      : isMaintenanceEmployee
+                      ? 'توثيق إنجاز طلب الصيانة'
+                      : `معالجة وتحديث حالة طلب الصيانة (${toArabicDigits(selectedReq.id)})`}
+                  </h3>
+                  <p className={`text-[11px] ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                    رقم الطلب: <span className="font-mono text-amber-500 font-bold">{selectedReq.id}</span>
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedReq(null);
+                  setActionModalType(null);
+                  setFormError(null);
+                }}
+                className={`p-1.5 rounded-xl cursor-pointer ${isLight ? 'text-slate-400 hover:text-slate-700 bg-slate-100' : 'text-slate-400 hover:text-slate-200 bg-slate-800'}`}
+              >
                 <X className="w-5 h-5" />
               </button>
             </div>
+
+            {formError && (
+              <div className="p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl text-rose-400 font-bold text-xs flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 shrink-0" />
+                <span>{formError}</span>
+              </div>
+            )}
 
             <form onSubmit={handleSaveUpdate} className="space-y-3 text-xs">
               <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl text-amber-400 font-bold space-y-1">
@@ -579,7 +726,12 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
                 <div className="text-[11px] text-amber-300/80">جهة الصيانة: {selectedReq.maintenanceDepartment || 'عامة'}</div>
               </div>
 
-              {isMaintenanceEmployee ? (
+              {/* Specific info banner based on action */}
+              {actionModalType === 'reject' ? (
+                <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 font-semibold text-[11px] leading-relaxed">
+                  سيتم تعيين حالة الطلب إلى <strong>(مرفوض)</strong> مع توثيق اسمك ({currentUser?.name}) كمسؤول اتخاذ الإجراء وحفظ سبب الرفض في سجل التدقيق.
+                </div>
+              ) : isMaintenanceEmployee ? (
                 <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-semibold text-[11px]">
                   سيتم تعيين حالة الطلب إلى <strong>(منجز)</strong> وتسجيل اسمك ({currentUser?.name}) كمسؤول الإنجاز وتوثيق التقرير الفني.
                 </div>
@@ -595,7 +747,9 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
                       isLight ? 'bg-slate-50 border-slate-200 text-slate-900' : 'bg-slate-950 border-slate-800 text-slate-100'
                     }`}
                   >
+                    <option value="in_progress">قيد المعالجة</option>
                     <option value="completed">منجز</option>
+                    <option value="rejected">مرفوض</option>
                     <option value="cancelled">ملغى</option>
                   </select>
                 </div>
@@ -603,7 +757,7 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
 
               <div>
                 <label className={`block font-bold mb-1 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
-                  تاريخ الإنجاز:
+                  {actionModalType === 'reject' || status === 'rejected' ? 'تاريخ الرفض:' : 'تاريخ الإنجاز:'}
                 </label>
                 <input
                   type="date"
@@ -615,36 +769,74 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
                 />
               </div>
 
-              <div>
-                <label className={`block font-bold mb-1 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
-                  ملاحظات وتفاصيل المعالجة والإصلاح الفني:
-                </label>
-                <textarea
-                  value={resolutionNotes}
-                  onChange={(e) => setResolutionNotes(e.target.value)}
-                  placeholder="سجل التفاصيل الفنية لأعمال الإصلاح والصيانة المنفذة وقطع الغيار المستخدمة..."
-                  rows={3}
-                  className={`w-full rounded-xl p-2.5 outline-none border ${
-                    isLight ? 'bg-slate-50 border-slate-200 text-slate-900' : 'bg-slate-950 border-slate-800 text-slate-100'
-                  }`}
-                />
-              </div>
+              {/* Mandatory Rejection Reason field when rejecting */}
+              {(actionModalType === 'reject' || status === 'rejected') ? (
+                <div>
+                  <label className="block font-bold mb-1 text-rose-400">
+                    سبب رفض طلب الصيانة (إلزامي)*:
+                  </label>
+                  <textarea
+                    value={rejectionReason}
+                    onChange={(e) => {
+                      setRejectionReason(e.target.value);
+                      if (formError) setFormError(null);
+                    }}
+                    placeholder="سجل سبب رفض الطلب بالتفصيل (مثال: عدم توفر قطع الغيار، خارج نطاق اختصاص القسم، بلاغ مكرر، أو يتطلب موافقة خاصة)..."
+                    rows={4}
+                    required
+                    className={`w-full rounded-xl p-2.5 outline-none border ${
+                      formError
+                        ? 'border-rose-500 bg-rose-500/5'
+                        : isLight
+                        ? 'bg-slate-50 border-slate-200 text-slate-900'
+                        : 'bg-slate-950 border-slate-800 text-slate-100'
+                    }`}
+                  />
+                </div>
+              ) : (
+                <div>
+                  <label className={`block font-bold mb-1 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                    ملاحظات وتفاصيل المعالجة والإصلاح الفني:
+                  </label>
+                  <textarea
+                    value={resolutionNotes}
+                    onChange={(e) => setResolutionNotes(e.target.value)}
+                    placeholder="سجل التفاصيل الفنية لأعمال الإصلاح والصيانة المنفذة وقطع الغيار المستخدمة..."
+                    rows={3}
+                    className={`w-full rounded-xl p-2.5 outline-none border ${
+                      isLight ? 'bg-slate-50 border-slate-200 text-slate-900' : 'bg-slate-950 border-slate-800 text-slate-100'
+                    }`}
+                  />
+                </div>
+              )}
 
               <div className={`flex items-center justify-end gap-2 pt-3 border-t ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
                 <button
                   type="button"
-                  onClick={() => setSelectedReq(null)}
-                  className={`px-3 py-2 rounded-xl font-bold transition cursor-pointer ${
-                    isLight ? 'bg-slate-100 text-slate-700' : 'bg-slate-800 text-slate-300'
+                  onClick={() => {
+                    setSelectedReq(null);
+                    setActionModalType(null);
+                    setFormError(null);
+                  }}
+                  className={`px-4 py-2 rounded-xl font-bold transition cursor-pointer ${
+                    isLight ? 'bg-slate-100 text-slate-700 hover:bg-slate-200' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
                   }`}
                 >
                   إلغاء
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-amber-500 text-slate-950 font-black rounded-xl hover:bg-amber-400 transition cursor-pointer"
+                  className={`px-5 py-2 font-black rounded-xl transition cursor-pointer shadow-lg ${
+                    actionModalType === 'reject' || status === 'rejected'
+                      ? 'bg-rose-600 hover:bg-rose-500 text-white shadow-rose-600/30'
+                      : 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-emerald-500/20'
+                  }`}
                 >
-                  {isMaintenanceEmployee ? 'تأكيد وحفظ إنجاز الصيانة' : 'حفظ وتحديث حالة الصيانة'}
+                  {actionModalType === 'reject'
+                    ? 'تأكيد رفض الطلب وحفظ السبب'
+                    : isMaintenanceEmployee
+                    ? 'تأكيد وحفظ إنجاز الصيانة'
+                    : 'حفظ وتحديث حالة الصيانة'}
                 </button>
               </div>
             </form>
@@ -726,16 +918,22 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
 
               <div>
                 <label className={`block font-bold mb-1 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
-                  الفريق أو المقاول المكلف:
+                  جهة الصيانة المختصة:
                 </label>
-                <input
-                  type="text"
-                  value={editAssignedTo}
-                  onChange={(e) => setEditAssignedTo(e.target.value)}
-                  className={`w-full rounded-xl p-2.5 outline-none border ${
+                <select
+                  value={editMaintenanceDepartment}
+                  onChange={(e) => setEditMaintenanceDepartment(e.target.value)}
+                  className={`w-full rounded-xl p-2.5 font-bold outline-none border ${
                     isLight ? 'bg-slate-50 border-slate-200 text-slate-900' : 'bg-slate-950 border-slate-800 text-slate-100'
                   }`}
-                />
+                >
+                  <option value="الصيانة الكهربائية">الصيانة الكهربائية</option>
+                  <option value="الصيانة الميكانيكية">الصيانة الميكانيكية</option>
+                  <option value="الصيانة الإنشائية">الصيانة الإنشائية</option>
+                  <option value="صيانة التبريد والتكييف">صيانة التبريد والتكييف</option>
+                  <option value="صيانة أنظمة السلامة والإطفاء">صيانة أنظمة السلامة والإطفاء</option>
+                  <option value="الصيانة العامة">الصيانة العامة</option>
+                </select>
               </div>
 
               <div>
@@ -754,6 +952,7 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
                   <option value="in_progress">قيد المعالجة</option>
                   <option value="overdue">متأخر</option>
                   <option value="completed">منجز</option>
+                  <option value="rejected">مرفوض</option>
                   <option value="cancelled">ملغى</option>
                 </select>
               </div>
@@ -849,4 +1048,3 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
     </div>
   );
 };
-

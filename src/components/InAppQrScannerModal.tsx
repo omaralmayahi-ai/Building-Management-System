@@ -1,18 +1,20 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
 import {
   X,
   QrCode,
   Camera,
   Upload,
-  Search,
   AlertTriangle,
   RefreshCw,
-  Building,
-  ChevronLeft,
+  Loader2,
+  Zap,
+  SwitchCamera,
+  Sparkles,
 } from 'lucide-react';
 import { UnitAsset } from '../types';
 import { toArabicDigits } from '../utils/arabicUtils';
+import { parseScannedQrText, decodeVideoFrame, decodeQrFromImageFile } from '../utils/qrReader';
 
 interface InAppQrScannerModalProps {
   units: UnitAsset[];
@@ -30,145 +32,223 @@ export const InAppQrScannerModal: React.FC<InAppQrScannerModalProps> = ({
   const isLight = theme === 'light';
   const [scanError, setScanError] = useState<string | null>(null);
   const [cameraActive, setCameraActive] = useState<boolean>(false);
-  const [manualSearchCode, setManualSearchCode] = useState<string>('');
-  const [activeTab, setActiveTab] = useState<'camera' | 'upload' | 'manual'>('camera');
+  const [isScanningFile, setIsScanningFile] = useState<boolean>(false);
+  const [activeTab, setActiveTab] = useState<'camera' | 'upload'>('camera');
+  const [torchOn, setTorchOn] = useState<boolean>(false);
+  const [hasTorch, setHasTorch] = useState<boolean>(false);
+  const [facingMode, setFacingMode] = useState<'environment' | 'user'>('environment');
+  const [successDetected, setSuccessDetected] = useState<boolean>(false);
 
-  const qrScannerRef = useRef<Html5Qrcode | null>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const animFrameIdRef = useRef<number | null>(null);
+  const html5ScannerRef = useRef<Html5Qrcode | null>(null);
   const qrFileInputRef = useRef<HTMLInputElement | null>(null);
 
-  // Helper to extract unit code from URL or text
-  const parseScannedCode = (decodedText: string): string => {
-    const trimmed = decodedText.trim();
-    try {
-      if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
-        const url = new URL(trimmed);
-        const unitParam =
-          url.searchParams.get('unit') ||
-          url.searchParams.get('code') ||
-          url.searchParams.get('id') ||
-          url.searchParams.get('unitCode');
-        if (unitParam) return unitParam.trim();
-      }
-    } catch {
-      // Not a valid URL, fallback
-    }
+  const handleProcessDecodedText = useCallback(
+    (decodedText: string) => {
+      const targetCode = parseScannedQrText(decodedText);
+      const matched = units.find(
+        (u) =>
+          u.code.toLowerCase() === targetCode.toLowerCase() ||
+          u.id.toLowerCase() === targetCode.toLowerCase() ||
+          u.name.toLowerCase().includes(targetCode.toLowerCase())
+      );
 
-    const patternMatch = trimmed.match(/[A-Za-z0-9]+-[A-Za-z0-9]+-[A-Za-z0-9]+-[A-Za-z0-9]+/);
-    if (patternMatch) return patternMatch[0];
-
-    return trimmed;
-  };
-
-  const handleProcessDecodedText = (decodedText: string) => {
-    const targetCode = parseScannedCode(decodedText);
-    const matched = units.find(
-      (u) =>
-        u.code.toLowerCase() === targetCode.toLowerCase() ||
-        u.id.toLowerCase() === targetCode.toLowerCase() ||
-        u.name.toLowerCase().includes(targetCode.toLowerCase())
-    );
-
-    if (matched) {
-      setScanError(null);
-      stopScanner();
-      onUnitDetected(matched);
-    } else {
-      setScanError(`تم قراءة الرمز (${targetCode})، ولكن لم يتم العثور على منشأة مطابقة في النظام.`);
-    }
-  };
-
-  const startScanner = async () => {
-    setScanError(null);
-    setTimeout(async () => {
-      try {
-        const scannerElement = document.getElementById('inapp-qr-scanner-region');
-        if (!scannerElement) return;
-
-        if (qrScannerRef.current) {
-          try {
-            await qrScannerRef.current.stop();
-            qrScannerRef.current.clear();
-          } catch {
-            // ignore cleanup error
-          }
-        }
-
-        const scanner = new Html5Qrcode('inapp-qr-scanner-region');
-        qrScannerRef.current = scanner;
-
-        await scanner.start(
-          { facingMode: 'environment' },
-          {
-            fps: 15,
-            qrbox: { width: 240, height: 240 },
-            aspectRatio: 1.0,
-          },
-          (decodedText) => {
-            handleProcessDecodedText(decodedText);
-          },
-          () => {}
+      if (matched) {
+        setSuccessDetected(true);
+        setScanError(null);
+        stopCamera();
+        setTimeout(() => {
+          onUnitDetected(matched);
+        }, 300);
+      } else {
+        setScanError(
+          `تعذر العثور على المنشأة: الرمز الممسوح (${targetCode}) غير مسجل في قاعدة البيانات. يرجى التأكد من مسح رمز منشأة صالحة تابعة لشركة نفط الوسط.`
         );
-        setCameraActive(true);
-      } catch (err: any) {
-        console.error('Camera access error:', err);
-        setCameraActive(false);
-        setScanError('تعذر فتح الكاميرا مباشرة. يمكنك استخدام خيار رفع صورة الرمز أو البحث برمز الوحدة.');
       }
-    }, 150);
+    },
+    [units, onUnitDetected]
+  );
+
+  const scanLiveFrame = useCallback(() => {
+    if (!videoRef.current || !canvasRef.current) {
+      animFrameIdRef.current = requestAnimationFrame(scanLiveFrame);
+      return;
+    }
+
+    try {
+      const code = decodeVideoFrame(videoRef.current, canvasRef.current);
+      if (code) {
+        handleProcessDecodedText(code);
+        return;
+      }
+    } catch (err) {
+      console.warn('Frame scan error:', err);
+    }
+
+    animFrameIdRef.current = requestAnimationFrame(scanLiveFrame);
+  }, [handleProcessDecodedText]);
+
+  const stopCamera = () => {
+    if (animFrameIdRef.current) {
+      cancelAnimationFrame(animFrameIdRef.current);
+      animFrameIdRef.current = null;
+    }
+
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+    }
+
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+
+    if (html5ScannerRef.current) {
+      try {
+        if (html5ScannerRef.current.isScanning) {
+          html5ScannerRef.current.stop().catch(() => {});
+        }
+        html5ScannerRef.current.clear();
+      } catch (e) {
+        // ignore
+      }
+      html5ScannerRef.current = null;
+    }
+
+    setCameraActive(false);
+    setTorchOn(false);
   };
 
-  const stopScanner = async () => {
-    if (qrScannerRef.current) {
-      try {
-        if (qrScannerRef.current.isScanning) {
-          await qrScannerRef.current.stop();
-        }
-        qrScannerRef.current.clear();
-      } catch (e) {
-        console.error('Stop scanner error:', e);
-      }
-      qrScannerRef.current = null;
-    }
+  const startCamera = async () => {
+    setScanError(null);
     setCameraActive(false);
+    setSuccessDetected(false);
+
+    // Stop any existing stream
+    stopCamera();
+
+    try {
+      // 1. Primary engine: WebRTC MediaStream square constraints + jsQR / BarcodeDetector
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: { ideal: facingMode },
+          width: { ideal: 1080 },
+          height: { ideal: 1080 },
+          aspectRatio: { ideal: 1.0 },
+        },
+        audio: false,
+      });
+
+      streamRef.current = stream;
+
+      // Check for torch capability
+      const videoTrack = stream.getVideoTracks()[0];
+      if (videoTrack) {
+        const capabilities = (videoTrack.getCapabilities && (videoTrack.getCapabilities() as any)) || {};
+        if (capabilities.torch) {
+          setHasTorch(true);
+        } else {
+          setHasTorch(false);
+        }
+      }
+
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        videoRef.current.setAttribute('playsinline', 'true');
+        await videoRef.current.play();
+        setCameraActive(true);
+        animFrameIdRef.current = requestAnimationFrame(scanLiveFrame);
+      }
+    } catch (err: any) {
+      console.warn('Direct camera stream failed, attempting Html5Qrcode fallback:', err);
+      // Fallback to Html5Qrcode engine in square mode
+      try {
+        const container = document.getElementById('inapp-qr-scanner-region');
+        if (container) {
+          const scanner = new Html5Qrcode('inapp-qr-scanner-region');
+          html5ScannerRef.current = scanner;
+          await scanner.start(
+            { facingMode: facingMode },
+            {
+              fps: 15,
+              qrbox: { width: 240, height: 240 },
+              aspectRatio: 1.0,
+            },
+            (decodedText) => {
+              handleProcessDecodedText(decodedText);
+            },
+            () => {}
+          );
+          setCameraActive(true);
+        }
+      } catch (fallbackErr: any) {
+        console.error('All camera initialization methods failed:', fallbackErr);
+        setCameraActive(false);
+        setScanError(
+          'تعذر تشغيل كاميرا الجهاز مباشرة (تأكد من منح صلاحيات الكاميرا للمتصفح). يمكنك استخدام خيار "رفع صورة الرمز" لمسح صورة الرمز من جهازك.'
+        );
+      }
+    }
+  };
+
+  const toggleTorch = async () => {
+    if (!streamRef.current) return;
+    const track = streamRef.current.getVideoTracks()[0];
+    if (track) {
+      try {
+        const nextState = !torchOn;
+        await (track as any).applyConstraints({
+          advanced: [{ torch: nextState }],
+        });
+        setTorchOn(nextState);
+      } catch (err) {
+        console.warn('Torch toggle error:', err);
+      }
+    }
+  };
+
+  const flipCamera = () => {
+    setFacingMode((prev) => (prev === 'environment' ? 'user' : 'environment'));
   };
 
   useEffect(() => {
     if (activeTab === 'camera') {
-      startScanner();
+      startCamera();
     } else {
-      stopScanner();
+      stopCamera();
     }
 
     return () => {
-      stopScanner();
+      stopCamera();
     };
-  }, [activeTab]);
+  }, [activeTab, facingMode]);
 
   const handleQrFileScan = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    setIsScanningFile(true);
+    setScanError(null);
+
     try {
-      let scanner = qrScannerRef.current;
-      if (!scanner) {
-        scanner = new Html5Qrcode('inapp-qr-scanner-region');
-        qrScannerRef.current = scanner;
-      }
-      const result = await scanner.scanFile(file, true);
-      if (result) {
-        handleProcessDecodedText(result);
+      const decoded = await decodeQrFromImageFile(file);
+      if (decoded) {
+        handleProcessDecodedText(decoded);
+      } else {
+        setScanError(
+          'تعذر قراءة رمز QR من الصورة المحددة. يرجى التأكد من وضوح الصورة وتوسط الرمز وزاوية الالتقاط.'
+        );
       }
     } catch (err: any) {
       console.error('Failed to read QR image:', err);
-      setScanError('تعذر قراءة رمز QR من الصورة المحددة. يرجى اختيار صورة واضحة ومباشرة للرمز.');
+      setScanError('حدث خطأ أثناء معالجة صورة الرمز. يرجى اختيار صورة واضحة ومباشرة للرمز.');
+    } finally {
+      setIsScanningFile(false);
+      e.target.value = '';
     }
-    e.target.value = '';
-  };
-
-  const handleManualSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!manualSearchCode.trim()) return;
-    handleProcessDecodedText(manualSearchCode);
   };
 
   return (
@@ -178,8 +258,11 @@ export const InAppQrScannerModal: React.FC<InAppQrScannerModalProps> = ({
         isLight ? 'bg-slate-900/60' : 'bg-slate-950/85'
       }`}
     >
+      {/* Hidden offscreen canvas for frame capture */}
+      <canvas ref={canvasRef} className="hidden" />
+
       <div
-        className={`border rounded-3xl max-w-lg w-full flex flex-col max-h-[90vh] shadow-2xl overflow-hidden transition-all ${
+        className={`border rounded-3xl max-w-md w-full flex flex-col max-h-[92vh] shadow-2xl overflow-hidden transition-all ${
           isLight ? 'bg-white border-slate-200 text-slate-900 shadow-slate-300/50' : 'bg-slate-900 border-slate-800 text-white'
         }`}
       >
@@ -195,17 +278,17 @@ export const InAppQrScannerModal: React.FC<InAppQrScannerModalProps> = ({
             </div>
             <div>
               <h3 className="font-extrabold text-base sm:text-lg text-amber-500">
-                ماسح رمز الوصول السريع (In-App QR Scanner)
+                ماسح رمز الوصول السريع (QR Scanner)
               </h3>
               <p className={`text-xs ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
-                امسح رمز الوحدة للوصول المباشر لخيارات الموقع والكشف والصيانة
+                مسح مربع عالي الدقة للوصول إلى المنشأة أو الكرفان
               </p>
             </div>
           </div>
 
           <button
             onClick={() => {
-              stopScanner();
+              stopCamera();
               onClose();
             }}
             className={`p-2 rounded-xl transition cursor-pointer ${
@@ -219,14 +302,21 @@ export const InAppQrScannerModal: React.FC<InAppQrScannerModalProps> = ({
           </button>
         </div>
 
-        {/* Tabs Bar */}
-        <div className="p-3 border-b border-slate-800/60 bg-slate-950/40 flex items-center gap-2">
+        {/* Two Dedicated Tabs Bar (Camera & File Upload Only - Manual entry removed) */}
+        <div
+          className={`p-2.5 border-b flex items-center gap-2 transition-colors ${
+            isLight ? 'bg-slate-100/90 border-slate-200' : 'border-slate-800/60 bg-slate-950/40'
+          }`}
+        >
           <button
+            type="button"
             onClick={() => setActiveTab('camera')}
-            className={`flex-1 py-2 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition cursor-pointer ${
+            className={`flex-1 py-2.5 px-3 rounded-2xl font-bold text-xs flex items-center justify-center gap-2 transition cursor-pointer ${
               activeTab === 'camera'
                 ? 'bg-amber-500 text-slate-950 shadow-md'
-                : 'text-slate-400 hover:text-slate-200 bg-slate-900'
+                : isLight
+                ? 'text-slate-700 hover:text-slate-950 bg-white hover:bg-slate-50 border border-slate-200'
+                : 'text-slate-400 hover:text-slate-200 bg-slate-900/90 hover:bg-slate-800 border border-slate-800'
             }`}
           >
             <Camera className="w-4 h-4" />
@@ -234,63 +324,137 @@ export const InAppQrScannerModal: React.FC<InAppQrScannerModalProps> = ({
           </button>
 
           <button
+            type="button"
             onClick={() => setActiveTab('upload')}
-            className={`flex-1 py-2 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition cursor-pointer ${
+            className={`flex-1 py-2.5 px-3 rounded-2xl font-bold text-xs flex items-center justify-center gap-2 transition cursor-pointer ${
               activeTab === 'upload'
                 ? 'bg-amber-500 text-slate-950 shadow-md'
-                : 'text-slate-400 hover:text-slate-200 bg-slate-900'
+                : isLight
+                ? 'text-slate-700 hover:text-slate-950 bg-white hover:bg-slate-50 border border-slate-200'
+                : 'text-slate-400 hover:text-slate-200 bg-slate-900/90 hover:bg-slate-800 border border-slate-800'
             }`}
           >
             <Upload className="w-4 h-4" />
             <span>رفع صورة الرمز</span>
           </button>
-
-          <button
-            onClick={() => setActiveTab('manual')}
-            className={`flex-1 py-2 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition cursor-pointer ${
-              activeTab === 'manual'
-                ? 'bg-amber-500 text-slate-950 shadow-md'
-                : 'text-slate-400 hover:text-slate-200 bg-slate-900'
-            }`}
-          >
-            <Search className="w-4 h-4" />
-            <span>إدخال يدوي</span>
-          </button>
         </div>
 
         {/* Body Content */}
-        <div className="p-4 sm:p-6 space-y-4 overflow-y-auto">
+        <div className="p-4 sm:p-6 space-y-4 overflow-y-auto flex flex-col items-center justify-center">
           {scanError && (
-            <div className="bg-rose-500/10 border border-rose-500/30 rounded-2xl p-3.5 text-rose-400 text-xs flex items-start gap-2.5">
+            <div className="w-full bg-rose-500/10 border border-rose-500/30 rounded-2xl p-3.5 text-rose-500 text-xs flex items-start gap-2.5">
               <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
               <div className="space-y-1">
-                <span className="font-bold block">خطأ في المسح</span>
+                <span className="font-bold block">تنبيه المسح</span>
                 <span>{scanError}</span>
               </div>
             </div>
           )}
 
-          {/* Camera View */}
+          {/* Camera View - Perfectly Square Viewport with Modern Scanning Frame */}
           {activeTab === 'camera' && (
-            <div className="space-y-3">
-              <div className="relative w-full h-[280px] bg-slate-950 rounded-2xl overflow-hidden border-2 border-amber-500/40 shadow-inner flex items-center justify-center">
-                <div id="inapp-qr-scanner-region" className="w-full h-full" />
+            <div className="w-full flex flex-col items-center space-y-3">
+              {/* Square Scanning Viewport */}
+              <div className="relative w-full max-w-[320px] sm:max-w-[340px] aspect-square mx-auto rounded-3xl overflow-hidden border-2 border-amber-500/50 bg-slate-950 shadow-2xl flex items-center justify-center">
+                {/* Direct Square Video Feed */}
+                <video
+                  ref={videoRef}
+                  className="w-full h-full object-cover"
+                  autoPlay
+                  playsInline
+                  muted
+                />
+
+                {/* Fallback container for Html5Qrcode if needed */}
+                <div id="inapp-qr-scanner-region" className="absolute inset-0 pointer-events-none" />
+
+                {/* Success Indicator Overlay */}
+                {successDetected && (
+                  <div className="absolute inset-0 bg-emerald-500/40 backdrop-blur-xs flex flex-col items-center justify-center text-white z-20 animate-pulse">
+                    <Sparkles className="w-12 h-12 text-emerald-300 animate-bounce" />
+                    <span className="text-sm font-black mt-2">تم التعرف على الوحدة بنجاح</span>
+                  </div>
+                )}
+
+                {/* Laser scan animation & Square Reticle */}
+                {cameraActive && !successDetected && (
+                  <div className="absolute inset-0 pointer-events-none flex items-center justify-center z-10 p-5">
+                    <div className="w-full h-full border-2 border-amber-400/80 rounded-2xl relative shadow-[0_0_20px_rgba(245,158,11,0.35)] flex items-center justify-center">
+                      {/* 4 Precision Corner Markers */}
+                      <div className="absolute -top-1 -left-1 w-7 h-7 border-t-4 border-l-4 border-amber-400 rounded-tl-xl shadow-[0_0_8px_#f59e0b]" />
+                      <div className="absolute -top-1 -right-1 w-7 h-7 border-t-4 border-r-4 border-amber-400 rounded-tr-xl shadow-[0_0_8px_#f59e0b]" />
+                      <div className="absolute -bottom-1 -left-1 w-7 h-7 border-b-4 border-l-4 border-amber-400 rounded-bl-xl shadow-[0_0_8px_#f59e0b]" />
+                      <div className="absolute -bottom-1 -right-1 w-7 h-7 border-b-4 border-r-4 border-amber-400 rounded-br-xl shadow-[0_0_8px_#f59e0b]" />
+
+                      {/* Animated Laser Scanning Line */}
+                      <div className="absolute left-3 right-3 h-0.5 bg-gradient-to-r from-transparent via-amber-400 to-transparent animate-pulse shadow-[0_0_12px_#f59e0b] top-1/2 -translate-y-1/2" />
+
+                      <span className="text-[10px] font-bold text-amber-300 bg-slate-950/75 px-3 py-1 rounded-full border border-amber-500/40 backdrop-blur-md">
+                        ضع رمز QR داخل المربع
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Controls overlay (Torch and Camera Switch) */}
+                {cameraActive && (
+                  <div className="absolute top-3 left-3 right-3 flex items-center justify-between z-20 pointer-events-auto">
+                    {/* Torch Toggle */}
+                    {hasTorch ? (
+                      <button
+                        type="button"
+                        onClick={toggleTorch}
+                        className={`p-2.5 rounded-xl border backdrop-blur-md transition cursor-pointer shadow-lg ${
+                          torchOn
+                            ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-amber-500/30'
+                            : 'bg-slate-900/80 text-slate-200 border-slate-700 hover:bg-slate-800'
+                        }`}
+                        title="تشغيل / إيقاف الكشاف"
+                      >
+                        <Zap className="w-4 h-4" />
+                      </button>
+                    ) : (
+                      <div />
+                    )}
+
+                    {/* Camera Flip */}
+                    <button
+                      type="button"
+                      onClick={flipCamera}
+                      className="p-2.5 rounded-xl bg-slate-900/80 hover:bg-slate-800 text-slate-200 border border-slate-700 backdrop-blur-md transition cursor-pointer shadow-lg flex items-center gap-1 text-[11px] font-bold"
+                      title="تبديل الكاميرا (أمامية / خلفية)"
+                    >
+                      <SwitchCamera className="w-4 h-4 text-amber-400" />
+                      <span className="hidden sm:inline">تبديل</span>
+                    </button>
+                  </div>
+                )}
+
+                {/* Loading / Inactive Camera Overlay */}
                 {!cameraActive && (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-950/80 p-4 text-center space-y-2">
-                    <Camera className="w-8 h-8 text-amber-500 animate-pulse" />
-                    <p className="text-xs text-slate-300">جاري تشغيل الكاميرا...</p>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-950/90 p-5 text-center space-y-3 z-30">
+                    <Loader2 className="w-10 h-10 text-amber-500 animate-spin" />
+                    <p className="text-xs text-slate-200 font-bold">جاري تشغيل الكاميرا والمستشعر...</p>
+                    <button
+                      type="button"
+                      onClick={startCamera}
+                      className="mt-1 px-4 py-2 bg-amber-500 text-slate-950 font-black rounded-xl text-xs hover:bg-amber-400 transition cursor-pointer shadow-lg shadow-amber-500/20"
+                    >
+                      إعادة تشغيل الكاميرا
+                    </button>
                   </div>
                 )}
               </div>
-              <p className="text-[11px] text-slate-400 text-center">
+
+              <p className={`text-[11px] text-center font-medium ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
                 وجّه الكاميرا نحو رمز الاستجابة السريعة (QR Code) المثبت على المنشأة أو الكرفان
               </p>
             </div>
           )}
 
-          {/* Upload View */}
+          {/* Upload View - Square / Card Area */}
           {activeTab === 'upload' && (
-            <div className="space-y-4 text-center py-4">
+            <div className="w-full space-y-4 text-center py-2">
               <input
                 type="file"
                 ref={qrFileInputRef}
@@ -299,78 +463,37 @@ export const InAppQrScannerModal: React.FC<InAppQrScannerModalProps> = ({
                 onChange={handleQrFileScan}
               />
               <div
-                onClick={() => qrFileInputRef.current?.click()}
-                className="border-2 border-dashed border-slate-700 hover:border-amber-500 rounded-2xl p-8 bg-slate-950/50 hover:bg-slate-950/80 transition cursor-pointer space-y-3"
+                onClick={() => !isScanningFile && qrFileInputRef.current?.click()}
+                className={`w-full max-w-[320px] sm:max-w-[340px] aspect-square mx-auto border-2 border-dashed rounded-3xl p-6 transition cursor-pointer flex flex-col items-center justify-center space-y-3 ${
+                  isLight
+                    ? 'border-slate-300 hover:border-amber-500 bg-slate-50 hover:bg-slate-100/80'
+                    : 'border-slate-700 hover:border-amber-500 bg-slate-950/50 hover:bg-slate-950/80'
+                }`}
               >
-                <div className="w-14 h-14 rounded-2xl bg-amber-500/10 text-amber-500 border border-amber-500/30 flex items-center justify-center mx-auto shadow-inner">
-                  <Upload className="w-7 h-7" />
+                <div className="w-16 h-16 rounded-2xl bg-amber-500/10 text-amber-500 border border-amber-500/30 flex items-center justify-center mx-auto shadow-inner">
+                  {isScanningFile ? (
+                    <Loader2 className="w-8 h-8 animate-spin text-amber-500" />
+                  ) : (
+                    <Upload className="w-8 h-8" />
+                  )}
                 </div>
                 <div>
-                  <h4 className="font-bold text-sm text-slate-200">اختر أو اسحب صورة رمز QR</h4>
-                  <p className="text-xs text-slate-400 mt-1">
-                    يدعم ملفات الصور PNG, JPG, JPEG الملتقطة من الموقع الميداني
+                  <h4 className={`font-bold text-sm ${isLight ? 'text-slate-900' : 'text-slate-200'}`}>
+                    {isScanningFile ? 'جاري فك تشفير وفحص رمز QR...' : 'اختر صورة رمز QR من الجهاز'}
+                  </h4>
+                  <p className={`text-xs mt-1 ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                    يدعم جميع صور الكاميرا الميدانية بصيغ PNG, JPG, JPEG
                   </p>
                 </div>
                 <button
                   type="button"
-                  className="bg-amber-500 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs shadow hover:bg-amber-400 transition"
+                  disabled={isScanningFile}
+                  className="bg-amber-500 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs shadow hover:bg-amber-400 transition disabled:opacity-50 cursor-pointer"
                 >
-                  استعراض الملفات
+                  {isScanningFile ? 'جاري المعالجة...' : 'استعراض الصورة'}
                 </button>
               </div>
             </div>
-          )}
-
-          {/* Manual Entry View */}
-          {activeTab === 'manual' && (
-            <form onSubmit={handleManualSearch} className="space-y-4 py-2">
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-300 block">
-                  أدخل رمز الوحدة الموحد أو اسمها:
-                </label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    value={manualSearchCode}
-                    onChange={(e) => setManualSearchCode(e.target.value)}
-                    placeholder="مثال: WS-AHD-CRV-001 أو اسم المنشأة"
-                    className="w-full bg-slate-950 border border-slate-700 focus:border-amber-500 rounded-xl px-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none"
-                    autoFocus
-                  />
-                  <button
-                    type="submit"
-                    className="absolute left-1.5 top-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-3 py-1.5 rounded-lg text-xs transition cursor-pointer"
-                  >
-                    بحث وتطبيق
-                  </button>
-                </div>
-              </div>
-
-              {/* Quick Suggestions from Loaded Units */}
-              {units.length > 0 && (
-                <div className="space-y-1.5 pt-2 border-t border-slate-800">
-                  <span className="text-[11px] font-bold text-slate-400 block">
-                    الوحدات المتاحة للاختيار السريع:
-                  </span>
-                  <div className="max-h-40 overflow-y-auto space-y-1.5 pr-1">
-                    {units.slice(0, 8).map((u) => (
-                      <button
-                        key={u.id}
-                        type="button"
-                        onClick={() => handleProcessDecodedText(u.code)}
-                        className="w-full text-right p-2 rounded-xl bg-slate-950/60 hover:bg-amber-500/10 border border-slate-800 hover:border-amber-500/40 text-xs flex items-center justify-between transition cursor-pointer"
-                      >
-                        <div>
-                          <span className="font-bold text-slate-200 block">{u.name}</span>
-                          <span className="font-mono text-[10px] text-amber-500">{u.code}</span>
-                        </div>
-                        <ChevronLeft className="w-4 h-4 text-slate-500" />
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </form>
           )}
         </div>
 
@@ -381,17 +504,18 @@ export const InAppQrScannerModal: React.FC<InAppQrScannerModalProps> = ({
           }`}
         >
           <button
+            type="button"
             onClick={() => {
-              stopScanner();
+              stopCamera();
               onClose();
             }}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+            className={`px-5 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer ${
               isLight
                 ? 'bg-slate-200 hover:bg-slate-300 text-slate-700'
                 : 'bg-slate-800 hover:bg-slate-700 text-slate-300'
             }`}
           >
-            إلغاء
+            إغلاق
           </button>
         </div>
       </div>

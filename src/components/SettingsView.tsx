@@ -59,8 +59,11 @@ import {
   MaintenanceRequest,
   OccupancyRecord,
   OrgEntity,
+  PeriodicInspectionSchedule,
+  DatabaseBackupPayload,
 } from '../types';
 import { OrgStructureBuilder } from './OrgStructureBuilder';
+import { DatabaseBackupManager } from './DatabaseBackupManager';
 import { toArabicDigits } from '../utils/arabicUtils';
 
 interface SettingsViewProps {
@@ -77,6 +80,13 @@ interface SettingsViewProps {
 
   maintenanceRequests?: MaintenanceRequest[];
   occupancyRecords?: OccupancyRecord[];
+  periodicInspections?: PeriodicInspectionSchedule[];
+
+  onRestoreDatabase?: (
+    payload: DatabaseBackupPayload,
+    mode: 'overwrite' | 'merge',
+    onComplete?: () => void
+  ) => void;
 
   auditLogs: AuditLogItem[];
   onAddAuditLog: (log: AuditLogItem) => void;
@@ -180,6 +190,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   onToggleUserStatus,
   maintenanceRequests = [],
   occupancyRecords = [],
+  periodicInspections = [],
+  onRestoreDatabase,
   auditLogs,
   onAddAuditLog,
   onClearAuditLogs,
@@ -256,6 +268,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     | 'rooms'
     | 'equipment'
     | 'maintenance_depts'
+    | 'backup_restore'
     | 'audit'
     | 'reset'
   >('branding');
@@ -1188,8 +1201,35 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               isLight ? 'text-slate-500' : 'text-slate-500'
             }`}
           >
-            المراقبة والاستعادة
+            النسخ الاحتياطي والمراقبة
           </div>
+
+          <button
+            onClick={() => setActiveTab('backup_restore')}
+            className={`w-full text-right p-3 rounded-xl font-bold transition flex items-center justify-between cursor-pointer ${
+              activeTab === 'backup_restore'
+                ? isLight
+                  ? 'bg-amber-100 text-amber-900 border border-amber-300 shadow-xs'
+                  : 'bg-amber-500/20 text-amber-400 border border-amber-500/30 shadow-xs'
+                : isLight
+                ? 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'
+            }`}
+          >
+            <span className="flex items-center gap-2">
+              <Database className={`w-4 h-4 ${isLight ? 'text-amber-600' : 'text-amber-400'}`} />
+              <span>النسخ الاحتياطي واستعادة البيانات</span>
+            </span>
+            <span
+              className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold ${
+                isLight
+                  ? 'bg-amber-100 text-amber-900 border border-amber-300'
+                  : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+              }`}
+            >
+              شامل
+            </span>
+          </button>
 
           <button
             onClick={() => setActiveTab('audit')}
@@ -3010,6 +3050,32 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 </table>
               </div>
             </div>
+          )}
+
+          {/* TAB: Comprehensive Database Backup & Restore */}
+          {activeTab === 'backup_restore' && (
+            <DatabaseBackupManager
+              units={units}
+              maintenanceRequests={maintenanceRequests}
+              occupancyRecords={occupancyRecords}
+              periodicInspections={periodicInspections}
+              auditLogs={auditLogs}
+              orgEntities={orgEntities}
+              branding={branding}
+              users={users}
+              unitTypes={unitTypes}
+              governorates={governorates}
+              oilfields={oilfields}
+              sites={sites}
+              roomTypes={roomTypes}
+              equipmentTypes={equipmentTypes}
+              maintenanceDepartments={maintenanceDepartments}
+              currentUser={currentUser}
+              theme={theme}
+              onRestoreDatabase={onRestoreDatabase || (() => {})}
+              onAddAuditLog={onAddAuditLog}
+              triggerSaveToast={triggerSaveToast}
+            />
           )}
 
           {/* TAB 9: Custom Granular Factory Reset */}

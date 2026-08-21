@@ -23,6 +23,7 @@ import {
   ImageIcon,
   FileText,
   Lock,
+  Loader2,
 } from 'lucide-react';
 import {
   MaintenanceRequest,
@@ -33,8 +34,9 @@ import {
   MaintenanceDepartmentRef,
 } from '../types';
 import { INITIAL_MAINTENANCE_DEPARTMENTS } from '../data/mockData';
+import { compressImageFile } from '../utils/imageCompressor';
 
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
+const MAX_FILE_SIZE = 15 * 1024 * 1024; // Up to 15 MB before compression
 
 interface NewMaintenanceModalProps {
   units?: UnitAsset[];
@@ -79,8 +81,8 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
     const activeDepts = maintenanceDepartments.filter((d) => d.status === 'active');
     return activeDepts[0]?.nameAr || 'الصيانة الكهربائية';
   });
-  const [assignedTo, setAssignedTo] = useState('فريق الصيانة الميدانية بالموقع');
   const [validationError, setValidationError] = useState('');
+  const [isProcessingFiles, setIsProcessingFiles] = useState(false);
 
   // Multi-file Attachments State
   const [attachments, setAttachments] = useState<ReportAttachment[]>([]);
@@ -89,34 +91,39 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFilesSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFilesSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
     setValidationError('');
+    setIsProcessingFiles(true);
 
-    Array.from(files).forEach((file: File) => {
-      if (file.size > MAX_FILE_SIZE) {
-        setValidationError('حجم الملف كبير جداً (الحد الأقصى 5 ميجابايت)، الرجاء ضغط الصورة أو اختيار ملف أصغر.');
-        return;
-      }
+    try {
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        if (file.size > MAX_FILE_SIZE) {
+          setValidationError('حجم الملف كبير جداً (الحد الأقصى 15 ميجابايت). الرجاء اختيار ملف أصغر.');
+          continue;
+        }
 
-      const reader = new FileReader();
-      reader.onload = () => {
-        const result = reader.result as string;
+        // Compress image to ensure it fits safely in Firestore & Storage without failure
+        const compressed = await compressImageFile(file, 1280, 1280, 0.78);
         const newAtt: ReportAttachment = {
           id: `att-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
           name: file.name,
-          url: result,
-          type: file.type,
-          size: file.size,
+          url: compressed.dataUrl,
+          type: file.type || 'image/jpeg',
+          size: compressed.sizeBytes,
         };
         setAttachments((prev) => [...prev, newAtt]);
-      };
-      reader.readAsDataURL(file);
-    });
-
-    e.target.value = '';
+      }
+    } catch (err: any) {
+      console.error('File compression/upload error:', err);
+      setValidationError('حدث خطأ أثناء معالجة الصور المرفقة، يرجى المحاولة ثانية.');
+    } finally {
+      setIsProcessingFiles(false);
+      e.target.value = '';
+    }
   };
 
   const handleRemoveAttachment = (id: string) => {
@@ -180,7 +187,6 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
       issue,
       priority,
       slaDeadline: new Date(Date.now() + 86400000 * 2).toISOString(),
-      assignedTo,
       maintenanceDepartment: maintenanceDepartment || 'الصيانة الكهربائية',
       status: 'open',
       createdAt: requestDate || new Date().toISOString().split('T')[0],
@@ -816,7 +822,7 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
                 </select>
               </div>
 
-              <div>
+              <div className="sm:col-span-2">
                 <label className={`block font-bold mb-1 text-xs ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
                   جهة الصيانة المختصة (توجيه الطلب):
                 </label>
@@ -846,24 +852,6 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
                   )}
                 </select>
               </div>
-
-              <div>
-                <label className={`block font-bold mb-1 text-xs ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
-                  الفريق الفني / المقاول المكلف:
-                </label>
-                <input
-                  type="text"
-                  value={assignedTo}
-                  onChange={(e) => setAssignedTo(e.target.value)}
-                  placeholder="اسم الفني أو الفرقة المكلفة..."
-                  className={`w-full rounded-xl p-2.5 font-bold outline-none border transition ${
-                    isLight
-                      ? 'bg-white border-slate-200 text-slate-900 focus:border-amber-500'
-                      : 'bg-slate-900 border-slate-800 text-slate-100 focus:border-amber-500'
-                  }`}
-                  required
-                />
-              </div>
             </div>
           </div>
 
@@ -872,7 +860,7 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
             <div className="flex items-center justify-between border-b pb-2 border-slate-200 dark:border-slate-800">
               <label className={`block font-extrabold text-xs flex items-center gap-1.5 ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
                 <Camera className="w-4 h-4 text-amber-500" />
-                <span>3. رفع ملفات أو التقاط صور للعطل (حتى 5 ميجابايت لكل ملف):</span>
+                <span>3. رفع ملفات أو التقاط صور للعطل (يتم ضغطها وتشفيرها تلقائياً):</span>
               </label>
               <span className="text-[10px] text-slate-400 font-bold bg-amber-500/10 px-2 py-0.5 rounded-full text-amber-600 dark:text-amber-400">
                 {attachments.length > 0 ? `${attachments.length} مرفق مضاف` : 'اختياري'}
@@ -901,24 +889,34 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <button
                 type="button"
+                disabled={isProcessingFiles}
                 onClick={() => cameraInputRef.current?.click()}
-                className="py-2.5 px-3 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-slate-950 flex items-center justify-center gap-2 shadow-md transition cursor-pointer active:scale-95"
+                className="py-2.5 px-3 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-slate-950 flex items-center justify-center gap-2 shadow-md transition cursor-pointer active:scale-95 disabled:opacity-50"
               >
-                <Camera className="w-4 h-4" />
-                <span>التقاط صورة عبر الكاميرا</span>
+                {isProcessingFiles ? (
+                  <Loader2 className="w-4 h-4 animate-spin text-slate-950" />
+                ) : (
+                  <Camera className="w-4 h-4" />
+                )}
+                <span>{isProcessingFiles ? 'جاري ضغط ومعالجة الصورة...' : 'التقاط صورة عبر الكاميرا'}</span>
               </button>
 
               <button
                 type="button"
+                disabled={isProcessingFiles}
                 onClick={() => fileInputRef.current?.click()}
-                className={`py-2.5 px-3 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-2 cursor-pointer active:scale-95 ${
+                className={`py-2.5 px-3 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-2 cursor-pointer active:scale-95 disabled:opacity-50 ${
                   isLight
                     ? 'bg-white hover:bg-slate-100 border-slate-300 text-slate-700'
                     : 'bg-slate-900 hover:bg-slate-800 border-slate-700 text-slate-200'
                 }`}
               >
-                <Upload className="w-4 h-4 text-emerald-400" />
-                <span>اختيار ملفات / صور من الجهاز</span>
+                {isProcessingFiles ? (
+                  <Loader2 className="w-4 h-4 animate-spin text-emerald-400" />
+                ) : (
+                  <Upload className="w-4 h-4 text-emerald-400" />
+                )}
+                <span>{isProcessingFiles ? 'جاري تجهيز المرفقات...' : 'اختيار ملفات / صور من الجهاز'}</span>
               </button>
             </div>
 

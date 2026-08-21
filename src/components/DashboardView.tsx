@@ -27,6 +27,7 @@ import {
   ShieldCheck,
   UserCheck,
   Compass,
+  Map as MapIcon,
 } from 'lucide-react';
 import {
   UnitAsset,
@@ -355,11 +356,19 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
         </div>
 
-        {/* Global Governorate Filter */}
-        <div className="flex items-center gap-2 self-start md:self-auto">
+        {/* Global Governorate Filter & GIS Map Button */}
+        <div className="flex items-center gap-2 self-start md:self-auto flex-wrap">
+          <button
+            onClick={() => onNavigateTab('gis_map')}
+            className="px-3.5 py-2 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-slate-950 flex items-center gap-1.5 shadow-sm transition cursor-pointer"
+          >
+            <MapIcon className="w-3.5 h-3.5" />
+            <span>خريطة الأصول GIS</span>
+          </button>
+
           <div className="flex items-center gap-1.5 text-xs font-bold whitespace-nowrap">
             <Filter className="w-3.5 h-3.5 text-amber-500" />
-            <span className={isLight ? 'text-slate-700' : 'text-slate-300'}>فلتر نطاق المحافظة:</span>
+            <span className={isLight ? 'text-slate-700' : 'text-slate-300'}>فلتر:</span>
           </div>
           <select
             value={selectedGovernorate}
@@ -929,7 +938,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                         <th className="p-3 font-semibold">الحقل</th>
                         <th className="p-3 font-semibold">طبيعة العطل</th>
                         <th className="p-3 font-semibold">الأولوية</th>
-                        <th className="p-3 font-semibold">الفريق المكلف</th>
+                        <th className="p-3 font-semibold">جهة الصيانة المختصة</th>
                         <th className="p-3 font-semibold">الحالة</th>
                         <th className="p-3 font-semibold text-center">معاينة</th>
                       </tr>
@@ -952,7 +961,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                               </span>
                             )}
                           </td>
-                          <td className="p-3 text-slate-500">{req.assignedTo}</td>
+                          <td className="p-3">
+                            <span className="px-2 py-0.5 rounded-lg text-[10.5px] font-bold bg-amber-500/10 text-amber-500 border border-amber-500/20 whitespace-nowrap">
+                              {req.maintenanceDepartment || 'الصيانة العامة'}
+                            </span>
+                          </td>
                           <td className="p-3">
                             {req.status === 'completed' ? (
                               <span className="bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-2 py-0.5 rounded text-[10px] font-bold">

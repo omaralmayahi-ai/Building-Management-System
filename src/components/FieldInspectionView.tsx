@@ -37,6 +37,8 @@ import { toArabicDigits } from '../utils/arabicUtils';
 import * as api from '../services/apiClient';
 import { UnitScanChoiceModal } from './UnitScanChoiceModal';
 import { UnitLocationMapModal } from './UnitLocationMapModal';
+import { decodeQrFromImageFile, parseScannedQrText } from '../utils/qrReader';
+import { compressImageFile } from '../utils/imageCompressor';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
 
@@ -138,7 +140,7 @@ export const FieldInspectionView: React.FC<FieldInspectionViewProps> = ({
   };
 
   const handleProcessDecodedText = (decodedText: string) => {
-    const targetCode = parseScannedCode(decodedText);
+    const targetCode = parseScannedQrText(decodedText);
     const matched = units.find(
       (u) =>
         u.code.toLowerCase() === targetCode.toLowerCase() ||
@@ -152,7 +154,9 @@ export const FieldInspectionView: React.FC<FieldInspectionViewProps> = ({
       // Present the 3 in-app choices: Location, Inspection, Maintenance
       setScannedUnitForChoice(matched);
     } else {
-      setScanError(`لم يتم العثور على منشأة مطابقة للرمز (${targetCode})`);
+      setScanError(
+        `تعذر جلب بيانات الوحدة: رمز الوصول السريع الممسوح (${targetCode}) غير متوفر أو غير مسجل في النظام. يرجى التأكد من مسح رمز المنشأة الصحيح أو إضافة الوحدة أولاً.`
+      );
     }
   };
 
@@ -225,18 +229,26 @@ export const FieldInspectionView: React.FC<FieldInspectionViewProps> = ({
     if (!file) return;
 
     try {
-      let scanner = qrScannerRef.current;
-      if (!scanner) {
-        scanner = new Html5Qrcode('qr-scanner-region');
-        qrScannerRef.current = scanner;
-      }
-      const result = await scanner.scanFile(file, true);
-      if (result) {
-        handleProcessDecodedText(result);
+      const decoded = await decodeQrFromImageFile(file);
+      if (decoded) {
+        handleProcessDecodedText(decoded);
+      } else {
+        // Fallback to Html5Qrcode scanFile if jsQR failed
+        let scanner = qrScannerRef.current;
+        if (!scanner) {
+          scanner = new Html5Qrcode('qr-scanner-region');
+          qrScannerRef.current = scanner;
+        }
+        const result = await scanner.scanFile(file, true);
+        if (result) {
+          handleProcessDecodedText(result);
+        } else {
+          setScanError('تعذر قراءة رمز QR من الصورة المحددة. يرجى اختيار صورة واضحة ومباشرة للرمز.');
+        }
       }
     } catch (err: any) {
       console.error('Failed to read QR image:', err);
-      setScanError('تعذر قراءة رمز QR من الصورة المحددة. يرجى اختيار صورة واضحة.');
+      setScanError('تعذر قراءة رمز QR من الصورة المحددة. يرجى اختيار صورة واضحة ومباشرة للرمز.');
     }
     e.target.value = '';
   };
@@ -253,34 +265,30 @@ export const FieldInspectionView: React.FC<FieldInspectionViewProps> = ({
     };
   }, []);
 
-  // Multi-file selection with 5MB validation
-  const handleFilesSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Multi-file selection with auto-compression
+  const handleFilesSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
     setFileError(null);
 
-    Array.from(files).forEach((file: File) => {
-      if (file.size > MAX_FILE_SIZE) {
-        setFileError('حجم الملف كبير جداً (الحد الأقصى 5 ميجابايت)، الرجاء ضغط الصورة أو اختيار ملف أصغر.');
-        return;
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      try {
+        const compressed = await compressImageFile(file, 1400, 1400, 0.8);
+        const newAtt: ReportAttachment = {
+          id: `att-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
+          name: file.name,
+          url: compressed.dataUrl,
+          type: file.type || 'image/jpeg',
+          size: compressed.sizeBytes,
+        };
+        setAttachments((prev) => [...prev, newAtt]);
+      } catch (err: any) {
+        console.error('Error compressing attachment image:', err);
+        setFileError(err.message || 'فشل ضغط ومعالجة الصورة المحددة.');
       }
-
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        if (event.target?.result) {
-          const newAtt: ReportAttachment = {
-            id: `att-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
-            name: file.name,
-            url: event.target.result as string,
-            type: file.type,
-            size: file.size,
-          };
-          setAttachments((prev) => [...prev, newAtt]);
-        }
-      };
-      reader.readAsDataURL(file);
-    });
+    }
 
     e.target.value = '';
   };
@@ -936,8 +944,8 @@ export const FieldInspectionView: React.FC<FieldInspectionViewProps> = ({
               </div>
             )}
 
-            {/* Html5Qrcode reader container */}
-            <div className="relative rounded-2xl overflow-hidden bg-black border border-slate-800 flex flex-col items-center justify-center min-h-[280px]">
+            {/* Html5Qrcode reader container - Square */}
+            <div className="relative w-full max-w-[320px] sm:max-w-[340px] aspect-square mx-auto rounded-3xl overflow-hidden bg-black border-2 border-amber-500/40 shadow-2xl flex flex-col items-center justify-center">
               <div id="qr-scanner-region" className="w-full h-full" />
               {!cameraActive && (
                 <div className="text-center p-4 space-y-2">

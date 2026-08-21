@@ -4,7 +4,7 @@ export type UnitType = 'building' | 'caravan' | 'warehouse' | 'equipment' | 'saf
 
 export type MaintenancePriority = 'critical' | 'normal' | 'low';
 
-export type MaintenanceStatus = 'open' | 'assigned' | 'in_progress' | 'completed' | 'overdue' | 'cancelled';
+export type MaintenanceStatus = 'open' | 'assigned' | 'in_progress' | 'completed' | 'overdue' | 'cancelled' | 'rejected';
 
 export type OccupancyStatus = 'full' | 'partial' | 'vacant';
 
@@ -125,13 +125,14 @@ export interface MaintenanceRequest {
   priority: MaintenancePriority;
   slaDeadline?: string; // e.g. "2026-08-09T10:00:00"
   daysOverdue?: number;
-  assignedTo: string; // e.g. "فريق ميكانيك الأحدب" / "شركة الصيانة السريعة"
+  assignedTo?: string; // Deprecated / Removed from UI
   maintenanceDepartment?: string; // e.g. "الصيانة الكهربائية" / "الصيانة الميكانيكية" / "الصيانة الإنشائية"
   status: MaintenanceStatus;
   createdAt: string;
   reportedBy: string;
   details?: string;
   resolutionNotes?: string;
+  rejectionReason?: string;
   completedBy?: string;
   completedAt?: string;
   sourceInspectionId?: string;
@@ -365,5 +366,84 @@ export interface SystemUser {
   field?: string;
   status: 'active' | 'disabled';
   lastActive: string;
+}
+
+export interface DatabaseBackupCounts {
+  units: number;
+  maintenanceRequests: number;
+  occupancyRecords: number;
+  periodicInspections: number;
+  users: number;
+  orgEntities: number;
+  governorates: number;
+  oilfields: number;
+  sites: number;
+  unitTypes: number;
+  roomTypes: number;
+  equipmentTypes: number;
+  maintenanceDepartments: number;
+  auditLogs: number;
+  totalRecords: number;
+}
+
+export interface DatabaseBackupPayload {
+  version: string;
+  systemTitle: string;
+  companyName: string;
+  exportedAt: string;
+  exportedAtFormatted: string;
+  exportedBy: string;
+  checksum: string;
+  counts: DatabaseBackupCounts;
+  data: {
+    units: UnitAsset[];
+    maintenanceRequests: MaintenanceRequest[];
+    occupancyRecords: OccupancyRecord[];
+    periodicInspections: PeriodicInspectionSchedule[];
+    users: SystemUser[];
+    orgEntities: OrgEntity[];
+    branding: SystemBranding;
+    governorates: GovernorateRef[];
+    oilfields: OilfieldRef[];
+    sites: SiteRef[];
+    unitTypes: ReferenceUnitType[];
+    roomTypes: RoomTypeRef[];
+    equipmentTypes: EquipmentTypeRef[];
+    maintenanceDepartments: MaintenanceDepartmentRef[];
+    auditLogs: AuditLogItem[];
+  };
+}
+
+export interface AutoBackupScheduleConfig {
+  enabled: boolean;
+  frequency: 'daily' | 'weekly' | 'monthly' | 'custom_hours';
+  customHours?: number;
+  timeOfDay: string; // e.g. "02:00"
+  dayOfWeek?: number; // 0 for Sunday, 5 for Friday, 6 for Saturday
+  dayOfMonth?: number; // 1-28
+  storagePath: string; // Directory/path where backup should be stored e.g. "C:\Midland_Oil_Database_Backups"
+  storageType: 'local_folder' | 'browser_download' | 'server_cloud';
+  keepMaxBackups: number;
+  lastBackupTimestamp?: string;
+  lastBackupFormatted?: string;
+  lastBackupSize?: string;
+  lastBackupStatus?: 'success' | 'failed' | 'pending';
+  nextScheduledBackup?: string;
+}
+
+export interface BackupHistoryItem {
+  id: string;
+  filename: string;
+  timestamp: string;
+  timestampFormatted: string;
+  sizeBytes: number;
+  sizeFormatted: string;
+  totalRecords: number;
+  unitsCount: number;
+  storagePath: string;
+  status: 'success' | 'failed';
+  triggerType: 'manual' | 'scheduled';
+  summary: string;
+  payloadSnapshot?: DatabaseBackupPayload;
 }
 

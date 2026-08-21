@@ -179,6 +179,7 @@ const translateMaintenanceStatus = (status?: string): string => {
   if (!status) return '-';
   const s = status.toLowerCase().trim();
   if (s === 'completed') return 'منجز ومغلق';
+  if (s === 'rejected') return 'مرفوض';
   if (s === 'cancelled') return 'ملغى';
   if (s === 'overdue') return 'متأخر عن الموعد';
   if (s === 'in_progress') return 'قيد المعالجة والتنفيذ';
@@ -749,14 +750,16 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
       // Org Entity filter
       if (!matchesOrgEntity(item.unitCode, true, item.assignedTo)) return false;
 
-      // Maintenance Status filter (منجز - ملغى - قيد المعالجة)
+      // Maintenance Status filter (منجز - مرفوض - ملغى - قيد المعالجة)
       if (selectedMaintenanceStatus !== 'all') {
         if (selectedMaintenanceStatus === 'completed') {
           if (item.status !== 'completed') return false;
+        } else if (selectedMaintenanceStatus === 'rejected') {
+          if (item.status !== 'rejected') return false;
         } else if (selectedMaintenanceStatus === 'cancelled') {
           if (item.status !== 'cancelled') return false;
         } else if (selectedMaintenanceStatus === 'in_progress') {
-          if (item.status === 'completed' || item.status === 'cancelled') return false;
+          if (item.status === 'completed' || item.status === 'cancelled' || item.status === 'rejected') return false;
         }
       }
 
@@ -2852,6 +2855,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                 >
                   <option value="all">جميع حالات الصيانة</option>
                   <option value="completed">منجز</option>
+                  <option value="rejected">مرفوض</option>
                   <option value="cancelled">ملغى</option>
                   <option value="in_progress">قيد المعالجة</option>
                 </select>
@@ -3190,6 +3194,8 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                       <td className="p-2.5 whitespace-nowrap font-bold">
                         {req.status === 'completed' ? (
                           <span className="text-emerald-400">منجز</span>
+                        ) : req.status === 'rejected' ? (
+                          <span className="text-rose-400">مرفوض</span>
                         ) : req.status === 'cancelled' ? (
                           <span className="text-slate-400">ملغى</span>
                         ) : req.status === 'overdue' ? (
