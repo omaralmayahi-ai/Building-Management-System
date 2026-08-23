@@ -10,7 +10,7 @@ import {
   Compass,
 } from 'lucide-react';
 import { UnitAsset } from '../types';
-import { toArabicDigits } from '../utils/arabicUtils';
+import { toArabicDigits, getServerDateFormatted } from '../utils/arabicUtils';
 
 interface UnitQrCodeModalProps {
   unit: UnitAsset;
@@ -103,7 +103,7 @@ export const UnitQrCodeModal: React.FC<UnitQrCodeModalProps> = ({
             <p><strong>التقييم الهندسي:</strong> Grade ${unit.conditionGrade} • المساحة: ${unit.totalAreaSqM} م²</p>
             <p><strong>الجهة الشاغلة:</strong> ${unit.department}</p>
           </div>
-          <div class="footer">تاريخ الطباعة: ${new Date().toLocaleDateString('ar-IQ')} • الأرشيف الهندسي الموحد</div>
+          <div class="footer">تاريخ الطباعة: ${getServerDateFormatted()} • الأرشيف الهندسي الموحد</div>
         </div>
         <script>
           window.onload = function() { window.print(); window.close(); };

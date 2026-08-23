@@ -20,7 +20,7 @@ import {
   Eye,
   Info,
 } from 'lucide-react';
-import { UnitAsset } from '../types';
+import { UnitAsset, ConditionGrade } from '../types';
 import { toArabicDigits } from '../utils/arabicUtils';
 import { GIS_TILE_LAYERS } from '../config/mapsConfig';
 
@@ -31,6 +31,60 @@ L.Icon.Default.mergeOptions({
   iconUrl: markerIcon,
   shadowUrl: markerShadow,
 });
+
+const UNIT_TYPE_CONFIG: Record<
+  string,
+  {
+    label: string;
+    gradient: string;
+    borderColor: string;
+    iconSvg: string;
+  }
+> = {
+  building: {
+    label: 'بناية / مقر إداري',
+    gradient: 'linear-gradient(135deg, #2563eb, #1d4ed8)',
+    borderColor: '#93c5fd',
+    iconSvg: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>`,
+  },
+  caravan: {
+    label: 'كرفان / منشأة متنقلة',
+    gradient: 'linear-gradient(135deg, #0d9488, #0f766e)',
+    borderColor: '#5eead4',
+    iconSvg: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="12" x="2" y="6" rx="2"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/><path d="M9 10h2"/><path d="M13 10h2"/></svg>`,
+  },
+  warehouse: {
+    label: 'مستودع / مخزن',
+    gradient: 'linear-gradient(135deg, #d97706, #b45309)',
+    borderColor: '#fde68a',
+    iconSvg: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 8.35V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8.35A2 2 0 0 1 3.26 6.5l8-3.2a2 2 0 0 1 1.48 0l8 3.2A2 2 0 0 1 22 8.35Z"/><path d="M6 18h12v4H6z"/><path d="M6 14h12"/></svg>`,
+  },
+  equipment: {
+    label: 'معدة / محطة خدمة',
+    gradient: 'linear-gradient(135deg, #7c3aed, #6d28d9)',
+    borderColor: '#c4b5fd',
+    iconSvg: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`,
+  },
+  safety_system: {
+    label: 'منظومة سلامة وإطفاء',
+    gradient: 'linear-gradient(135deg, #dc2626, #991b1b)',
+    borderColor: '#fca5a5',
+    iconSvg: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>`,
+  },
+  storage_tank: {
+    label: 'خزان نفطي / وقود',
+    gradient: 'linear-gradient(135deg, #0284c7, #0369a1)',
+    borderColor: '#7dd3fc',
+    iconSvg: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/><path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3"/></svg>`,
+  },
+};
+
+const GRADE_BADGE_COLORS: Record<ConditionGrade, string> = {
+  A: '#10b981',
+  B: '#f59e0b',
+  C: '#f97316',
+  D: '#ef4444',
+};
 
 interface UnitLocationMapModalProps {
   unit: UnitAsset;
@@ -62,14 +116,8 @@ export const UnitLocationMapModal: React.FC<UnitLocationMapModalProps> = ({
 
   const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
 
-  const gradeColor =
-    unit.conditionGrade === 'A'
-      ? '#10b981'
-      : unit.conditionGrade === 'B'
-      ? '#f59e0b'
-      : unit.conditionGrade === 'C'
-      ? '#f97316'
-      : '#ef4444';
+  const gradeColor = GRADE_BADGE_COLORS[unit.conditionGrade] || '#f59e0b';
+  const typeConfig = UNIT_TYPE_CONFIG[unit.type] || UNIT_TYPE_CONFIG.building;
 
   const handleCopyCoords = () => {
     navigator.clipboard.writeText(`${lat}, ${lng}`);
@@ -89,8 +137,11 @@ export const UnitLocationMapModal: React.FC<UnitLocationMapModalProps> = ({
     const map = L.map(mapContainerRef.current, {
       center: [lat, lng],
       zoom: 16,
-      zoomControl: true,
+      zoomControl: false,
       attributionControl: false,
+      scrollWheelZoom: true,
+      touchZoom: true,
+      doubleClickZoom: true,
     });
 
     mapInstanceRef.current = map;
@@ -102,69 +153,77 @@ export const UnitLocationMapModal: React.FC<UnitLocationMapModalProps> = ({
     }).addTo(map);
     tileLayerRef.current = tileLayer;
 
-    // Custom Marker for Unit
+    // Custom Marker for Unit with distinctive type icon and grade pill
     const customIcon = L.divIcon({
-      className: 'custom-unit-marker',
+      className: 'custom-unit-modal-marker',
       html: `
         <div style="
           position: relative;
           display: flex;
           flex-direction: column;
           align-items: center;
-          transform: translate(-50%, -100%);
+          cursor: pointer;
+          filter: drop-shadow(0 6px 16px rgba(0,0,0,0.6));
         ">
+          <!-- Pin Teardrop Body -->
           <div style="
-            background: ${gradeColor};
-            color: #ffffff;
-            width: 40px;
-            height: 40px;
+            background: ${typeConfig.gradient};
+            width: 42px;
+            height: 42px;
             border-radius: 50% 50% 50% 0;
             transform: rotate(-45deg);
+            border: 3px solid #ffffff;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 6px 16px rgba(0,0,0,0.6);
-            border: 3px solid #ffffff;
+            box-shadow: inset 0 2px 5px rgba(255,255,255,0.3);
+            position: relative;
           ">
+            <!-- Inner Vector Icon (unrotated) -->
             <div style="
               transform: rotate(45deg);
-              font-weight: 900;
-              font-size: 13px;
-              font-family: system-ui, sans-serif;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              width: 100%;
+              height: 100%;
             ">
-              ${unit.conditionGrade}
+              ${typeConfig.iconSvg}
             </div>
           </div>
+
+          <!-- Condition Grade Mini Badge -->
           <div style="
-            width: 10px;
-            height: 10px;
-            background: rgba(0,0,0,0.3);
-            border-radius: 50%;
-            margin-top: 2px;
-            filter: blur(1px);
-          "></div>
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background: ${gradeColor};
+            color: #ffffff;
+            border: 2px solid #ffffff;
+            border-radius: 9999px;
+            font-size: 10px;
+            font-weight: 900;
+            font-family: monospace;
+            padding: 1px 5px;
+            line-height: 14px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+          ">
+            ${unit.conditionGrade}
+          </div>
         </div>
       `,
-      iconSize: [40, 48],
-      iconAnchor: [20, 48],
+      iconSize: [42, 48],
+      iconAnchor: [21, 48],
+      popupAnchor: [0, -48],
     });
 
     const marker = L.marker([lat, lng], { icon: customIcon }).addTo(map);
-
-    // Popup with Unit info
-    marker.bindPopup(`
-      <div style="font-family: system-ui, sans-serif; direction: rtl; text-align: right; min-width: 180px; padding: 4px;">
-        <div style="font-size: 10px; color: #f59e0b; font-weight: bold; font-family: monospace;">${unit.code}</div>
-        <div style="font-size: 13px; font-weight: bold; color: #0f172a; margin-bottom: 2px;">${unit.name}</div>
-        <div style="font-size: 11px; color: #475569;">${unit.field} - ${unit.governorate}</div>
-      </div>
-    `).openPopup();
 
     return () => {
       map.remove();
       mapInstanceRef.current = null;
     };
-  }, [lat, lng, gradeColor]);
+  }, [lat, lng, gradeColor, typeConfig]);
 
   // Handle layer switch
   useEffect(() => {

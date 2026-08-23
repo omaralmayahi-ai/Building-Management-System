@@ -16,6 +16,7 @@ import {
 } from '../types';
 import { safeParse, safeSetItem } from '../utils/storageUtils';
 import * as firestoreClient from './firebaseClient';
+import { updateServerTimeFromTimestamp } from './serverTime';
 
 const BASE_API_URL = '/api';
 const API_KEY = (import.meta as any).env?.VITE_API_KEY || 'midland_oil_secure_api_key_2026';
@@ -24,6 +25,7 @@ const API_KEY = (import.meta as any).env?.VITE_API_KEY || 'midland_oil_secure_ap
  * Helper to handle fetch responses with JSON parsing and error handling
  */
 async function fetchJson<T>(url: string, options?: RequestInit, throwOnError: boolean = false): Promise<T | null> {
+  const reqStart = Date.now();
   try {
     const res = await fetch(url, {
       headers: {
@@ -33,6 +35,27 @@ async function fetchJson<T>(url: string, options?: RequestInit, throwOnError: bo
       },
       ...options,
     });
+
+    const reqEnd = Date.now();
+    const roundTrip = Math.max(0, reqEnd - reqStart);
+
+    // Calibrate server time from response headers
+    const serverTimeHeader = res.headers.get('x-server-time');
+    if (serverTimeHeader) {
+      const serverMs = parseInt(serverTimeHeader, 10);
+      if (!isNaN(serverMs)) {
+        updateServerTimeFromTimestamp(serverMs, roundTrip);
+      }
+    } else {
+      const dateHeader = res.headers.get('date');
+      if (dateHeader) {
+        const serverMs = new Date(dateHeader).getTime();
+        if (!isNaN(serverMs)) {
+          updateServerTimeFromTimestamp(serverMs, roundTrip);
+        }
+      }
+    }
+
     if (!res.ok) {
       let errorDetails = '';
       try {
@@ -714,6 +737,9 @@ export function subscribeToRealtimeSync(
       try {
         if (!e.data || e.data.startsWith(':')) return;
         const parsed: RealtimeSyncEvent = JSON.parse(e.data);
+        if (parsed && parsed.timestamp) {
+          updateServerTimeFromTimestamp(parsed.timestamp);
+        }
         if (parsed && parsed.type) {
           onEvent(parsed);
         }

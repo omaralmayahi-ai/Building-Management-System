@@ -171,6 +171,12 @@ async function startServer() {
     }
   }, 25000);
 
+  // Attach server time header to all API responses for client synchronization
+  app.use('/api', (req, res, next) => {
+    res.setHeader('X-Server-Time', Date.now().toString());
+    next();
+  });
+
   // Health check endpoint (public, no auth required)
   app.get('/api/health', async (req, res) => {
     let dbStatus = 'disconnected';
@@ -183,10 +189,36 @@ async function startServer() {
         dbStatus = `error: ${err.message}`;
       }
     }
+    const now = new Date();
+    const d = String(now.getDate()).padStart(2, '0');
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    const y = now.getFullYear();
     res.json({
       status: 'ok',
       database: dbStatus,
-      timestamp: new Date().toISOString(),
+      timestamp: now.toISOString(),
+      serverTimeMs: now.getTime(),
+      serverDateFormatted: `${d}-${m}-${y}`,
+    });
+  });
+
+  // Dedicated Server Time & Date Endpoint (public, for client synchronization)
+  app.get('/api/server-time', (req, res) => {
+    const now = new Date();
+    const d = String(now.getDate()).padStart(2, '0');
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    const y = now.getFullYear();
+    const hh = String(now.getHours()).padStart(2, '0');
+    const mm = String(now.getMinutes()).padStart(2, '0');
+    const ss = String(now.getSeconds()).padStart(2, '0');
+
+    res.json({
+      serverTimeMs: now.getTime(),
+      serverIso: now.toISOString(),
+      serverDateFormatted: `${d}-${m}-${y}`,
+      serverTimeFormatted: `${hh}:${mm}:${ss}`,
+      serverDateTimeFormatted: `${d}-${m}-${y} ${hh}:${mm}:${ss}`,
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Baghdad',
     });
   });
 
@@ -239,7 +271,7 @@ async function startServer() {
       forwardedHeader: false,
       trustProxy: false,
     },
-    skip: (req) => req.path === '/health' || req.path === '/health/',
+    skip: (req) => req.path === '/health' || req.path === '/health/' || req.path === '/server-time',
     message: { error: 'عدد الطلبات كبير جداً، الرجاء المحاولة بعد قليل' },
     statusCode: 429,
   });
@@ -249,7 +281,7 @@ async function startServer() {
   // API Authentication Middleware (Protected Routes under /api)
   // ==========================================================================
   app.use('/api', (req, res, next) => {
-    if (req.path === '/health' || req.path === '/health/' || req.path.startsWith('/sync')) {
+    if (req.path === '/health' || req.path === '/health/' || req.path === '/server-time' || req.path.startsWith('/sync')) {
       return next();
     }
     const clientKey = req.headers['x-api-key'] as string | undefined;

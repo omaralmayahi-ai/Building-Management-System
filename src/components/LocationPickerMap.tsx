@@ -7,8 +7,6 @@ import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 import {
   Search,
   MapPin,
-  Compass,
-  Layers,
   Sparkles,
   X,
   CheckCircle2,
@@ -19,8 +17,7 @@ import {
   Minimize2,
 } from 'lucide-react';
 import { toArabicDigits } from '../utils/arabicUtils';
-import { GIS_TILE_LAYERS, IRAQ_OILFIELDS_PRESETS } from '../config/mapsConfig';
-import { INITIAL_GOVERNORATES, INITIAL_OILFIELDS, INITIAL_SITES } from '../data/mockData';
+import { GIS_TILE_LAYERS } from '../config/mapsConfig';
 
 // Fix Leaflet default icon paths
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -72,12 +69,35 @@ export const LocationPickerMap: React.FC<LocationPickerMapProps> = ({
     return () => clearTimeout(timer);
   }, [mapSize]);
 
-  // If initial lat/lng was specifically provided by user (and not default zero/empty), track whether user has chosen a point
+  // If initial lat/lng was specifically provided by user
   const hasInitialSpecificCoords = Boolean(lat && lng && (lat !== 32.6189 || lng !== 45.7531));
   const currentLat = lat || IRAQ_DEFAULT_CENTER.lat;
   const currentLng = lng || IRAQ_DEFAULT_CENTER.lng;
 
-  // Initialize Leaflet Map in zoomed-out Iraq overview mode by default
+  // Jump to specific coordinates and update marker + map
+  const applyLocation = (newLat: number, newLng: number, zoomLevel: number = 15, feedbackText?: string) => {
+    const validLat = Number(newLat.toFixed(6));
+    const validLng = Number(newLng.toFixed(6));
+
+    onChangeLocation(validLat, validLng);
+
+    if (mapInstanceRef.current) {
+      mapInstanceRef.current.setView([validLat, validLng], zoomLevel, {
+        animate: true,
+        duration: 1.2,
+      });
+    }
+
+    if (markerRef.current) {
+      markerRef.current.setLatLng([validLat, validLng]);
+    }
+
+    if (feedbackText) {
+      setSearchFeedback(feedbackText);
+    }
+  };
+
+  // Initialize Leaflet Map
   useEffect(() => {
     if (!mapContainerRef.current) return;
 
@@ -86,73 +106,46 @@ export const LocationPickerMap: React.FC<LocationPickerMapProps> = ({
       mapInstanceRef.current = null;
     }
 
-    // Default entrance: Zoom-out on Iraq map (zoom 6), or focused if existing specific coordinates were passed
     const initialCenter: [number, number] = hasInitialSpecificCoords
       ? [lat, lng]
       : [IRAQ_DEFAULT_CENTER.lat, IRAQ_DEFAULT_CENTER.lng];
-    const initialZoom = hasInitialSpecificCoords ? 14 : IRAQ_DEFAULT_CENTER.zoom;
+    const initialZoom = hasInitialSpecificCoords ? 15 : IRAQ_DEFAULT_CENTER.zoom;
 
     const map = L.map(mapContainerRef.current, {
       center: initialCenter,
       zoom: initialZoom,
-      zoomControl: true,
+      zoomControl: false,
       attributionControl: false,
+      scrollWheelZoom: true,
+      touchZoom: true,
+      doubleClickZoom: true,
     });
 
     mapInstanceRef.current = map;
 
-    // Tile layer
+    // Add Base Tile Layer
     const activeTile = GIS_TILE_LAYERS[mapType];
     const tileLayer = L.tileLayer(activeTile.url, {
       maxZoom: 19,
     }).addTo(map);
     tileLayerRef.current = tileLayer;
 
-    // Custom Draggable Amber Marker
+    // Custom Draggable Pin
     const customPinIcon = L.divIcon({
-      className: 'custom-picker-pin',
+      className: 'custom-gis-picker-pin',
       html: `
-        <div style="
-          position: relative;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          transform: translate(-50%, -100%);
-          cursor: grab;
-        ">
-          <div style="
-            background: #f59e0b;
-            color: #0f172a;
-            width: 36px;
-            height: 36px;
-            border-radius: 50% 50% 50% 0;
-            transform: rotate(-45deg);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 14px rgba(0,0,0,0.6);
-            border: 2.5px solid #ffffff;
-          ">
-            <div style="
-              width: 12px;
-              height: 12px;
-              border-radius: 50%;
-              background: #0f172a;
-              transform: rotate(45deg);
-            "></div>
+        <div style="position: relative; display: flex; flex-direction: column; align-items: center; cursor: grab;">
+          <div style="background: #f59e0b; color: #020617; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 14px rgba(0,0,0,0.6); border: 2.5px solid #ffffff; animation: bounce 1s infinite alternate;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+              <circle cx="12" cy="10" r="3"></circle>
+            </svg>
           </div>
-          <div style="
-            width: 8px;
-            height: 8px;
-            background: rgba(0,0,0,0.3);
-            border-radius: 50%;
-            margin-top: 2px;
-            filter: blur(1px);
-          "></div>
+          <div style="width: 4px; height: 10px; background: #f59e0b; border-radius: 2px; margin-top: -2px;"></div>
         </div>
       `,
-      iconSize: [36, 42],
-      iconAnchor: [18, 42],
+      iconSize: [34, 42],
+      iconAnchor: [17, 42],
     });
 
     const marker = L.marker(
@@ -171,7 +164,7 @@ export const LocationPickerMap: React.FC<LocationPickerMapProps> = ({
       const newLat = Number(pos.lat.toFixed(6));
       const newLng = Number(pos.lng.toFixed(6));
       onChangeLocation(newLat, newLng);
-      setSearchFeedback(`تم تثبيت الموقع: ${toArabicDigits(newLat)} , ${toArabicDigits(newLng)}`);
+      setSearchFeedback(`تم تثبيت الموقع عبر سحب الدبوس: ${toArabicDigits(newLat)} , ${toArabicDigits(newLng)}`);
     });
 
     // Map click event to relocate marker and zoom in if zoomed out
@@ -183,10 +176,10 @@ export const LocationPickerMap: React.FC<LocationPickerMapProps> = ({
 
       // If current zoom is low (zoomed out), smoothly zoom in to clicked position
       if (map.getZoom() < 12) {
-        map.setView([newLat, newLng], 14, { animate: true });
+        map.setView([newLat, newLng], 15, { animate: true });
       }
 
-      setSearchFeedback(`تم تثبيت الموقع عبر النقر: ${toArabicDigits(newLat)} , ${toArabicDigits(newLng)}`);
+      setSearchFeedback(`تم تثبيت الموقع عبر النقر المباشر: ${toArabicDigits(newLat)} , ${toArabicDigits(newLng)}`);
     });
 
     // Invalidate map size after mount
@@ -234,27 +227,15 @@ export const LocationPickerMap: React.FC<LocationPickerMapProps> = ({
     setSearchFeedback('تمت إعادة ضبط الخريطة إلى نظرة عامة شاملة لكامل العراق (زوم أوت).');
   };
 
-  // Search by query (location name or coordinates) and zoom in
-  const handleSearch = async () => {
-    const rawQuery = searchQuery.trim();
+  // Search by query (coordinates or administrative city name) and zoom in
+  const handleSearch = async (targetQuery?: string) => {
+    const rawQuery = (targetQuery || searchQuery).trim();
     if (!rawQuery) return;
 
     setIsSearching(true);
     setSearchFeedback(null);
 
-    // Normalize Arabic text for smart matching
-    const normalizeArabic = (text: string) =>
-      text
-        .replace(/[أإآ]/g, 'ا')
-        .replace(/ة/g, 'ه')
-        .replace(/ى/g, 'ي')
-        .replace(/[\u064B-\u065F]/g, '')
-        .toLowerCase()
-        .trim();
-
-    const cleanQuery = normalizeArabic(rawQuery);
-
-    // 1. Check if query contains coordinates (Lat, Lng) e.g., "33.3152, 44.3661" or "33.3152 44.3661"
+    // 1. Check if query contains explicit coordinates (Lat, Lng) e.g., "32.6189, 45.7531" or "32.6189 45.7531"
     const coordPattern = /^([+-]?\d+(\.\d+)?)[,\s]+([+-]?\d+(\.\d+)?)$/;
     const coordMatch = rawQuery.match(coordPattern);
     if (coordMatch) {
@@ -268,90 +249,20 @@ export const LocationPickerMap: React.FC<LocationPickerMapProps> = ({
         parsedLng >= -180 &&
         parsedLng <= 180
       ) {
-        onChangeLocation(parsedLat, parsedLng);
-        if (mapInstanceRef.current) {
-          mapInstanceRef.current.setView([parsedLat, parsedLng], 15, { animate: true });
-        }
-        if (markerRef.current) {
-          markerRef.current.setLatLng([parsedLat, parsedLng]);
-        }
-        setSearchFeedback(`تم الانتقال وتكبير الموقع (Zoom In) وفق الإحداثيات: ${parsedLat.toFixed(5)}° N, ${parsedLng.toFixed(5)}° E`);
+        applyLocation(
+          parsedLat,
+          parsedLng,
+          16,
+          `تم الانتقال وتكبير الموقع (Zoom In) وفق الإحداثيات: ${parsedLat.toFixed(5)}° N, ${parsedLng.toFixed(5)}° E`
+        );
         setIsSearching(false);
         return;
       }
     }
 
-    // 2. Search in Presets & Well-known Iraqi Oilfields
-    const matchedPreset = IRAQ_OILFIELDS_PRESETS.find((p) => {
-      const name = normalizeArabic(p.nameAr);
-      const gov = normalizeArabic(p.governorate);
-      const desc = normalizeArabic(p.description);
-      const id = p.id.toLowerCase();
-      return name.includes(cleanQuery) || gov.includes(cleanQuery) || desc.includes(cleanQuery) || id.includes(cleanQuery);
-    });
-
-    if (matchedPreset) {
-      onChangeLocation(matchedPreset.lat, matchedPreset.lng);
-      if (mapInstanceRef.current) {
-        mapInstanceRef.current.setView([matchedPreset.lat, matchedPreset.lng], matchedPreset.zoom || 14, {
-          animate: true,
-        });
-      }
-      if (markerRef.current) {
-        markerRef.current.setLatLng([matchedPreset.lat, matchedPreset.lng]);
-      }
-      setSearchFeedback(`تم العثور على (${matchedPreset.nameAr}) وعمل زوم إن مباشر للموقع`);
-      setIsSearching(false);
-      return;
-    }
-
-    // 3. Search in Sites data
-    const matchedSite = INITIAL_SITES.find((s) => {
-      const name = normalizeArabic(s.nameAr);
-      const desc = normalizeArabic(s.description || '');
-      const code = s.code.toLowerCase();
-      return name.includes(cleanQuery) || desc.includes(cleanQuery) || code.includes(cleanQuery);
-    });
-
-    if (matchedSite && matchedSite.coordinates) {
-      onChangeLocation(matchedSite.coordinates.lat, matchedSite.coordinates.lng);
-      if (mapInstanceRef.current) {
-        mapInstanceRef.current.setView([matchedSite.coordinates.lat, matchedSite.coordinates.lng], 15, {
-          animate: true,
-        });
-      }
-      if (markerRef.current) {
-        markerRef.current.setLatLng([matchedSite.coordinates.lat, matchedSite.coordinates.lng]);
-      }
-      setSearchFeedback(`تم العثور على موقع (${matchedSite.nameAr}) وتكبير الخريطة`);
-      setIsSearching(false);
-      return;
-    }
-
-    // 4. Search in Oilfields & Governorates standard coordinates
-    const matchedField = INITIAL_OILFIELDS.find((f) => normalizeArabic(f.nameAr).includes(cleanQuery));
-    if (matchedField) {
-      // Find coordinates from sites or presets matching field
-      const presetForField = IRAQ_OILFIELDS_PRESETS.find((p) =>
-        normalizeArabic(p.nameAr).includes(normalizeArabic(matchedField.nameAr))
-      );
-      if (presetForField) {
-        onChangeLocation(presetForField.lat, presetForField.lng);
-        if (mapInstanceRef.current) {
-          mapInstanceRef.current.setView([presetForField.lat, presetForField.lng], 14, { animate: true });
-        }
-        if (markerRef.current) {
-          markerRef.current.setLatLng([presetForField.lat, presetForField.lng]);
-        }
-        setSearchFeedback(`تم العثور على (${matchedField.nameAr}) وتكبير الخريطة`);
-        setIsSearching(false);
-        return;
-      }
-    }
-
-    // 5. Try OpenStreetMap Nominatim Geocoding API with focus on Iraq for any city/location in Iraq
+    // 2. Safe Geocoding strictly restricted to Iraq Bounding Box for cities/administrative districts
     try {
-      const nominatimUrl = `https://nominatim.openstreetmap.org/search?format=json&countrycodes=iq&limit=1&q=${encodeURIComponent(
+      const nominatimUrl = `https://nominatim.openstreetmap.org/search?format=json&countrycodes=iq&viewbox=38.79,37.38,48.63,29.06&bounded=1&limit=3&q=${encodeURIComponent(
         rawQuery
       )}`;
       const response = await fetch(nominatimUrl, {
@@ -367,15 +278,21 @@ export const LocationPickerMap: React.FC<LocationPickerMapProps> = ({
           const foundLat = parseFloat(result.lat);
           const foundLng = parseFloat(result.lon);
 
-          if (!isNaN(foundLat) && !isNaN(foundLng)) {
-            onChangeLocation(foundLat, foundLng);
-            if (mapInstanceRef.current) {
-              mapInstanceRef.current.setView([foundLat, foundLng], 14, { animate: true });
-            }
-            if (markerRef.current) {
-              markerRef.current.setLatLng([foundLat, foundLng]);
-            }
-            setSearchFeedback(`تم العثور على (${result.display_name.split(',')[0]}) وعمل زوم إن إلى الموقع.`);
+          // Verify inside Iraq bounding coordinates
+          if (
+            !isNaN(foundLat) &&
+            !isNaN(foundLng) &&
+            foundLat >= 28.5 &&
+            foundLat <= 38.0 &&
+            foundLng >= 38.0 &&
+            foundLng <= 49.0
+          ) {
+            applyLocation(
+              foundLat,
+              foundLng,
+              14,
+              `تم الانتقال إلى (${result.display_name.split(',')[0]}) على الخريطة`
+            );
             setIsSearching(false);
             return;
           }
@@ -385,7 +302,7 @@ export const LocationPickerMap: React.FC<LocationPickerMapProps> = ({
       console.warn('Geocoding search error:', err);
     }
 
-    setSearchFeedback('لم يتم العثور على موقع بهذا الاسم. يمكنك كتابة الإحداثيات مباشرة أو النقر على الخريطة لتثبيت الموقع.');
+    setSearchFeedback('لم يتم العثور على موقع بهذا الاسم. يمكنك كتابة الإحداثيات مباشرة أو النقر على الخريطة لتثبيت الموقع بدقة.');
     setIsSearching(false);
   };
 
@@ -393,7 +310,7 @@ export const LocationPickerMap: React.FC<LocationPickerMapProps> = ({
     <div className="space-y-3">
       {/* Search, Layer Bar & Reset Zoom */}
       <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center justify-between">
-        {/* Search input for location name or coordinates */}
+        {/* Search input */}
         <div className="relative flex-1">
           <input
             type="text"
@@ -405,7 +322,7 @@ export const LocationPickerMap: React.FC<LocationPickerMapProps> = ({
                 handleSearch();
               }
             }}
-            placeholder="ابحث باسم الموقع أو الحقل أو اكتب الإحداثيات (مثال: حقل الأحدب، بغداد، 32.6189, 45.7531)..."
+            placeholder="ابحث باسم المدينة أو المنطقة في العراق، أو اكتب الإحداثيات مباشرة (مثال: 32.6189, 45.7531)..."
             className={`w-full text-xs rounded-xl py-2 pl-9 pr-9 border transition outline-none font-medium ${
               isLight
                 ? 'bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:border-amber-500 shadow-sm'
@@ -430,7 +347,7 @@ export const LocationPickerMap: React.FC<LocationPickerMapProps> = ({
         {/* Search / Zoom In Action Button */}
         <button
           type="button"
-          onClick={handleSearch}
+          onClick={() => handleSearch()}
           disabled={isSearching || !searchQuery.trim()}
           className="px-4 py-2 bg-amber-500 hover:bg-amber-600 active:scale-95 text-slate-950 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition disabled:opacity-50 cursor-pointer shadow-md shrink-0"
         >

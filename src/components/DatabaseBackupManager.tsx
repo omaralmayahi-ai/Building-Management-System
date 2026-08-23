@@ -51,7 +51,16 @@ import {
   AutoBackupScheduleConfig,
   BackupHistoryItem,
 } from '../types';
-import { toArabicDigits } from '../utils/arabicUtils';
+import {
+  toArabicDigits,
+  getServerNow,
+  getServerDateFormatted,
+  getServerDateTimeFormatted,
+  getServerTimeFormatted,
+  getServerIsoDateOnly,
+  getServerTimestamp,
+  formatDateDDMMYYYY,
+} from '../utils/arabicUtils';
 import { safeParse, safeSetItem } from '../utils/storageUtils';
 
 interface DatabaseBackupManagerProps {
@@ -160,8 +169,8 @@ export const DatabaseBackupManager: React.FC<DatabaseBackupManagerProps> = ({
     triggerSaveToast('تم حفظ إعدادات الجدولة ومسار الحفظ بنجاح');
 
     onAddAuditLog({
-      id: `LOG-${Date.now()}`,
-      timestamp: toArabicDigits(new Date().toLocaleString('ar-IQ')),
+      id: `LOG-${getServerTimestamp()}`,
+      timestamp: getServerDateTimeFormatted(),
       action: 'تحديث جدولة النسخ الاحتياطي',
       user: currentUser?.name || 'مدير النظام',
       userInitials: currentUser?.name ? currentUser.name.split(' ').map((w) => w[0]).join('').slice(0, 2) : 'MO',
@@ -179,7 +188,7 @@ export const DatabaseBackupManager: React.FC<DatabaseBackupManagerProps> = ({
       hash = (hash << 5) - hash + char;
       hash = hash & hash;
     }
-    return `MOC-${Math.abs(hash).toString(16).toUpperCase()}-${Date.now().toString(36).toUpperCase()}`;
+    return `MOC-${Math.abs(hash).toString(16).toUpperCase()}-${getServerTimestamp().toString(36).toUpperCase()}`;
   };
 
   // Calculate live database counts
@@ -217,8 +226,8 @@ export const DatabaseBackupManager: React.FC<DatabaseBackupManagerProps> = ({
 
   // Build Comprehensive Backup Payload
   const buildBackupPayload = (): DatabaseBackupPayload => {
-    const now = new Date();
-    const formattedDate = toArabicDigits(now.toLocaleString('ar-IQ'));
+    const now = getServerNow();
+    const formattedDate = getServerDateTimeFormatted();
 
     const rawData = {
       units,
@@ -264,13 +273,13 @@ export const DatabaseBackupManager: React.FC<DatabaseBackupManagerProps> = ({
         const blob = new Blob([jsonContent], { type: 'application/json;charset=utf-8' });
         const url = URL.createObjectURL(blob);
 
-        const now = new Date();
-        const yyyy = now.getFullYear();
-        const mm = String(now.getMonth() + 1).padStart(2, '0');
+        const now = getServerNow();
         const dd = String(now.getDate()).padStart(2, '0');
+        const mm = String(now.getMonth() + 1).padStart(2, '0');
+        const yyyy = now.getFullYear();
         const hh = String(now.getHours()).padStart(2, '0');
         const min = String(now.getMinutes()).padStart(2, '0');
-        const filename = `Midland_Oil_Database_Backup_${yyyy}_${mm}_${dd}_${hh}${min}.json`;
+        const filename = `Midland_Oil_Database_Backup_${dd}_${mm}_${yyyy}_${hh}${min}.json`;
 
         // Trigger browser download
         const link = document.createElement('a');
@@ -288,15 +297,15 @@ export const DatabaseBackupManager: React.FC<DatabaseBackupManagerProps> = ({
           filename,
           size: sizeFormatted,
           recordsCount: payload.counts.totalRecords,
-          time: toArabicDigits(now.toLocaleTimeString('ar-IQ')),
+          time: getServerTimeFormatted(),
         });
 
         // Add to History
         const newHistoryItem: BackupHistoryItem = {
-          id: `BCK-${Date.now()}`,
+          id: `BCK-${getServerTimestamp()}`,
           filename,
           timestamp: now.toISOString(),
-          timestampFormatted: toArabicDigits(now.toLocaleString('ar-IQ')),
+          timestampFormatted: getServerDateTimeFormatted(),
           sizeBytes: blob.size,
           sizeFormatted,
           totalRecords: payload.counts.totalRecords,
@@ -316,7 +325,7 @@ export const DatabaseBackupManager: React.FC<DatabaseBackupManagerProps> = ({
         const updatedConfig: AutoBackupScheduleConfig = {
           ...scheduleConfig,
           lastBackupTimestamp: now.toISOString(),
-          lastBackupFormatted: toArabicDigits(now.toLocaleString('ar-IQ')),
+          lastBackupFormatted: getServerDateTimeFormatted(),
           lastBackupSize: sizeFormatted,
           lastBackupStatus: 'success',
         };
@@ -324,8 +333,8 @@ export const DatabaseBackupManager: React.FC<DatabaseBackupManagerProps> = ({
         safeSetItem('app_auto_backup_config', updatedConfig);
 
         onAddAuditLog({
-          id: `LOG-${Date.now()}`,
-          timestamp: toArabicDigits(now.toLocaleString('ar-IQ')),
+          id: `LOG-${getServerTimestamp()}`,
+          timestamp: getServerDateTimeFormatted(),
           action: isScheduled ? 'تصدير نسخة احتياطية مجدولة' : 'تصدير نسخة احتياطية شاملة',
           user: currentUser?.name || 'مدير النظام',
           userInitials: currentUser?.name ? currentUser.name.split(' ').map((w) => w[0]).join('').slice(0, 2) : 'MO',
@@ -402,8 +411,8 @@ export const DatabaseBackupManager: React.FC<DatabaseBackupManagerProps> = ({
           if (fileInputRef.current) fileInputRef.current.value = '';
 
           onAddAuditLog({
-            id: `LOG-${Date.now()}`,
-            timestamp: toArabicDigits(new Date().toLocaleString('ar-IQ')),
+            id: `LOG-${getServerTimestamp()}`,
+            timestamp: getServerDateTimeFormatted(),
             action: importMode === 'overwrite' ? 'استعادة شاملة واستبدال قاعدة البيانات' : 'دمج بيانات من نسخة احتياطية',
             user: currentUser?.name || 'مدير النظام',
             userInitials: currentUser?.name ? currentUser.name.split(' ').map((w) => w[0]).join('').slice(0, 2) : 'MO',
@@ -734,7 +743,7 @@ export const DatabaseBackupManager: React.FC<DatabaseBackupManagerProps> = ({
               <div className={`text-xs ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
                 <span>تاريخ التصدير: </span>
                 <span className={`font-mono font-bold ${isLight ? 'text-amber-700' : 'text-amber-400'}`}>
-                  {toArabicDigits(new Date().toLocaleDateString('ar-IQ'))}
+                  {getServerDateFormatted()}
                 </span>
                 <span className="mx-2">•</span>
                 <span>الصيغة: </span>
@@ -909,7 +918,7 @@ export const DatabaseBackupManager: React.FC<DatabaseBackupManagerProps> = ({
                 >
                   <span className={`text-[10px] block ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>تاريخ إنشاء النسخة</span>
                   <span className={`font-bold font-mono ${isLight ? 'text-amber-700' : 'text-amber-400'}`}>
-                    {parsedBackupData.exportedAtFormatted || toArabicDigits(new Date(parsedBackupData.exportedAt).toLocaleDateString('ar-IQ'))}
+                    {parsedBackupData.exportedAtFormatted || formatDateDDMMYYYY(parsedBackupData.exportedAt)}
                   </span>
                 </div>
                 <div

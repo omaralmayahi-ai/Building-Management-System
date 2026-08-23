@@ -8,34 +8,22 @@ import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 import {
-  MapPin,
-  Compass,
-  Building,
   Search,
-  Layers,
-  Navigation,
-  ClipboardCheck,
-  Wrench,
-  Box,
-  Eye,
   ChevronDown,
-  ChevronUp,
-  Map as MapIcon,
   RotateCcw,
   ListTree,
   Folder,
   FolderOpen,
-  Copy,
-  Check,
-  X,
   Maximize2,
   Minimize2,
   ChevronsDown,
   ChevronsUp,
+  Map as MapIcon,
+  X,
 } from 'lucide-react';
 import { UnitAsset, ConditionGrade } from '../types';
 import { toArabicDigits } from '../utils/arabicUtils';
-import { GIS_TILE_LAYERS } from '../config/mapsConfig';
+import { GIS_TILE_LAYERS, normalizeArabicSearchText } from '../config/mapsConfig';
 
 // Fix Leaflet default icons
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -44,6 +32,61 @@ L.Icon.Default.mergeOptions({
   iconUrl: markerIcon,
   shadowUrl: markerShadow,
 });
+
+// Distinct configuration and SVG symbols for each unit type
+const UNIT_TYPE_CONFIG: Record<
+  string,
+  {
+    label: string;
+    gradient: string;
+    borderColor: string;
+    iconSvg: string;
+  }
+> = {
+  building: {
+    label: 'بناية / مقر إداري',
+    gradient: 'linear-gradient(135deg, #2563eb, #1d4ed8)',
+    borderColor: '#93c5fd',
+    iconSvg: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>`,
+  },
+  caravan: {
+    label: 'كرفان / منشأة متنقلة',
+    gradient: 'linear-gradient(135deg, #0d9488, #0f766e)',
+    borderColor: '#5eead4',
+    iconSvg: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="12" x="2" y="6" rx="2"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/><path d="M9 10h2"/><path d="M13 10h2"/></svg>`,
+  },
+  warehouse: {
+    label: 'مستودع / مخزن',
+    gradient: 'linear-gradient(135deg, #d97706, #b45309)',
+    borderColor: '#fde68a',
+    iconSvg: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 8.35V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8.35A2 2 0 0 1 3.26 6.5l8-3.2a2 2 0 0 1 1.48 0l8 3.2A2 2 0 0 1 22 8.35Z"/><path d="M6 18h12v4H6z"/><path d="M6 14h12"/></svg>`,
+  },
+  equipment: {
+    label: 'معدة / محطة خدمة',
+    gradient: 'linear-gradient(135deg, #7c3aed, #6d28d9)',
+    borderColor: '#c4b5fd',
+    iconSvg: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`,
+  },
+  safety_system: {
+    label: 'منظومة سلامة وإطفاء',
+    gradient: 'linear-gradient(135deg, #dc2626, #991b1b)',
+    borderColor: '#fca5a5',
+    iconSvg: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>`,
+  },
+  storage_tank: {
+    label: 'خزان نفطي / وقود',
+    gradient: 'linear-gradient(135deg, #0284c7, #0369a1)',
+    borderColor: '#7dd3fc',
+    iconSvg: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/><path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3"/></svg>`,
+  },
+};
+
+const GRADE_BADGE_COLORS: Record<ConditionGrade, string> = {
+  A: '#10b981',
+  B: '#f59e0b',
+  C: '#f97316',
+  D: '#ef4444',
+};
 
 interface GISMapViewProps {
   units: UnitAsset[];
@@ -74,8 +117,28 @@ export const GISMapView: React.FC<GISMapViewProps> = ({
   const [mapType, setMapType] = useState<'satellite' | 'streets'>('satellite');
   const [activeUnit, setActiveUnit] = useState<UnitAsset | null>(null);
   const [isTopUnitsExpanded, setIsTopUnitsExpanded] = useState<boolean>(true);
-  const [cursorCoords, setCursorCoords] = useState<{ lat: number; lng: number } | null>(null);
-  const [copiedCoords, setCopiedCoords] = useState(false);
+  const [isMapFullscreen, setIsMapFullscreen] = useState<boolean>(false);
+
+  // Resize leaflet map smoothly when entering/exiting GIS fullscreen
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.invalidateSize();
+      }
+    }, 150);
+    return () => clearTimeout(timer);
+  }, [isMapFullscreen, isTopUnitsExpanded]);
+
+  // Handle ESC key to exit GIS fullscreen mode
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isMapFullscreen) {
+        setIsMapFullscreen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isMapFullscreen]);
 
   // Tree collapse tracking
   const [collapsedGovs, setCollapsedGovs] = useState<Set<string>>(new Set());
@@ -84,13 +147,13 @@ export const GISMapView: React.FC<GISMapViewProps> = ({
   // Filtered units solely by Search Query (Name, Code, Governorate, Field, Occupant)
   const filteredUnits = useMemo(() => {
     if (!searchQuery.trim()) return units;
-    const q = searchQuery.toLowerCase().trim();
+    const q = normalizeArabicSearchText(searchQuery);
     return units.filter((unit) => {
-      const code = (unit.code || '').toLowerCase();
-      const name = (unit.name || '').toLowerCase();
-      const occupying = (unit.occupyingEntity || '').toLowerCase();
-      const fld = (unit.field || '').toLowerCase();
-      const gov = (unit.governorate || '').toLowerCase();
+      const code = normalizeArabicSearchText(unit.code || '');
+      const name = normalizeArabicSearchText(unit.name || '');
+      const occupying = normalizeArabicSearchText(unit.occupyingEntity || '');
+      const fld = normalizeArabicSearchText(unit.field || '');
+      const gov = normalizeArabicSearchText(unit.governorate || '');
       return (
         code.includes(q) ||
         name.includes(q) ||
@@ -180,8 +243,11 @@ export const GISMapView: React.FC<GISMapViewProps> = ({
     const map = L.map(mapContainerRef.current, {
       center: [33.1025, 45.281],
       zoom: 8,
-      zoomControl: true,
+      zoomControl: false,
       attributionControl: false,
+      scrollWheelZoom: true,
+      touchZoom: true,
+      doubleClickZoom: true,
     });
 
     mapInstanceRef.current = map;
@@ -192,14 +258,6 @@ export const GISMapView: React.FC<GISMapViewProps> = ({
       maxZoom: 19,
     }).addTo(map);
     tileLayerRef.current = tileLayer;
-
-    // Live mouse tracker
-    map.on('mousemove', (e: L.LeafletMouseEvent) => {
-      setCursorCoords({
-        lat: Number(e.latlng.lat.toFixed(6)),
-        lng: Number(e.latlng.lng.toFixed(6)),
-      });
-    });
 
     return () => {
       map.remove();
@@ -265,48 +323,82 @@ export const GISMapView: React.FC<GISMapViewProps> = ({
       },
     });
 
-    const gradeColors: Record<ConditionGrade, string> = {
-      A: '#10b981',
-      B: '#f59e0b',
-      C: '#f97316',
-      D: '#ef4444',
-    };
-
     filteredUnits.forEach((unit, idx) => {
       const lat = unit.coordinates?.lat || 33.1025 + (idx % 10) * 0.005;
       const lng = unit.coordinates?.lng || 45.281 + (Math.floor(idx / 10)) * 0.005;
-      const color = gradeColors[unit.conditionGrade] || '#f59e0b';
+      const typeConfig = UNIT_TYPE_CONFIG[unit.type] || UNIT_TYPE_CONFIG.building;
+      const gradeColor = GRADE_BADGE_COLORS[unit.conditionGrade] || '#f59e0b';
+      const isSelected = activeUnit?.code === unit.code;
 
       const customMarkerIcon = L.divIcon({
         className: 'custom-gis-unit-marker',
         html: `
           <div style="
-            background: ${color};
-            color: #ffffff;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            border: 2.5px solid #ffffff;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            position: relative;
             display: flex;
+            flex-direction: column;
             align-items: center;
-            justify-content: center;
-            font-weight: 900;
-            font-size: 11px;
             cursor: pointer;
-            transform: translate(-50%, -50%);
+            filter: drop-shadow(0 6px 14px rgba(0,0,0,0.6));
+            transition: transform 0.2s ease;
+            ${isSelected ? 'transform: scale(1.18);' : ''}
           ">
-            ${unit.conditionGrade}
+            <!-- Pin Pointer Teardrop Body -->
+            <div style="
+              background: ${typeConfig.gradient};
+              width: 36px;
+              height: 36px;
+              border-radius: 50% 50% 50% 0;
+              transform: rotate(-45deg);
+              border: 2.5px solid #ffffff;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              box-shadow: inset 0 2px 4px rgba(255,255,255,0.3);
+              position: relative;
+            ">
+              <!-- Inner Vector Icon (un-rotated to sit upright) -->
+              <div style="
+                transform: rotate(45deg);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 100%;
+                height: 100%;
+              ">
+                ${typeConfig.iconSvg}
+              </div>
+            </div>
+
+            <!-- Condition Grade Pill Badge on Top Corner -->
+            <div style="
+              position: absolute;
+              top: -4px;
+              right: -4px;
+              background: ${gradeColor};
+              color: #ffffff;
+              border: 1.5px solid #ffffff;
+              border-radius: 9999px;
+              font-size: 9px;
+              font-weight: 900;
+              font-family: monospace;
+              padding: 0px 4px;
+              line-height: 14px;
+              box-shadow: 0 2px 5px rgba(0,0,0,0.4);
+            ">
+              ${unit.conditionGrade}
+            </div>
           </div>
         `,
-        iconSize: [30, 30],
-        iconAnchor: [15, 15],
+        iconSize: [36, 42],
+        iconAnchor: [18, 42],
       });
 
       const marker = L.marker([lat, lng], { icon: customMarkerIcon });
 
       marker.on('click', () => {
         setActiveUnit(unit);
+        map.setView([lat, lng], 16, { animate: true });
       });
 
       clusterGroup.addLayer(marker);
@@ -337,12 +429,6 @@ export const GISMapView: React.FC<GISMapViewProps> = ({
     }
   };
 
-  const handleCopyCoords = (lat: number, lng: number) => {
-    navigator.clipboard.writeText(`${lat}, ${lng}`);
-    setCopiedCoords(true);
-    setTimeout(() => setCopiedCoords(false), 2500);
-  };
-
   const gradeColors: Record<ConditionGrade, string> = {
     A: '#10b981',
     B: '#f59e0b',
@@ -353,10 +439,14 @@ export const GISMapView: React.FC<GISMapViewProps> = ({
   return (
     <div
       id="gis-map-view-root"
-      className={`flex flex-col h-[calc(100vh-5rem)] min-h-[650px] w-full overflow-hidden transition-colors rounded-2xl border ${
-        isLight
-          ? 'bg-white border-slate-200 text-slate-900 shadow-sm'
-          : 'bg-slate-950 border-slate-800 text-white shadow-xl'
+      className={`flex flex-col w-full overflow-hidden transition-all duration-300 ${
+        isMapFullscreen
+          ? 'fixed inset-0 z-[9999] h-screen w-screen rounded-none border-none'
+          : `h-[calc(100vh-5rem)] min-h-[650px] rounded-2xl border ${
+              isLight
+                ? 'bg-white border-slate-200 text-slate-900 shadow-sm'
+                : 'bg-slate-950 border-slate-800 text-white shadow-xl'
+            }`
       }`}
     >
       {/* Top Header & Command Bar */}
@@ -489,6 +579,33 @@ export const GISMapView: React.FC<GISMapViewProps> = ({
           >
             <RotateCcw className="w-4 h-4" />
           </button>
+
+          {/* Full-Screen Map Mode Toggle Button */}
+          <button
+            type="button"
+            id="gis-fullscreen-toggle-btn"
+            onClick={() => setIsMapFullscreen((prev) => !prev)}
+            className={`px-2.5 py-1.5 rounded-xl border text-[11px] font-bold flex items-center gap-1.5 transition cursor-pointer shadow-xs ${
+              isMapFullscreen
+                ? 'bg-amber-500 text-slate-950 border-amber-600 ring-2 ring-amber-400/30'
+                : isLight
+                ? 'bg-white hover:bg-slate-100 border-slate-300 text-slate-700'
+                : 'bg-slate-950 hover:bg-slate-800 border-slate-700 text-slate-300'
+            }`}
+            title={isMapFullscreen ? 'الخروج من وضع ملء الشاشة' : 'عرض الخارطة بملء الشاشة'}
+          >
+            {isMapFullscreen ? (
+              <>
+                <Minimize2 className="w-3.5 h-3.5" />
+                <span>إنهاء ملء الشاشة</span>
+              </>
+            ) : (
+              <>
+                <Maximize2 className="w-3.5 h-3.5 text-amber-500" />
+                <span>ملء الشاشة</span>
+              </>
+            )}
+          </button>
         </div>
       </div>
 
@@ -597,7 +714,7 @@ export const GISMapView: React.FC<GISMapViewProps> = ({
                                   <div className="space-y-0.5 mt-1 pt-1 border-t border-slate-800/30">
                                     {uList.map((unit) => {
                                       const isSelected = activeUnit?.code === unit.code;
-                                      const badgeColor = gradeColors[unit.conditionGrade] || '#f59e0b';
+                                      const badgeColor = GRADE_BADGE_COLORS[unit.conditionGrade] || '#f59e0b';
 
                                       return (
                                         <button
@@ -645,151 +762,20 @@ export const GISMapView: React.FC<GISMapViewProps> = ({
       <div className="flex-1 relative w-full h-full bg-slate-950 overflow-hidden z-0">
         <div ref={mapContainerRef} className="w-full h-full z-0" />
 
-        {/* Floating Selected Unit Action Card (Bottom-Left) */}
-        {activeUnit && (
-          <div
-            className={`absolute bottom-4 left-4 z-[400] max-w-sm w-full rounded-2xl border p-4 shadow-2xl backdrop-blur-md animate-fadeIn transition-all ${
-              isLight
-                ? 'bg-white/95 border-slate-200 text-slate-900 shadow-slate-400/30'
-                : 'bg-slate-900/95 border-slate-800 text-white shadow-black/80'
-            }`}
-          >
-            <div className="flex items-start justify-between gap-2 pb-2 border-b border-slate-800/40">
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="font-mono text-amber-500 font-bold text-xs">
-                    {toArabicDigits(activeUnit.code)}
-                  </span>
-                  <span
-                    className="px-2 py-0.5 rounded-full text-[10px] font-bold text-white shadow-sm"
-                    style={{
-                      backgroundColor: gradeColors[activeUnit.conditionGrade] || '#f59e0b',
-                    }}
-                  >
-                    Grade {activeUnit.conditionGrade}
-                  </span>
-                </div>
-                <h3 className="font-bold text-sm leading-tight mt-0.5">{activeUnit.name}</h3>
-                <p className="text-[11px] text-slate-400">
-                  {activeUnit.field} • {activeUnit.governorate}
-                </p>
-              </div>
-              <button
-                onClick={() => setActiveUnit(null)}
-                className="p-1 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            {/* Specs Grid */}
-            <div className="grid grid-cols-2 gap-2 my-2.5 text-[11px]">
-              <div
-                className={`p-1.5 rounded-lg border ${
-                  isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-950 border-slate-800'
-                }`}
-              >
-                <span className="text-slate-400 block text-[10px]">المساحة:</span>
-                <span className="font-bold font-mono">
-                  {toArabicDigits(activeUnit.totalAreaSqM || 0)} م²
-                </span>
-              </div>
-              <div
-                className={`p-1.5 rounded-lg border ${
-                  isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-950 border-slate-800'
-                }`}
-              >
-                <span className="text-slate-400 block text-[10px]">الشاغل:</span>
-                <span className="font-bold truncate block">
-                  {activeUnit.occupyingEntity || 'غير محدد'}
-                </span>
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex flex-wrap items-center gap-1.5 pt-1">
-              {onSelectUnit && (
-                <button
-                  onClick={() => onSelectUnit(activeUnit)}
-                  className="flex-1 py-1.5 px-2 bg-amber-500 hover:bg-amber-600 active:scale-95 text-slate-950 rounded-xl font-bold text-xs flex items-center justify-center gap-1 transition shadow cursor-pointer"
-                >
-                  <Box className="w-3.5 h-3.5" />
-                  <span>تفاصيل الأصل</span>
-                </button>
-              )}
-
-              {onOpen3D && (
-                <button
-                  onClick={() => onOpen3D(activeUnit.code)}
-                  className={`py-1.5 px-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1 border transition cursor-pointer ${
-                    isLight
-                      ? 'bg-slate-100 hover:bg-slate-200 border-slate-300 text-slate-800'
-                      : 'bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-200'
-                  }`}
-                  title="عرض ثلاثي الأبعاد 3D"
-                >
-                  <Eye className="w-3.5 h-3.5 text-amber-400" />
-                  <span>3D</span>
-                </button>
-              )}
-
-              {onOpenInspection && (
-                <button
-                  onClick={() => onOpenInspection(activeUnit.code)}
-                  className="p-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl transition cursor-pointer"
-                  title="طلب كشف دوري"
-                >
-                  <ClipboardCheck className="w-4 h-4 text-emerald-400" />
-                </button>
-              )}
-
-              {onOpenMaintenance && (
-                <button
-                  onClick={() => onOpenMaintenance(activeUnit.code)}
-                  className="p-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl transition cursor-pointer"
-                  title="طلب صيانة"
-                >
-                  <Wrench className="w-4 h-4 text-amber-400" />
-                </button>
-              )}
-
-              <a
-                href={`https://www.google.com/maps/dir/?api=1&destination=${
-                  activeUnit.coordinates?.lat || 32.6189
-                },${activeUnit.coordinates?.lng || 45.7531}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="p-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition cursor-pointer"
-                title="ملاحة خارجية عبر GPS"
-              >
-                <Navigation className="w-4 h-4" />
-              </a>
-            </div>
+        {/* If in Fullscreen Mode, show dedicated Exit Fullscreen Button (Top-Right) */}
+        {isMapFullscreen && (
+          <div className="absolute top-4 right-4 z-[400]">
+            <button
+              type="button"
+              onClick={() => setIsMapFullscreen(false)}
+              className="px-3 py-2 rounded-xl bg-slate-950/90 hover:bg-slate-900 text-slate-200 hover:text-white border border-slate-700 backdrop-blur-md shadow-2xl transition cursor-pointer flex items-center gap-1.5 text-xs font-bold"
+              title="الخروج من وضع ملء الشاشة (Esc)"
+            >
+              <Minimize2 className="w-4 h-4 text-amber-400" />
+              <span>إنهاء ملء الشاشة</span>
+            </button>
           </div>
         )}
-
-        {/* Live GPS Coordinates Overlay (Bottom-Right) */}
-        <div className="absolute bottom-3 right-3 z-[400] bg-slate-950/90 backdrop-blur-sm border border-slate-800 px-3 py-1.5 rounded-xl text-[11px] font-mono text-slate-200 flex items-center gap-2 shadow-2xl">
-          <Compass className="w-3.5 h-3.5 text-amber-400" />
-          <span>
-            {cursorCoords
-              ? `${cursorCoords.lat.toFixed(5)}° N, ${cursorCoords.lng.toFixed(5)}° E`
-              : '33.10250° N, 45.28100° E'}
-          </span>
-          {cursorCoords && (
-            <button
-              onClick={() => handleCopyCoords(cursorCoords.lat, cursorCoords.lng)}
-              className="p-0.5 rounded hover:bg-slate-800 text-slate-400 hover:text-amber-400 transition cursor-pointer"
-              title="نسخ الإحداثيات"
-            >
-              {copiedCoords ? (
-                <Check className="w-3 h-3 text-emerald-400" />
-              ) : (
-                <Copy className="w-3 h-3" />
-              )}
-            </button>
-          )}
-        </div>
       </div>
     </div>
   );

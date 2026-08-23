@@ -74,7 +74,14 @@ import {
   AutoBackupScheduleConfig,
   BackupHistoryItem,
 } from './types';
-import { toArabicDigits } from './utils/arabicUtils';
+import {
+  toArabicDigits,
+  getServerNow,
+  getServerDateFormatted,
+  getServerDateTimeFormatted,
+  getServerIsoDateOnly,
+  getServerTimestamp,
+} from './utils/arabicUtils';
 import { safeParse, safeSetItem } from './utils/storageUtils';
 import * as api from './services/apiClient';
 
@@ -503,7 +510,7 @@ export function App() {
 
         if (!config.enabled) return;
 
-        const now = new Date();
+        const now = getServerNow();
         const currentHours = String(now.getHours()).padStart(2, '0');
         const currentMinutes = String(now.getMinutes()).padStart(2, '0');
         const currentTime = `${currentHours}:${currentMinutes}`;
@@ -521,19 +528,19 @@ export function App() {
 
         // Trigger if time matches and hasn't run today (or on manual intervals)
         if (currentTime === config.timeOfDay && !alreadyRanToday) {
-          const yyyy = now.getFullYear();
-          const mm = String(now.getMonth() + 1).padStart(2, '0');
           const dd = String(now.getDate()).padStart(2, '0');
-          const filename = `Auto_Backup_${yyyy}_${mm}_${dd}_${currentHours}${currentMinutes}.json`;
+          const mm = String(now.getMonth() + 1).padStart(2, '0');
+          const yyyy = now.getFullYear();
+          const filename = `Auto_Backup_${dd}_${mm}_${yyyy}_${currentHours}${currentMinutes}.json`;
 
           const payload: DatabaseBackupPayload = {
             version: '3.0.0-PROD',
             systemTitle: branding.systemName || 'منظومة إدارة الوحدات والأصول العقارية',
             companyName: branding.companyName || 'شركة نفط الوسط',
             exportedAt: now.toISOString(),
-            exportedAtFormatted: toArabicDigits(now.toLocaleString('ar-IQ')),
+            exportedAtFormatted: getServerDateTimeFormatted(),
             exportedBy: 'النظام التلقائي (Auto Schedule)',
-            checksum: `AUTO-MOC-${Date.now().toString(36).toUpperCase()}`,
+            checksum: `AUTO-MOC-${getServerTimestamp().toString(36).toUpperCase()}`,
             counts: {
               units: units.length,
               maintenanceRequests: maintenanceRequests.length,
@@ -585,10 +592,10 @@ export function App() {
           };
 
           const historyItem: BackupHistoryItem = {
-            id: `BCK-${Date.now()}`,
+            id: `BCK-${getServerTimestamp()}`,
             filename,
             timestamp: now.toISOString(),
-            timestampFormatted: toArabicDigits(now.toLocaleString('ar-IQ')),
+            timestampFormatted: getServerDateTimeFormatted(),
             sizeBytes: 1024 * 150,
             sizeFormatted: '150 ك.ب',
             totalRecords: payload.counts.totalRecords,
@@ -607,15 +614,15 @@ export function App() {
           const updatedConfig: AutoBackupScheduleConfig = {
             ...config,
             lastBackupTimestamp: now.toISOString(),
-            lastBackupFormatted: toArabicDigits(now.toLocaleString('ar-IQ')),
+            lastBackupFormatted: getServerDateTimeFormatted(),
             lastBackupSize: '150 ك.ب',
             lastBackupStatus: 'success',
           };
           safeSetItem('app_auto_backup_config', updatedConfig);
 
           appendAuditLog({
-            id: `LOG-${Date.now()}`,
-            timestamp: toArabicDigits(now.toLocaleString('ar-IQ')),
+            id: `LOG-${getServerTimestamp()}`,
+            timestamp: getServerDateTimeFormatted(),
             action: 'تصدير نسخة احتياطية مجدولة تلقائياً',
             user: 'جدولة النظام التلقائية',
             userInitials: 'SYS',
@@ -660,8 +667,8 @@ export function App() {
       showToast(err.message || 'فشل حفظ التشكيل التنظيمي في قاعدة البيانات', 'error', 'خطأ في حفظ البيانات');
     });
     appendAuditLog({
-      id: `LOG-${Date.now()}`,
-      timestamp: toArabicDigits(new Date().toLocaleString('ar-IQ')),
+      id: `LOG-${getServerTimestamp()}`,
+      timestamp: getServerDateTimeFormatted(),
       action: 'إضافة تشكيل تنظيمـي',
       user: currentUser?.name || 'غير معروف',
       userInitials: currentUser?.name ? currentUser.name.split(' ').map((w) => w[0]).join('').slice(0, 2) : '—',
@@ -682,8 +689,8 @@ export function App() {
       showToast(err.message || 'فشل تحديث التشكيل التنظيمي في قاعدة البيانات', 'error', 'خطأ في حفظ البيانات');
     });
     appendAuditLog({
-      id: `LOG-${Date.now()}`,
-      timestamp: toArabicDigits(new Date().toLocaleString('ar-IQ')),
+      id: `LOG-${getServerTimestamp()}`,
+      timestamp: getServerDateTimeFormatted(),
       action: 'تعديل تشكيل تنظيمـي',
       user: currentUser?.name || 'غير معروف',
       userInitials: currentUser?.name ? currentUser.name.split(' ').map((w) => w[0]).join('').slice(0, 2) : '—',
@@ -706,8 +713,8 @@ export function App() {
     });
     if (entity) {
       appendAuditLog({
-        id: `LOG-${Date.now()}`,
-        timestamp: toArabicDigits(new Date().toLocaleString('ar-IQ')),
+        id: `LOG-${getServerTimestamp()}`,
+        timestamp: getServerDateTimeFormatted(),
         action: 'حذف تشكيل تنظيمـي',
         user: currentUser?.name || 'غير معروف',
         userInitials: currentUser?.name ? currentUser.name.split(' ').map((w) => w[0]).join('').slice(0, 2) : '—',
@@ -752,8 +759,8 @@ export function App() {
       return updated;
     });
     appendAuditLog({
-      id: `LOG-${Date.now()}`,
-      timestamp: toArabicDigits(new Date().toLocaleString('ar-IQ')),
+      id: `LOG-${getServerTimestamp()}`,
+      timestamp: getServerDateTimeFormatted(),
       action: 'إضافة جهة صيانة',
       user: currentUser?.name || 'غير معروف',
       userInitials: currentUser?.name ? currentUser.name.split(' ').map((w) => w[0]).join('').slice(0, 2) : '—',
@@ -770,8 +777,8 @@ export function App() {
       return updated;
     });
     appendAuditLog({
-      id: `LOG-${Date.now()}`,
-      timestamp: toArabicDigits(new Date().toLocaleString('ar-IQ')),
+      id: `LOG-${getServerTimestamp()}`,
+      timestamp: getServerDateTimeFormatted(),
       action: 'تعديل جهة صيانة',
       user: currentUser?.name || 'غير معروف',
       userInitials: currentUser?.name ? currentUser.name.split(' ').map((w) => w[0]).join('').slice(0, 2) : '—',
@@ -790,8 +797,8 @@ export function App() {
     });
     if (dept) {
       appendAuditLog({
-        id: `LOG-${Date.now()}`,
-        timestamp: toArabicDigits(new Date().toLocaleString('ar-IQ')),
+        id: `LOG-${getServerTimestamp()}`,
+        timestamp: getServerDateTimeFormatted(),
         action: 'حذف جهة صيانة',
         user: currentUser?.name || 'غير معروف',
         userInitials: currentUser?.name ? currentUser.name.split(' ').map((w) => w[0]).join('').slice(0, 2) : '—',
@@ -860,7 +867,7 @@ export function App() {
     const newLog: AuditLogItem = {
       id: `LOG-${Math.floor(10 + Math.random() * 90)}`,
       unitCode: code,
-      timestamp: toArabicDigits(new Date().toLocaleString('ar-IQ')),
+      timestamp: getServerDateTimeFormatted(),
       action: 'تحديث درجة التقييم الهندسي',
       user: currentUser?.name || 'غير معروف',
       userInitials: currentUser?.name ? currentUser.name.split(' ').map((w) => w[0]).join('').slice(0, 2) : '—',
@@ -883,8 +890,8 @@ export function App() {
       showToast(err.message || 'فشل إضافة المستخدم في قاعدة البيانات المركزية', 'error', 'خطأ في الحفظ');
     });
     appendAuditLog({
-      id: `LOG-${Date.now()}`,
-      timestamp: toArabicDigits(new Date().toLocaleString('ar-IQ')),
+      id: `LOG-${getServerTimestamp()}`,
+      timestamp: getServerDateTimeFormatted(),
       action: 'إضافة حساب مستخدم جديد',
       user: currentUser?.name || 'غير معروف',
       userInitials: currentUser?.name ? currentUser.name.split(' ').map((w) => w[0]).join('').slice(0, 2) : '—',
@@ -908,8 +915,8 @@ export function App() {
       showToast(err.message || 'فشل تحديث بيانات المستخدم في قاعدة البيانات', 'error', 'خطأ في الحفظ');
     });
     appendAuditLog({
-      id: `LOG-${Date.now()}`,
-      timestamp: toArabicDigits(new Date().toLocaleString('ar-IQ')),
+      id: `LOG-${getServerTimestamp()}`,
+      timestamp: getServerDateTimeFormatted(),
       action: 'تعديل حساب وصلاحيات مستخدم',
       user: currentUser?.name || 'غير معروف',
       userInitials: currentUser?.name ? currentUser.name.split(' ').map((w) => w[0]).join('').slice(0, 2) : '—',
@@ -935,8 +942,8 @@ export function App() {
     });
     if (usr) {
       appendAuditLog({
-        id: `LOG-${Date.now()}`,
-        timestamp: toArabicDigits(new Date().toLocaleString('ar-IQ')),
+        id: `LOG-${getServerTimestamp()}`,
+        timestamp: getServerDateTimeFormatted(),
         action: 'حذف حساب مستخدم نهائياً',
         user: currentUser?.name || 'غير معروف',
         userInitials: currentUser?.name ? currentUser.name.split(' ').map((w) => w[0]).join('').slice(0, 2) : '—',
@@ -1003,8 +1010,8 @@ export function App() {
     });
 
     appendAuditLog({
-      id: `LOG-${Date.now()}`,
-      timestamp: toArabicDigits(new Date().toLocaleString('ar-IQ')),
+      id: `LOG-${getServerTimestamp()}`,
+      timestamp: getServerDateTimeFormatted(),
       action: 'تغيير كلمة المرور الشخصية',
       user: currentUser?.name || 'غير معروف',
       userInitials: currentUser?.name ? currentUser.name.split(' ').map((w) => w[0]).join('').slice(0, 2) : '—',
@@ -1375,7 +1382,7 @@ export function App() {
     const newLog: AuditLogItem = {
       id: `LOG-${Math.floor(100 + Math.random() * 900)}`,
       unitCode: updatedUnit.code,
-      timestamp: toArabicDigits(new Date().toLocaleString('ar-IQ')),
+      timestamp: getServerDateTimeFormatted(),
       action: 'تحديث بيانات الأصل والمبنى الـ 3D',
       user: currentUser?.name || 'غير معروف',
       userInitials: currentUser?.name ? currentUser.name.split(' ').map((w) => w[0]).join('').slice(0, 2) : '—',
@@ -1405,7 +1412,7 @@ export function App() {
     const newLog: AuditLogItem = {
       id: `LOG-${Math.floor(100 + Math.random() * 900)}`,
       unitCode: unitCode,
-      timestamp: toArabicDigits(new Date().toLocaleString('ar-IQ')),
+      timestamp: getServerDateTimeFormatted(),
       action: 'حذف وحدة نهائياً من قاعدة البيانات',
       user: currentUser?.name || 'غير معروف',
       userInitials: currentUser?.name ? currentUser.name.split(' ').map((w) => w[0]).join('').slice(0, 2) : '—',
@@ -1418,7 +1425,7 @@ export function App() {
 
   // Decommission unit handler (Freeze & mark as written off)
   const handleDecommissionUnit = (unitCode: string, reason: string) => {
-    const timestampStr = toArabicDigits(new Date().toLocaleDateString('ar-IQ'));
+    const timestampStr = getServerDateFormatted();
     let targetUnitObj: UnitAsset | null = null;
     setUnits((prev) => {
       const updated = prev.map((u) => {
@@ -1448,7 +1455,7 @@ export function App() {
     const newLog: AuditLogItem = {
       id: `LOG-${Math.floor(100 + Math.random() * 900)}`,
       unitCode: unitCode,
-      timestamp: toArabicDigits(new Date().toLocaleString('ar-IQ')),
+      timestamp: getServerDateTimeFormatted(),
       action: 'شطب وتجميد المنشأة',
       user: currentUser?.name || 'غير معروف',
       userInitials: currentUser?.name ? currentUser.name.split(' ').map((w) => w[0]).join('').slice(0, 2) : '—',
@@ -1490,7 +1497,7 @@ export function App() {
     const newLog: AuditLogItem = {
       id: `LOG-${Math.floor(100 + Math.random() * 900)}`,
       unitCode: unitCode,
-      timestamp: toArabicDigits(new Date().toLocaleString('ar-IQ')),
+      timestamp: getServerDateTimeFormatted(),
       action: 'إعادة تفعيل منشأة مشطوبة',
       user: currentUser?.name || 'غير معروف',
       userInitials: currentUser?.name ? currentUser.name.split(' ').map((w) => w[0]).join('').slice(0, 2) : '—',
@@ -1736,7 +1743,7 @@ export function App() {
         inspectorName: existing.inspectorName,
         status: 'scheduled',
         notes: `كشف دوري مجدول تلقائياً بعد توثيق كشف بتاريخ ${outcome.completionDate}`,
-        createdAt: new Date().toISOString().split('T')[0],
+        createdAt: getServerIsoDateOnly(),
       };
       nextSchedules.push(newNextSchedule);
       api.addPeriodicInspection(newNextSchedule).catch((err) => {
@@ -2076,6 +2083,7 @@ export function App() {
               requests={maintenanceRequests}
               units={units}
               currentUser={currentUser}
+              maintenanceDepartments={maintenanceDepartments}
               onOpenNewMaintenanceModal={() => {
                 setMaintenanceUnitCode(selectedUnitCode);
                 setIsMaintenanceUnitLocked(false);

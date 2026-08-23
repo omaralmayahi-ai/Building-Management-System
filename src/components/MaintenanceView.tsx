@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Wrench,
   Clock,
@@ -24,8 +24,10 @@ import {
   Building2,
   Ban,
   Calendar,
+  ArrowUpDown,
+  RotateCcw,
 } from 'lucide-react';
-import { MaintenanceRequest, MaintenanceStatus, MaintenancePriority, UnitAsset, ReportAttachment, SystemUser } from '../types';
+import { MaintenanceRequest, MaintenanceStatus, MaintenancePriority, UnitAsset, ReportAttachment, SystemUser, MaintenanceDepartmentRef } from '../types';
 import {
   toArabicDigits,
   formatDateOnly,
@@ -38,6 +40,7 @@ interface MaintenanceViewProps {
   requests: MaintenanceRequest[];
   units?: UnitAsset[];
   currentUser?: SystemUser | null;
+  maintenanceDepartments?: MaintenanceDepartmentRef[];
   onOpenNewMaintenanceModal: () => void;
   onUpdateMaintenanceRequest?: (updated: MaintenanceRequest) => void;
   onDeleteMaintenanceRequest?: (id: string) => void;
@@ -48,6 +51,7 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
   requests,
   units = [],
   currentUser,
+  maintenanceDepartments = [],
   onOpenNewMaintenanceModal,
   onUpdateMaintenanceRequest,
   onDeleteMaintenanceRequest,
@@ -58,7 +62,47 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
   const employeeDept = currentUser?.maintenanceDepartment;
 
   const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [filterDepartment, setFilterDepartment] = useState<string>('all');
+  const [filterPriority, setFilterPriority] = useState<string>('all');
+  const [sortOrder, setSortOrder] = useState<'newest_first' | 'oldest_first'>('newest_first');
   const [searchCode, setSearchCode] = useState<string>('');
+
+  // Available maintenance departments list (dynamically sourced from Settings / maintenanceDepartments registry)
+  const availableDepartments = useMemo(() => {
+    // If settings has maintenanceDepartments, use active ones primarily
+    if (maintenanceDepartments && maintenanceDepartments.length > 0) {
+      const depts = maintenanceDepartments
+        .filter((d) => d.status === 'active')
+        .map((d) => d.nameAr.trim());
+      
+      // Also include any department name referenced in existing requests to avoid missing data
+      requests.forEach((r) => {
+        if (r.maintenanceDepartment && r.maintenanceDepartment.trim()) {
+          const trimmed = r.maintenanceDepartment.trim();
+          if (!depts.includes(trimmed)) {
+            depts.push(trimmed);
+          }
+        }
+      });
+      return depts;
+    }
+
+    // Fallback if empty
+    const depts = new Set<string>([
+      'الصيانة الكهربائية',
+      'الصيانة الميكانيكية',
+      'صيانة التبريد والتكييف',
+      'صيانة المباني والمدني',
+      'صيانة الآلات الدقيقة والتحكم',
+      'الصيانة العامة والخدمات',
+    ]);
+    requests.forEach((r) => {
+      if (r.maintenanceDepartment && r.maintenanceDepartment.trim()) {
+        depts.add(r.maintenanceDepartment.trim());
+      }
+    });
+    return Array.from(depts);
+  }, [maintenanceDepartments, requests]);
 
   // Status Change / Resolution modal state
   const [selectedReq, setSelectedReq] = useState<MaintenanceRequest | null>(null);
@@ -87,34 +131,61 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
   } | null>(null);
 
   // Filter requests based on status, search, and maintenance employee department
-  const visibleRequests = requests.filter((r) => {
-    if (isMaintenanceEmployee && employeeDept) {
-      return r.maintenanceDepartment === employeeDept;
-    }
-    return true;
-  });
+  const visibleRequests = useMemo(() => {
+    return requests.filter((r) => {
+      if (isMaintenanceEmployee && employeeDept) {
+        return r.maintenanceDepartment === employeeDept;
+      }
+      return true;
+    });
+  }, [requests, isMaintenanceEmployee, employeeDept]);
 
-  const filteredRequests = visibleRequests.filter((r) => {
-    const matchStatus =
-      filterStatus === 'all' ||
-      r.status === filterStatus ||
-      (filterStatus === 'in_progress' && (r.status === 'open' || r.status === 'assigned' || r.status === 'in_progress' || r.status === 'overdue'));
-    
-    const matchedUnit = units.find((u) => u.code === r.unitCode || u.id === r.unitCode);
-    const unitName = r.unitName || matchedUnit?.name || '';
-    const department = matchedUnit?.department || '';
-    const reqMaintDept = r.maintenanceDepartment || '';
+  const filteredRequests = useMemo(() => {
+    const list = visibleRequests.filter((r) => {
+      // 1. Status Filter
+      const matchStatus =
+        filterStatus === 'all' ||
+        r.status === filterStatus ||
+        (filterStatus === 'in_progress' && (r.status === 'open' || r.status === 'assigned' || r.status === 'in_progress' || r.status === 'overdue'));
 
-    const matchSearch =
-      !searchCode ||
-      r.id.toLowerCase().includes(searchCode.toLowerCase()) ||
-      r.unitCode.toLowerCase().includes(searchCode.toLowerCase()) ||
-      unitName.toLowerCase().includes(searchCode.toLowerCase()) ||
-      department.toLowerCase().includes(searchCode.toLowerCase()) ||
-      reqMaintDept.toLowerCase().includes(searchCode.toLowerCase()) ||
-      r.issue.toLowerCase().includes(searchCode.toLowerCase());
-    return matchStatus && matchSearch;
-  });
+      // 2. Department Filter
+      const matchDepartment =
+        filterDepartment === 'all' ||
+        r.maintenanceDepartment === filterDepartment;
+
+      // 3. Priority Filter
+      const matchPriority =
+        filterPriority === 'all' ||
+        r.priority === filterPriority;
+
+      // 4. Search Filter
+      const matchedUnit = units.find((u) => u.code === r.unitCode || u.id === r.unitCode);
+      const unitName = r.unitName || matchedUnit?.name || '';
+      const department = matchedUnit?.department || '';
+      const reqMaintDept = r.maintenanceDepartment || '';
+
+      const matchSearch =
+        !searchCode ||
+        r.id.toLowerCase().includes(searchCode.toLowerCase()) ||
+        r.unitCode.toLowerCase().includes(searchCode.toLowerCase()) ||
+        unitName.toLowerCase().includes(searchCode.toLowerCase()) ||
+        department.toLowerCase().includes(searchCode.toLowerCase()) ||
+        reqMaintDept.toLowerCase().includes(searchCode.toLowerCase()) ||
+        r.issue.toLowerCase().includes(searchCode.toLowerCase());
+
+      return matchStatus && matchDepartment && matchPriority && matchSearch;
+    });
+
+    // 5. Date Sort Order (newest first vs oldest first)
+    return [...list].sort((a, b) => {
+      const dateA = new Date(a.createdAt || '').getTime() || 0;
+      const dateB = new Date(b.createdAt || '').getTime() || 0;
+      if (sortOrder === 'oldest_first') {
+        return dateA - dateB;
+      }
+      return dateB - dateA;
+    });
+  }, [visibleRequests, filterStatus, filterDepartment, filterPriority, sortOrder, searchCode, units]);
 
   // Dynamic Metrics Calculations (Based on visible requests)
   const openCount = visibleRequests.filter((r) => r.status !== 'completed' && r.status !== 'cancelled' && r.status !== 'rejected').length;
@@ -267,75 +338,204 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
       </div>
 
       {/* SLA Metrics Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className={`rounded-xl p-4 flex items-center justify-between border ${isLight ? 'bg-white border-slate-200' : 'bg-slate-900 border-slate-800'}`}>
-          <div>
-            <span className={`text-xs block ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>إجمالي البلاغات والطلبات:</span>
-            <span className={`text-2xl font-black ${isLight ? 'text-slate-900' : 'text-white'}`}>{toArabicDigits(requests.length)} ({toArabicDigits(openCount)} نشط)</span>
+      <div className="space-y-2">
+        {isMaintenanceEmployee && employeeDept && (
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/25 text-amber-500 text-xs font-bold w-fit">
+            <Wrench className="w-3.5 h-3.5" />
+            <span>إحصائيات وبلاغات خاصة باختصاص: {employeeDept}</span>
           </div>
-          <div className="p-3 bg-amber-500/10 text-amber-400 rounded-xl">
-            <Wrench className="w-6 h-6" />
+        )}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
+          <div className={`rounded-xl p-4 flex items-center justify-between border ${isLight ? 'bg-white border-slate-200 shadow-xs' : 'bg-slate-900 border-slate-800'}`}>
+            <div>
+              <span className={`text-xs block font-semibold ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                {isMaintenanceEmployee ? `إجمالي بلاغات (${employeeDept || 'قسمكم'}):` : 'إجمالي البلاغات والطلبات:'}
+              </span>
+              <span className={`text-2xl font-black ${isLight ? 'text-slate-900' : 'text-white'}`}>
+                {toArabicDigits(visibleRequests.length)}{' '}
+                <span className="text-sm font-bold text-amber-500">({toArabicDigits(openCount)} نشط)</span>
+              </span>
+            </div>
+            <div className="p-3 bg-amber-500/10 text-amber-400 rounded-xl">
+              <Wrench className="w-6 h-6" />
+            </div>
           </div>
-        </div>
 
-        <div className={`rounded-xl p-4 flex items-center justify-between border ${isLight ? 'bg-white border-slate-200' : 'bg-slate-900 border-slate-800'}`}>
-          <div>
-            <span className={`text-xs block ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>قيد المعالجة والتنفيذ:</span>
-            <span className="text-2xl font-black text-sky-400">{toArabicDigits(inProgressCount)} طلب</span>
+          <div className={`rounded-xl p-4 flex items-center justify-between border ${isLight ? 'bg-white border-slate-200 shadow-xs' : 'bg-slate-900 border-slate-800'}`}>
+            <div>
+              <span className={`text-xs block font-semibold ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                {isMaintenanceEmployee ? 'قيد المعالجة (قسمكم):' : 'قيد المعالجة والتنفيذ:'}
+              </span>
+              <span className="text-2xl font-black text-sky-400">{toArabicDigits(inProgressCount)} طلب</span>
+            </div>
+            <div className="p-3 bg-sky-500/10 text-sky-400 rounded-xl">
+              <UserCheck className="w-6 h-6" />
+            </div>
           </div>
-          <div className="p-3 bg-sky-500/10 text-sky-400 rounded-xl">
-            <UserCheck className="w-6 h-6" />
-          </div>
-        </div>
 
-        <div className={`rounded-xl p-4 flex items-center justify-between border ${isLight ? 'bg-white border-slate-200' : 'bg-slate-900 border-slate-800'}`}>
-          <div>
-            <span className={`text-xs block ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>تمت المعالجة والإنجاز:</span>
-            <span className="text-2xl font-black text-emerald-400">{toArabicDigits(completedCount)} طلب</span>
+          <div className={`rounded-xl p-4 flex items-center justify-between border ${isLight ? 'bg-white border-slate-200 shadow-xs' : 'bg-slate-900 border-slate-800'}`}>
+            <div>
+              <span className={`text-xs block font-semibold ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                {isMaintenanceEmployee ? 'تمت المعالجة (قسمكم):' : 'تمت المعالجة والإنجاز:'}
+              </span>
+              <span className="text-2xl font-black text-emerald-400">{toArabicDigits(completedCount)} طلب</span>
+            </div>
+            <div className="p-3 bg-emerald-500/10 text-emerald-400 rounded-xl">
+              <CheckCircle2 className="w-6 h-6" />
+            </div>
           </div>
-          <div className="p-3 bg-emerald-500/10 text-emerald-400 rounded-xl">
-            <CheckCircle2 className="w-6 h-6" />
-          </div>
-        </div>
 
-        <div className={`rounded-xl p-4 flex items-center justify-between border ${isLight ? 'bg-white border-slate-200' : 'bg-slate-900 border-slate-800'}`}>
-          <div>
-            <span className={`text-xs block ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>طلبات مرفوضة / ملغاة:</span>
-            <span className="text-2xl font-black text-rose-400">{toArabicDigits(rejectedCount + cancelledCount)} طلب</span>
-          </div>
-          <div className="p-3 bg-rose-500/10 text-rose-400 rounded-xl">
-            <XCircle className="w-6 h-6" />
+          <div className={`rounded-xl p-4 flex items-center justify-between border ${isLight ? 'bg-white border-slate-200 shadow-xs' : 'bg-slate-900 border-slate-800'}`}>
+            <div>
+              <span className={`text-xs block font-semibold ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                {isMaintenanceEmployee ? 'مرفوضة / ملغاة (قسمكم):' : 'طلبات مرفوضة / ملغاة:'}
+              </span>
+              <span className="text-2xl font-black text-rose-400">{toArabicDigits(rejectedCount + cancelledCount)} طلب</span>
+            </div>
+            <div className="p-3 bg-rose-500/10 text-rose-400 rounded-xl">
+              <XCircle className="w-6 h-6" />
+            </div>
           </div>
         </div>
       </div>
 
       {/* Main Table Data */}
       <div className={`rounded-2xl p-5 shadow-lg space-y-4 border ${isLight ? 'bg-white border-slate-200' : 'bg-slate-900 border-slate-800'}`}>
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800/40">
-          <h3 className={`font-bold text-sm ${isLight ? 'text-slate-900' : 'text-slate-200'}`}>سجل بلاغات الصيانة والطلبات الميدانية</h3>
+        <div className="flex flex-col gap-3 pb-3 border-b border-slate-800/40">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <Wrench className="w-4 h-4 text-amber-500" />
+              <h3 className={`font-bold text-sm ${isLight ? 'text-slate-900' : 'text-slate-200'}`}>سجل بلاغات الصيانة والطلبات الميدانية</h3>
+              <span className="px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-400 font-mono font-bold text-xs">
+                {toArabicDigits(filteredRequests.length)} طلب
+              </span>
+            </div>
 
-          <div className="flex flex-wrap items-center gap-2 text-xs w-full sm:w-auto">
-            <select
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              className={`rounded-lg px-2.5 py-1.5 focus:outline-none border flex-1 sm:flex-none ${isLight ? 'bg-slate-50 border-slate-200 text-slate-800' : 'bg-slate-950 border-slate-800 text-slate-200'}`}
-            >
-              <option value="all">كافة الحالات</option>
-              <option value="in_progress">قيد المعالجة</option>
-              <option value="completed">تمت المعالجة والإنجاز</option>
-              <option value="rejected">تم رفض طلب الصيانة</option>
-              <option value="cancelled">تم إلغاء طلب الصيانة</option>
-            </select>
+            {/* Clear Filters Button if any filter active */}
+            {(filterStatus !== 'all' || filterDepartment !== 'all' || filterPriority !== 'all' || searchCode || sortOrder !== 'newest_first') && (
+              <button
+                type="button"
+                onClick={() => {
+                  setFilterStatus('all');
+                  setFilterDepartment('all');
+                  setFilterPriority('all');
+                  setSearchCode('');
+                  setSortOrder('newest_first');
+                }}
+                className={`text-xs flex items-center gap-1 px-2.5 py-1 rounded-lg transition cursor-pointer font-bold w-fit ${
+                  isLight
+                    ? 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                    : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                }`}
+              >
+                <RotateCcw className="w-3 h-3 text-amber-500" />
+                <span>إعادة ضبط الفلاتر</span>
+              </button>
+            )}
+          </div>
 
-            <div className="relative flex-1 sm:flex-none">
-              <Search className="absolute right-2.5 top-2.5 w-3.5 h-3.5 text-slate-500" />
-              <input
-                type="text"
-                value={searchCode}
-                onChange={(e) => setSearchCode(e.target.value)}
-                placeholder="ابحث بالرمز أو المشكلة..."
-                className={`w-full sm:w-auto rounded-lg pr-8 pl-2 py-1.5 text-xs focus:outline-none border ${isLight ? 'bg-slate-50 border-slate-200 text-slate-800 focus:border-amber-500' : 'bg-slate-950 border-slate-800 text-slate-200 focus:border-amber-500'}`}
-              />
+          {/* Filters Bar: Sort Order, Status, Department, Priority, Search */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 text-xs">
+            {/* 1. Sort Order Filter */}
+            <div className="flex flex-col gap-1">
+              <label className={`text-[11px] font-bold flex items-center gap-1 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                <ArrowUpDown className="w-3 h-3 text-amber-500" />
+                <span>الترتيب الزمني:</span>
+              </label>
+              <select
+                value={sortOrder}
+                onChange={(e) => setSortOrder(e.target.value as 'newest_first' | 'oldest_first')}
+                className={`w-full rounded-lg px-2.5 py-2 focus:outline-none border font-semibold ${
+                  isLight ? 'bg-slate-50 border-slate-200 text-slate-800 focus:border-amber-500' : 'bg-slate-950 border-slate-800 text-slate-200 focus:border-amber-500'
+                }`}
+              >
+                <option value="newest_first">من الأحدث إلى الأقدم (الأحدث أولاً)</option>
+                <option value="oldest_first">من الأقدم إلى الأحدث (الأقدم أولاً)</option>
+              </select>
+            </div>
+
+            {/* 2. Status Filter */}
+            <div className="flex flex-col gap-1">
+              <label className={`text-[11px] font-bold flex items-center gap-1 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                <Clock className="w-3 h-3 text-amber-500" />
+                <span>حالة الطلب:</span>
+              </label>
+              <select
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
+                className={`w-full rounded-lg px-2.5 py-2 focus:outline-none border font-semibold ${
+                  isLight ? 'bg-slate-50 border-slate-200 text-slate-800 focus:border-amber-500' : 'bg-slate-950 border-slate-800 text-slate-200 focus:border-amber-500'
+                }`}
+              >
+                <option value="all">كافة الحالات</option>
+                <option value="in_progress">قيد المعالجة والتنفيذ</option>
+                <option value="completed">تمت المعالجة والإنجاز</option>
+                <option value="rejected">تم رفض طلب الصيانة</option>
+                <option value="cancelled">تم إلغاء طلب الصيانة</option>
+              </select>
+            </div>
+
+            {/* 3. Maintenance Department Filter */}
+            <div className="flex flex-col gap-1">
+              <label className={`text-[11px] font-bold flex items-center gap-1 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                <Wrench className="w-3 h-3 text-amber-500" />
+                <span>جهة الصيانة:</span>
+              </label>
+              <select
+                value={filterDepartment}
+                onChange={(e) => setFilterDepartment(e.target.value)}
+                disabled={Boolean(isMaintenanceEmployee && employeeDept)}
+                className={`w-full rounded-lg px-2.5 py-2 focus:outline-none border font-semibold ${
+                  isLight ? 'bg-slate-50 border-slate-200 text-slate-800 focus:border-amber-500' : 'bg-slate-950 border-slate-800 text-slate-200 focus:border-amber-500'
+                } ${isMaintenanceEmployee && employeeDept ? 'opacity-70 cursor-not-allowed' : ''}`}
+              >
+                <option value="all">كافة جهات الصيانة</option>
+                {availableDepartments.map((dept) => (
+                  <option key={dept} value={dept}>
+                    {dept}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* 4. Priority Filter */}
+            <div className="flex flex-col gap-1">
+              <label className={`text-[11px] font-bold flex items-center gap-1 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                <AlertTriangle className="w-3 h-3 text-amber-500" />
+                <span>درجة الأولوية:</span>
+              </label>
+              <select
+                value={filterPriority}
+                onChange={(e) => setFilterPriority(e.target.value)}
+                className={`w-full rounded-lg px-2.5 py-2 focus:outline-none border font-semibold ${
+                  isLight ? 'bg-slate-50 border-slate-200 text-slate-800 focus:border-amber-500' : 'bg-slate-950 border-slate-800 text-slate-200 focus:border-amber-500'
+                }`}
+              >
+                <option value="all">كافة درجات الأولوية</option>
+                <option value="critical">حرج جداً (طارئ وفوري)</option>
+                <option value="normal">عادي (اعتيادي)</option>
+                <option value="low">منخفض (وقائي / ثانوي)</option>
+              </select>
+            </div>
+
+            {/* 5. Search Filter */}
+            <div className="flex flex-col gap-1">
+              <label className={`text-[11px] font-bold flex items-center gap-1 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                <Search className="w-3 h-3 text-amber-500" />
+                <span>بحث بالرمز أو العطل:</span>
+              </label>
+              <div className="relative">
+                <Search className="absolute right-2.5 top-2.5 w-3.5 h-3.5 text-slate-500" />
+                <input
+                  type="text"
+                  value={searchCode}
+                  onChange={(e) => setSearchCode(e.target.value)}
+                  placeholder="ابحث بالرمز، الوحدة، العطل..."
+                  className={`w-full rounded-lg pr-8 pl-2 py-2 text-xs focus:outline-none border ${
+                    isLight ? 'bg-slate-50 border-slate-200 text-slate-800 focus:border-amber-500' : 'bg-slate-950 border-slate-800 text-slate-200 focus:border-amber-500'
+                  }`}
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -414,10 +614,12 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
                         className={`px-1.5 py-0.5 rounded text-[9.5px] font-bold inline-block ${
                           req.priority === 'critical'
                             ? 'bg-red-500/20 text-red-400 border border-red-500/30'
+                            : req.priority === 'low'
+                            ? 'bg-slate-500/20 text-slate-400 border border-slate-500/30'
                             : 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
                         }`}
                       >
-                        {req.priority === 'critical' ? 'حرج جداً' : 'عادي'}
+                        {req.priority === 'critical' ? 'حرج جداً' : req.priority === 'low' ? 'منخفض' : 'عادي'}
                       </span>
                     </td>
 
@@ -468,118 +670,114 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
                       </div>
                     </td>
 
-                    {/* المرفقات */}
+                    {/* المرفقات - أيقونة فقط عند الضغط عليها تفتح الملف المرفق */}
                     <td className="py-2.5 px-1.5 text-center align-middle">
-                    {(() => {
-                      const reqAttachments: ReportAttachment[] =
-                        req.attachments && req.attachments.length > 0
-                          ? req.attachments
-                          : req.attachmentUrl || req.attachmentName
-                          ? [
-                              {
-                                id: `maint-att-${req.id}`,
-                                name: req.attachmentName || 'صورة_البلاغ.jpg',
-                                url: req.attachmentUrl,
-                                type: 'image/jpeg',
-                              },
-                            ]
-                          : [];
+                      {(() => {
+                        const reqAttachments: ReportAttachment[] =
+                          req.attachments && req.attachments.length > 0
+                            ? req.attachments
+                            : req.attachmentUrl || req.attachmentName
+                            ? [
+                                {
+                                  id: `maint-att-${req.id}`,
+                                  name: req.attachmentName || 'صورة_البلاغ.jpg',
+                                  url: req.attachmentUrl,
+                                  type: 'image/jpeg',
+                                },
+                              ]
+                            : [];
 
-                      if (reqAttachments.length === 0) {
-                        return <span className="text-slate-500 text-[10px]">لا يوجد</span>;
-                      }
+                        if (reqAttachments.length === 0) {
+                          return <span className="text-slate-500 text-xs font-mono">—</span>;
+                        }
 
-                      if (reqAttachments.length === 1) {
-                        const single = reqAttachments[0];
-                        const isImg =
-                          single.url &&
-                          (single.url.startsWith('data:image/') ||
-                            single.name.match(/\.(jpeg|jpg|png|webp|gif|svg)$/i));
+                        const itemsToPreview: AttachmentViewerItem[] = reqAttachments.map((a, i) => ({
+                          id: a.id || `maint-att-${req.id}-${i}`,
+                          name: a.name || `مرفق_طلب_صيانة_${toArabicDigits(i + 1)}.jpg`,
+                          type: a.type || 'image/jpeg',
+                          url: a.url || req.attachmentUrl || '#',
+                          uploadDate: formatDateOnly(req.createdAt),
+                          category: `مرفق طلب صيانة (${toArabicDigits(i + 1)} من ${toArabicDigits(reqAttachments.length)})`,
+                        }));
 
                         return (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setPreviewAttachment({
-                                attachments: [
-                                  {
-                                    id: single.id || `maint-att-${req.id}`,
-                                    name: single.name || req.attachmentName || 'صورة_البلاغ.jpg',
-                                    type: single.type || 'image/jpeg',
-                                    url: single.url || req.attachmentUrl || '#',
-                                    uploadDate: formatDateOnly(req.createdAt),
-                                    category: 'صورة بلاغ صيانة',
-                                  },
-                                ],
-                                initialIndex: 0,
-                                unitCode: req.unitCode,
-                              });
-                            }}
-                            className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[10px] font-bold transition cursor-pointer border shadow-sm ${
-                              isLight
-                                ? 'bg-amber-50 text-amber-800 border-amber-300 hover:bg-amber-100'
-                                : 'bg-amber-500/20 text-amber-300 border-amber-500/40 hover:bg-amber-500/30'
-                            }`}
-                            title="معاينة المرفق"
-                          >
-                            {isImg ? (
-                              <ImageIcon className="w-3.5 h-3.5 text-amber-500" />
-                            ) : (
-                              <FileText className="w-3.5 h-3.5 text-amber-500" />
-                            )}
-                            <span className="truncate max-w-[80px]">{single.name || 'معاينة'}</span>
-                          </button>
+                          <div className="flex items-center justify-center">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setPreviewAttachment({
+                                  attachments: itemsToPreview,
+                                  initialIndex: 0,
+                                  unitCode: req.unitCode,
+                                });
+                              }}
+                              className={`relative inline-flex items-center justify-center p-2 rounded-xl text-xs font-bold transition-all cursor-pointer border shadow-sm group hover:scale-110 active:scale-95 ${
+                                isLight
+                                  ? 'bg-amber-50 text-amber-900 border-amber-300 hover:bg-amber-100 hover:border-amber-400'
+                                  : 'bg-amber-500/15 text-amber-300 border-amber-500/35 hover:bg-amber-500/25 hover:border-amber-400'
+                              }`}
+                              title={
+                                reqAttachments.length > 1
+                                  ? `معاينة وفتح جميع المرفقات (${toArabicDigits(reqAttachments.length)} مرفقات)`
+                                  : 'معاينة وفتح الملف المرفق'
+                              }
+                            >
+                              <Paperclip className="w-4 h-4 text-amber-500 group-hover:text-amber-400 transition-colors" />
+                              {reqAttachments.length > 1 && (
+                                <span className="absolute -top-1.5 -right-1.5 min-w-[17px] h-[17px] px-1 rounded-full bg-amber-500 text-slate-950 text-[9px] font-black flex items-center justify-center shadow-md border border-slate-900">
+                                  {toArabicDigits(reqAttachments.length)}
+                                </span>
+                              )}
+                            </button>
+                          </div>
                         );
-                      }
+                      })()}
+                    </td>
 
-                      // Multiple attachments
-                      return (
-                        <div className="flex flex-col items-center gap-1.5">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setPreviewAttachment({
-                                attachments: reqAttachments.map((a, i) => ({
-                                  id: a.id || `maint-att-${req.id}-${i}`,
-                                  name: a.name,
-                                  type: a.type || 'image/jpeg',
-                                  url: a.url,
-                                  uploadDate: formatDateOnly(req.createdAt),
-                                  category: `مرفق (${i + 1}) - بلاغ صيانة`,
-                                })),
-                                initialIndex: 0,
-                                unitCode: req.unitCode,
-                              });
-                            }}
-                            className={`px-2 py-0.5 rounded-lg text-[9.5px] font-bold transition cursor-pointer border flex items-center gap-1 shadow-xs ${
-                              isLight
-                                ? 'bg-amber-50 text-amber-900 border-amber-200 hover:bg-amber-100'
-                                : 'bg-amber-500/10 text-amber-300 border-amber-500/30 hover:bg-amber-500/20'
-                            }`}
-                            title="استعراض ومعاينة جميع المرفقات"
-                          >
-                            <Layers className="w-3 h-3 text-amber-500" />
-                            <span>عرض الكل ({toArabicDigits(reqAttachments.length)} مرفقات)</span>
-                          </button>
+                    {/* النتائج / الملاحظات */}
+                    <td className="py-2.5 px-2 align-middle">
+                      {req.status === 'rejected' ? (
+                        <div
+                          className="p-2 rounded-lg bg-rose-500/10 border border-rose-500/25 text-rose-400 text-[10.5px] font-bold leading-relaxed shadow-xs"
+                          title={req.rejectionReason || req.resolutionNotes || 'تم رفض طلب الصيانة'}
+                        >
+                          <span className="line-clamp-2">
+                            {req.rejectionReason || req.resolutionNotes || 'تم رفض طلب الصيانة'}
+                          </span>
                         </div>
-                      );
-                    })()}
-                  </td>
-                  {/* النتائج */}
-                  <td className="py-2.5 px-2 align-middle">
-                    {req.status === 'rejected' && req.rejectionReason ? (
-                      <div className="text-rose-400 text-[10px] font-bold bg-rose-500/10 border border-rose-500/20 rounded p-1" title={req.rejectionReason}>
-                        <span className="block text-[9px] text-rose-300 opacity-90">سبب الرفض:</span>
-                        <span className="line-clamp-2 leading-tight">{req.rejectionReason}</span>
-                      </div>
-                    ) : req.resolutionNotes ? (
-                      <div className={`text-[10px] line-clamp-2 leading-tight ${isLight ? 'text-slate-700' : 'text-slate-300'}`} title={req.resolutionNotes}>
-                        {req.resolutionNotes}
-                      </div>
-                    ) : (
-                      <span className="text-slate-500 text-[10px]">لا توجد ملاحظات</span>
-                    )}
-                  </td>
+                      ) : req.status === 'completed' ? (
+                        <div
+                          className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 text-[10.5px] font-bold leading-relaxed shadow-xs"
+                          title={req.resolutionNotes || 'تمت المعالجة والإنجاز بنجاح'}
+                        >
+                          <span className="line-clamp-2">
+                            {req.resolutionNotes || 'تمت المعالجة والإنجاز بنجاح'}
+                          </span>
+                        </div>
+                      ) : req.status === 'cancelled' ? (
+                        <div
+                          className="p-2 rounded-lg bg-slate-500/15 border border-slate-500/30 text-slate-400 text-[10.5px] font-bold leading-relaxed shadow-xs"
+                          title={req.resolutionNotes || req.rejectionReason || 'تم إلغاء طلب الصيانة'}
+                        >
+                          <span className="line-clamp-2">
+                            {req.resolutionNotes || req.rejectionReason || 'تم إلغاء طلب الصيانة'}
+                          </span>
+                        </div>
+                      ) : req.resolutionNotes ? (
+                        <div
+                          className={`p-2 rounded-lg text-[10.5px] font-medium leading-relaxed border ${
+                            isLight
+                              ? 'bg-slate-50 border-slate-200 text-slate-700'
+                              : 'bg-slate-950/60 border-slate-800 text-slate-300'
+                          }`}
+                          title={req.resolutionNotes}
+                        >
+                          <span className="line-clamp-2">{req.resolutionNotes}</span>
+                        </div>
+                      ) : (
+                        <span className="text-slate-500 text-[10px] font-mono">—</span>
+                      )}
+                    </td>
                   <td className="py-2.5 px-1.5 text-center align-middle">
                     <div className="flex items-center justify-center gap-1.5 flex-wrap">
                       {isMaintenanceEmployee ? (
@@ -911,8 +1109,9 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
                     isLight ? 'bg-slate-50 border-slate-200 text-slate-900' : 'bg-slate-950 border-slate-800 text-slate-100'
                   }`}
                 >
-                  <option value="critical">حرج جداً</option>
-                  <option value="normal">عادي</option>
+                  <option value="critical">حرج جداً (طارئ وفوري)</option>
+                  <option value="normal">عادي (اعتيادي)</option>
+                  <option value="low">منخفض (وقائي / ثانوي)</option>
                 </select>
               </div>
 
@@ -927,12 +1126,11 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
                     isLight ? 'bg-slate-50 border-slate-200 text-slate-900' : 'bg-slate-950 border-slate-800 text-slate-100'
                   }`}
                 >
-                  <option value="الصيانة الكهربائية">الصيانة الكهربائية</option>
-                  <option value="الصيانة الميكانيكية">الصيانة الميكانيكية</option>
-                  <option value="الصيانة الإنشائية">الصيانة الإنشائية</option>
-                  <option value="صيانة التبريد والتكييف">صيانة التبريد والتكييف</option>
-                  <option value="صيانة أنظمة السلامة والإطفاء">صيانة أنظمة السلامة والإطفاء</option>
-                  <option value="الصيانة العامة">الصيانة العامة</option>
+                  {availableDepartments.map((deptName) => (
+                    <option key={deptName} value={deptName}>
+                      {deptName}
+                    </option>
+                  ))}
                 </select>
               </div>
 

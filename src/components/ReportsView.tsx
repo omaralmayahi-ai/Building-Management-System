@@ -55,6 +55,9 @@ import {
   formatDateOnly,
   getCompletionOrCancellationDate,
   calculateMaintenanceDurationDays,
+  getServerNow,
+  getServerDateFormatted,
+  getServerDateTimeFormatted,
 } from '../utils/arabicUtils';
 
 // Arabic Translation & Format Helpers for Reports & Export/Print Tables
@@ -639,7 +642,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
     }
 
     // Apply presets
-    const now = new Date();
+    const now = getServerNow();
     if (presetFilter === 'current_month') {
       return dateObj.getMonth() === now.getMonth() && dateObj.getFullYear() === now.getFullYear();
     }
@@ -910,42 +913,171 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
     }
   }, [activeTab]);
 
+  // Compute Dynamic KPI Cards tailored to active report domain and filtered data
+  const reportKpis = useMemo(() => {
+    switch (activeTab) {
+      case 'maintenance': {
+        const inProgressCount = filteredMaintenance.filter(
+          (m) => m.status !== 'completed' && m.status !== 'rejected' && m.status !== 'cancelled'
+        ).length;
+        const completedCount = filteredMaintenance.filter((m) => m.status === 'completed').length;
+        const criticalCount = filteredMaintenance.filter((m) => m.priority === 'critical').length;
+        return [
+          { label: 'إجمالي طلبات الصيانة', value: filteredMaintenance.length, color: '#78350f' },
+          { label: 'قيد المعالجة والإنجاز', value: inProgressCount, color: '#d97706' },
+          { label: 'بلاغات منجزة ومكتملة', value: completedCount, color: '#059669' },
+          { label: 'بلاغات حرجة / طارئة', value: criticalCount, color: '#dc2626' },
+        ];
+      }
+      case 'inspections': {
+        const completedCount = filteredInspections.filter((i) => i.status === 'completed').length;
+        const scheduledCount = filteredInspections.filter((i) => i.status === 'scheduled').length;
+        const overdueOrCritical = filteredInspections.filter(
+          (i) => i.status === 'overdue' || i.conditionGradeGiven === 'D'
+        ).length;
+        return [
+          { label: 'إجمالي الكشوفات المسجلة', value: filteredInspections.length, color: '#78350f' },
+          { label: 'كشوفات مكتملة وموثقة', value: completedCount, color: '#059669' },
+          { label: 'كشوفات مجدولة قادمة', value: scheduledCount, color: '#0284c7' },
+          { label: 'كشوفات متأخرة أو حرجة', value: overdueOrCritical, color: '#dc2626' },
+        ];
+      }
+      case 'units': {
+        const gradeABCount = filteredUnits.filter((u) => u.conditionGrade === 'A' || u.conditionGrade === 'B').length;
+        const gradeDCount = filteredUnits.filter((u) => u.conditionGrade === 'D').length;
+        const totalRoomsOrOccupied =
+          selectedOrgEntity !== 'all'
+            ? filteredUnits.reduce((acc, u) => acc + getUnitOccupancyStats(u, selectedOrgEntity).occupiedRoomsCount, 0)
+            : filteredUnits.reduce((acc, u) => acc + (u.rooms?.length || 0), 0);
+        return [
+          { label: 'إجمالي المنشآت والأصول', value: filteredUnits.length, color: '#78350f' },
+          { label: 'حالة ممتازة / جيدة (A-B)', value: gradeABCount, color: '#059669' },
+          { label: 'تقييم إنشائي حرج (D)', value: gradeDCount, color: '#dc2626' },
+          {
+            label: selectedOrgEntity !== 'all' ? 'غرف شاغلة للتشكيل' : 'إجمالي الغرف والمكاتب',
+            value: totalRoomsOrOccupied,
+            color: '#0284c7',
+          },
+        ];
+      }
+      case 'decommissioned': {
+        const uniqueFields = new Set(decommissionedUnits.map((u) => u.field).filter(Boolean)).size;
+        const uniqueDepts = new Set(decommissionedUnits.map((u) => u.department).filter(Boolean)).size;
+        return [
+          { label: 'إجمالي المنشآت المشطوبة', value: decommissionedUnits.length, color: '#9f1239' },
+          { label: 'الحقول والمواقع المشمولة', value: uniqueFields, color: '#78350f' },
+          { label: 'التشكيلات السابقة المشمولة', value: uniqueDepts, color: '#0284c7' },
+          { label: 'الحالة الرسمية', textValue: 'مشطوبة ومجمدة', color: '#9f1239' },
+        ];
+      }
+      default: {
+        // Comprehensive Report ('all')
+        return [
+          { label: 'إجمالي الأصول والمنشآت', value: filteredUnits.length, color: '#78350f' },
+          { label: 'كشوفات ومعاينة دورية', value: filteredInspections.length, color: '#0284c7' },
+          { label: 'طلبات وبلاغات الصيانة', value: filteredMaintenance.length, color: '#d97706' },
+          { label: 'منشآت مشطوبة ومجمدة', value: decommissionedUnits.length, color: '#9f1239' },
+        ];
+      }
+    }
+  }, [
+    activeTab,
+    filteredMaintenance,
+    filteredInspections,
+    filteredUnits,
+    decommissionedUnits,
+    selectedOrgEntity,
+    getUnitOccupancyStats,
+  ]);
+
   // Compute Active Filters Summary String for Printing and Reporting
   const activeFiltersSummary = useMemo(() => {
     const parts: string[] = [];
 
+    // Include specific section filter if not comprehensive
+    if (activeTab === 'inspections') {
+      parts.push('نوع التقرير: الكشوفات والمعاينة الدورية');
+    } else if (activeTab === 'maintenance') {
+      parts.push('نوع التقرير: بلاغات وطلبات الصيانة ومتابعتها');
+    } else if (activeTab === 'units') {
+      parts.push('نوع التقرير: حصر وتصنيف الأصول والوحدات');
+    } else if (activeTab === 'decommissioned') {
+      parts.push('نوع التقرير: سجل الوحدات المشطوبة والمجمدة');
+    }
+
+    if (isRoleMaintenance && userMaintDept) {
+      parts.push(`جهة الصيانة المعتمدة: ${userMaintDept}`);
+    }
+
     if (selectedGovernorate !== 'all') {
-      const govObj = activeGovernoratesList.find((g) => g.id === selectedGovernorate);
-      parts.push(`المحافظة: ${govObj?.nameAr || selectedGovernorate}`);
+      const govObj = activeGovernoratesList.find(
+        (g) => g.id === selectedGovernorate || g.code === selectedGovernorate || g.nameAr === selectedGovernorate
+      );
+      parts.push(`المحافظة: ${govObj?.nameAr || translateGovernorate(selectedGovernorate) || selectedGovernorate}`);
     }
+
     if (selectedField !== 'all') {
-      const fieldObj = activeOilfieldsList.find((f) => f.id === selectedField);
-      parts.push(`الحقل: ${fieldObj?.nameAr || selectedField}`);
+      const fieldObj = activeOilfieldsList.find(
+        (f) => f.id === selectedField || f.code === selectedField || f.nameAr === selectedField
+      );
+      parts.push(`الحقل النفطي: ${fieldObj?.nameAr || translateField(selectedField) || selectedField}`);
     }
+
     if (selectedOrgEntity !== 'all') {
-      parts.push(`التشكيل: ${selectedOrgEntity}`);
+      parts.push(`التشكيل الشاغل: ${selectedOrgEntity}`);
     }
+
     if (selectedGrade !== 'all') {
       parts.push(`التقييم الإنشائي: ${formatGradeArabic(selectedGrade)}`);
     }
-    if (selectedInspectionStatus !== 'all') {
+
+    if (selectedInspectionStatus !== 'all' && (activeTab === 'all' || activeTab === 'inspections')) {
       parts.push(`حالة الكشف: ${translateInspectionStatus(selectedInspectionStatus)}`);
     }
-    if (selectedMaintenanceStatus !== 'all') {
+
+    if (selectedMaintenanceStatus !== 'all' && (activeTab === 'all' || activeTab === 'maintenance')) {
       parts.push(`حالة الصيانة: ${translateMaintenanceStatus(selectedMaintenanceStatus)}`);
     }
+
     if (dateFrom || dateTo) {
       parts.push(`الفترة: من ${toArabicDigits(dateFrom) || 'البداية'} إلى ${toArabicDigits(dateTo) || 'الآن'}`);
     } else if (presetFilter !== 'all') {
-      const presetLabel = presetFilter === 'current_month' ? 'الشهر الحالي' : presetFilter === 'current_quarter' ? 'الربع الحالي' : 'السنة الحالية';
+      const presetLabel =
+        presetFilter === 'current_month'
+          ? 'الشهر الحالي'
+          : presetFilter === 'current_quarter'
+          ? 'الربع الحالي'
+          : 'السنة الحالية';
       parts.push(`الفترة: ${presetLabel}`);
     }
+
     if (searchKeyword.trim()) {
-      parts.push(`كلمة البحث: "${searchKeyword}"`);
+      parts.push(`كلمة البحث: "${searchKeyword.trim()}"`);
     }
 
     return parts.length > 0 ? parts.join(' | ') : 'شامل لجميع البيانات (بدون تصفية خاصة)';
-  }, [selectedGovernorate, selectedField, selectedOrgEntity, selectedGrade, selectedInspectionStatus, selectedMaintenanceStatus, dateFrom, dateTo, presetFilter, searchKeyword, activeGovernoratesList, activeOilfieldsList]);
+  }, [
+    activeTab,
+    isRoleMaintenance,
+    userMaintDept,
+    selectedGovernorate,
+    selectedField,
+    selectedOrgEntity,
+    selectedGrade,
+    selectedInspectionStatus,
+    selectedMaintenanceStatus,
+    dateFrom,
+    dateTo,
+    presetFilter,
+    searchKeyword,
+    activeGovernoratesList,
+    activeOilfieldsList,
+    translateGovernorate,
+    translateField,
+    formatGradeArabic,
+    translateInspectionStatus,
+    translateMaintenanceStatus,
+  ]);
 
   // Export to Excel / CSV according to selected report tab & applied filters with pure Arabic translation
   const handleExportCSV = () => {
@@ -962,10 +1094,10 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
       });
     } else if (activeTab === 'maintenance') {
       filename = `تقرير_بلاغات_الصيانة_والتشغيل_${dateStr}.csv`;
-      content += 'رقم الطلب,كود الوحدة,الحقل النفطي,المحافظة,وصف العطل والبلاغ,درجة الأهمية,محرر الطلب,تاريخ تسجيل البلاغ,تاريخ الإنجاز أو الإلغاء,مدة المعالجة (أيام),المرفق / الصورة,الحالة الحالية\n';
+      content += 'رقم الطلب,كود الوحدة,جهة الصيانة,الحقل النفطي,المحافظة,وصف العطل والبلاغ,درجة الأهمية,محرر الطلب,تاريخ تسجيل البلاغ,تاريخ الإنجاز أو الإلغاء,مدة المعالجة (أيام),المرفق / الصورة,الحالة الحالية\n';
       filteredMaintenance.forEach((m) => {
         const u = units.find((unit) => unit.code === m.unitCode);
-        content += `"${toArabicDigits(m.id)}","${toArabicDigits(m.unitCode)}","${translateField(m.field)}","${translateGovernorate(u?.governorate || '')}","${m.issue.replace(/"/g, '""')}","${translatePriority(m.priority)}","${getCleanReporterName(m.reportedBy)}","${formatDateOnly(m.createdAt)}","${getCompletionOrCancellationDate(m.completedAt, m.status)}","${calculateMaintenanceDurationDays(m.createdAt, m.completedAt, m.status)}","${(m.attachmentName || (m.attachmentUrl ? 'صورة مرفقة' : 'لا يوجد')).replace(/"/g, '""')}","${translateMaintenanceStatus(m.status)}"\n`;
+        content += `"${toArabicDigits(m.id)}","${toArabicDigits(m.unitCode)}","${(m.maintenanceDepartment || 'الصيانة العامة').replace(/"/g, '""')}","${translateField(m.field)}","${translateGovernorate(u?.governorate || '')}","${m.issue.replace(/"/g, '""')}","${translatePriority(m.priority)}","${getCleanReporterName(m.reportedBy)}","${formatDateOnly(m.createdAt)}","${getCompletionOrCancellationDate(m.completedAt, m.status)}","${calculateMaintenanceDurationDays(m.createdAt, m.completedAt, m.status)}","${(m.attachmentName || (m.attachmentUrl ? 'صورة مرفقة' : 'لا يوجد')).replace(/"/g, '""')}","${translateMaintenanceStatus(m.status)}"\n`;
       });
     } else if (activeTab === 'units') {
       filename = `تقرير_حصر_الأصول_والوحدات_الهندسية_${dateStr}.csv`;
@@ -1275,6 +1407,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
             <td style="text-align: center; font-weight: bold; font-family: monospace;">${toArabicDigits(item.indexInSection + 1)}</td>
             <td style="font-weight: bold; font-family: monospace; color: #78350f;">${toArabicDigits(m.id)}</td>
             <td style="font-weight: bold; font-family: monospace;">${toArabicDigits(m.unitCode)}</td>
+            <td style="font-weight: bold; color: #78350f;">${m.maintenanceDepartment || 'الصيانة العامة'}</td>
             <td style="font-weight: 600; color: #0f172a;">${m.issue}</td>
             <td>${translateField(m.field)}</td>
             <td style="text-align: center; font-weight: bold;">${translatePriority(m.priority)}</td>
@@ -1301,6 +1434,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
               <th style="width: 25px; text-align: center;">#</th>
               <th>رقم الطلب</th>
               <th>كود الوحدة</th>
+              <th>جهة الصيانة</th>
               <th>وصف العطل / البلاغ</th>
               <th>الحقل</th>
               <th style="text-align: center;">درجة الأهمية</th>
@@ -1415,8 +1549,8 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
 
   // Generate self-contained standalone HTML document for printing in new window or downloading
   const generateStandaloneReportHtml = useCallback(() => {
-    const currentDateFormatted = toArabicDigits(new Date().toLocaleDateString('ar-IQ', { year: 'numeric', month: 'long', day: 'numeric' }));
-    const printTimestamp = toArabicDigits(new Date().toLocaleDateString('ar-IQ', { year: 'numeric', month: 'numeric', day: 'numeric' }));
+    const currentDateFormatted = getServerDateFormatted();
+    const printTimestamp = getServerDateTimeFormatted();
 
     let pagesHtml = '';
 
@@ -1444,10 +1578,16 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
           <b>الفلاتر المطبقة: </b> <span>${activeFiltersSummary}</span>
         </div>
         <div class="kpi-grid">
-          <div class="kpi-box"><div class="kpi-label">إجمالي الأصول</div><div class="kpi-val">${toArabicDigits(filteredUnits.length)}</div></div>
-          <div class="kpi-box"><div class="kpi-label">كشوفات دورية</div><div class="kpi-val">${toArabicDigits(filteredInspections.length)}</div></div>
-          <div class="kpi-box"><div class="kpi-label">طلبات الصيانة</div><div class="kpi-val">${toArabicDigits(filteredMaintenance.length)}</div></div>
-          <div class="kpi-box"><div class="kpi-label">منشآت مشطوبة</div><div class="kpi-val" style="color: #9f1239;">${toArabicDigits(decommissionedUnits.length)}</div></div>
+          ${reportKpis
+            .map(
+              (kpi) => `
+            <div class="kpi-box">
+              <div class="kpi-label">${kpi.label}</div>
+              <div class="kpi-val" style="color: ${kpi.color};">${kpi.textValue || toArabicDigits(kpi.value ?? 0)}</div>
+            </div>
+          `
+            )
+            .join('')}
         </div>
       ` : `
         <div class="continuation-header">
@@ -1770,10 +1910,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
     reportTitle,
     totalFilteredRecords,
     activeFiltersSummary,
-    filteredUnits.length,
-    filteredInspections.length,
-    filteredMaintenance.length,
-    decommissionedUnits.length,
+    reportKpis,
     generateTableHtml,
   ]);
 
@@ -1974,6 +2111,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
               <th className="border border-slate-400 p-1.5 w-8 text-center">#</th>
               <th className="border border-slate-400 p-1.5 font-mono">رقم الطلب</th>
               <th className="border border-slate-400 p-1.5 font-mono">كود الوحدة</th>
+              <th className="border border-slate-400 p-1.5">جهة الصيانة</th>
               <th className="border border-slate-400 p-1.5">وصف العطل / البلاغ</th>
               <th className="border border-slate-400 p-1.5">الحقل</th>
               <th className="border border-slate-400 p-1.5 text-center">درجة الأهمية</th>
@@ -1998,6 +2136,9 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                   </td>
                   <td className="border border-slate-400 p-1.5 font-mono font-bold text-slate-800">
                     {toArabicDigits(m.unitCode)}
+                  </td>
+                  <td className="border border-slate-400 p-1.5 font-semibold text-amber-900">
+                    {m.maintenanceDepartment || 'الصيانة العامة'}
                   </td>
                   <td className="border border-slate-400 p-1.5 font-semibold text-slate-900">
                     {m.issue}
@@ -2347,7 +2488,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                     </div>
 
                     <div className="text-left font-mono text-[11px] text-slate-800 space-y-0.5">
-                      <p className="font-bold">تاريخ الطباعة: {toArabicDigits(new Date().toLocaleDateString('ar-IQ', { year: 'numeric', month: 'long', day: 'numeric' }))}</p>
+                      <p className="font-bold">تاريخ الطباعة: {getServerDateFormatted()}</p>
                       <p>نوع التقرير: <span className="font-bold text-amber-900">{reportTitle}</span></p>
                       <p>إجمالي السجلات: <span className="font-bold">{toArabicDigits(totalFilteredRecords)}</span></p>
                     </div>
@@ -2366,7 +2507,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                       )}
                     </div>
                     <div className="text-left font-mono text-[10px]">
-                      <span>تاريخ الطباعة: {toArabicDigits(new Date().toLocaleDateString('ar-IQ', { year: 'numeric', month: 'numeric', day: 'numeric' }))}</span>
+                      <span>تاريخ الطباعة: {getServerDateFormatted()}</span>
                     </div>
                   </div>
                 )}
@@ -2379,22 +2520,14 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                       <span>{activeFiltersSummary}</span>
                     </div>
                     <div className="grid grid-cols-4 gap-2 text-center text-xs">
-                      <div className="p-2 border border-slate-300 rounded bg-slate-50">
-                        <div className="text-[10px] text-slate-600 font-bold">إجمالي الأصول</div>
-                        <div className="text-sm font-black text-slate-900">{toArabicDigits(filteredUnits.length)}</div>
-                      </div>
-                      <div className="p-2 border border-slate-300 rounded bg-slate-50">
-                        <div className="text-[10px] text-slate-600 font-bold">كشوفات دورية</div>
-                        <div className="text-sm font-black text-slate-900">{toArabicDigits(filteredInspections.length)}</div>
-                      </div>
-                      <div className="p-2 border border-slate-300 rounded bg-slate-50">
-                        <div className="text-[10px] text-slate-600 font-bold">طلبات الصيانة</div>
-                        <div className="text-sm font-black text-slate-900">{toArabicDigits(filteredMaintenance.length)}</div>
-                      </div>
-                      <div className="p-2 border border-slate-300 rounded bg-slate-50">
-                        <div className="text-[10px] text-slate-600 font-bold">منشآت مشطوبة ومجمدة</div>
-                        <div className="text-sm font-black text-rose-800">{toArabicDigits(decommissionedUnits.length)}</div>
-                      </div>
+                      {reportKpis.map((kpi, kIdx) => (
+                        <div key={`full-print-kpi-${kIdx}`} className="p-2 border border-slate-300 rounded bg-slate-50">
+                          <div className="text-[10px] text-slate-600 font-bold">{kpi.label}</div>
+                          <div className="text-sm font-black" style={{ color: kpi.color }}>
+                            {kpi.textValue || toArabicDigits(kpi.value ?? 0)}
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </>
                 )}
@@ -2590,10 +2723,10 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
             </div>
           </div>
         ) : (
-          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 pb-1 text-xs font-bold">
+          <div className="flex items-center gap-1.5 sm:gap-2 pb-2 text-xs font-bold overflow-x-auto no-scrollbar scroll-smooth">
             <button
               onClick={() => setActiveTab('all')}
-              className={`px-3 sm:px-4 py-2 rounded-xl flex items-center gap-1.5 sm:gap-2 transition cursor-pointer ${
+              className={`px-3 sm:px-4 py-2 rounded-xl flex items-center gap-1.5 sm:gap-2 transition cursor-pointer shrink-0 ${
                 activeTab === 'all'
                   ? 'bg-amber-500 text-slate-950 font-black shadow'
                   : isLight
@@ -2608,7 +2741,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
 
             <button
               onClick={() => setActiveTab('inspections')}
-              className={`px-4 py-2 rounded-xl flex items-center gap-2 whitespace-nowrap transition cursor-pointer ${
+              className={`px-4 py-2 rounded-xl flex items-center gap-2 whitespace-nowrap transition cursor-pointer shrink-0 ${
                 activeTab === 'inspections'
                   ? 'bg-amber-500 text-slate-950 font-black shadow'
                   : isLight
@@ -2623,7 +2756,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
 
             <button
               onClick={() => setActiveTab('maintenance')}
-              className={`px-4 py-2 rounded-xl flex items-center gap-2 whitespace-nowrap transition cursor-pointer ${
+              className={`px-4 py-2 rounded-xl flex items-center gap-2 whitespace-nowrap transition cursor-pointer shrink-0 ${
                 activeTab === 'maintenance'
                   ? 'bg-amber-500 text-slate-950 font-black shadow'
                   : isLight
@@ -2638,7 +2771,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
 
             <button
               onClick={() => setActiveTab('units')}
-              className={`px-4 py-2 rounded-xl flex items-center gap-2 whitespace-nowrap transition cursor-pointer ${
+              className={`px-4 py-2 rounded-xl flex items-center gap-2 whitespace-nowrap transition cursor-pointer shrink-0 ${
                 activeTab === 'units'
                   ? 'bg-amber-500 text-slate-950 font-black shadow'
                   : isLight
@@ -2653,7 +2786,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
 
             <button
               onClick={() => setActiveTab('decommissioned')}
-              className={`px-4 py-2 rounded-xl flex items-center gap-2 whitespace-nowrap transition cursor-pointer ${
+              className={`px-4 py-2 rounded-xl flex items-center gap-2 whitespace-nowrap transition cursor-pointer shrink-0 ${
                 activeTab === 'decommissioned'
                   ? 'bg-rose-600 text-white font-black shadow'
                   : isLight
@@ -2889,6 +3022,39 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
             </div>
           </div>
         </div>
+
+        {/* Dynamic Screen KPI Summary & Active Filters Banner */}
+        <div
+          className={`p-3.5 rounded-xl border flex flex-col md:flex-row items-start md:items-center justify-between gap-3 ${
+            isLight ? 'bg-amber-50/70 border-amber-200' : 'bg-slate-950/80 border-slate-800'
+          }`}
+        >
+          <div className="flex items-center gap-2 text-xs flex-1">
+            <span className={`font-black shrink-0 ${isLight ? 'text-amber-900' : 'text-amber-400'}`}>
+              الفلاتر المطبقة:
+            </span>
+            <span className={`font-semibold ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+              {activeFiltersSummary}
+            </span>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 w-full md:w-auto shrink-0">
+            {reportKpis.map((kpi, kIdx) => (
+              <div
+                key={`screen-kpi-${kIdx}`}
+                className={`px-3 py-1.5 rounded-lg border text-center text-xs ${
+                  isLight ? 'bg-white border-amber-200 shadow-xs' : 'bg-slate-900 border-slate-800'
+                }`}
+              >
+                <span className={`text-[10px] font-bold block ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                  {kpi.label}
+                </span>
+                <span className="text-xs font-black" style={{ color: kpi.color }}>
+                  {kpi.textValue || toArabicDigits(kpi.value ?? 0)}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* Main Content Tables */}
@@ -3028,6 +3194,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                 <tr>
                   <th className="p-2.5">رقم الطلب</th>
                   <th className="p-2.5">كود الوحدة</th>
+                  <th className="p-2.5">جهة الصيانة</th>
                   <th className="p-2.5">وصف العطل / البلاغ</th>
                   <th className="p-2.5">درجة الأهمية</th>
                   <th className="p-2.5">محرر الطلب</th>
@@ -3041,7 +3208,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
               <tbody className={`divide-y ${isLight ? 'divide-slate-200 text-slate-800' : 'divide-slate-800 text-slate-300'}`}>
                 {filteredMaintenance.length === 0 ? (
                   <tr>
-                    <td colSpan={10} className="p-6 text-center text-slate-500 font-semibold">
+                    <td colSpan={11} className="p-6 text-center text-slate-500 font-semibold">
                       لا توجد بلاغات صيانة تطابق معايير الفلترة المحددة.
                     </td>
                   </tr>
@@ -3050,6 +3217,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                     <tr key={req.id} className={isLight ? 'hover:bg-slate-50' : 'hover:bg-slate-800/40'}>
                       <td className="p-2.5 font-mono font-bold text-amber-500 whitespace-nowrap">{toArabicDigits(req.id)}</td>
                       <td className="p-2.5 font-mono font-semibold text-slate-200 whitespace-nowrap">{toArabicDigits(req.unitCode)}</td>
+                      <td className="p-2.5 font-semibold text-amber-400 whitespace-nowrap">{req.maintenanceDepartment || 'الصيانة العامة'}</td>
                       <td className="p-2.5 font-bold max-w-xs">{req.issue}</td>
                       <td className="p-2.5 whitespace-nowrap">
                         <span
@@ -3547,7 +3715,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                       </div>
 
                       <div className="text-left font-mono text-[11px] text-slate-800 space-y-0.5">
-                        <p className="font-bold">تاريخ الطباعة: {toArabicDigits(new Date().toLocaleDateString('ar-IQ', { year: 'numeric', month: 'long', day: 'numeric' }))}</p>
+                        <p className="font-bold">تاريخ الطباعة: {getServerDateFormatted()}</p>
                         <p>نوع التقرير: <span className="font-bold text-amber-900">{reportTitle}</span></p>
                         <p>عدد السجلات: <span className="font-bold">{toArabicDigits(totalFilteredRecords)}</span></p>
                       </div>
@@ -3567,7 +3735,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                         )}
                       </div>
                       <div className="text-left font-mono text-[10px] space-x-2">
-                        <span>تاريخ الطباعة: {toArabicDigits(new Date().toLocaleDateString('ar-IQ', { year: 'numeric', month: 'numeric', day: 'numeric' }))}</span>
+                        <span>تاريخ الطباعة: {getServerDateFormatted()}</span>
                       </div>
                     </div>
                   )}
@@ -3583,22 +3751,14 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                   {/* KPI Summary Block (Shown only on Page 1) */}
                   {previewPage === 1 && (
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-xs">
-                      <div className="p-2 border border-slate-300 rounded bg-slate-50">
-                        <div className="text-[10px] text-slate-600 font-bold">إجمالي الأصول</div>
-                        <div className="text-sm font-black text-slate-900">{toArabicDigits(filteredUnits.length)}</div>
-                      </div>
-                      <div className="p-2 border border-slate-300 rounded bg-slate-50">
-                        <div className="text-[10px] text-slate-600 font-bold">كشوفات دورية</div>
-                        <div className="text-sm font-black text-slate-900">{toArabicDigits(filteredInspections.length)}</div>
-                      </div>
-                      <div className="p-2 border border-slate-300 rounded bg-slate-50">
-                        <div className="text-[10px] text-slate-600 font-bold">طلبات الصيانة</div>
-                        <div className="text-sm font-black text-slate-900">{toArabicDigits(filteredMaintenance.length)}</div>
-                      </div>
-                      <div className="p-2 border border-slate-300 rounded bg-slate-50">
-                        <div className="text-[10px] text-slate-600 font-bold">منشآت مشطوبة ومجمدة</div>
-                        <div className="text-sm font-black text-rose-800">{toArabicDigits(decommissionedUnits.length)}</div>
-                      </div>
+                      {reportKpis.map((kpi, kIdx) => (
+                        <div key={`modal-kpi-${kIdx}`} className="p-2 border border-slate-300 rounded bg-slate-50">
+                          <div className="text-[10px] text-slate-600 font-bold">{kpi.label}</div>
+                          <div className="text-sm font-black" style={{ color: kpi.color }}>
+                            {kpi.textValue || toArabicDigits(kpi.value ?? 0)}
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   )}
 

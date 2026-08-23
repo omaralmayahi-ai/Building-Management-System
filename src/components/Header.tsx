@@ -14,9 +14,13 @@ import {
   Lock,
   UserCheck,
   QrCode,
+  Clock,
+  Maximize,
+  Minimize,
 } from 'lucide-react';
 
 import { SystemBranding, SystemUser } from '../types';
+import { getServerDateFormatted, getServerTimeFormatted } from '../services/serverTime';
 
 interface HeaderProps {
   onOpenNewAssetModal?: () => void;
@@ -60,6 +64,46 @@ export const Header: React.FC<HeaderProps> = ({
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null);
   const [isSubmittingPassword, setIsSubmittingPassword] = useState(false);
+
+  const [serverDateStr, setServerDateStr] = useState<string>(() => getServerDateFormatted());
+  const [serverTimeStr, setServerTimeStr] = useState<string>(() => getServerTimeFormatted());
+  const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
+
+  // Sync fullscreen status with browser fullscreenchange events
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(Boolean(document.fullscreenElement));
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    };
+  }, []);
+
+  const toggleBrowserFullscreen = async () => {
+    try {
+      if (!document.fullscreenElement) {
+        await document.documentElement.requestFullscreen();
+      } else {
+        if (document.exitFullscreen) {
+          await document.exitFullscreen();
+        }
+      }
+    } catch (err) {
+      console.warn('Fullscreen toggle not permitted or failed:', err);
+    }
+  };
+
+  // Update synchronized server time display every second
+  useEffect(() => {
+    const updateTime = () => {
+      setServerDateStr(getServerDateFormatted());
+      setServerTimeStr(getServerTimeFormatted());
+    };
+    updateTime();
+    const interval = setInterval(updateTime, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -237,47 +281,71 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* Actions & Unified User Profile Trigger */}
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-            {/* Live Real-Time Sync Indicator */}
+            {/* Unified Date & Time Badge + Live Sync Indicator Dot */}
             <div
-              id="live-sync-indicator-badge"
-              className={`hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[11px] font-semibold transition-all ${
-                syncStatus === 'connected'
-                  ? isLight
-                    ? 'bg-emerald-50 text-emerald-700 border-emerald-300 shadow-2xs'
-                    : 'bg-emerald-950/40 text-emerald-300 border-emerald-500/30'
-                  : syncStatus === 'reconnecting'
-                  ? isLight
-                    ? 'bg-amber-50 text-amber-700 border-amber-300 animate-pulse'
-                    : 'bg-amber-950/40 text-amber-300 border-amber-500/30 animate-pulse'
-                  : isLight
-                  ? 'bg-blue-50 text-blue-700 border-blue-300'
-                  : 'bg-blue-950/40 text-blue-300 border-blue-500/30'
+              id="server-time-indicator-badge"
+              className={`hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full border text-[11px] font-mono font-semibold select-none shadow-xs transition-all ${
+                isLight
+                  ? 'bg-amber-50/90 text-amber-950 border-amber-200'
+                  : 'bg-slate-800/90 text-amber-300 border-slate-700'
               }`}
-              title={
+              title={`الوقت والتاريخ المعتمد (YYYY-MM-DD) • حالة المزامنة: ${
                 syncStatus === 'connected'
-                  ? 'المزامنة الفورية اللحظية متصلة بالخادم المركزي'
+                  ? 'متصلة ومزامنة فورية نشطة'
                   : syncStatus === 'reconnecting'
-                  ? 'جاري إعادة الاتصال بالمزامنة الفورية...'
-                  : 'المزامنة الدورية نشطة'
-              }
+                  ? 'جاري إعادة الاتصال...'
+                  : 'غير متصل أو مزامنة دورية'
+              }`}
             >
-              <span
-                className={`w-2 h-2 rounded-full ${
-                  syncStatus === 'connected'
-                    ? 'bg-emerald-500 shadow-xs shadow-emerald-500/50 animate-pulse'
-                    : syncStatus === 'reconnecting'
-                    ? 'bg-amber-500 shadow-xs shadow-amber-500/50'
-                    : 'bg-blue-500'
-                }`}
-              />
-              <span>
-                {syncStatus === 'connected'
-                  ? 'مزامنة فورية نشطة'
-                  : syncStatus === 'reconnecting'
-                  ? 'إعادة اتصال...'
-                  : 'مزامنة تلقائية'}
+              {/* Pulsing Sync Status Dot */}
+              <span className="relative flex h-2.5 w-2.5 shrink-0">
+                <span
+                  className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
+                    syncStatus === 'connected'
+                      ? 'bg-emerald-400'
+                      : syncStatus === 'reconnecting'
+                      ? 'bg-amber-400'
+                      : 'bg-rose-500'
+                  }`}
+                />
+                <span
+                  className={`relative inline-flex rounded-full h-2.5 w-2.5 ${
+                    syncStatus === 'connected'
+                      ? 'bg-emerald-500 shadow-xs shadow-emerald-500/60'
+                      : syncStatus === 'reconnecting'
+                      ? 'bg-amber-500 shadow-xs shadow-amber-500/60'
+                      : 'bg-rose-600 shadow-xs shadow-rose-600/60'
+                  }`}
+                />
               </span>
+
+              <Clock className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+              <span className="font-bold text-slate-700 dark:text-slate-200">{serverDateStr}</span>
+              <span className="opacity-40 text-[10px]">|</span>
+              <span className="text-amber-700 dark:text-amber-400 font-bold">{serverTimeStr}</span>
             </div>
+
+            {/* Browser Fullscreen / Exit Fullscreen Button */}
+            <button
+              type="button"
+              id="browser-fullscreen-toggle-btn"
+              onClick={toggleBrowserFullscreen}
+              className={`p-2 rounded-xl border transition-all cursor-pointer select-none active:scale-95 flex items-center justify-center ${
+                isFullscreen
+                  ? 'bg-amber-500 text-slate-950 border-amber-600 shadow-md ring-2 ring-amber-400/30'
+                  : isLight
+                  ? 'bg-slate-50/90 hover:bg-amber-50 text-slate-700 hover:text-amber-600 border-slate-200 hover:border-amber-300 shadow-2xs'
+                  : 'bg-slate-800/80 hover:bg-slate-800 text-slate-300 hover:text-amber-400 border-slate-700 hover:border-slate-600 shadow-sm'
+              }`}
+              title={isFullscreen ? 'العودة إلى وضع المتصفح الطبيعي' : 'تشغيل النظام بوضع ملء الشاشة الكامل'}
+              aria-label={isFullscreen ? 'العودة إلى وضع المتصفح' : 'ملء الشاشة'}
+            >
+              {isFullscreen ? (
+                <Minimize className="w-4 h-4" />
+              ) : (
+                <Maximize className="w-4 h-4" />
+              )}
+            </button>
 
             {/* Unified User Profile Trigger & Dropdown Menu */}
             {currentUser && (

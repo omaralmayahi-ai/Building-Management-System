@@ -41,7 +41,7 @@ import {
 import { QuickAddOrgEntityModal } from './QuickAddOrgEntityModal';
 import { LocationPickerMap } from './LocationPickerMap';
 import { AttachmentViewerModal } from './AttachmentViewerModal';
-import { toArabicDigits } from '../utils/arabicUtils';
+import { toArabicDigits, getServerDateFormatted, getServerIsoDateOnly } from '../utils/arabicUtils';
 
 export interface BuildingShapeOption {
   id: string;
@@ -569,7 +569,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
           name: file.name,
           size: formattedSize,
           type: fileTypeLabel,
-          uploadDate: toArabicDigits(new Date().toLocaleDateString('ar-IQ')),
+          uploadDate: getServerDateFormatted(),
           url: urlToUse,
         };
         setAttachments((prev) => [...prev, newFileItem]);
@@ -693,7 +693,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
         ? 'video'
         : 'doc',
       sizeMB: att.size ? parseFloat(att.size) || 1.5 : 1.5,
-      uploadDate: att.uploadDate || toArabicDigits(new Date().toLocaleDateString('ar-IQ')),
+      uploadDate: att.uploadDate || getServerDateFormatted(),
       category: 'وثائق ومرفقات رسمية',
       notes: 'ملف مرفق تم رفعه بواسطة المستخدم',
       fileUrl: att.url,
@@ -732,7 +732,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
       equipment: selectedEquipmentList,
       attachments: convertedAttachments,
       attachmentsCount: convertedAttachments.length,
-      lastUpdated: toArabicDigits(new Date().toLocaleDateString('ar-IQ')),
+      lastUpdated: getServerDateFormatted(),
     };
 
     // Generate QR Code data URL

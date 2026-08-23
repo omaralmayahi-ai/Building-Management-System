@@ -37,7 +37,7 @@ import { toArabicDigits } from '../utils/arabicUtils';
 import * as api from '../services/apiClient';
 import { UnitScanChoiceModal } from './UnitScanChoiceModal';
 import { UnitLocationMapModal } from './UnitLocationMapModal';
-import { decodeQrFromImageFile, parseScannedQrText } from '../utils/qrReader';
+import { InAppQrScannerModal } from './InAppQrScannerModal';
 import { compressImageFile } from '../utils/imageCompressor';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
@@ -76,9 +76,6 @@ export const FieldInspectionView: React.FC<FieldInspectionViewProps> = ({
 
   // Scanner Modal State
   const [isScannerOpen, setIsScannerOpen] = useState<boolean>(false);
-  const [cameraActive, setCameraActive] = useState<boolean>(false);
-  const qrScannerRef = useRef<Html5Qrcode | null>(null);
-  const qrFileInputRef = useRef<HTMLInputElement | null>(null);
 
   // Mode: 'overview' | 'new_inspection'
   const [viewMode, setViewMode] = useState<'overview' | 'new_inspection'>('overview');
@@ -116,154 +113,11 @@ export const FieldInspectionView: React.FC<FieldInspectionViewProps> = ({
     return units.find((u) => u.code.toLowerCase() === selectedUnitCode.toLowerCase()) || null;
   }, [units, selectedUnitCode]);
 
-  // Helper to extract unit code from scanned text or URL
-  const parseScannedCode = (decodedText: string): string => {
-    const trimmed = decodedText.trim();
-    try {
-      if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
-        const url = new URL(trimmed);
-        const unitParam =
-          url.searchParams.get('unit') ||
-          url.searchParams.get('code') ||
-          url.searchParams.get('id') ||
-          url.searchParams.get('unitCode');
-        if (unitParam) return unitParam.trim();
-      }
-    } catch {
-      // Not a valid URL, proceed to direct match
-    }
-
-    const patternMatch = trimmed.match(/[A-Za-z0-9]+-[A-Za-z0-9]+-[A-Za-z0-9]+-[A-Za-z0-9]+/);
-    if (patternMatch) return patternMatch[0];
-
-    return trimmed;
-  };
-
-  const handleProcessDecodedText = (decodedText: string) => {
-    const targetCode = parseScannedQrText(decodedText);
-    const matched = units.find(
-      (u) =>
-        u.code.toLowerCase() === targetCode.toLowerCase() ||
-        u.id.toLowerCase() === targetCode.toLowerCase() ||
-        u.name.toLowerCase().includes(targetCode.toLowerCase())
-    );
-
-    if (matched) {
-      setScanError(null);
-      closeScanner();
-      // Present the 3 in-app choices: Location, Inspection, Maintenance
-      setScannedUnitForChoice(matched);
-    } else {
-      setScanError(
-        `تعذر جلب بيانات الوحدة: رمز الوصول السريع الممسوح (${targetCode}) غير متوفر أو غير مسجل في النظام. يرجى التأكد من مسح رمز المنشأة الصحيح أو إضافة الوحدة أولاً.`
-      );
-    }
-  };
-
   // Start QR Camera Scanner
-  const startScanner = async () => {
+  const startScanner = () => {
     setIsScannerOpen(true);
     setScanError(null);
-
-    // Wait for container to be in DOM
-    setTimeout(async () => {
-      try {
-        const scannerElement = document.getElementById('qr-scanner-region');
-        if (!scannerElement) return;
-
-        if (qrScannerRef.current) {
-          try {
-            await qrScannerRef.current.stop();
-            qrScannerRef.current.clear();
-          } catch {
-            // ignore cleanup error
-          }
-        }
-
-        const scanner = new Html5Qrcode('qr-scanner-region');
-        qrScannerRef.current = scanner;
-
-        await scanner.start(
-          { facingMode: 'environment' },
-          {
-            fps: 15,
-            qrbox: { width: 250, height: 250 },
-            aspectRatio: 1.0,
-          },
-          (decodedText) => {
-            handleProcessDecodedText(decodedText);
-          },
-          () => {
-            // Ignore scan frame misses
-          }
-        );
-        setCameraActive(true);
-      } catch (err: any) {
-        console.error('Camera access error:', err);
-        setCameraActive(false);
-        setScanError('تعذر الوصول إلى الكاميرا. يرجى التأكد من صلاحيات الكاميرا أو استخدام خيار رفع صورة الرمز.');
-      }
-    }, 200);
   };
-
-  // Close QR Scanner
-  const closeScanner = async () => {
-    if (qrScannerRef.current) {
-      try {
-        if (qrScannerRef.current.isScanning) {
-          await qrScannerRef.current.stop();
-        }
-        qrScannerRef.current.clear();
-      } catch (err) {
-        console.error('Error stopping scanner:', err);
-      }
-      qrScannerRef.current = null;
-    }
-    setCameraActive(false);
-    setIsScannerOpen(false);
-  };
-
-  // Scan QR from image file
-  const handleQrFileScan = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    try {
-      const decoded = await decodeQrFromImageFile(file);
-      if (decoded) {
-        handleProcessDecodedText(decoded);
-      } else {
-        // Fallback to Html5Qrcode scanFile if jsQR failed
-        let scanner = qrScannerRef.current;
-        if (!scanner) {
-          scanner = new Html5Qrcode('qr-scanner-region');
-          qrScannerRef.current = scanner;
-        }
-        const result = await scanner.scanFile(file, true);
-        if (result) {
-          handleProcessDecodedText(result);
-        } else {
-          setScanError('تعذر قراءة رمز QR من الصورة المحددة. يرجى اختيار صورة واضحة ومباشرة للرمز.');
-        }
-      }
-    } catch (err: any) {
-      console.error('Failed to read QR image:', err);
-      setScanError('تعذر قراءة رمز QR من الصورة المحددة. يرجى اختيار صورة واضحة ومباشرة للرمز.');
-    }
-    e.target.value = '';
-  };
-
-  // Cleanup scanner on unmount
-  useEffect(() => {
-    return () => {
-      if (qrScannerRef.current) {
-        if (qrScannerRef.current.isScanning) {
-          qrScannerRef.current.stop().catch(() => {});
-        }
-        qrScannerRef.current.clear();
-      }
-    };
-  }, []);
 
   // Multi-file selection with auto-compression
   const handleFilesSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -921,68 +775,15 @@ export const FieldInspectionView: React.FC<FieldInspectionViewProps> = ({
 
       {/* QR SCANNER MODAL */}
       {isScannerOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 animate-fadeIn">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-4 sm:p-5 w-full max-w-md space-y-4 shadow-2xl flex flex-col">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <div className="flex items-center gap-2">
-                <QrCode className="w-5 h-5 text-amber-500" />
-                <h3 className="font-bold text-sm sm:text-base text-white">مسح رمز QR للوحدة</h3>
-              </div>
-              <button
-                type="button"
-                onClick={closeScanner}
-                className="p-1.5 rounded-xl bg-slate-800 text-slate-400 hover:text-white transition cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {scanError && (
-              <div className="p-3 rounded-xl bg-rose-500/20 border border-rose-500/40 text-rose-400 text-xs font-bold flex items-center gap-2">
-                <AlertTriangle className="w-4 h-4 shrink-0" />
-                <span>{scanError}</span>
-              </div>
-            )}
-
-            {/* Html5Qrcode reader container - Square */}
-            <div className="relative w-full max-w-[320px] sm:max-w-[340px] aspect-square mx-auto rounded-3xl overflow-hidden bg-black border-2 border-amber-500/40 shadow-2xl flex flex-col items-center justify-center">
-              <div id="qr-scanner-region" className="w-full h-full" />
-              {!cameraActive && (
-                <div className="text-center p-4 space-y-2">
-                  <RefreshCw className="w-8 h-8 text-amber-500 animate-spin mx-auto" />
-                  <p className="text-xs text-slate-400">جاري تشغيل الكاميرا...</p>
-                </div>
-              )}
-            </div>
-
-            {/* Fallback File Scanner */}
-            <div className="pt-2 border-t border-slate-800 flex items-center justify-between gap-2">
-              <input
-                type="file"
-                accept="image/*"
-                ref={qrFileInputRef}
-                onChange={handleQrFileScan}
-                className="hidden"
-              />
-              <button
-                type="button"
-                onClick={() => qrFileInputRef.current?.click()}
-                className="flex-1 py-2.5 px-3 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition cursor-pointer border border-slate-700"
-              >
-                <Upload className="w-4 h-4 text-amber-500" />
-                <span>رفع صورة رمز QR من الجهاز</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={closeScanner}
-                className="py-2.5 px-4 bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 border border-rose-500/40 font-bold rounded-xl text-xs transition cursor-pointer"
-              >
-                إغلاق
-              </button>
-            </div>
-          </div>
-        </div>
+        <InAppQrScannerModal
+          units={units}
+          theme={theme}
+          onClose={() => setIsScannerOpen(false)}
+          onUnitDetected={(unit) => {
+            setIsScannerOpen(false);
+            setScannedUnitForChoice(unit);
+          }}
+        />
       )}
 
       {/* FULL PREVIEW MODAL FOR IMAGES / ATTACHMENTS */}

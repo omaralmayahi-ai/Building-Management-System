@@ -1,6 +1,6 @@
 import React from 'react';
 import { UnitAsset, SystemBranding } from '../types';
-import { toArabicDigits } from '../utils/arabicUtils';
+import { toArabicDigits, getServerDateFormatted } from '../utils/arabicUtils';
 import { Printer, ShieldCheck } from 'lucide-react';
 
 interface ExportDossierModalProps {
@@ -62,7 +62,7 @@ export const ExportDossierModal: React.FC<ExportDossierModalProps> = ({ unit, br
             <h2 className="text-sm font-bold text-amber-700">
               {branding?.systemName || 'هيئة التفتيش والسلامة الهندسية - الاضبارة الفنية للأصول'}
             </h2>
-            <div className="text-[10px] text-slate-500 font-mono mt-1">تاريخ الإصدار: {toArabicDigits(new Date().toLocaleDateString('ar-IQ'))}</div>
+            <div className="text-[10px] text-slate-500 font-mono mt-1">تاريخ الإصدار: {getServerDateFormatted()}</div>
           </div>
 
           {/* Key Identifiers Grid */}

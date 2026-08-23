@@ -64,7 +64,7 @@ import {
 } from '../types';
 import { OrgStructureBuilder } from './OrgStructureBuilder';
 import { DatabaseBackupManager } from './DatabaseBackupManager';
-import { toArabicDigits } from '../utils/arabicUtils';
+import { toArabicDigits, getServerDateTimeFormatted, getServerTimestamp } from '../utils/arabicUtils';
 
 interface SettingsViewProps {
   units: UnitAsset[];
@@ -863,9 +863,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     if (!newLogAction) return;
 
     const newLog: AuditLogItem = {
-      id: `LOG-${Date.now()}`,
+      id: `LOG-${getServerTimestamp()}`,
       unitCode: 'النظام العام',
-      timestamp: toArabicDigits(new Date().toLocaleString('ar-IQ')),
+      timestamp: getServerDateTimeFormatted(),
       action: newLogAction,
       user: newLogUser,
       userInitials: newLogUser.split(' ').map((n) => n[0]).join('').slice(0, 2) || 'SYS',

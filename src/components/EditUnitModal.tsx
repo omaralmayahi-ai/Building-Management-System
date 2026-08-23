@@ -25,7 +25,7 @@ import {
 } from 'lucide-react';
 import { UnitAsset, ConditionGrade, UnitType, Room, EquipmentItem, ReferenceUnitType, UnitAttachment, OrgEntity } from '../types';
 import { BUILDING_SHAPE_OPTIONS, getShapeFactor, calculateUnitArea } from './NewUnitWizard';
-import { toArabicDigits } from '../utils/arabicUtils';
+import { toArabicDigits, getServerDateFormatted, getServerIsoDateOnly } from '../utils/arabicUtils';
 import { safeSetItem } from '../utils/storageUtils';
 import { LocationPickerMap } from './LocationPickerMap';
 import { AttachmentViewerModal } from './AttachmentViewerModal';
@@ -224,9 +224,9 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
             name: file.name,
             type: docType,
             sizeMB: Number((file.size / (1024 * 1024)).toFixed(2)) || 1.5,
-            uploadDate: new Date().toISOString().split('T')[0],
+            uploadDate: getServerIsoDateOnly(),
             category: 'مخططات هندسية',
-            notes: `ملف مرفق تم رفعه بواسطة المستخدم بتاريخ ${new Date().toLocaleDateString('ar-IQ')}`,
+            notes: `ملف مرفق تم رفعه بواسطة المستخدم بتاريخ ${getServerDateFormatted()}`,
             fileUrl: dataUrl,
             url: dataUrl,
           });
