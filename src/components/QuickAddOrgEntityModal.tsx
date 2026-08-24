@@ -96,14 +96,14 @@ export const QuickAddOrgEntityModal: React.FC<QuickAddOrgEntityModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-[110]">
+    <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 z-[110] overflow-y-auto">
       <div
-        className={`max-w-lg w-full p-6 rounded-2xl border shadow-2xl transition-all ${
+        className={`max-w-lg w-full p-4 sm:p-6 rounded-2xl border shadow-2xl transition-all max-h-[92vh] flex flex-col ${
           isLight ? 'bg-white border-slate-200 text-slate-900' : 'bg-slate-900 border-slate-800 text-slate-100'
         }`}
       >
         {/* Header */}
-        <div className={`flex items-center justify-between pb-3 border-b mb-4 ${
+        <div className={`flex items-center justify-between pb-3 border-b mb-3 shrink-0 ${
           isLight ? 'border-slate-200' : 'border-slate-800/30'
         }`}>
           <div className="flex items-center gap-2.5">
@@ -129,13 +129,13 @@ export const QuickAddOrgEntityModal: React.FC<QuickAddOrgEntityModalProps> = ({
         </div>
 
         {errorMsg && (
-          <div className="mb-4 p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs flex items-center gap-2 font-bold">
+          <div className="mb-3 p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs flex items-center gap-2 font-bold shrink-0">
             <AlertCircle className="w-4 h-4 shrink-0" />
             <span>{errorMsg}</span>
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+        <form onSubmit={handleSubmit} className="space-y-4 text-xs overflow-y-auto flex-1 pr-1">
           {/* Entity Name */}
           <div>
             <label className={`block font-bold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>

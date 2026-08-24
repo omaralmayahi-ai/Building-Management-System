@@ -107,7 +107,7 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
         }
 
         // Compress image to ensure it fits safely in Firestore & Storage without failure
-        const compressed = await compressImageFile(file, 1280, 1280, 0.78);
+        const compressed = await compressImageFile(file, 1024, 1024, 0.72);
         const newAtt: ReportAttachment = {
           id: `att-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
           name: file.name,

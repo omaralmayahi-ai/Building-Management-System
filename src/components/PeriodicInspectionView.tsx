@@ -43,6 +43,7 @@ import {
   RefreshCw,
 } from 'lucide-react';
 import { AttachmentViewerModal } from './AttachmentViewerModal';
+import { compressImageFile } from '../utils/imageCompressor';
 import { INITIAL_GOVERNORATES, INITIAL_OILFIELDS, INITIAL_USERS } from '../data/mockData';
 import {
   PeriodicInspectionSchedule,
@@ -446,12 +447,14 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
   const [autoScheduleNext, setAutoScheduleNext] = useState(true);
   const [reportFile, setReportFile] = useState<File | null>(null);
   const [reportFileName, setReportFileName] = useState<string>('');
+  const [reportFileDataUrl, setReportFileDataUrl] = useState<string>('');
+  const [reportCompressStatus, setReportCompressStatus] = useState<string>('');
   const [previewAttachment, setPreviewAttachment] = useState<UnitAttachment | null>(null);
   const reportFileInputRef = React.useRef<HTMLInputElement | null>(null);
 
   const ALLOWED_REPORT_EXTENSIONS = ['png', 'jpg', 'jpeg', 'webp', 'gif', 'pdf', 'doc', 'docx', 'xls', 'xlsx'];
 
-  const handleReportFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleReportFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const ext = file.name.split('.').pop()?.toLowerCase() || '';
@@ -460,19 +463,45 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
         if (reportFileInputRef.current) reportFileInputRef.current.value = '';
         return;
       }
-      if (file.size > 5 * 1024 * 1024) {
-        alert('حجم الملف كبير جداً (الحد الأقصى 5 ميجابايت)، الرجاء ضغط الصورة أو اختيار ملف أصغر.');
+      if (file.size > 15 * 1024 * 1024) {
+        alert('حجم الملف كبير جداً (الحد الأقصى 15 ميجابايت)، الرجاء اختيار ملف أصغر.');
         if (reportFileInputRef.current) reportFileInputRef.current.value = '';
         return;
       }
+
       setReportFile(file);
       setReportFileName(file.name);
+
+      // If image, automatically compress and generate permanent dataUrl
+      if (file.type.startsWith('image/')) {
+        try {
+          const compressed = await compressImageFile(file, 1024, 1024, 0.72);
+          setReportFileDataUrl(compressed.dataUrl);
+          if (compressed.savedPercent && compressed.savedPercent > 0) {
+            setReportCompressStatus(`تم ضغط الصورة بنسبة ${compressed.savedPercent}% (${compressed.formattedCompressedSize})`);
+          } else {
+            setReportCompressStatus('تمت معالجة الصورة بنجاح');
+          }
+        } catch (err) {
+          console.warn('Image compression note:', err);
+          const reader = new FileReader();
+          reader.onload = () => setReportFileDataUrl(reader.result as string);
+          reader.readAsDataURL(file);
+        }
+      } else {
+        const reader = new FileReader();
+        reader.onload = () => setReportFileDataUrl(reader.result as string);
+        reader.readAsDataURL(file);
+        setReportCompressStatus('');
+      }
     }
   };
 
   const handleRemoveReportFile = () => {
     setReportFile(null);
     setReportFileName('');
+    setReportFileDataUrl('');
+    setReportCompressStatus('');
     if (reportFileInputRef.current) {
       reportFileInputRef.current.value = '';
     }
@@ -481,7 +510,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
   const handlePreviewReportFile = () => {
     if (!reportFileName) return;
     const ext = reportFileName.split('.').pop()?.toLowerCase() || 'pdf';
-    const url = reportFile ? URL.createObjectURL(reportFile) : (showCompleteModal?.reportFileUrl || '#');
+    const url = reportFileDataUrl || (reportFile ? URL.createObjectURL(reportFile) : (showCompleteModal?.reportFileUrl || '#'));
     setPreviewAttachment({
       id: 'report-preview-' + Date.now(),
       name: reportFileName,
@@ -491,6 +520,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
       size: reportFile ? `${(reportFile.size / 1024).toFixed(1)} KB` : '1.2 MB',
     });
   };
+
 
   // Trigger Maintenance Request from Complete Modal
   const [createMaintenance, setCreateMaintenance] = useState(false);
@@ -596,7 +626,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
       autoScheduleNext,
       performedByName: finalPerformedBy,
       reportFileName: reportFileName || (reportFile ? reportFile.name : undefined),
-      reportFileUrl: reportFile ? URL.createObjectURL(reportFile) : undefined,
+      reportFileUrl: reportFileDataUrl || (reportFile ? URL.createObjectURL(reportFile) : undefined),
       createMaintenance,
       maintenanceIssue: maintIssue,
       maintenancePriority: maintPriority,
@@ -610,6 +640,8 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
     setCompletePerformedByName('');
     setReportFile(null);
     setReportFileName('');
+    setReportFileDataUrl('');
+    setReportCompressStatus('');
     setCreateMaintenance(false);
     setMaintIssue('');
   };

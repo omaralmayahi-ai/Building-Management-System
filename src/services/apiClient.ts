@@ -9,7 +9,12 @@ import {
   SystemBranding,
 } from '../types';
 import { safeSetItem, safeParse } from '../utils/storageUtils';
+import { sanitizeAndCompressAttachments } from '../utils/imageCompressor';
 import * as firestoreClient from './firebaseClient';
+import { syncQueue, SyncQueueStatus } from './syncQueue';
+
+export { syncQueue, type SyncQueueStatus };
+
 
 const BASE_API_URL = '/api';
 
@@ -181,7 +186,11 @@ export async function getMaintenanceRequests(): Promise<MaintenanceRequest[]> {
 export async function saveMaintenanceRequests(requests: MaintenanceRequest[]): Promise<boolean> {
   safeSetItem('app_maintenance_requests', requests);
   try {
-    await firestoreClient.bulkSaveMaintenanceToFirestore(requests);
+    // Compress attachments in bulk if any
+    const compressedRequests = await Promise.all(
+      requests.map((r) => sanitizeAndCompressAttachments(r))
+    );
+    await firestoreClient.bulkSaveMaintenanceToFirestore(compressedRequests);
   } catch (err) {
     console.warn('Firestore bulkSaveMaintenance error:', err);
   }
@@ -193,40 +202,33 @@ export async function saveMaintenanceRequests(requests: MaintenanceRequest[]): P
 }
 
 export async function addMaintenanceRequest(req: MaintenanceRequest): Promise<MaintenanceRequest> {
-  try {
-    await firestoreClient.saveMaintenanceToFirestore(req);
-  } catch (err) {
-    console.warn('Firestore saveMaintenance error:', err);
-  }
-  fetchJson<{ request: MaintenanceRequest }>(`${BASE_API_URL}/maintenance`, {
-    method: 'POST',
-    body: JSON.stringify(req),
-  }).catch(() => {});
-  return req;
+  // 1. Ensure any attached photo is safely compressed
+  const compressed = await sanitizeAndCompressAttachments(req);
+
+  // 2. Enqueue in Offline Sync & Retry Queue (persisted locally and auto-pushed)
+  syncQueue.enqueue('create_maintenance', compressed.id, compressed).catch((err) => {
+    console.warn('Sync queue error on addMaintenanceRequest:', err);
+  });
+
+  return compressed;
 }
 
 export async function updateMaintenanceRequest(req: MaintenanceRequest): Promise<MaintenanceRequest> {
-  try {
-    await firestoreClient.saveMaintenanceToFirestore(req);
-  } catch (err) {
-    console.warn('Firestore updateMaintenance error:', err);
-  }
-  fetchJson<{ request: MaintenanceRequest }>(`${BASE_API_URL}/maintenance/${encodeURIComponent(req.id)}`, {
-    method: 'PUT',
-    body: JSON.stringify(req),
-  }).catch(() => {});
-  return req;
+  // 1. Ensure any attached photo is safely compressed
+  const compressed = await sanitizeAndCompressAttachments(req);
+
+  // 2. Enqueue in Offline Sync & Retry Queue
+  syncQueue.enqueue('update_maintenance', compressed.id, compressed).catch((err) => {
+    console.warn('Sync queue error on updateMaintenanceRequest:', err);
+  });
+
+  return compressed;
 }
 
 export async function deleteMaintenanceRequest(id: string): Promise<boolean> {
-  try {
-    await firestoreClient.deleteMaintenanceFromFirestore(id);
-  } catch (err) {
-    console.warn('Firestore deleteMaintenance error:', err);
-  }
-  fetchJson<{ success: boolean }>(`${BASE_API_URL}/maintenance/${encodeURIComponent(id)}`, {
-    method: 'DELETE',
-  }).catch(() => {});
+  syncQueue.enqueue('delete_maintenance', id, null).catch((err) => {
+    console.warn('Sync queue error on deleteMaintenanceRequest:', err);
+  });
   return true;
 }
 
@@ -331,7 +333,10 @@ export async function getPeriodicInspections(): Promise<PeriodicInspectionSchedu
 export async function savePeriodicInspections(inspections: PeriodicInspectionSchedule[]): Promise<boolean> {
   safeSetItem('app_periodic_inspections', inspections);
   try {
-    await firestoreClient.bulkSaveInspectionsToFirestore(inspections);
+    const compressedInspections = await Promise.all(
+      inspections.map((i) => sanitizeAndCompressAttachments(i))
+    );
+    await firestoreClient.bulkSaveInspectionsToFirestore(compressedInspections);
   } catch (err) {
     console.warn('Firestore bulkSaveInspections error:', err);
   }
@@ -343,40 +348,33 @@ export async function savePeriodicInspections(inspections: PeriodicInspectionSch
 }
 
 export async function addPeriodicInspection(item: PeriodicInspectionSchedule): Promise<PeriodicInspectionSchedule> {
-  try {
-    await firestoreClient.saveInspectionToFirestore(item);
-  } catch (err) {
-    console.warn('Firestore saveInspection error:', err);
-  }
-  fetchJson<{ inspection: PeriodicInspectionSchedule }>(`${BASE_API_URL}/inspections`, {
-    method: 'POST',
-    body: JSON.stringify(item),
-  }).catch(() => {});
-  return item;
+  // 1. Ensure any attached report/images are compressed
+  const compressed = await sanitizeAndCompressAttachments(item);
+
+  // 2. Enqueue in Offline Sync & Retry Queue
+  syncQueue.enqueue('create_inspection', compressed.id, compressed).catch((err) => {
+    console.warn('Sync queue error on addPeriodicInspection:', err);
+  });
+
+  return compressed;
 }
 
 export async function updatePeriodicInspection(item: PeriodicInspectionSchedule): Promise<PeriodicInspectionSchedule> {
-  try {
-    await firestoreClient.saveInspectionToFirestore(item);
-  } catch (err) {
-    console.warn('Firestore updateInspection error:', err);
-  }
-  fetchJson<{ inspection: PeriodicInspectionSchedule }>(`${BASE_API_URL}/inspections/${encodeURIComponent(item.id)}`, {
-    method: 'PUT',
-    body: JSON.stringify(item),
-  }).catch(() => {});
-  return item;
+  // 1. Ensure any attached report/images are compressed
+  const compressed = await sanitizeAndCompressAttachments(item);
+
+  // 2. Enqueue in Offline Sync & Retry Queue
+  syncQueue.enqueue('update_inspection', compressed.id, compressed).catch((err) => {
+    console.warn('Sync queue error on updatePeriodicInspection:', err);
+  });
+
+  return compressed;
 }
 
 export async function deletePeriodicInspection(id: string): Promise<boolean> {
-  try {
-    await firestoreClient.deleteInspectionFromFirestore(id);
-  } catch (err) {
-    console.warn('Firestore deleteInspection error:', err);
-  }
-  fetchJson<{ success: boolean }>(`${BASE_API_URL}/inspections/${encodeURIComponent(id)}`, {
-    method: 'DELETE',
-  }).catch(() => {});
+  syncQueue.enqueue('delete_inspection', id, null).catch((err) => {
+    console.warn('Sync queue error on deletePeriodicInspection:', err);
+  });
   return true;
 }
 

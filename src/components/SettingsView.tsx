@@ -3760,18 +3760,18 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
       {/* ==================== MODAL: Universal Create / Edit ==================== */}
       {showModal && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-4 text-xs shadow-2xl">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-4 sm:p-6 space-y-4 text-xs shadow-2xl max-h-[92vh] flex flex-col">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-800 shrink-0">
               <h3 className="font-bold text-slate-100 text-sm">
                 {editingItem ? 'تعديل بيانات العنصر' : 'إضافة عنصر جديد'}
               </h3>
-              <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-white cursor-pointer">
+              <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-white cursor-pointer p-1 rounded-lg hover:bg-slate-800">
                 ✕
               </button>
             </div>
 
-            <form onSubmit={handleSubmitForm} className="space-y-3">
+            <form onSubmit={handleSubmitForm} className="space-y-3 overflow-y-auto flex-1 pr-1">
               {/* Governorates Inputs */}
               {activeTab === 'governorates' && (
                 <>
@@ -4090,16 +4090,16 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
       {/* ==================== MODAL: Confirm Delete ==================== */}
       {deleteConfirm && (
-        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
           <div
-            className={`rounded-2xl max-w-sm w-full p-6 space-y-4 text-center shadow-2xl border ${
+            className={`rounded-2xl max-w-sm w-full p-4 sm:p-6 space-y-4 text-center shadow-2xl border max-h-[90vh] flex flex-col overflow-y-auto ${
               isLight
                 ? 'bg-white border-red-300 text-slate-900 shadow-slate-900/20'
                 : 'bg-slate-900 border-red-500/40 text-slate-100'
             }`}
           >
             <div
-              className={`w-12 h-12 rounded-2xl flex items-center justify-center mx-auto border ${
+              className={`w-12 h-12 rounded-2xl flex items-center justify-center mx-auto border shrink-0 ${
                 isLight
                   ? 'bg-red-100 text-red-600 border-red-200'
                   : 'bg-red-500/20 text-red-400 border-red-500/30'
@@ -4137,10 +4137,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
       {/* ==================== MODAL: Confirm Factory Reset ==================== */}
       {showResetModal && (
-        <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-red-500/50 rounded-3xl max-w-md w-full p-6 space-y-4 text-center shadow-2xl">
-            <div className="w-14 h-14 bg-red-500/20 text-red-400 border border-red-500/40 rounded-2xl flex items-center justify-center mx-auto">
-              <RotateCcw className="w-8 h-8" />
+        <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+          <div className="bg-slate-900 border border-red-500/50 rounded-3xl max-w-md w-full p-4 sm:p-6 space-y-4 text-center shadow-2xl max-h-[90vh] flex flex-col overflow-y-auto">
+            <div className="w-12 h-12 sm:w-14 sm:h-14 bg-red-500/20 text-red-400 border border-red-500/40 rounded-2xl flex items-center justify-center mx-auto shrink-0">
+              <RotateCcw className="w-7 h-7 sm:w-8 sm:h-8" />
             </div>
             <h3 className="font-black text-slate-100 text-base">استعادة ضبط المصنع الشاملة</h3>
             <p className="text-slate-300 text-xs leading-relaxed">
@@ -4171,10 +4171,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
       {/* ==================== MODAL: Confirm Custom Granular Reset ==================== */}
       {customResetModal && (
-        <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-red-500/50 rounded-3xl max-w-md w-full p-6 space-y-4 text-center shadow-2xl">
-            <div className="w-14 h-14 bg-red-500/20 text-red-400 border border-red-500/40 rounded-2xl flex items-center justify-center mx-auto">
-              <Trash2 className="w-7 h-7" />
+        <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+          <div className="bg-slate-900 border border-red-500/50 rounded-3xl max-w-md w-full p-4 sm:p-6 space-y-4 text-center shadow-2xl max-h-[90vh] flex flex-col overflow-y-auto">
+            <div className="w-12 h-12 sm:w-14 sm:h-14 bg-red-500/20 text-red-400 border border-red-500/40 rounded-2xl flex items-center justify-center mx-auto shrink-0">
+              <Trash2 className="w-6 h-6 sm:w-7 sm:h-7" />
             </div>
             <h3 className="font-black text-slate-100 text-base">{customResetModal.title}</h3>
             <p className="text-slate-300 text-xs leading-relaxed">{customResetModal.description}</p>
@@ -4206,11 +4206,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
       {/* ==================== MODAL: Add Manual Audit Log ==================== */}
       {showAddLogModal && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-4 text-xs shadow-2xl">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-4 sm:p-6 space-y-4 text-xs shadow-2xl max-h-[90vh] flex flex-col overflow-y-auto">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-800 shrink-0">
               <h3 className="font-bold text-slate-100 text-sm">تسجيل حدث / نشاط إداري يدوي</h3>
-              <button onClick={() => setShowAddLogModal(false)} className="text-slate-400 hover:text-white cursor-pointer">
+              <button onClick={() => setShowAddLogModal(false)} className="text-slate-400 hover:text-white cursor-pointer p-1 rounded-lg hover:bg-slate-800">
                 ✕
               </button>
             </div>

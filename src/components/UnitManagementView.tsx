@@ -1781,21 +1781,21 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
 
       {/* Decommission / Freeze Unit Modal */}
       {selectedUnit && showDecommissionModal && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className={`border rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-5 transition-colors ${
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+          <div className={`border rounded-2xl max-w-lg w-full p-4 sm:p-6 shadow-2xl space-y-4 max-h-[92vh] flex flex-col overflow-y-auto transition-colors ${
             isLight ? 'bg-white border-slate-200 text-slate-900' : 'bg-slate-900 border-slate-800 text-white'
           }`}>
-            <div className="flex items-center justify-between border-b pb-3 border-amber-500/30">
+            <div className="flex items-center justify-between border-b pb-3 border-amber-500/30 shrink-0">
               <div className="flex items-center gap-2">
-                <Archive className="w-6 h-6 text-amber-500" />
-                <h3 className="font-black text-base">شطب وتجميد المنشأة ({selectedUnit.code})</h3>
+                <Archive className="w-5 h-5 sm:w-6 sm:h-6 text-amber-500" />
+                <h3 className="font-black text-sm sm:text-base">شطب وتجميد المنشأة ({selectedUnit.code})</h3>
               </div>
-              <button onClick={() => setShowDecommissionModal(false)} className="text-slate-400 hover:text-white p-1 cursor-pointer">
+              <button onClick={() => setShowDecommissionModal(false)} className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 cursor-pointer">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="space-y-3 text-xs leading-relaxed">
+            <div className="space-y-3 text-xs leading-relaxed flex-1 overflow-y-auto pr-1">
               <p className={isLight ? 'text-slate-600' : 'text-slate-300'}>
                 <strong>الشطب والتجميد:</strong> سيتم نقل المنشأة <strong>"{selectedUnit.name}"</strong> إلى حالة <strong>"مشطوبة ومجمدة"</strong> مع الاحتفاظ بكافة بياناتها، غرفها، ومعداتها في النظام لتبقى متاحة في تقارير الوحدات المشطوبة.
               </p>
@@ -1814,7 +1814,7 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-800 text-xs">
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-800 text-xs shrink-0">
               <button
                 onClick={() => setShowDecommissionModal(false)}
                 className={`px-4 py-2 rounded-xl font-bold border ${
@@ -1830,7 +1830,7 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
                   }
                   setShowDecommissionModal(false);
                 }}
-                className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-5 py-2 rounded-xl shadow-lg transition cursor-pointer flex items-center gap-1.5"
+                className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-4 sm:px-5 py-2 rounded-xl shadow-lg transition cursor-pointer flex items-center gap-1.5"
               >
                 <Archive className="w-4 h-4" />
                 <span>تأكيد شطب وتجميد المنشأة</span>
@@ -1842,8 +1842,8 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
 
       {/* Delete Unit Permanent Confirmation Modal */}
       {selectedUnit && showDeleteModal && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className={`border rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-5 transition-colors ${
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+          <div className={`border rounded-2xl max-w-lg w-full p-4 sm:p-6 shadow-2xl space-y-4 max-h-[92vh] flex flex-col overflow-y-auto transition-colors ${
             isLight ? 'bg-white border-slate-200 text-slate-900' : 'bg-slate-900 border-slate-800 text-white'
           }`}>
             <div className="flex items-center justify-between border-b pb-3 border-rose-500/30">

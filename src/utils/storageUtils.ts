@@ -10,10 +10,11 @@ export function sanitizeForStorage<T>(obj: T, parentKey?: string): T {
     if (parentKey === 'logoUrl') {
       return obj;
     }
-    if (obj.startsWith('data:') && obj.length > 10000) {
+    // Allow compressed images/attachments up to ~350KB per string (approx 450,000 base64 chars)
+    if (obj.startsWith('data:') && obj.length > 450000) {
       return '' as unknown as T;
     }
-    if (obj.length > 100000) {
+    if (obj.length > 500000) {
       return '' as unknown as T;
     }
     return obj;
@@ -31,9 +32,9 @@ export function sanitizeForStorage<T>(obj: T, parentKey?: string): T {
         cleaned[key] = val;
       } else if (
         typeof val === 'string' &&
-        (key === 'fileUrl' || key === 'url' || key === 'reportFileUrl') &&
+        (key === 'fileUrl' || key === 'url' || key === 'reportFileUrl' || key === 'attachmentUrl') &&
         val.startsWith('data:') &&
-        val.length > 10000
+        val.length > 450000
       ) {
         cleaned[key] = undefined;
       } else {
@@ -52,9 +53,9 @@ export function safeSetItem(key: string, data: any): void {
     const serialized = typeof sanitized === 'string' ? sanitized : JSON.stringify(sanitized);
     localStorage.setItem(key, serialized);
   } catch (err) {
-    console.warn(`localStorage quota exceeded for key "${key}". Skipping persistence for heavy items.`, err);
+    console.warn(`localStorage quota exceeded for key "${key}". Applying resilient fallback storage.`, err);
     try {
-      // Aggressive fallback: strip heavy base64 data except logoUrl
+      // Aggressive fallback: strip heavy base64 data except logoUrl if quota is reached
       if (typeof data === 'object' && data !== null) {
         const stripBase64 = (item: any): any => {
           if (!item || typeof item !== 'object') return item;
@@ -62,7 +63,7 @@ export function safeSetItem(key: string, data: any): void {
           const copy: any = {};
           for (const k of Object.keys(item)) {
             const v = item[k];
-            if (typeof v === 'string' && k !== 'logoUrl' && (v.startsWith('data:') || v.length > 5000)) {
+            if (typeof v === 'string' && k !== 'logoUrl' && (v.startsWith('data:') && v.length > 50000)) {
               copy[k] = undefined;
             } else {
               copy[k] = stripBase64(v);

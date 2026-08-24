@@ -129,7 +129,7 @@ export const FieldInspectionView: React.FC<FieldInspectionViewProps> = ({
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       try {
-        const compressed = await compressImageFile(file, 1400, 1400, 0.8);
+        const compressed = await compressImageFile(file, 1024, 1024, 0.72);
         const newAtt: ReportAttachment = {
           id: `att-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
           name: file.name,
