@@ -700,17 +700,42 @@ export function App() {
     });
   };
 
-  const handleDeleteOrgEntity = (id: string) => {
+  const handleDeleteOrgEntity = async (id: string, deleteChildren: boolean = false) => {
     const entity = orgEntities.find((e) => e.id === id);
-    setOrgEntities((prev) => {
-      const updated = prev.filter((e) => e.id !== id);
-      safeSetItem('app_ref_org_entities', updated);
-      return updated;
-    });
-    api.deleteOrgEntity(id).catch((err) => {
-      console.error('API deleteOrgEntity error:', err);
-      showToast(err.message || 'فشل حذف التشكيل التنظيمي من قاعدة البيانات', 'error', 'خطأ في حذف البيانات');
-    });
+    const parentId = entity?.parentId || null;
+
+    let updated: OrgEntity[] = [];
+    if (deleteChildren) {
+      // Cascade delete: remove entity and any descendant
+      const toDeleteIds = new Set<string>([id]);
+      let changed = true;
+      while (changed) {
+        changed = false;
+        orgEntities.forEach((e) => {
+          if (e.parentId && toDeleteIds.has(e.parentId) && !toDeleteIds.has(e.id)) {
+            toDeleteIds.add(e.id);
+            changed = true;
+          }
+        });
+      }
+      updated = orgEntities.filter((e) => !toDeleteIds.has(e.id));
+    } else {
+      // Reparent children to the grandparent
+      updated = orgEntities
+        .filter((e) => e.id !== id)
+        .map((e) => (e.parentId === id ? { ...e, parentId } : e));
+    }
+
+    setOrgEntities(updated);
+    safeSetItem('app_ref_org_entities', updated);
+
+    try {
+      await api.saveOrgEntities(updated);
+      showToast('تم حذف التشكيل التنظيمي وحفظ التحديثات نهائياً بنجاح', 'success', 'نجاح الحذف');
+    } catch (err: any) {
+      console.error('API saveOrgEntities error after delete:', err);
+    }
+
     if (entity) {
       appendAuditLog({
         id: `LOG-${getServerTimestamp()}`,
@@ -720,9 +745,31 @@ export function App() {
         userInitials: currentUser?.name ? currentUser.name.split(' ').map((w) => w[0]).join('').slice(0, 2) : '—',
         affectedField: 'الهيكل التنظيمي',
         previousValue: entity.nameAr,
-        newValue: 'تم الحذف',
+        newValue: 'تم الحذف نهائياً',
       });
     }
+  };
+
+  const handleBulkSaveOrgEntities = async (entities: OrgEntity[]) => {
+    setOrgEntities(entities);
+    safeSetItem('app_ref_org_entities', entities);
+    try {
+      await api.saveOrgEntities(entities);
+      showToast(`تم استيراد وحفظ ${entities.length} تشكيل بنجاح في قاعدة البيانات`, 'success', 'نجاح الاستيراد');
+    } catch (err: any) {
+      console.error('API saveOrgEntities error:', err);
+      showToast(err.message || 'فشل حفظ الهيكل التنظيمي في قاعدة البيانات المركزية', 'error', 'خطأ في الحفظ');
+    }
+    appendAuditLog({
+      id: `LOG-${getServerTimestamp()}`,
+      timestamp: getServerDateTimeFormatted(),
+      action: 'استيراد/تحديث شامل للهيكل التنظيمي',
+      user: currentUser?.name || 'غير معروف',
+      userInitials: currentUser?.name ? currentUser.name.split(' ').map((w) => w[0]).join('').slice(0, 2) : '—',
+      affectedField: 'الهيكل التنظيمي',
+      previousValue: 'هيكل سابق',
+      newValue: `تم تحديث ${entities.length} تشكيل بالكامل`,
+    });
   };
 
   const handleToggleOrgEntityStatus = (id: string) => {
@@ -1056,73 +1103,204 @@ export function App() {
   const handleClearUnits = () => {
     setUnits([]);
     safeSetItem('app_units', []);
+    api.triggerServerResetModule('units', 'clear');
   };
   const handleResetUnitsToDefault = () => {
     setUnits(INITIAL_UNITS);
     safeSetItem('app_units', INITIAL_UNITS);
+    api.saveUnits(INITIAL_UNITS);
+    api.triggerServerResetModule('units', 'default');
   };
 
-  const handleClearOilfields = () => setOilfields([]);
-  const handleResetOilfieldsToDefault = () => setOilfields(INITIAL_OILFIELDS);
+  const handleClearOilfields = () => {
+    setOilfields([]);
+    safeSetItem('app_ref_oilfields', []);
+  };
+  const handleResetOilfieldsToDefault = () => {
+    setOilfields(INITIAL_OILFIELDS);
+    safeSetItem('app_ref_oilfields', INITIAL_OILFIELDS);
+  };
 
-  const handleClearUnitTypes = () => setUnitTypes([]);
-  const handleResetUnitTypesToDefault = () => setUnitTypes(INITIAL_REFERENCE_UNIT_TYPES);
+  const handleClearUnitTypes = () => {
+    setUnitTypes([]);
+    safeSetItem('app_ref_unit_types', []);
+  };
+  const handleResetUnitTypesToDefault = () => {
+    setUnitTypes(INITIAL_REFERENCE_UNIT_TYPES);
+    safeSetItem('app_ref_unit_types', INITIAL_REFERENCE_UNIT_TYPES);
+  };
 
-  const handleClearGovernorates = () => setGovernorates([]);
-  const handleResetGovernoratesToDefault = () => setGovernorates(INITIAL_GOVERNORATES);
+  const handleClearGovernorates = () => {
+    setGovernorates([]);
+    safeSetItem('app_ref_governorates', []);
+  };
+  const handleResetGovernoratesToDefault = () => {
+    setGovernorates(INITIAL_GOVERNORATES);
+    safeSetItem('app_ref_governorates', INITIAL_GOVERNORATES);
+  };
 
-  const handleClearSites = () => setSites([]);
-  const handleResetSitesToDefault = () => setSites(INITIAL_SITES);
+  const handleClearSites = () => {
+    setSites([]);
+    safeSetItem('app_ref_sites', []);
+  };
+  const handleResetSitesToDefault = () => {
+    setSites(INITIAL_SITES);
+    safeSetItem('app_ref_sites', INITIAL_SITES);
+  };
 
   const handleClearUsers = () => {
-    setUsers([]);
-    safeSetItem('app_users', []);
+    const adminUser = users.find((u) => u.id === 'USR-101' || u.username === 'admin') || {
+      id: 'USR-101',
+      name: 'عمر المياحي',
+      username: 'admin',
+      phone: '07701784629',
+      role: 'مدير النظام',
+      department: 'قسم إدارة وتقييم الأصول الهندسية',
+      governorate: 'واسط',
+      field: 'الأحدب',
+      status: 'active',
+      lastActive: 'الآن',
+      password: 'admin123',
+    };
+    setUsers([adminUser]);
+    safeSetItem('app_users', [adminUser]);
+    api.triggerServerResetModule('users', 'clear');
   };
   const handleResetUsersToDefault = () => {
     setUsers(INITIAL_USERS);
     safeSetItem('app_users', INITIAL_USERS);
+    api.saveUsers(INITIAL_USERS);
+    api.triggerServerResetModule('users', 'default');
   };
 
-  const handleClearRoomTypes = () => setRoomTypes([]);
-  const handleResetRoomTypesToDefault = () => setRoomTypes(INITIAL_ROOM_TYPES);
+  const handleClearRoomTypes = () => {
+    setRoomTypes([]);
+    safeSetItem('app_ref_room_types', []);
+  };
+  const handleResetRoomTypesToDefault = () => {
+    setRoomTypes(INITIAL_ROOM_TYPES);
+    safeSetItem('app_ref_room_types', INITIAL_ROOM_TYPES);
+  };
 
-  const handleClearEquipmentTypes = () => setEquipmentTypes([]);
-  const handleResetEquipmentTypesToDefault = () => setEquipmentTypes(INITIAL_EQUIPMENT_TYPES);
+  const handleClearEquipmentTypes = () => {
+    setEquipmentTypes([]);
+    safeSetItem('app_ref_equipment_types', []);
+  };
+  const handleResetEquipmentTypesToDefault = () => {
+    setEquipmentTypes(INITIAL_EQUIPMENT_TYPES);
+    safeSetItem('app_ref_equipment_types', INITIAL_EQUIPMENT_TYPES);
+  };
 
   const handleClearMaintenanceRequests = () => {
     setMaintenanceRequests([]);
     safeSetItem('app_maintenance_requests', []);
+    api.triggerServerResetModule('maintenance', 'clear');
   };
   const handleResetMaintenanceRequestsToDefault = () => {
     setMaintenanceRequests(INITIAL_MAINTENANCE_REQUESTS);
     safeSetItem('app_maintenance_requests', INITIAL_MAINTENANCE_REQUESTS);
+    api.saveMaintenanceRequests(INITIAL_MAINTENANCE_REQUESTS);
+    api.triggerServerResetModule('maintenance', 'default');
   };
 
   const handleClearOccupancyRecords = () => {
     setOccupancyRecords([]);
     safeSetItem('app_occupancy_records', []);
+    api.triggerServerResetModule('occupancy', 'clear');
   };
   const handleResetOccupancyRecordsToDefault = () => {
     setOccupancyRecords(INITIAL_OCCUPANCY_RECORDS);
     safeSetItem('app_occupancy_records', INITIAL_OCCUPANCY_RECORDS);
+    api.saveOccupancyRecords(INITIAL_OCCUPANCY_RECORDS);
+    api.triggerServerResetModule('occupancy', 'default');
   };
 
-  // Factory Reset Handler
+  const handleClearPeriodicInspections = () => {
+    setPeriodicInspections([]);
+    safeSetItem('app_periodic_inspections', []);
+    api.triggerServerResetModule('inspections', 'clear');
+  };
+  const handleResetPeriodicInspectionsToDefault = () => {
+    setPeriodicInspections(INITIAL_PERIODIC_INSPECTIONS);
+    safeSetItem('app_periodic_inspections', INITIAL_PERIODIC_INSPECTIONS);
+    api.savePeriodicInspections(INITIAL_PERIODIC_INSPECTIONS);
+    api.triggerServerResetModule('inspections', 'default');
+  };
+
+  const handleClearAuditLogs = () => {
+    setAuditLogs([]);
+    safeSetItem('app_audit_logs', []);
+    api.triggerServerResetModule('audit_logs', 'clear');
+  };
+  const handleResetAuditLogsToDefault = () => {
+    setAuditLogs(INITIAL_AUDIT_LOGS);
+    safeSetItem('app_audit_logs', INITIAL_AUDIT_LOGS);
+    api.triggerServerResetModule('audit_logs', 'default');
+  };
+
+  // Factory Reset Handler (Wipe everything except admin user Omar Almayahi)
   const handleFactoryReset = () => {
-    localStorage.clear();
+    const adminUser: SystemUser = {
+      id: 'USR-101',
+      name: 'عمر المياحي',
+      username: 'admin',
+      phone: '07701784629',
+      role: 'مدير النظام',
+      maintenanceDepartment: 'قسم إدارة وتقييم الأصول الهندسية',
+      governorate: 'واسط',
+      field: 'الأحدب',
+      status: 'active',
+      lastActive: 'الآن',
+      password: 'admin123',
+    };
+
+    const initialResetLog: AuditLogItem = {
+      id: `LOG-RESET-${Date.now()}`,
+      timestamp: new Date().toISOString(),
+      action: 'استعادة ضبط المصنع الشامل',
+      user: 'عمر المياحي',
+      userInitials: 'عم',
+      affectedField: 'النظام بالكامل',
+      previousValue: 'البيانات السابقة',
+      newValue: 'تفريغ شامل مع الإبقاء على حساب مدير النظام الأستاذ عمر المياحي',
+    };
+
+    // Update state
     setBranding(INITIAL_BRANDING);
-    setUsers(INITIAL_USERS);
-    setUnits(SEED_WITH_DEMO_DATA ? INITIAL_UNITS : []);
+    setUsers([adminUser]);
+    setCurrentUser(adminUser);
+    setUnits([]);
     setUnitTypes(INITIAL_REFERENCE_UNIT_TYPES);
     setGovernorates(INITIAL_GOVERNORATES);
     setOilfields(INITIAL_OILFIELDS);
     setSites(INITIAL_SITES);
     setRoomTypes(INITIAL_ROOM_TYPES);
     setEquipmentTypes(INITIAL_EQUIPMENT_TYPES);
-    setMaintenanceRequests(SEED_WITH_DEMO_DATA ? INITIAL_MAINTENANCE_REQUESTS : []);
-    setOccupancyRecords(SEED_WITH_DEMO_DATA ? INITIAL_OCCUPANCY_RECORDS : []);
-    setPeriodicInspections(SEED_WITH_DEMO_DATA ? INITIAL_PERIODIC_INSPECTIONS : []);
-    setAuditLogs(SEED_WITH_DEMO_DATA ? INITIAL_AUDIT_LOGS : []);
+    setMaintenanceRequests([]);
+    setOccupancyRecords([]);
+    setPeriodicInspections([]);
+    setAuditLogs([initialResetLog]);
+
+    // Update localStorage safely
+    safeSetItem('app_branding', INITIAL_BRANDING);
+    safeSetItem('app_users', [adminUser]);
+    safeSetItem('current_user', adminUser);
+    safeSetItem('app_units', []);
+    safeSetItem('app_maintenance_requests', []);
+    safeSetItem('app_occupancy_records', []);
+    safeSetItem('app_periodic_inspections', []);
+    safeSetItem('app_audit_logs', [initialResetLog]);
+    safeSetItem('app_ref_unit_types', INITIAL_REFERENCE_UNIT_TYPES);
+    safeSetItem('app_ref_governorates', INITIAL_GOVERNORATES);
+    safeSetItem('app_ref_oilfields', INITIAL_OILFIELDS);
+    safeSetItem('app_ref_sites', INITIAL_SITES);
+    safeSetItem('app_ref_room_types', INITIAL_ROOM_TYPES);
+    safeSetItem('app_ref_equipment_types', INITIAL_EQUIPMENT_TYPES);
+
+    // Call server and Firestore factory reset
+    api.triggerServerFactoryReset('wipe_all_except_admin', adminUser).catch((err) => {
+      console.error('Factory reset error on server:', err);
+    });
   };
 
   // Comprehensive Database Restore & Import Handler
@@ -1992,6 +2170,7 @@ export function App() {
               oilfields={oilfields}
               orgEntities={orgEntities}
               unitTypes={unitTypes}
+              branding={branding}
               onSelectUnit={handleSelectUnit}
               onNavigateTab={setActiveTab}
               theme={theme}
@@ -2066,6 +2245,7 @@ export function App() {
               governorates={governorates}
               oilfields={oilfields}
               maintenanceRequests={maintenanceRequests}
+              maintenanceDepartments={maintenanceDepartments}
               users={users}
               currentUser={currentUser}
               onAddSchedule={handleAddPeriodicInspection}
@@ -2137,6 +2317,7 @@ export function App() {
               onDeleteOrgEntity={handleDeleteOrgEntity}
               onToggleOrgEntityStatus={handleToggleOrgEntityStatus}
               onResetOrgEntitiesToDefault={handleResetOrgEntitiesToDefault}
+              onBulkSaveOrgEntities={handleBulkSaveOrgEntities}
               onUpdateBranding={handleUpdateBranding}
               onAddUser={handleAddUser}
               onUpdateUser={handleUpdateUser}
@@ -2186,6 +2367,9 @@ export function App() {
               onResetMaintenanceRequestsToDefault={handleResetMaintenanceRequestsToDefault}
               onClearOccupancyRecords={handleClearOccupancyRecords}
               onResetOccupancyRecordsToDefault={handleResetOccupancyRecordsToDefault}
+              onClearPeriodicInspections={handleClearPeriodicInspections}
+              onResetPeriodicInspectionsToDefault={handleResetPeriodicInspectionsToDefault}
+              onResetAuditLogsToDefault={handleResetAuditLogsToDefault}
               onFactoryReset={handleFactoryReset}
               theme={theme}
             />

@@ -9,9 +9,6 @@ import {
   deleteDoc,
   writeBatch,
   onSnapshot,
-  query,
-  orderBy,
-  limit,
   Firestore,
 } from 'firebase/firestore';
 import firebaseConfigJson from '../../firebase-applet-config.json';
@@ -44,9 +41,10 @@ export const db: Firestore = (firebaseConfigJson as any).firestoreDatabaseId
   ? getFirestore(app, (firebaseConfigJson as any).firestoreDatabaseId)
   : getFirestore(app);
 
-// Helper to remove undefined fields from objects before saving to Firestore
+// Helper to remove undefined fields before sending to Firestore
 function sanitizeDoc<T extends Record<string, any>>(obj: T): T {
-  const clean: any = {};
+  if (!obj || typeof obj !== 'object') return obj;
+  const clean: Record<string, any> = {};
   for (const [key, value] of Object.entries(obj)) {
     if (value !== undefined) {
       if (Array.isArray(value)) {
@@ -60,21 +58,21 @@ function sanitizeDoc<T extends Record<string, any>>(obj: T): T {
       }
     }
   }
-  return clean;
+  return clean as T;
 }
 
 // ============================================================================
-// Automatic Seeding (Executes once if database is clean)
+// Automatic Initial Seeding (Executes once only when database is first created)
 // ============================================================================
 let isSeeded = false;
 
 export async function ensureDatabaseSeeded(): Promise<void> {
   if (isSeeded) return;
   try {
-    const unitsCol = collection(db, 'units');
-    const snap = await getDocs(query(unitsCol, limit(1)));
-    if (snap.empty) {
-      console.log('🌱 Firestore database is empty. Seeding initial enterprise assets & data...');
+    const metaRef = doc(db, 'system_settings', 'metadata');
+    const metaSnap = await getDoc(metaRef);
+    if (!metaSnap.exists()) {
+      console.log('🌱 Firestore database is newly initialized. Seeding initial baseline data...');
       const batch = writeBatch(db);
 
       // Seed Units
@@ -119,9 +117,15 @@ export async function ensureDatabaseSeeded(): Promise<void> {
         batch.set(ref, sanitizeDoc(log));
       }
 
-      // Seed Branding
+      // Seed Branding & Init Flag
       const brandingRef = doc(db, 'system_settings', 'branding');
       batch.set(brandingRef, sanitizeDoc(INITIAL_BRANDING));
+
+      batch.set(metaRef, {
+        initialized: true,
+        seededAt: new Date().toISOString(),
+        version: '3.5.0',
+      });
 
       await batch.commit();
       console.log('✅ Firestore enterprise seeding completed successfully.');
@@ -139,13 +143,11 @@ export async function getUnitsFromFirestore(): Promise<UnitAsset[]> {
   await ensureDatabaseSeeded();
   try {
     const snap = await getDocs(collection(db, 'units'));
-    if (!snap.empty) {
-      return snap.docs.map((d) => d.data() as UnitAsset);
-    }
+    return snap.docs.map((d) => d.data() as UnitAsset);
   } catch (err) {
     console.warn('Firestore getUnits error:', err);
+    return [];
   }
-  return INITIAL_UNITS;
 }
 
 export async function saveUnitToFirestore(unit: UnitAsset): Promise<void> {
@@ -174,13 +176,11 @@ export async function getUsersFromFirestore(): Promise<SystemUser[]> {
   await ensureDatabaseSeeded();
   try {
     const snap = await getDocs(collection(db, 'system_users'));
-    if (!snap.empty) {
-      return snap.docs.map((d) => d.data() as SystemUser);
-    }
+    return snap.docs.map((d) => d.data() as SystemUser);
   } catch (err) {
     console.warn('Firestore getUsers error:', err);
+    return [];
   }
-  return INITIAL_USERS;
 }
 
 export async function saveUserToFirestore(user: SystemUser): Promise<void> {
@@ -200,13 +200,11 @@ export async function getMaintenanceFromFirestore(): Promise<MaintenanceRequest[
   await ensureDatabaseSeeded();
   try {
     const snap = await getDocs(collection(db, 'maintenance_requests'));
-    if (!snap.empty) {
-      return snap.docs.map((d) => d.data() as MaintenanceRequest);
-    }
+    return snap.docs.map((d) => d.data() as MaintenanceRequest);
   } catch (err) {
     console.warn('Firestore getMaintenance error:', err);
+    return [];
   }
-  return INITIAL_MAINTENANCE_REQUESTS;
 }
 
 export async function saveMaintenanceToFirestore(req: MaintenanceRequest): Promise<void> {
@@ -235,13 +233,11 @@ export async function getOccupancyFromFirestore(): Promise<OccupancyRecord[]> {
   await ensureDatabaseSeeded();
   try {
     const snap = await getDocs(collection(db, 'occupancy_records'));
-    if (!snap.empty) {
-      return snap.docs.map((d) => d.data() as OccupancyRecord);
-    }
+    return snap.docs.map((d) => d.data() as OccupancyRecord);
   } catch (err) {
     console.warn('Firestore getOccupancy error:', err);
+    return [];
   }
-  return INITIAL_OCCUPANCY_RECORDS;
 }
 
 export async function saveOccupancyToFirestore(occ: OccupancyRecord): Promise<void> {
@@ -258,6 +254,11 @@ export async function bulkSaveOccupancyToFirestore(records: OccupancyRecord[]): 
   await batch.commit();
 }
 
+export async function deleteOccupancyFromFirestore(id: string): Promise<void> {
+  const ref = doc(db, 'occupancy_records', id);
+  await deleteDoc(ref);
+}
+
 // ============================================================================
 // 5. Periodic Inspections
 // ============================================================================
@@ -265,13 +266,11 @@ export async function getInspectionsFromFirestore(): Promise<PeriodicInspectionS
   await ensureDatabaseSeeded();
   try {
     const snap = await getDocs(collection(db, 'periodic_inspections'));
-    if (!snap.empty) {
-      return snap.docs.map((d) => d.data() as PeriodicInspectionSchedule);
-    }
+    return snap.docs.map((d) => d.data() as PeriodicInspectionSchedule);
   } catch (err) {
     console.warn('Firestore getInspections error:', err);
+    return [];
   }
-  return INITIAL_PERIODIC_INSPECTIONS;
 }
 
 export async function saveInspectionToFirestore(insp: PeriodicInspectionSchedule): Promise<void> {
@@ -288,6 +287,11 @@ export async function bulkSaveInspectionsToFirestore(schedules: PeriodicInspecti
   await batch.commit();
 }
 
+export async function deleteInspectionFromFirestore(id: string): Promise<void> {
+  const ref = doc(db, 'periodic_inspections', id);
+  await deleteDoc(ref);
+}
+
 // ============================================================================
 // 6. Audit Logs
 // ============================================================================
@@ -295,18 +299,21 @@ export async function getAuditLogsFromFirestore(): Promise<AuditLogItem[]> {
   await ensureDatabaseSeeded();
   try {
     const snap = await getDocs(collection(db, 'audit_logs'));
-    if (!snap.empty) {
-      return snap.docs.map((d) => d.data() as AuditLogItem);
-    }
+    return snap.docs.map((d) => d.data() as AuditLogItem);
   } catch (err) {
     console.warn('Firestore getAuditLogs error:', err);
+    return [];
   }
-  return INITIAL_AUDIT_LOGS;
 }
 
 export async function addAuditLogToFirestore(log: AuditLogItem): Promise<void> {
   const ref = doc(db, 'audit_logs', log.id);
   await setDoc(ref, sanitizeDoc(log));
+}
+
+export async function deleteAuditLogFromFirestore(id: string): Promise<void> {
+  const ref = doc(db, 'audit_logs', id);
+  await deleteDoc(ref);
 }
 
 // ============================================================================
@@ -316,13 +323,11 @@ export async function getOrgEntitiesFromFirestore(): Promise<OrgEntity[]> {
   await ensureDatabaseSeeded();
   try {
     const snap = await getDocs(collection(db, 'org_entities'));
-    if (!snap.empty) {
-      return snap.docs.map((d) => d.data() as OrgEntity);
-    }
+    return snap.docs.map((d) => d.data() as OrgEntity);
   } catch (err) {
     console.warn('Firestore getOrgEntities error:', err);
+    return [];
   }
-  return INITIAL_ORG_ENTITIES;
 }
 
 export async function saveOrgEntitiesToFirestore(entities: OrgEntity[]): Promise<void> {
@@ -379,14 +384,69 @@ export async function saveReferenceDataToFirestore(data: any): Promise<void> {
 }
 
 // ============================================================================
+// 9. Reset Helpers for Firestore
+// ============================================================================
+export async function clearFirestoreCollection(collectionName: string): Promise<void> {
+  try {
+    const snap = await getDocs(collection(db, collectionName));
+    if (snap.empty) return;
+    const batch = writeBatch(db);
+    snap.docs.forEach((docSnap) => {
+      batch.delete(docSnap.ref);
+    });
+    await batch.commit();
+  } catch (err) {
+    console.warn(`Error clearing Firestore collection ${collectionName}:`, err);
+  }
+}
+
+export async function resetFirestoreComprehensive(adminUser: SystemUser): Promise<void> {
+  try {
+    await clearFirestoreCollection('units');
+    await clearFirestoreCollection('maintenance_requests');
+    await clearFirestoreCollection('occupancy_records');
+    await clearFirestoreCollection('periodic_inspections');
+    await clearFirestoreCollection('audit_logs');
+    await clearFirestoreCollection('system_users');
+
+    // Re-seed only the Primary Administrator
+    const userRef = doc(db, 'system_users', adminUser.id);
+    await setDoc(userRef, sanitizeDoc(adminUser));
+
+    // Reset Branding to Default
+    const brandingRef = doc(db, 'system_settings', 'branding');
+    await setDoc(brandingRef, sanitizeDoc(INITIAL_BRANDING));
+
+    // Add initial log
+    const logRef = doc(db, 'audit_logs', `LOG-RESET-${Date.now()}`);
+    await setDoc(logRef, {
+      id: `LOG-RESET-${Date.now()}`,
+      userId: adminUser.id,
+      userName: adminUser.name,
+      userRole: adminUser.role,
+      action: 'factory_reset',
+      entityType: 'system',
+      entityId: 'SYSTEM',
+      entityName: 'النظام بالكامل',
+      details: 'تم تنفيذ استعادة ضبط المصنع الشامل للنظام وتفريغ كافة البيانات مع الإبقاء على حساب مدير النظام عمر المياحي',
+      timestamp: new Date().toISOString(),
+      ipAddress: '127.0.0.1',
+      governorate: 'واسط',
+      field: 'الأحدب',
+      status: 'success',
+    });
+  } catch (err) {
+    console.warn('Error during Firestore comprehensive reset:', err);
+  }
+}
+
+// ============================================================================
 // Real-time Firestore Listeners
 // ============================================================================
 export function subscribeToFirestoreUnits(callback: (units: UnitAsset[]) => void): () => void {
   return onSnapshot(collection(db, 'units'), (snap) => {
-    if (!snap.empty) {
-      const list = snap.docs.map((d) => d.data() as UnitAsset);
-      callback(list);
-    }
+    const list = snap.docs.map((d) => d.data() as UnitAsset);
+    callback(list);
   }, (err) => {
     console.warn('Firestore units subscription note:', err);
   });
@@ -394,10 +454,8 @@ export function subscribeToFirestoreUnits(callback: (units: UnitAsset[]) => void
 
 export function subscribeToFirestoreMaintenance(callback: (requests: MaintenanceRequest[]) => void): () => void {
   return onSnapshot(collection(db, 'maintenance_requests'), (snap) => {
-    if (!snap.empty) {
-      const list = snap.docs.map((d) => d.data() as MaintenanceRequest);
-      callback(list);
-    }
+    const list = snap.docs.map((d) => d.data() as MaintenanceRequest);
+    callback(list);
   }, (err) => {
     console.warn('Firestore maintenance subscription note:', err);
   });
@@ -405,10 +463,8 @@ export function subscribeToFirestoreMaintenance(callback: (requests: Maintenance
 
 export function subscribeToFirestoreOccupancy(callback: (records: OccupancyRecord[]) => void): () => void {
   return onSnapshot(collection(db, 'occupancy_records'), (snap) => {
-    if (!snap.empty) {
-      const list = snap.docs.map((d) => d.data() as OccupancyRecord);
-      callback(list);
-    }
+    const list = snap.docs.map((d) => d.data() as OccupancyRecord);
+    callback(list);
   }, (err) => {
     console.warn('Firestore occupancy subscription note:', err);
   });
@@ -416,10 +472,8 @@ export function subscribeToFirestoreOccupancy(callback: (records: OccupancyRecor
 
 export function subscribeToFirestoreInspections(callback: (schedules: PeriodicInspectionSchedule[]) => void): () => void {
   return onSnapshot(collection(db, 'periodic_inspections'), (snap) => {
-    if (!snap.empty) {
-      const list = snap.docs.map((d) => d.data() as PeriodicInspectionSchedule);
-      callback(list);
-    }
+    const list = snap.docs.map((d) => d.data() as PeriodicInspectionSchedule);
+    callback(list);
   }, (err) => {
     console.warn('Firestore inspections subscription note:', err);
   });
@@ -427,10 +481,8 @@ export function subscribeToFirestoreInspections(callback: (schedules: PeriodicIn
 
 export function subscribeToFirestoreUsers(callback: (users: SystemUser[]) => void): () => void {
   return onSnapshot(collection(db, 'system_users'), (snap) => {
-    if (!snap.empty) {
-      const list = snap.docs.map((d) => d.data() as SystemUser);
-      callback(list);
-    }
+    const list = snap.docs.map((d) => d.data() as SystemUser);
+    callback(list);
   }, (err) => {
     console.warn('Firestore users subscription note:', err);
   });

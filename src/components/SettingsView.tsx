@@ -103,9 +103,10 @@ interface SettingsViewProps {
   orgEntities?: OrgEntity[];
   onAddOrgEntity?: (newEntity: OrgEntity) => void;
   onUpdateOrgEntity?: (updatedEntity: OrgEntity) => void;
-  onDeleteOrgEntity?: (id: string) => void;
+  onDeleteOrgEntity?: (id: string, deleteChildren?: boolean) => void;
   onToggleOrgEntityStatus?: (id: string) => void;
   onResetOrgEntitiesToDefault?: () => void;
+  onBulkSaveOrgEntities?: (entities: OrgEntity[]) => void;
 
   onAddUnitType: (type: ReferenceUnitType) => void;
   onUpdateUnitType: (type: ReferenceUnitType) => void;
@@ -174,6 +175,11 @@ interface SettingsViewProps {
   onClearOccupancyRecords?: () => void;
   onResetOccupancyRecordsToDefault?: () => void;
 
+  onClearPeriodicInspections?: () => void;
+  onResetPeriodicInspectionsToDefault?: () => void;
+
+  onResetAuditLogsToDefault?: () => void;
+
   onFactoryReset: () => void;
   theme?: 'dark' | 'light';
 }
@@ -208,6 +214,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   onDeleteOrgEntity,
   onToggleOrgEntityStatus,
   onResetOrgEntitiesToDefault,
+  onBulkSaveOrgEntities,
   onAddUnitType,
   onUpdateUnitType,
   onDeleteUnitType,
@@ -253,6 +260,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   onResetMaintenanceRequestsToDefault,
   onClearOccupancyRecords,
   onResetOccupancyRecordsToDefault,
+  onClearPeriodicInspections,
+  onResetPeriodicInspectionsToDefault,
+  onResetAuditLogsToDefault,
   onFactoryReset,
   theme = 'dark',
 }) => {
@@ -1592,6 +1602,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               onDeleteOrgEntity={onDeleteOrgEntity || (() => {})}
               onToggleOrgEntityStatus={onToggleOrgEntityStatus || (() => {})}
               onResetOrgEntitiesToDefault={onResetOrgEntitiesToDefault}
+              onBulkSaveOrgEntities={onBulkSaveOrgEntities}
             />
           )}
 
@@ -2338,9 +2349,25 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           {/* TAB 2: Governorates Table */}
           {activeTab === 'governorates' && (
             <div className="space-y-3">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-                <h3 className="font-bold text-slate-100 text-sm">جدول المحافظات المعتمدة لدى الشركة</h3>
-                <span className="text-[11px] text-slate-400">إمكانية التعديل والحذف والربط الحركي</span>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-800 gap-2">
+                <div>
+                  <h3 className="font-bold text-slate-100 text-sm">جدول المحافظات المعتمدة لدى الشركة</h3>
+                  <span className="text-[11px] text-slate-400">إمكانية الإضافة والتعديل والحذف والربط الحركي</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditingItem(null);
+                    setGovNameAr('');
+                    setGovNameEn('');
+                    setGovCode(`GOV-${Date.now().toString().slice(-4)}`);
+                    setShowModal(true);
+                  }}
+                  className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5 shadow self-start sm:self-auto"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>إضافة محافظة جديدة</span>
+                </button>
               </div>
 
               <div className="overflow-x-auto">
@@ -2417,9 +2444,26 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           {/* TAB 3: Oilfields Table */}
           {activeTab === 'oilfields' && (
             <div className="space-y-3">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-                <h3 className="font-bold text-slate-100 text-sm">جدول الحقول النفطية والامتيازات</h3>
-                <span className="text-[11px] text-slate-400">إمكانية التعديل والحذف وتغيير المحافظة التابعة</span>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-800 gap-2">
+                <div>
+                  <h3 className="font-bold text-slate-100 text-sm">جدول الحقول النفطية والامتيازات</h3>
+                  <span className="text-[11px] text-slate-400">إمكانية الإضافة والتعديل والحذف وتغيير المحافظة التابعة</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditingItem(null);
+                    setFldGovId(governorates[0]?.id || '');
+                    setFldNameAr('');
+                    setFldNameEn('');
+                    setFldCode(`FLD-${Date.now().toString().slice(-4)}`);
+                    setShowModal(true);
+                  }}
+                  className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5 shadow self-start sm:self-auto"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>إضافة حقل نفطي جديد</span>
+                </button>
               </div>
 
               <div className="overflow-x-auto">
@@ -2496,9 +2540,28 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           {/* TAB 4: Sites Table */}
           {activeTab === 'sites' && (
             <div className="space-y-3">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-                <h3 className="font-bold text-slate-100 text-sm">دليل المواقع والمنشآت والمحطات الحقليّة</h3>
-                <span className="text-[11px] text-slate-400">إدارة تفصيلية مع تعديل الإحداثيات وحذف المنشأة</span>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-800 gap-2">
+                <div>
+                  <h3 className="font-bold text-slate-100 text-sm">دليل المواقع والمنشآت والمحطات الحقليّة</h3>
+                  <span className="text-[11px] text-slate-400">إدارة تفصيلية مع إضافة وتعديل الإحداثيات وحذف المنشأة</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditingItem(null);
+                    setSiteFieldId(oilfields[0]?.id || '');
+                    setSiteNameAr('');
+                    setSiteNameEn('');
+                    setSiteCode(`STE-${Date.now().toString().slice(-4)}`);
+                    setSiteLat('32.6189');
+                    setSiteLng('45.7531');
+                    setShowModal(true);
+                  }}
+                  className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5 shadow self-start sm:self-auto"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>إضافة موقع / منشأة جديدة</span>
+                </button>
               </div>
 
               <div className="overflow-x-auto">
@@ -2579,9 +2642,27 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           {/* TAB 5: Unit Types Table */}
           {activeTab === 'unit_types' && (
             <div className="space-y-3">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-                <h3 className="font-bold text-slate-100 text-sm">أنواع المباني والأبنية المرجعية</h3>
-                <span className="text-[11px] text-slate-400">إضافة وتعديل وحذف رموز الأبنية الهندسية</span>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-800 gap-2">
+                <div>
+                  <h3 className="font-bold text-slate-100 text-sm">أنواع المباني والأبنية المرجعية</h3>
+                  <span className="text-[11px] text-slate-400">إضافة وتعديل وحذف أنواع وفئات الأبنية الهندسية</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditingItem(null);
+                    setUtCode(`UT-${Date.now().toString().slice(-4)}`);
+                    setUtNameAr('');
+                    setUtNameEn('');
+                    setUtMultiStory(true);
+                    setUtDefaultRoof('خرسانة مسلحة');
+                    setShowModal(true);
+                  }}
+                  className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5 shadow self-start sm:self-auto"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>إضافة نوع مبنى جديد</span>
+                </button>
               </div>
 
               <div className="overflow-x-auto">
@@ -2659,9 +2740,25 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           {/* TAB 6: Room Types Table */}
           {activeTab === 'rooms' && (
             <div className="space-y-3">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-                <h3 className="font-bold text-slate-100 text-sm">تصنيفات واستخدامات الغرف والقاعات 3D</h3>
-                <span className="text-[11px] text-slate-400">تعديل التمييز اللوني وتغيير الاسم والحذف</span>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-800 gap-2">
+                <div>
+                  <h3 className="font-bold text-slate-100 text-sm">تصنيفات واستخدامات الغرف والقاعات 3D</h3>
+                  <span className="text-[11px] text-slate-400">إضافة تصنيفات جديدة، تعديل التمييز اللوني، وتعديل وحذف الاستخدامات</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditingItem(null);
+                    setRtCode(`RT-${Date.now().toString().slice(-4)}`);
+                    setRtNameAr('');
+                    setRtColorHex('#38bdf8');
+                    setShowModal(true);
+                  }}
+                  className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5 shadow self-start sm:self-auto"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>إضافة تصنيف قاعة / غرفة</span>
+                </button>
               </div>
 
               <div className="overflow-x-auto">
@@ -2743,9 +2840,27 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           {/* TAB 7: Equipment Types Table */}
           {activeTab === 'equipment' && (
             <div className="space-y-3">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-                <h3 className="font-bold text-slate-100 text-sm">سجل المعدات والملحقات المتاحة بالمشهد 3D</h3>
-                <span className="text-[11px] text-slate-400">إضافة وتعديل وحذف أنواع الملحقات والتجهيزات</span>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-800 gap-2">
+                <div>
+                  <h3 className="font-bold text-slate-100 text-sm">سجل المعدات والملحقات المتاحة بالمشهد 3D</h3>
+                  <span className="text-[11px] text-slate-400">إضافة أنواع معدات جديدة، تعديل الأشكال الهندسية، والحذف</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditingItem(null);
+                    setEqCode(`EQ-${Date.now().toString().slice(-4)}`);
+                    setEqNameAr('');
+                    setEqNameEn('');
+                    setEqGeometry('box');
+                    setEqCapacity('قياسي');
+                    setShowModal(true);
+                  }}
+                  className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5 shadow self-start sm:self-auto"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>إضافة نوع معدة / ملحق 3D</span>
+                </button>
               </div>
 
               <div className="overflow-x-auto">
@@ -3499,36 +3614,36 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   </div>
                 </div>
 
-                {/* 8. Occupancy & Allocation Records */}
+                {/* 8. Periodic Inspections & Safety Schedules */}
                 <div className="bg-slate-950 border border-slate-800 rounded-2xl p-4 space-y-3 flex flex-col justify-between">
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
-                        <div className="p-2 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-xl">
-                          <Building2 className="w-5 h-5" />
+                        <div className="p-2 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-xl">
+                          <CheckCircle2 className="w-5 h-5" />
                         </div>
                         <div>
-                          <h4 className="font-bold text-slate-100 text-xs">مسح/إعادة تعيين أوامر التخصيص والإشغال</h4>
-                          <span className="text-[11px] text-emerald-400 font-mono font-bold">
-                            العدد الحالي: {occupancyRecords.length} أمر تخصيص
+                          <h4 className="font-bold text-slate-100 text-xs">مسح/إعادة تعيين الكشوفات الدورية والمعاينات</h4>
+                          <span className="text-[11px] text-indigo-400 font-mono font-bold">
+                            العدد الحالي: {periodicInspections.length} كشف دوري
                           </span>
                         </div>
                       </div>
                     </div>
                     <p className="text-slate-400 text-[11px] leading-relaxed">
-                      أوامر تخصيص القاعات والغرف وشواغر التشكيلات الإدارية والأقسام.
+                      سجلات المعاينات الهندسية وجداول الفحص الدوري ومحاضر تقييم السلامة.
                     </p>
                   </div>
                   <div className="flex items-center gap-2 pt-2 border-t border-slate-800/80">
                     <button
                       onClick={() =>
                         setCustomResetModal({
-                          title: 'مسح جميع أوامر التخصيص',
-                          description: 'هل ترغب بتفريغ سجل أوامر الإشغال والتخصيص بالكامل؟',
+                          title: 'مسح جميع الكشوفات الدورية',
+                          description: 'هل ترغب بتفريغ جدول الكشوفات والمعاينات الدورية بالكامل؟',
                           actionType: 'clear',
                           onConfirm: () => {
-                            if (onClearOccupancyRecords) onClearOccupancyRecords();
-                            triggerSaveToast('تم مسح جميع أوامر التخصيص بنجاح');
+                            if (onClearPeriodicInspections) onClearPeriodicInspections();
+                            triggerSaveToast('تم مسح جميع الكشوفات الدورية بنجاح');
                           },
                         })
                       }
@@ -3540,12 +3655,70 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     <button
                       onClick={() =>
                         setCustomResetModal({
-                          title: 'إعادة تعيين أوامر التخصيص للوضع الافتراضي',
-                          description: 'هل ترغب باستعادة سجل الإشغال والتخصيص الافتراضي؟',
+                          title: 'إعادة تعيين الكشوفات الدورية للوضع الافتراضي',
+                          description: 'هل ترغب باستعادة جدول الكشوفات الدورية الافتراضية؟',
                           actionType: 'resetDefault',
                           onConfirm: () => {
-                            if (onResetOccupancyRecordsToDefault) onResetOccupancyRecordsToDefault();
-                            triggerSaveToast('تمت استعادة أوامر التخصيص الافتراضية بنجاح');
+                            if (onResetPeriodicInspectionsToDefault) onResetPeriodicInspectionsToDefault();
+                            triggerSaveToast('تمت استعادة الكشوفات الدورية الافتراضية بنجاح');
+                          },
+                        })
+                      }
+                      className="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5 text-amber-400" />
+                      <span>الوضع الافتراضي</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* 9. Audit Logs & System Activity */}
+                <div className="bg-slate-950 border border-slate-800 rounded-2xl p-4 space-y-3 flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <div className="p-2 bg-purple-500/10 text-purple-400 border border-purple-500/20 rounded-xl">
+                          <Activity className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <h4 className="font-bold text-slate-100 text-xs">مسح/إعادة تعيين سجل التدقيق والنشاط</h4>
+                          <span className="text-[11px] text-purple-400 font-mono font-bold">
+                            العدد الحالي: {auditLogs.length} سجل تدقيق
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <p className="text-slate-400 text-[11px] leading-relaxed">
+                      سجلات تتبع العمليات وتوثيق الحركات الإدارية والأمنية للنظام.
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 pt-2 border-t border-slate-800/80">
+                    <button
+                      onClick={() =>
+                        setCustomResetModal({
+                          title: 'مسح وتفريغ سجل التدقيق',
+                          description: 'هل ترغب بتفريغ كافة سجلات تتبع العمليات والتدقيق؟',
+                          actionType: 'clear',
+                          onConfirm: () => {
+                            onClearAuditLogs();
+                            triggerSaveToast('تم تفريغ سجل التدقيق بنجاح');
+                          },
+                        })
+                      }
+                      className="flex-1 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 font-bold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      <span>مسح الكل (تفريغ)</span>
+                    </button>
+                    <button
+                      onClick={() =>
+                        setCustomResetModal({
+                          title: 'إعادة تعيين سجل التدقيق للوضع الافتراضي',
+                          description: 'هل ترغب بإعادة سجل التدقيق للبيانات الافتراضية؟',
+                          actionType: 'resetDefault',
+                          onConfirm: () => {
+                            if (onResetAuditLogsToDefault) onResetAuditLogsToDefault();
+                            triggerSaveToast('تمت استعادة سجل التدقيق الافتراضي');
                           },
                         })
                       }
@@ -3563,9 +3736,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 <div className="flex items-start gap-3">
                   <ShieldAlert className="w-6 h-6 text-red-400 shrink-0 mt-0.5" />
                   <div className="space-y-1">
-                    <h4 className="font-bold text-slate-100 text-sm">استعادة ضبط المصنع الشاملة لكل النظام</h4>
+                    <h4 className="font-bold text-slate-100 text-sm">استعادة ضبط المصنع الشاملة للنظام (مسح وتفريغ كامل)</h4>
                     <p className="text-slate-300 text-xs leading-relaxed">
-                      يقوم هذا الإجراء بإرجاع كافة أقسام النظام (الهوية البصرية، الأصول، الحقول، المحافظات، المستخدمين وسجلات النشاط) دفعة واحدة إلى الحالة الأولية.
+                      يقوم هذا الإجراء بتفريغ ومسح كافة الأصول والوحدات، طلبات الصيانة، الكشوفات والمعاينات، أوامر التخصيص، سجلات التدقيق، وكافة حسابات المستخدمين مع الإبقاء فقط وحصرياً على حساب مدير النظام الأستاذ عمر المياحي.
                     </p>
                   </div>
                 </div>
@@ -3969,9 +4142,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             <div className="w-14 h-14 bg-red-500/20 text-red-400 border border-red-500/40 rounded-2xl flex items-center justify-center mx-auto">
               <RotateCcw className="w-8 h-8" />
             </div>
-            <h3 className="font-black text-slate-100 text-base">إعادة ضبط المصنع المكتملة</h3>
+            <h3 className="font-black text-slate-100 text-base">استعادة ضبط المصنع الشاملة</h3>
             <p className="text-slate-300 text-xs leading-relaxed">
-              سيتم إعادة تعيين الهوية البصرية، وقائمة المستخدمين، والجداول المرجعية للأصول، وكذلك مسح جميع الوحدات المسجّلة وطلبات الصيانة وسجلات الإشغال الحالية وإرجاع النظام بالكامل إلى الضبط الأساسي. هذا الإجراء نهائي ولا يمكن التراجع عنه. هل ترغب بالمتابعة؟
+              سيتم تفريغ وحذف كافة الأصول والوحدات، طلبات الصيانة، الكشوفات والمعاينات، أوامر التخصيص والإشغال، وسجلات التدقيق، مع حذف جميع حسابات المستخدمين والإبقاء حصرياً على حساب مدير النظام الأستاذ عمر المياحي. هل ترغب بالتنفيذ الفوري؟
             </p>
 
             <div className="flex items-center justify-center gap-3 pt-2">

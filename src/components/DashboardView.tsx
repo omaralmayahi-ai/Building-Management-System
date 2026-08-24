@@ -38,6 +38,7 @@ import {
   OilfieldRef,
   OrgEntity,
   ReferenceUnitType,
+  SystemBranding,
 } from '../types';
 import { toArabicDigits } from '../utils/arabicUtils';
 import { INITIAL_GOVERNORATES, INITIAL_OILFIELDS } from '../data/mockData';
@@ -51,6 +52,7 @@ interface DashboardViewProps {
   oilfields?: OilfieldRef[];
   orgEntities?: OrgEntity[];
   unitTypes?: ReferenceUnitType[];
+  branding?: SystemBranding;
   onSelectUnit: (unitCode: string) => void;
   onNavigateTab: (tab: any) => void;
   theme?: 'dark' | 'light';
@@ -65,11 +67,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   oilfields = [],
   orgEntities = [],
   unitTypes = [],
+  branding,
   onSelectUnit,
   onNavigateTab,
   theme = 'dark',
 }) => {
   const isLight = theme === 'light';
+  const companyName = branding?.companyName?.trim() || 'شركة نفط الوسط';
 
   // Selected Governorate Filter
   const [selectedGovernorate, setSelectedGovernorate] = useState<string>('all');
@@ -279,16 +283,62 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
   // 8. Distribution by Org Entities / Formations
   const orgEntitiesBreakdown = useMemo(() => {
-    const map: { [key: string]: { nameAr: string; count: number; totalArea: number; roomsCount: number } } = {};
+    const map: {
+      [key: string]: {
+        nameAr: string;
+        count: number;
+        totalArea: number;
+        roomsCount: number;
+        occupiedRooms: number;
+        vacantRooms: number;
+      };
+    } = {};
 
     filteredUnits.forEach((u) => {
       const dept = u.department || 'غير مخصص';
       if (!map[dept]) {
-        map[dept] = { nameAr: dept, count: 0, totalArea: 0, roomsCount: 0 };
+        map[dept] = {
+          nameAr: dept,
+          count: 0,
+          totalArea: 0,
+          roomsCount: 0,
+          occupiedRooms: 0,
+          vacantRooms: 0,
+        };
       }
       map[dept].count += 1;
       map[dept].totalArea += u.totalAreaSqM || 0;
-      map[dept].roomsCount += u.rooms ? u.rooms.length : 0;
+
+      const unitRooms = u.rooms || [];
+      const totalRms = unitRooms.length;
+      let occRms = 0;
+      let vacRms = 0;
+
+      if (totalRms === 0) {
+        if (u.occupancyStatus === 'vacant') {
+          vacRms = 0;
+        }
+      } else {
+        unitRooms.forEach((r) => {
+          const isOcc = !!(
+            r.occupiedBy &&
+            r.occupiedBy.trim().length > 0 &&
+            r.occupiedBy !== 'شاغر' &&
+            r.occupiedBy !== 'فارغ' &&
+            r.occupiedBy !== 'فارغة' &&
+            r.occupiedBy !== '-'
+          );
+          if (isOcc) {
+            occRms += 1;
+          } else {
+            vacRms += 1;
+          }
+        });
+      }
+
+      map[dept].roomsCount += totalRms;
+      map[dept].occupiedRooms += occRms;
+      map[dept].vacantRooms += vacRms;
     });
 
     const list = Object.values(map);
@@ -297,6 +347,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     return list.map((item) => ({
       ...item,
       percentage: Math.round((item.count / denom) * 100),
+      occupancyRate: item.roomsCount > 0 ? Math.round((item.occupiedRooms / item.roomsCount) * 100) : 0,
     })).sort((a, b) => b.count - a.count);
   }, [filteredUnits, totalUnits]);
 
@@ -351,7 +402,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               </span>
             </div>
             <p className={`text-xs mt-0.5 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
-              متابعة شامـلة لأصول شركة نفط الوسط، طلبات الصيانة الميدانية، والكشوفات الدورية عبر المحافظات والحقول
+              متابعة شامـلة لأصول {companyName}، طلبات الصيانة الميدانية، والكشوفات الدورية عبر المحافظات والحقول
             </p>
           </div>
         </div>
@@ -379,7 +430,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 : 'bg-slate-950 border-slate-800 text-amber-400 focus:border-amber-500'
             }`}
           >
-            <option value="all">كافة المحافظات العراقية (شامل)</option>
+            <option value="all">كافة المحافظات</option>
             {effectiveGovernorates
               .filter((g) => g.status !== 'disabled')
               .map((g) => (
@@ -391,22 +442,21 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
       </div>
 
-      {/* KPI METRICS GRID (6 HIGH-IMPACT CARDS) */}
+      {/* KPI METRICS GRID (6 HIGH-IMPACT CARDS - DISPLAY ONLY) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3.5">
         {/* KPI 1: Total Assets */}
         <div
-          onClick={() => onNavigateTab('units')}
-          className={`p-4 rounded-xl border transition shadow-sm cursor-pointer flex flex-col justify-between group ${
+          className={`p-4 rounded-xl border transition shadow-sm flex flex-col justify-between ${
             isLight
-              ? 'bg-white border-slate-200 hover:border-amber-400 hover:shadow-md'
-              : 'bg-slate-900 border-slate-800 hover:border-amber-500/40'
+              ? 'bg-white border-slate-200 shadow-sm'
+              : 'bg-slate-900 border-slate-800'
           }`}
         >
           <div className="flex items-center justify-between">
             <span className={`text-xs font-bold ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
               الوحدات والأصول
             </span>
-            <div className="p-2 bg-amber-500/10 text-amber-500 rounded-lg group-hover:scale-110 transition">
+            <div className="p-2 bg-amber-500/10 text-amber-500 rounded-lg">
               <Building2 className="w-4 h-4" />
             </div>
           </div>
@@ -425,18 +475,17 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
         {/* KPI 2: Occupancy Rate */}
         <div
-          onClick={() => onNavigateTab('units')}
-          className={`p-4 rounded-xl border transition shadow-sm cursor-pointer flex flex-col justify-between group ${
+          className={`p-4 rounded-xl border transition shadow-sm flex flex-col justify-between ${
             isLight
-              ? 'bg-white border-slate-200 hover:border-sky-400 hover:shadow-md'
-              : 'bg-slate-900 border-slate-800 hover:border-sky-500/40'
+              ? 'bg-white border-slate-200 shadow-sm'
+              : 'bg-slate-900 border-slate-800'
           }`}
         >
           <div className="flex items-center justify-between">
             <span className={`text-xs font-bold ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
               نسبة الإشغال
             </span>
-            <div className="p-2 bg-sky-500/10 text-sky-500 rounded-lg group-hover:scale-110 transition">
+            <div className="p-2 bg-sky-500/10 text-sky-500 rounded-lg">
               <Users className="w-4 h-4" />
             </div>
           </div>
@@ -455,18 +504,17 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
         {/* KPI 3: Maintenance Requests */}
         <div
-          onClick={() => onNavigateTab('maintenance')}
-          className={`p-4 rounded-xl border transition shadow-sm cursor-pointer flex flex-col justify-between group ${
+          className={`p-4 rounded-xl border transition shadow-sm flex flex-col justify-between ${
             isLight
-              ? 'bg-white border-slate-200 hover:border-red-400 hover:shadow-md'
-              : 'bg-slate-900 border-slate-800 hover:border-red-500/40'
+              ? 'bg-white border-slate-200 shadow-sm'
+              : 'bg-slate-900 border-slate-800'
           }`}
         >
           <div className="flex items-center justify-between">
             <span className={`text-xs font-bold ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
               بلاغات الصيانة
             </span>
-            <div className="p-2 bg-red-500/10 text-red-500 rounded-lg group-hover:scale-110 transition">
+            <div className="p-2 bg-red-500/10 text-red-500 rounded-lg">
               <Wrench className="w-4 h-4" />
             </div>
           </div>
@@ -490,18 +538,17 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
         {/* KPI 4: Periodic Inspections */}
         <div
-          onClick={() => onNavigateTab('inspections')}
-          className={`p-4 rounded-xl border transition shadow-sm cursor-pointer flex flex-col justify-between group ${
+          className={`p-4 rounded-xl border transition shadow-sm flex flex-col justify-between ${
             isLight
-              ? 'bg-white border-slate-200 hover:border-indigo-400 hover:shadow-md'
-              : 'bg-slate-900 border-slate-800 hover:border-indigo-500/40'
+              ? 'bg-white border-slate-200 shadow-sm'
+              : 'bg-slate-900 border-slate-800'
           }`}
         >
           <div className="flex items-center justify-between">
             <span className={`text-xs font-bold ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
               الكشوفات الدورية
             </span>
-            <div className="p-2 bg-indigo-500/10 text-indigo-500 rounded-lg group-hover:scale-110 transition">
+            <div className="p-2 bg-indigo-500/10 text-indigo-500 rounded-lg">
               <Calendar className="w-4 h-4" />
             </div>
           </div>
@@ -520,18 +567,17 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
         {/* KPI 5: Grade D Critical Units */}
         <div
-          onClick={() => onNavigateTab('units')}
-          className={`p-4 rounded-xl border transition shadow-sm cursor-pointer flex flex-col justify-between group ${
+          className={`p-4 rounded-xl border transition shadow-sm flex flex-col justify-between ${
             isLight
-              ? 'bg-white border-slate-200 hover:border-amber-400 hover:shadow-md'
-              : 'bg-slate-900 border-slate-800 hover:border-amber-500/40'
+              ? 'bg-white border-slate-200 shadow-sm'
+              : 'bg-slate-900 border-slate-800'
           }`}
         >
           <div className="flex items-center justify-between">
             <span className={`text-xs font-bold ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
               وحدات حرجة (Grade D)
             </span>
-            <div className="p-2 bg-amber-500/10 text-amber-500 rounded-lg group-hover:scale-110 transition">
+            <div className="p-2 bg-amber-500/10 text-amber-500 rounded-lg">
               <ShieldAlert className="w-4 h-4" />
             </div>
           </div>
@@ -550,18 +596,17 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
         {/* KPI 6: Formations & Reach */}
         <div
-          onClick={() => onNavigateTab('org_structure')}
-          className={`p-4 rounded-xl border transition shadow-sm cursor-pointer flex flex-col justify-between group ${
+          className={`p-4 rounded-xl border transition shadow-sm flex flex-col justify-between ${
             isLight
-              ? 'bg-white border-slate-200 hover:border-purple-400 hover:shadow-md'
-              : 'bg-slate-900 border-slate-800 hover:border-purple-500/40'
+              ? 'bg-white border-slate-200 shadow-sm'
+              : 'bg-slate-900 border-slate-800'
           }`}
         >
           <div className="flex items-center justify-between">
             <span className={`text-xs font-bold ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
               التشكيلات والحقول
             </span>
-            <div className="p-2 bg-purple-500/10 text-purple-500 rounded-lg group-hover:scale-110 transition">
+            <div className="p-2 bg-purple-500/10 text-purple-500 rounded-lg">
               <Compass className="w-4 h-4" />
             </div>
           </div>
@@ -796,15 +841,34 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <div className="p-5 space-y-4">
             <div className="flex items-center justify-between mb-2">
               <h3 className={`font-bold text-xs ${isLight ? 'text-slate-800' : 'text-slate-200'}`}>
-                توزيع الوحدات والمباني على التشكيلات والجهات الشاغلة بالهيكل التنظيمي:
+                توزيع الوحدات والمباني على التشكيلات والجهات الشاغلة بالهيكل التنظيمي ومتابعة الغرف الشاغرة:
               </h3>
-              <button
-                onClick={() => onNavigateTab('org_structure')}
-                className="text-xs text-amber-500 hover:underline font-bold flex items-center gap-1"
-              >
-                <span>إدارة الهيكل التنظيمي</span>
-                <ChevronLeft className="w-3.5 h-3.5" />
-              </button>
+            </div>
+
+            {/* Quick Summary KPIs for Occupancy & Vacancy across Formations */}
+            <div className={`grid grid-cols-2 sm:grid-cols-4 gap-3 p-3.5 rounded-xl border ${
+              isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-950/70 border-slate-800'
+            }`}>
+              <div className="flex items-center justify-between">
+                <span className={`text-xs ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>التشكيلات النشطة:</span>
+                <span className="font-bold font-mono text-xs text-purple-500">{toArabicDigits(orgEntitiesBreakdown.length)} تشكيل</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className={`text-xs ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>المباني المخصصة:</span>
+                <span className="font-bold font-mono text-xs text-amber-500">{toArabicDigits(filteredUnits.length)} مبنى</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className={`text-xs ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>الغرف المشغولة:</span>
+                <span className="font-bold font-mono text-xs text-sky-500">
+                  {toArabicDigits(orgEntitiesBreakdown.reduce((sum, o) => sum + o.occupiedRooms, 0))} غرفة
+                </span>
+              </div>
+              <div className="flex items-center justify-between bg-amber-500/10 px-2.5 py-1 rounded-lg border border-amber-500/20">
+                <span className="text-xs font-bold text-amber-600 dark:text-amber-400">الغرف الشاغرة (فارغة):</span>
+                <span className="font-black font-mono text-xs text-amber-500">
+                  {toArabicDigits(orgEntitiesBreakdown.reduce((sum, o) => sum + o.vacantRooms, 0))} غرفة
+                </span>
+              </div>
             </div>
 
             {orgEntitiesBreakdown.length === 0 ? (
@@ -816,9 +880,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 {orgEntitiesBreakdown.map((org, idx) => (
                   <div
                     key={idx}
-                    className={`p-4 rounded-xl border transition space-y-2 ${
+                    className={`p-4 rounded-xl border transition space-y-2.5 ${
                       isLight
-                        ? 'bg-slate-50/80 border-slate-200 hover:border-amber-400'
+                        ? 'bg-slate-50/80 border-slate-200 hover:border-amber-400 shadow-xs'
                         : 'bg-slate-950/60 border-slate-800 hover:border-amber-500/40'
                     }`}
                   >
@@ -843,18 +907,51 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                       </span>
                     </div>
 
-                    <div className="flex items-center justify-between text-xs">
+                    {/* Occupied vs Vacant Rooms detail */}
+                    <div className="grid grid-cols-2 gap-2 pt-1">
+                      <div className={`p-2 rounded-lg border text-xs flex flex-col items-center ${
+                        isLight ? 'bg-sky-50 border-sky-200 text-sky-900' : 'bg-sky-950/40 border-sky-800/50 text-sky-300'
+                      }`}>
+                        <span className="text-[10px] text-slate-500">الغرف المشغولة</span>
+                        <span className="font-black font-mono text-xs text-sky-500">
+                          {toArabicDigits(org.occupiedRooms)} غرفة
+                        </span>
+                      </div>
+
+                      <div className={`p-2 rounded-lg border text-xs flex flex-col items-center ${
+                        org.vacantRooms > 0
+                          ? isLight
+                            ? 'bg-amber-50 border-amber-300 text-amber-900'
+                            : 'bg-amber-950/40 border-amber-700/50 text-amber-400'
+                          : isLight
+                          ? 'bg-slate-100 border-slate-200 text-slate-500'
+                          : 'bg-slate-900 border-slate-800 text-slate-500'
+                      }`}>
+                        <span className="text-[10px] text-slate-500">الغرف الشاغرة (فارغة)</span>
+                        <span className={`font-black font-mono text-xs ${org.vacantRooms > 0 ? 'text-amber-500' : 'text-slate-400'}`}>
+                          {toArabicDigits(org.vacantRooms)} فارغة
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between text-xs pt-1">
                       <span className={isLight ? 'text-slate-600' : 'text-slate-400'}>المساحة المغلولة:</span>
                       <span className={`font-mono font-bold ${isLight ? 'text-slate-800' : 'text-slate-200'}`}>
                         {toArabicDigits(org.totalArea.toLocaleString('ar-IQ'))} م²
                       </span>
                     </div>
 
-                    <div className={`w-full rounded-full h-2 overflow-hidden mt-2 ${isLight ? 'bg-slate-200' : 'bg-slate-800'}`}>
-                      <div
-                        className="bg-purple-500 h-full rounded-full transition-all duration-500"
-                        style={{ width: `${Math.max(org.percentage, 4)}%` }}
-                      ></div>
+                    <div className="space-y-1 pt-1">
+                      <div className="flex items-center justify-between text-[10.5px]">
+                        <span className={isLight ? 'text-slate-500' : 'text-slate-400'}>نسبة إشغال الغرف:</span>
+                        <span className="font-mono font-bold text-purple-500">{toArabicDigits(org.occupancyRate)}%</span>
+                      </div>
+                      <div className={`w-full rounded-full h-2 overflow-hidden ${isLight ? 'bg-slate-200' : 'bg-slate-800'}`}>
+                        <div
+                          className="bg-purple-500 h-full rounded-full transition-all duration-500"
+                          style={{ width: `${Math.max(org.occupancyRate, 3)}%` }}
+                        ></div>
+                      </div>
                     </div>
                   </div>
                 ))}

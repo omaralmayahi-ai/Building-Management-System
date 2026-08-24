@@ -1643,7 +1643,15 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
                       <td className="p-3">{rm.type}</td>
                       <td className="p-3">{rm.floor}</td>
                       <td className="p-3 font-semibold">{rm.areaSqM} م²</td>
-                      <td className={`p-3 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>{rm.occupiedBy || selectedUnit.department}</td>
+                      <td className={`p-3 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                        {rm.occupiedBy && rm.occupiedBy.trim() ? (
+                          <span className="font-semibold">{rm.occupiedBy}</span>
+                        ) : (
+                          <span className="text-amber-500/90 font-bold text-xs bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/20">
+                            شاغرة (فارغة)
+                          </span>
+                        )}
+                      </td>
                       <td className="p-3">
                         <div className="flex flex-col gap-1 items-start">
                           <span className={`border px-2.5 py-0.5 rounded text-[11px] font-bold flex items-center gap-1 ${

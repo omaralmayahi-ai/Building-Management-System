@@ -341,9 +341,10 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
   const [selectedGrade, setSelectedGrade] = useState<string>('all');
   const [selectedInspectionStatus, setSelectedInspectionStatus] = useState<string>('all');
   const [selectedMaintenanceStatus, setSelectedMaintenanceStatus] = useState<string>('all');
+  const [selectedOccupancyFilter, setSelectedOccupancyFilter] = useState<'all' | 'has_vacant' | 'fully_vacant' | 'fully_occupied'>('all');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
-  const [presetFilter, setPresetFilter] = useState<'all' | 'current_month' | 'current_quarter' | 'current_year'>('all');
+  const [presetFilter, setPresetFilter] = useState<'all' | 'current_month' | 'current_quarter' | 'current_year' | 'vacant_rooms_only'>('all');
 
   // Modal Print Preview State
   const [showPrintModal, setShowPrintModal] = useState(false);
@@ -353,7 +354,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
   // Reset page to 1 when modal opens or tab/filters change
   useEffect(() => {
     setPreviewPage(1);
-  }, [showPrintModal, activeTab, searchKeyword, selectedField, selectedGovernorate, selectedOrgEntity, selectedGrade, selectedInspectionStatus, selectedMaintenanceStatus, dateFrom, dateTo, presetFilter]);
+  }, [showPrintModal, activeTab, searchKeyword, selectedField, selectedGovernorate, selectedOrgEntity, selectedGrade, selectedInspectionStatus, selectedMaintenanceStatus, selectedOccupancyFilter, dateFrom, dateTo, presetFilter]);
 
   // Governorate normalization & label mapping
   const GOVERNORATE_DEFINITIONS = useMemo(() => [
@@ -561,14 +562,37 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
     if (allOccupants.length === 0) allOccupants.push(u.department || 'غير محدد');
 
     const totalRooms = u.rooms?.length || 0;
+    const allUnitRooms = u.rooms || [];
+
+    const vacantRooms = allUnitRooms.filter(
+      (r) =>
+        !r.occupiedBy ||
+        !r.occupiedBy.trim() ||
+        r.occupiedBy === 'شاغر' ||
+        r.occupiedBy === 'فارغ' ||
+        r.occupiedBy === 'فارغة' ||
+        r.occupiedBy === '-'
+    );
+    const occupiedRooms = allUnitRooms.filter(
+      (r) =>
+        r.occupiedBy &&
+        r.occupiedBy.trim().length > 0 &&
+        r.occupiedBy !== 'شاغر' &&
+        r.occupiedBy !== 'فارغ' &&
+        r.occupiedBy !== 'فارغة' &&
+        r.occupiedBy !== '-'
+    );
 
     if (!targetEntity || targetEntity === 'all') {
       return {
         entity: allOccupants.join(' ، '),
         allOccupants,
-        occupiedRoomsCount: totalRooms,
+        occupiedRoomsCount: occupiedRooms.length,
+        vacantRoomsCount: vacantRooms.length,
         totalRooms,
-        occupiedRooms: u.rooms || [],
+        occupiedRooms,
+        vacantRooms,
+        occupancyRate: totalRooms > 0 ? Math.round((occupiedRooms.length / totalRooms) * 100) : 0,
         isFilteredEntity: false,
       };
     }
@@ -580,8 +604,11 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
         entity: targetEntity,
         allOccupants,
         occupiedRoomsCount: explicitRooms.length,
+        vacantRoomsCount: vacantRooms.length,
         totalRooms,
         occupiedRooms: explicitRooms,
+        vacantRooms,
+        occupancyRate: totalRooms > 0 ? Math.round((explicitRooms.length / totalRooms) * 100) : 0,
         isFilteredEntity: true,
       };
     }
@@ -594,8 +621,11 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
         entity: targetEntity,
         allOccupants,
         occupiedRoomsCount: count,
+        vacantRoomsCount: vacantRooms.length,
         totalRooms,
         occupiedRooms: assignedRooms.length > 0 ? assignedRooms : (u.rooms || []),
+        vacantRooms,
+        occupancyRate: totalRooms > 0 ? Math.round((count / totalRooms) * 100) : 0,
         isFilteredEntity: true,
       };
     }
@@ -604,8 +634,11 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
       entity: targetEntity,
       allOccupants,
       occupiedRoomsCount: 0,
+      vacantRoomsCount: vacantRooms.length,
       totalRooms,
       occupiedRooms: [],
+      vacantRooms,
+      occupancyRate: 0,
       isFilteredEntity: true,
     };
   }, []);
@@ -619,6 +652,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
     setSelectedGrade('all');
     setSelectedInspectionStatus('all');
     setSelectedMaintenanceStatus('all');
+    setSelectedOccupancyFilter('all');
     setDateFrom('');
     setDateTo('');
     setPresetFilter('all');
@@ -821,6 +855,27 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
       // Grade filter
       if (selectedGrade !== 'all' && unit.conditionGrade !== selectedGrade) return false;
 
+      // Occupancy / Vacancy filter
+      const unitTotalRooms = unit.rooms?.length || 0;
+      const unitVacantRooms = (unit.rooms || []).filter(
+        (r) =>
+          !r.occupiedBy ||
+          !r.occupiedBy.trim() ||
+          r.occupiedBy === 'شاغر' ||
+          r.occupiedBy === 'فارغ' ||
+          r.occupiedBy === 'فارغة' ||
+          r.occupiedBy === '-'
+      );
+      const unitHasVacant = (unitTotalRooms > 0 && unitVacantRooms.length > 0) || unit.occupancyStatus === 'vacant';
+      const unitIsFullyVacant = (unitTotalRooms > 0 && unitVacantRooms.length === unitTotalRooms) || unit.occupancyStatus === 'vacant';
+      const unitIsFullyOccupied = unitTotalRooms > 0 && unitVacantRooms.length === 0 && unit.occupancyStatus !== 'vacant';
+
+      if (presetFilter === 'vacant_rooms_only' && !unitHasVacant) return false;
+
+      if (selectedOccupancyFilter === 'has_vacant' && !unitHasVacant) return false;
+      if (selectedOccupancyFilter === 'fully_vacant' && !unitIsFullyVacant) return false;
+      if (selectedOccupancyFilter === 'fully_occupied' && !unitIsFullyOccupied) return false;
+
       // Overdue / Critical preset
       if (presetFilter === 'critical_grade_d' && unit.conditionGrade !== 'D') return false;
       if (presetFilter === 'overdue_only' && unit.conditionGrade !== 'D' && unit.conditionGrade !== 'C') return false;
@@ -840,6 +895,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
     selectedGovernorate,
     selectedOrgEntity,
     selectedGrade,
+    selectedOccupancyFilter,
     presetFilter,
     dateFrom,
     dateTo,
@@ -944,20 +1000,14 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
       }
       case 'units': {
         const gradeABCount = filteredUnits.filter((u) => u.conditionGrade === 'A' || u.conditionGrade === 'B').length;
-        const gradeDCount = filteredUnits.filter((u) => u.conditionGrade === 'D').length;
-        const totalRoomsOrOccupied =
-          selectedOrgEntity !== 'all'
-            ? filteredUnits.reduce((acc, u) => acc + getUnitOccupancyStats(u, selectedOrgEntity).occupiedRoomsCount, 0)
-            : filteredUnits.reduce((acc, u) => acc + (u.rooms?.length || 0), 0);
+        const totalRooms = filteredUnits.reduce((acc, u) => acc + (u.rooms?.length || 0), 0);
+        const totalOccupied = filteredUnits.reduce((acc, u) => acc + getUnitOccupancyStats(u, selectedOrgEntity).occupiedRoomsCount, 0);
+        const totalVacant = filteredUnits.reduce((acc, u) => acc + getUnitOccupancyStats(u, selectedOrgEntity).vacantRoomsCount, 0);
         return [
           { label: 'إجمالي المنشآت والأصول', value: filteredUnits.length, color: '#78350f' },
-          { label: 'حالة ممتازة / جيدة (A-B)', value: gradeABCount, color: '#059669' },
-          { label: 'تقييم إنشائي حرج (D)', value: gradeDCount, color: '#dc2626' },
-          {
-            label: selectedOrgEntity !== 'all' ? 'غرف شاغلة للتشكيل' : 'إجمالي الغرف والمكاتب',
-            value: totalRoomsOrOccupied,
-            color: '#0284c7',
-          },
+          { label: 'إجمالي الغرف والمكاتب', value: totalRooms, color: '#0284c7' },
+          { label: 'الغرف المشغولة', value: totalOccupied, color: '#059669' },
+          { label: 'الغرف الشاغرة (فارغة)', value: totalVacant, color: '#d97706' },
         ];
       }
       case 'decommissioned': {
@@ -972,11 +1022,12 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
       }
       default: {
         // Comprehensive Report ('all')
+        const totalVacantAll = filteredUnits.reduce((acc, u) => acc + getUnitOccupancyStats(u, selectedOrgEntity).vacantRoomsCount, 0);
         return [
           { label: 'إجمالي الأصول والمنشآت', value: filteredUnits.length, color: '#78350f' },
+          { label: 'غرف شاغرة (فارغة)', value: totalVacantAll, color: '#d97706' },
           { label: 'كشوفات ومعاينة دورية', value: filteredInspections.length, color: '#0284c7' },
-          { label: 'طلبات وبلاغات الصيانة', value: filteredMaintenance.length, color: '#d97706' },
-          { label: 'منشآت مشطوبة ومجمدة', value: decommissionedUnits.length, color: '#9f1239' },
+          { label: 'طلبات وبلاغات الصيانة', value: filteredMaintenance.length, color: '#b45309' },
         ];
       }
     }
@@ -1027,6 +1078,16 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
       parts.push(`التشكيل الشاغل: ${selectedOrgEntity}`);
     }
 
+    if (selectedOccupancyFilter !== 'all') {
+      const occLabel =
+        selectedOccupancyFilter === 'has_vacant'
+          ? 'تحتوي على غرف شاغرة (فارغة)'
+          : selectedOccupancyFilter === 'fully_vacant'
+          ? 'شاغرة بالكامل (100% فارغة)'
+          : 'مشغولة بالكامل (لا توجد غرف فارغة)';
+      parts.push(`حالة الإشغال: ${occLabel}`);
+    }
+
     if (selectedGrade !== 'all') {
       parts.push(`التقييم الإنشائي: ${formatGradeArabic(selectedGrade)}`);
     }
@@ -1047,7 +1108,9 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
           ? 'الشهر الحالي'
           : presetFilter === 'current_quarter'
           ? 'الربع الحالي'
-          : 'السنة الحالية';
+          : presetFilter === 'current_year'
+          ? 'السنة الحالية'
+          : 'حصر الغرف الشاغرة (فارغة)';
       parts.push(`الفترة: ${presetLabel}`);
     }
 
@@ -1063,6 +1126,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
     selectedGovernorate,
     selectedField,
     selectedOrgEntity,
+    selectedOccupancyFilter,
     selectedGrade,
     selectedInspectionStatus,
     selectedMaintenanceStatus,
@@ -1101,10 +1165,10 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
       });
     } else if (activeTab === 'units') {
       filename = `تقرير_حصر_الأصول_والوحدات_الهندسية_${dateStr}.csv`;
-      content += 'رمز الوحدة,اسم الوحدة,نوع المنشأة,الحقل النفطي,المحافظة,التقييم الإنشائي,الجهة الشاغلة,عدد الغرف الشاغلة للتشكيل,إجمالي غرف الوحدة,سنة الإنشاء,المساحة الإجمالية (م²),عدد الطوابق,عدد المعدات\n';
+      content += 'رمز الوحدة,اسم الوحدة,نوع المنشأة,الحقل النفطي,المحافظة,التقييم الإنشائي,الجهة الشاغلة,الغرف المشغولة,الغرف الشاغرة (فارغة),إجمالي غرف الوحدة,سنة الإنشاء,المساحة الإجمالية (م²),عدد الطوابق,عدد المعدات\n';
       filteredUnits.forEach((u) => {
         const stats = getUnitOccupancyStats(u, selectedOrgEntity);
-        content += `"${toArabicDigits(u.code)}","${u.name}","${translateUnitType(u.type)}","${translateField(u.field)}","${translateGovernorate(u.governorate)}","${formatGradeArabic(u.conditionGrade)}","${stats.entity}","${toArabicDigits(stats.occupiedRoomsCount)}","${toArabicDigits(stats.totalRooms)}","${toArabicDigits(u.constructionYear)}","${toArabicDigits(u.totalAreaSqM)}","${toArabicDigits(u.floorsCount)}","${toArabicDigits(u.equipment.length)}"\n`;
+        content += `"${toArabicDigits(u.code)}","${u.name}","${translateUnitType(u.type)}","${translateField(u.field)}","${translateGovernorate(u.governorate)}","${formatGradeArabic(u.conditionGrade)}","${stats.entity}","${toArabicDigits(stats.occupiedRoomsCount)}","${toArabicDigits(stats.vacantRoomsCount)}","${toArabicDigits(stats.totalRooms)}","${toArabicDigits(u.constructionYear)}","${toArabicDigits(u.totalAreaSqM)}","${toArabicDigits(u.floorsCount)}","${toArabicDigits(u.equipment.length)}"\n`;
       });
     } else if (activeTab === 'decommissioned') {
       filename = `تقرير_سجل_الوحدات_المشطوبة_والمجمدة_${dateStr}.csv`;
@@ -1132,10 +1196,10 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
       });
 
       content += '\n=== 3. تقرير حصر الأصول والوحدات الهندسية ===\n';
-      content += 'رمز الوحدة,اسم الوحدة,نوع المنشأة,الحقل النفطي,المحافظة,التقييم الإنشائي,الجهة الشاغلة,عدد الغرف الشاغلة,إجمالي غرف الوحدة,سنة الإنشاء,المساحة (م²),عدد الطوابق,عدد المعدات\n';
+      content += 'رمز الوحدة,اسم الوحدة,نوع المنشأة,الحقل النفطي,المحافظة,التقييم الإنشائي,الجهة الشاغلة,الغرف المشغولة,الغرف الشاغرة (فارغة),إجمالي غرف الوحدة,سنة الإنشاء,المساحة (م²),عدد الطوابق,عدد المعدات\n';
       filteredUnits.forEach((u) => {
         const stats = getUnitOccupancyStats(u, selectedOrgEntity);
-        content += `"${toArabicDigits(u.code)}","${u.name}","${translateUnitType(u.type)}","${translateField(u.field)}","${translateGovernorate(u.governorate)}","${formatGradeArabic(u.conditionGrade)}","${stats.entity}","${toArabicDigits(stats.occupiedRoomsCount)}","${toArabicDigits(stats.totalRooms)}","${toArabicDigits(u.constructionYear)}","${toArabicDigits(u.totalAreaSqM)}","${toArabicDigits(u.floorsCount)}","${toArabicDigits(u.equipment.length)}"\n`;
+        content += `"${toArabicDigits(u.code)}","${u.name}","${translateUnitType(u.type)}","${translateField(u.field)}","${translateGovernorate(u.governorate)}","${formatGradeArabic(u.conditionGrade)}","${stats.entity}","${toArabicDigits(stats.occupiedRoomsCount)}","${toArabicDigits(stats.vacantRoomsCount)}","${toArabicDigits(stats.totalRooms)}","${toArabicDigits(u.constructionYear)}","${toArabicDigits(u.totalAreaSqM)}","${toArabicDigits(u.floorsCount)}","${toArabicDigits(u.equipment.length)}"\n`;
       });
 
       content += '\n=== 4. سجل وتقارير الوحدات المشطوبة والمجمدة ===\n';
@@ -1465,8 +1529,9 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
             <td>${translateField(u.field)} / ${translateGovernorate(u.governorate)}</td>
             <td>${translateUnitType(u.type)}</td>
             <td style="font-weight: 600;">${stats.entity}</td>
-            <td style="text-align: center; font-weight: bold; font-family: monospace; color: #78350f;">${toArabicDigits(stats.occupiedRoomsCount)} غرف</td>
-            <td style="text-align: center; font-family: monospace;">${toArabicDigits(stats.totalRooms)} غرفة</td>
+            <td style="text-align: center; font-weight: bold; font-family: monospace; color: #059669;">${toArabicDigits(stats.occupiedRoomsCount)}</td>
+            <td style="text-align: center; font-weight: bold; font-family: monospace; color: #d97706;">${stats.vacantRoomsCount > 0 ? `${toArabicDigits(stats.vacantRoomsCount)} فارغة` : '0'}</td>
+            <td style="text-align: center; font-family: monospace;">${toArabicDigits(stats.totalRooms)}</td>
             <td style="font-family: monospace;">${toArabicDigits(u.constructionYear)}</td>
             <td style="font-family: monospace;">${u.totalAreaSqM ? `${toArabicDigits(u.totalAreaSqM)} م²` : '-'}</td>
             <td style="text-align: center; font-weight: 600; color: #0f172a;">${formatGradeArabic(u.conditionGrade)}</td>
@@ -1477,17 +1542,18 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
         <table>
           <thead>
             <tr>
-              <th style="width: 30px; text-align: center;">#</th>
+              <th style="width: 25px; text-align: center;">#</th>
               <th>رمز المنشأة</th>
               <th>اسم المنشأة / الأصل</th>
               <th>الحقل / المحافظة</th>
               <th>نوع المنشأة</th>
               <th>الجهة الشاغلة</th>
-              <th style="text-align: center;">الغرف الشاغلة</th>
-              <th style="text-align: center;">إجمالي الغرف</th>
+              <th style="text-align: center;">المشغولة</th>
+              <th style="text-align: center;">الشاغرة (فارغة)</th>
+              <th style="text-align: center;">الإجمالي</th>
               <th>سنة الإنشاء</th>
               <th>المساحة (م²)</th>
-              <th style="text-align: center;">التقييم الإنشائي</th>
+              <th style="text-align: center;">التقييم</th>
             </tr>
           </thead>
           <tbody>${rows}</tbody>
@@ -2256,11 +2322,12 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
               <th className="border border-slate-400 p-1.5">الحقل / المحافظة</th>
               <th className="border border-slate-400 p-1.5">نوع المنشأة</th>
               <th className="border border-slate-400 p-1.5">الجهة الشاغلة</th>
-              <th className="border border-slate-400 p-1.5 text-center font-bold text-amber-900">الغرف الشاغلة</th>
+              <th className="border border-slate-400 p-1.5 text-center font-bold text-emerald-800">المشغولة</th>
+              <th className="border border-slate-400 p-1.5 text-center font-bold text-amber-800">الشاغرة (فارغة)</th>
               <th className="border border-slate-400 p-1.5 text-center">إجمالي الغرف</th>
               <th className="border border-slate-400 p-1.5 font-mono">سنة الإنشاء</th>
               <th className="border border-slate-400 p-1.5 font-mono">المساحة (م²)</th>
-              <th className="border border-slate-400 p-1.5 text-center font-bold">التقييم الإنشائي</th>
+              <th className="border border-slate-400 p-1.5 text-center font-bold">التقييم</th>
             </tr>
           </thead>
           <tbody>
@@ -2288,11 +2355,14 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                   <td className="border border-slate-400 p-1.5 font-semibold text-slate-900">
                     {stats.entity}
                   </td>
-                  <td className="border border-slate-400 p-1.5 text-center font-mono font-bold text-amber-900">
-                    {toArabicDigits(stats.occupiedRoomsCount)} غرف
+                  <td className="border border-slate-400 p-1.5 text-center font-mono font-bold text-emerald-800">
+                    {toArabicDigits(stats.occupiedRoomsCount)}
+                  </td>
+                  <td className="border border-slate-400 p-1.5 text-center font-mono font-bold text-amber-800">
+                    {stats.vacantRoomsCount > 0 ? `${toArabicDigits(stats.vacantRoomsCount)} فارغة` : '0'}
                   </td>
                   <td className="border border-slate-400 p-1.5 text-center font-mono text-slate-700">
-                    {toArabicDigits(stats.totalRooms)} غرفة
+                    {toArabicDigits(stats.totalRooms)}
                   </td>
                   <td className="border border-slate-400 p-1.5 font-mono text-slate-700">
                     {toArabicDigits(u.constructionYear)}
@@ -2858,6 +2928,24 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
             >
               📆 السنة الحالية
             </button>
+            <button
+              onClick={() => {
+                if (presetFilter === 'vacant_rooms_only') {
+                  setPresetFilter('all');
+                  setSelectedOccupancyFilter('all');
+                } else {
+                  setPresetFilter('vacant_rooms_only');
+                  setSelectedOccupancyFilter('has_vacant');
+                }
+              }}
+              className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition cursor-pointer flex items-center gap-1 ${
+                presetFilter === 'vacant_rooms_only'
+                  ? 'bg-amber-500 text-slate-950 font-bold shadow'
+                  : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20 border border-amber-500/30'
+              }`}
+            >
+              🚪 حصر الغرف الشاغرة (فارغة)
+            </button>
           </div>
 
           {/* Detailed Inputs Grid */}
@@ -2908,7 +2996,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                   isLight ? 'bg-white border-slate-300 text-slate-800' : 'bg-slate-900 border-slate-800 text-slate-200'
                 }`}
               >
-                <option value="all">جميع المحافظات</option>
+                <option value="all">كافة المحافظات</option>
                 {activeGovernoratesList.map((g) => (
                   <option key={g.id} value={g.id}>
                     {g.nameAr}
@@ -2935,6 +3023,27 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                 ))}
               </select>
             </div>
+
+            {/* Occupancy / Vacancy Filter (Shown for All & Units) */}
+            {(activeTab === 'all' || activeTab === 'units') && (
+              <div className="space-y-1">
+                <label className={`text-[11px] font-bold ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>حالة الإشغال / الغرف الشاغرة:</label>
+                <select
+                  value={selectedOccupancyFilter}
+                  onChange={(e) => setSelectedOccupancyFilter(e.target.value as any)}
+                  className={`w-full px-2.5 py-1.5 text-xs rounded-lg border outline-none transition font-semibold ${
+                    selectedOccupancyFilter !== 'all'
+                      ? isLight ? 'bg-amber-50 border-amber-400 text-amber-900' : 'bg-amber-950/40 border-amber-500 text-amber-300'
+                      : isLight ? 'bg-white border-slate-300 text-slate-800' : 'bg-slate-900 border-slate-800 text-slate-200'
+                  }`}
+                >
+                  <option value="all">كافة حالات الإشغال (شامل)</option>
+                  <option value="has_vacant">🚪 مبانٍ بها غرف شاغرة (فارغة)</option>
+                  <option value="fully_vacant">📦 مبانٍ شاغرة بالكامل (100% فارغة)</option>
+                  <option value="fully_occupied">🏢 مبانٍ مشغولة بالكامل (لا توجد غرف فارغة)</option>
+                </select>
+              </div>
+            )}
 
             {/* Condition Grade (Shown for All, Inspections, Units) */}
             {(activeTab === 'all' || activeTab === 'inspections' || activeTab === 'units') && (
@@ -3428,10 +3537,13 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                   <th className="p-2.5">المحافظة</th>
                   <th className="p-2.5">التقييم الإنشائي</th>
                   <th className="p-2.5">الجهة الشاغلة</th>
-                  <th className="p-2.5 text-center font-black text-amber-600 dark:text-amber-400">
-                    {selectedOrgEntity !== 'all' ? 'الغرف الشاغلة للتشكيل' : 'عدد الغرف'}
+                  <th className="p-2.5 text-center font-black text-emerald-600 dark:text-emerald-400">
+                    {selectedOrgEntity !== 'all' ? 'الغرف الشاغلة للتشكيل' : 'الغرف المشغولة'}
                   </th>
-                  <th className="p-2.5 text-center">إجمالي غرف المنشأة</th>
+                  <th className="p-2.5 text-center font-black text-amber-600 dark:text-amber-400">
+                    الغرف الشاغرة (فارغة)
+                  </th>
+                  <th className="p-2.5 text-center">إجمالي الغرف</th>
                   <th className="p-2.5">سنة الإنشاء</th>
                   <th className="p-2.5">المساحة (م²)</th>
                   <th className="p-2.5">المعدات</th>
@@ -3440,7 +3552,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
               <tbody className={`divide-y ${isLight ? 'divide-slate-200 text-slate-800' : 'divide-slate-800 text-slate-300'}`}>
                 {filteredUnits.length === 0 ? (
                   <tr>
-                    <td colSpan={11} className="p-6 text-center text-slate-500 font-semibold">
+                    <td colSpan={12} className="p-6 text-center text-slate-500 font-semibold">
                       لا توجد وحدات هندسية تطابق معايير الفلترة المحددة.
                     </td>
                   </tr>
@@ -3486,9 +3598,9 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                             <span className={`px-2.5 py-0.5 rounded text-[11px] font-black font-mono border ${
                               selectedOrgEntity !== 'all'
                                 ? 'bg-amber-500/20 text-amber-600 dark:text-amber-400 border-amber-500/40 shadow-xs'
-                                : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700'
+                                : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
                             }`}>
-                              {toArabicDigits(stats.occupiedRoomsCount)} غرف شاغلة
+                              {toArabicDigits(stats.occupiedRoomsCount)} غرف
                             </span>
                             {selectedOrgEntity !== 'all' && stats.occupiedRooms.length > 0 && (
                               <span
@@ -3497,6 +3609,36 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                               >
                                 {stats.occupiedRooms.map((r) => r.name).slice(0, 2).join('، ')}
                                 {stats.occupiedRooms.length > 2 ? ' ...' : ''}
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="p-2.5 whitespace-nowrap text-center">
+                          <div className="inline-flex flex-col items-center">
+                            <span className={`px-2.5 py-0.5 rounded text-[11px] font-black font-mono border ${
+                              stats.vacantRoomsCount > 0
+                                ? isLight
+                                  ? 'bg-amber-100/90 text-amber-900 border-amber-400 shadow-xs font-bold'
+                                  : 'bg-amber-950/70 text-amber-300 border-amber-500/50 shadow-xs font-bold'
+                                : 'bg-slate-100 dark:bg-slate-800/60 text-slate-400 border-slate-300 dark:border-slate-700/60'
+                            }`}>
+                              {stats.vacantRoomsCount > 0 ? (
+                                <span className="flex items-center gap-1">
+                                  <span>{toArabicDigits(stats.vacantRoomsCount)} فارغة</span>
+                                </span>
+                              ) : (
+                                '0'
+                              )}
+                            </span>
+                            {stats.vacantRooms.length > 0 && (
+                              <span
+                                className={`text-[9.5px] max-w-[140px] truncate block mt-0.5 ${
+                                  isLight ? 'text-amber-800 font-semibold' : 'text-amber-400 font-semibold'
+                                }`}
+                                title={stats.vacantRooms.map((r) => r.name).join(' ، ')}
+                              >
+                                {stats.vacantRooms.map((r) => r.name).slice(0, 2).join('، ')}
+                                {stats.vacantRooms.length > 2 ? ' ...' : ''}
                               </span>
                             )}
                           </div>

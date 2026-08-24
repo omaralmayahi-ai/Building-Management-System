@@ -15,6 +15,14 @@ import {
   DbAuditLogRow,
   DbOrgEntityRow,
 } from './src/db/schema';
+import {
+  INITIAL_UNITS,
+  INITIAL_MAINTENANCE_REQUESTS,
+  INITIAL_OCCUPANCY_RECORDS,
+  INITIAL_PERIODIC_INSPECTIONS,
+  INITIAL_USERS,
+  INITIAL_AUDIT_LOGS,
+} from './src/data/mockData';
 
 async function startServer() {
   const app = express();
@@ -1614,6 +1622,145 @@ async function startServer() {
       console.error('DB save failed for reference-data:', err);
       memStore.referenceData = refData;
       return res.json({ success: true });
+    }
+  });
+
+  // ==========================================================================
+  // 10. System Factory Reset & Module Reset Endpoints
+  // ==========================================================================
+  app.post('/api/system/factory-reset', async (req, res) => {
+    const { mode } = req.body;
+    try {
+      const adminUser = {
+        id: 'USR-101',
+        name: 'عمر المياحي',
+        username: 'admin',
+        phone: '07701784629',
+        role: 'مدير النظام',
+        department: 'قسم إدارة وتقييم الأصول الهندسية',
+        governorate: 'واسط',
+        field: 'الأحدب',
+        status: 'active',
+        lastActive: 'الآن',
+        password: 'admin123',
+      };
+
+      if (mode === 'full_default') {
+        memStore.units = INITIAL_UNITS;
+        memStore.maintenance = INITIAL_MAINTENANCE_REQUESTS;
+        memStore.occupancy = INITIAL_OCCUPANCY_RECORDS;
+        memStore.inspections = INITIAL_PERIODIC_INSPECTIONS;
+        memStore.users = INITIAL_USERS;
+        memStore.auditLogs = INITIAL_AUDIT_LOGS;
+      } else {
+        // 'wipe_all_except_admin' (Default requested by user)
+        memStore.units = [];
+        memStore.maintenance = [];
+        memStore.occupancy = [];
+        memStore.inspections = [];
+        memStore.users = [adminUser];
+        memStore.auditLogs = [
+          {
+            id: `LOG-RESET-${Date.now()}`,
+            userId: 'USR-101',
+            userName: 'عمر المياحي',
+            userRole: 'مدير النظام',
+            action: 'factory_reset',
+            entityType: 'system',
+            entityId: 'SYSTEM',
+            entityName: 'النظام بالكامل',
+            details: 'تم تنفيذ استعادة ضبط المصنع الشامل للنظام وتفريغ كافة البيانات مع الإبقاء على حساب مدير النظام عمر المياحي',
+            timestamp: new Date().toISOString(),
+            ipAddress: '127.0.0.1',
+            governorate: 'واسط',
+            field: 'الأحدب',
+            status: 'success',
+          },
+        ];
+      }
+
+      saveMemStoreToDisk();
+
+      if (getDbPool()) {
+        try {
+          if (mode !== 'full_default') {
+            await query('DELETE FROM units');
+            await query('DELETE FROM maintenance_requests');
+            await query('DELETE FROM occupancy_records');
+            await query('DELETE FROM periodic_inspections');
+            await query('DELETE FROM audit_logs');
+            await query(
+              `INSERT INTO system_settings (key, value, updated_at)
+               VALUES ('app_users', $1, CURRENT_TIMESTAMP)
+               ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = CURRENT_TIMESTAMP`,
+              [JSON.stringify(memStore.users)]
+            );
+          }
+        } catch (dbErr) {
+          console.warn('DB wipe on factory reset note:', dbErr);
+        }
+      }
+
+      notifySyncChange('all_updated', { mode });
+      return res.json({ success: true, message: 'تمت استعادة ضبط المصنع الشامل بنجاح' });
+    } catch (err) {
+      console.error('Factory reset error:', err);
+      return res.status(500).json({ success: false, error: 'فشل تنفيذ استعادة ضبط المصنع' });
+    }
+  });
+
+  app.post('/api/system/reset-module', async (req, res) => {
+    const { moduleName, actionType } = req.body;
+    try {
+      switch (moduleName) {
+        case 'units':
+          memStore.units = actionType === 'clear' ? [] : INITIAL_UNITS;
+          if (getDbPool() && actionType === 'clear') await query('DELETE FROM units').catch(() => {});
+          notifySyncChange('units_updated', { action: 'bulk' });
+          break;
+        case 'maintenance':
+          memStore.maintenance = actionType === 'clear' ? [] : INITIAL_MAINTENANCE_REQUESTS;
+          if (getDbPool() && actionType === 'clear') await query('DELETE FROM maintenance_requests').catch(() => {});
+          notifySyncChange('maintenance_updated', { action: 'bulk' });
+          break;
+        case 'inspections':
+          memStore.inspections = actionType === 'clear' ? [] : INITIAL_PERIODIC_INSPECTIONS;
+          if (getDbPool() && actionType === 'clear') await query('DELETE FROM periodic_inspections').catch(() => {});
+          notifySyncChange('inspections_updated', { action: 'bulk' });
+          break;
+        case 'occupancy':
+          memStore.occupancy = actionType === 'clear' ? [] : INITIAL_OCCUPANCY_RECORDS;
+          if (getDbPool() && actionType === 'clear') await query('DELETE FROM occupancy_records').catch(() => {});
+          notifySyncChange('occupancy_updated', { action: 'bulk' });
+          break;
+        case 'users':
+          if (actionType === 'clear') {
+            const adminUser = memStore.users.find((u) => u.id === 'USR-101' || u.username === 'admin') || {
+              id: 'USR-101',
+              name: 'عمر المياحي',
+              username: 'admin',
+              phone: '07701784629',
+              role: 'مدير النظام',
+              status: 'active',
+              password: 'admin123',
+            };
+            memStore.users = [adminUser];
+          } else {
+            memStore.users = INITIAL_USERS;
+          }
+          notifySyncChange('users_updated', { action: 'bulk' });
+          break;
+        case 'audit_logs':
+          memStore.auditLogs = actionType === 'clear' ? [] : INITIAL_AUDIT_LOGS;
+          if (getDbPool() && actionType === 'clear') await query('DELETE FROM audit_logs').catch(() => {});
+          notifySyncChange('audit_logs_updated', { action: 'bulk' });
+          break;
+      }
+      saveMemStoreToDisk();
+      return res.json({ success: true });
+    } catch (err) {
+      console.error('Reset module failed:', err);
+      return res.status(500).json({ success: false, error: 'فشل إعادة ضبط القسم' });
     }
   });
 

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   CalendarCheck,
   Calendar,
@@ -54,6 +54,7 @@ import {
   GovernorateRef,
   OilfieldRef,
   MaintenanceRequest,
+  MaintenanceDepartmentRef,
   MaintenanceStatus,
   UnitAttachment,
   SystemUser,
@@ -252,6 +253,7 @@ interface PeriodicInspectionViewProps {
   governorates?: GovernorateRef[];
   oilfields?: OilfieldRef[];
   maintenanceRequests?: MaintenanceRequest[];
+  maintenanceDepartments?: MaintenanceDepartmentRef[];
   users?: SystemUser[];
   currentUser?: SystemUser | null;
   onAddSchedule: (schedule: PeriodicInspectionSchedule) => void;
@@ -271,6 +273,7 @@ interface PeriodicInspectionViewProps {
       createMaintenance?: boolean;
       maintenanceIssue?: string;
       maintenancePriority?: 'critical' | 'normal' | 'low';
+      maintenanceDepartment?: string;
       maintenanceAssignedTo?: string;
       maintenanceDate?: string;
     }
@@ -286,6 +289,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
   governorates = [],
   oilfields = [],
   maintenanceRequests = [],
+  maintenanceDepartments = [],
   users = [],
   currentUser = null,
   onAddSchedule,
@@ -314,6 +318,15 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
   const effectiveOilfields = useMemo(() => {
     return oilfields && oilfields.length > 0 ? oilfields : INITIAL_OILFIELDS;
   }, [oilfields]);
+
+  // Active Maintenance Departments list (dynamically sourced from Settings / maintenance registry)
+  const activeMaintenanceDepts = useMemo(() => {
+    if (maintenanceDepartments && maintenanceDepartments.length > 0) {
+      const active = maintenanceDepartments.filter((d) => d.status === 'active');
+      return active.length > 0 ? active : maintenanceDepartments;
+    }
+    return [];
+  }, [maintenanceDepartments]);
 
   // Selected Governorate object
   const selectedGovObj = useMemo(() => {
@@ -483,8 +496,15 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
   const [createMaintenance, setCreateMaintenance] = useState(false);
   const [maintIssue, setMaintIssue] = useState('');
   const [maintPriority, setMaintPriority] = useState<'critical' | 'normal' | 'low'>('normal');
-  const [maintDept, setMaintDept] = useState('الصيانة الكهربائية');
+  const [maintDept, setMaintDept] = useState('');
   const [maintDate, setMaintDate] = useState('');
+
+  // Keep maintDept synced with available active maintenance departments if empty
+  useEffect(() => {
+    if (!maintDept && activeMaintenanceDepts.length > 0) {
+      setMaintDept(activeMaintenanceDepts[0].nameAr);
+    }
+  }, [activeMaintenanceDepts, maintDept]);
 
   // Edit Schedule Form state
   const [editTitle, setEditTitle] = useState('');
@@ -2340,21 +2360,24 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
 
                       <div className="sm:col-span-3">
                         <label className={`block font-bold mb-0.5 text-[11px] ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
-                          جهة الصيانة المختصة:
+                          جهة الصيانة المختصة (المسجلة بالمنظومة):
                         </label>
                         <select
-                          value={maintDept}
+                          value={maintDept || (activeMaintenanceDepts[0]?.nameAr || '')}
                           onChange={(e) => setMaintDept(e.target.value)}
-                          className={`w-full rounded-lg px-2.5 py-1.5 font-bold outline-none border ${
+                          className={`w-full rounded-lg px-2.5 py-1.5 font-bold outline-none border cursor-pointer ${
                             isLight ? 'bg-white border-slate-200 text-slate-900' : 'bg-slate-900 border-slate-800 text-slate-100'
                           }`}
+                          required={createMaintenance}
                         >
-                          <option value="الصيانة الكهربائية">الصيانة الكهربائية</option>
-                          <option value="الصيانة الميكانيكية">الصيانة الميكانيكية</option>
-                          <option value="الصيانة الإنشائية">الصيانة الإنشائية</option>
-                          <option value="صيانة التبريد والتكييف">صيانة التبريد والتكييف</option>
-                          <option value="صيانة أنظمة السلامة والإطفاء">صيانة أنظمة السلامة والإطفاء</option>
-                          <option value="الصيانة العامة">الصيانة العامة</option>
+                          {activeMaintenanceDepts.map((d) => (
+                            <option key={d.id} value={d.nameAr}>
+                              {d.nameAr} {d.nameEn ? `(${d.nameEn})` : ''}
+                            </option>
+                          ))}
+                          {activeMaintenanceDepts.length === 0 && (
+                            <option value="">لا توجد جهات صيانة مسجلة - يرجى إضافتها من الإعدادات</option>
+                          )}
                         </select>
                       </div>
                     </div>

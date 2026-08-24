@@ -1359,12 +1359,21 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                             </td>
                             <td className="p-2">
                               <select
-                                value={rm.occupiedBy || selectedDepartments[0] || department}
-                                onChange={(e) => handleUpdateRoom(rm.id, 'occupiedBy', e.target.value)}
+                                value={rm.occupiedBy ?? ''}
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  handleUpdateRoom(rm.id, 'occupiedBy', val);
+                                  if (!val) {
+                                    handleUpdateRoom(rm.id, 'status', 'Vacant');
+                                  } else if (rm.status === 'Vacant') {
+                                    handleUpdateRoom(rm.id, 'status', 'Active');
+                                  }
+                                }}
                                 className={`w-full border rounded-lg px-2 py-1 text-xs outline-none cursor-pointer ${
                                   isLight ? 'bg-slate-50 border-slate-300 text-slate-900 font-medium' : 'bg-slate-900 border-slate-800 text-slate-100'
                                 }`}
                               >
+                                <option value="">🏢 شاغرة (بدون إشغال / فارغة)</option>
                                 {selectedDepartments.length > 0 && (
                                   <optgroup label="الجهات الشاغلة للمنشأة">
                                     {selectedDepartments.map((deptName) => (

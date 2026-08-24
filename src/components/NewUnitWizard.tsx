@@ -669,16 +669,19 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
     // Aggregate rooms from all floors
     const aggregatedRoomsList = Object.values(detailedRoomsMap)
       .flat()
-      .map((r: any) => ({
-        id: r.id,
-        name: r.name,
-        type: r.categoryLabel,
-        areaSqM: r.areaSqM,
-        floor: `الطابق ${r.floorNumber}`,
-        status: 'Active' as const,
-        occupiedBy: r.occupiedBy || (selectedDepartments[0] || department || 'غير محدد'),
-        notes: `رمز/رقم الغرفة: ${r.roomNumber}`,
-      }));
+      .map((r: any) => {
+        const isOccupied = !!(r.occupiedBy && r.occupiedBy.trim().length > 0);
+        return {
+          id: r.id,
+          name: r.name,
+          type: r.categoryLabel,
+          areaSqM: r.areaSqM,
+          floor: `الطابق ${r.floorNumber}`,
+          status: isOccupied ? ('Active' as const) : ('Vacant' as const),
+          occupiedBy: isOccupied ? r.occupiedBy.trim() : '',
+          notes: `رمز/رقم الغرفة: ${r.roomNumber}`,
+        };
+      });
 
     const finalDept = selectedDepartments.length > 0 ? selectedDepartments.join(' ، ') : (department || 'غير محدد');
 
@@ -1658,12 +1661,13 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                                 </td>
                                 <td className="p-2">
                                   <select
-                                    value={rm.occupiedBy || (selectedDepartments[0] || department)}
+                                    value={rm.occupiedBy ?? ''}
                                     onChange={(e) =>
                                       handleUpdateRoomField(floorNum, rm.id, 'occupiedBy', e.target.value)
                                     }
                                     className={`w-full border rounded-lg px-2 py-1 text-xs cursor-pointer outline-none ${isLight ? 'bg-white border-slate-300 text-slate-900 font-medium focus:border-amber-500' : 'bg-slate-950 border-slate-800 text-slate-300 focus:border-amber-500'}`}
                                   >
+                                    <option value="">🏢 شاغرة (بدون إشغال / فارغة)</option>
                                     {selectedDepartments.length > 0 && (
                                       <optgroup label="الجهات الشاغلة للمنشأة">
                                         {selectedDepartments.map((deptName) => (

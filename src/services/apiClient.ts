@@ -1,9 +1,3 @@
-/**
- * Midland Oil Company - Enterprise Data Access Layer (DAL)
- * Central API Client with Cloud Firestore Persistence & Real-time Sync
- * Guarantees permanent persistence across server restarts, browser reloads, and multi-device access.
- */
-
 import {
   UnitAsset,
   MaintenanceRequest,
@@ -11,72 +5,73 @@ import {
   PeriodicInspectionSchedule,
   AuditLogItem,
   OrgEntity,
-  SystemBranding,
   SystemUser,
+  SystemBranding,
 } from '../types';
-import { safeParse, safeSetItem } from '../utils/storageUtils';
+import { safeSetItem, safeParse } from '../utils/storageUtils';
 import * as firestoreClient from './firebaseClient';
-import { updateServerTimeFromTimestamp } from './serverTime';
 
 const BASE_API_URL = '/api';
-const API_KEY = (import.meta as any).env?.VITE_API_KEY || 'midland_oil_secure_api_key_2026';
 
 /**
- * Helper to handle fetch responses with JSON parsing and error handling
+ * Global synchronized server time offset in milliseconds.
+ * (serverTime = clientTime + serverTimeOffsetMs)
  */
-async function fetchJson<T>(url: string, options?: RequestInit, throwOnError: boolean = false): Promise<T | null> {
-  const reqStart = Date.now();
+let serverTimeOffsetMs = 0;
+
+export function getSynchronizedServerTime(): Date {
+  return new Date(Date.now() + serverTimeOffsetMs);
+}
+
+export function updateServerTimeFromTimestamp(serverTimestampMs: number): void {
+  const localNow = Date.now();
+  if (typeof serverTimestampMs === 'number' && !isNaN(serverTimestampMs) && serverTimestampMs > 0) {
+    serverTimeOffsetMs = serverTimestampMs - localNow;
+  }
+}
+
+/**
+ * Generic fetch wrapper with timeout, JSON parsing, and server time synchronization.
+ */
+async function fetchJson<T>(
+  url: string,
+  options?: RequestInit,
+  timeoutMs = 10000,
+  throwOnError = false
+): Promise<T | null> {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeoutMs);
+
   try {
     const res = await fetch(url, {
+      ...options,
       headers: {
         'Content-Type': 'application/json',
-        'X-API-Key': API_KEY,
-        ...options?.headers,
+        ...(options?.headers || {}),
       },
-      ...options,
+      signal: controller.signal,
     });
+    clearTimeout(id);
 
-    const reqEnd = Date.now();
-    const roundTrip = Math.max(0, reqEnd - reqStart);
-
-    // Calibrate server time from response headers
-    const serverTimeHeader = res.headers.get('x-server-time');
-    if (serverTimeHeader) {
-      const serverMs = parseInt(serverTimeHeader, 10);
-      if (!isNaN(serverMs)) {
-        updateServerTimeFromTimestamp(serverMs, roundTrip);
-      }
-    } else {
-      const dateHeader = res.headers.get('date');
-      if (dateHeader) {
-        const serverMs = new Date(dateHeader).getTime();
-        if (!isNaN(serverMs)) {
-          updateServerTimeFromTimestamp(serverMs, roundTrip);
-        }
+    const dateHeader = res.headers.get('date');
+    if (dateHeader) {
+      const serverTimeMs = new Date(dateHeader).getTime();
+      if (!isNaN(serverTimeMs)) {
+        updateServerTimeFromTimestamp(serverTimeMs);
       }
     }
 
     if (!res.ok) {
-      let errorDetails = '';
-      try {
-        const errorData = await res.json();
-        errorDetails = errorData?.error || errorData?.details || `HTTP error ${res.status}`;
-      } catch {
-        errorDetails = `HTTP error ${res.status}`;
-      }
-      console.warn(`API request to ${url} returned status ${res.status}:`, errorDetails);
       if (throwOnError) {
-        throw new Error(errorDetails);
+        throw new Error(`HTTP Error ${res.status}: ${res.statusText}`);
       }
       return null;
     }
-    const data = await res.json();
-    if (throwOnError && data && (data as any).success === false) {
-      throw new Error((data as any).error || 'فشل تنفيذ العملية على الخادم');
-    }
-    return data;
+
+    const json = await res.json();
+    return json as T;
   } catch (err) {
-    console.warn(`Network/API note accessing ${url}:`, err);
+    clearTimeout(id);
     if (throwOnError) {
       throw err;
     }
@@ -91,7 +86,7 @@ async function fetchJson<T>(url: string, options?: RequestInit, throwOnError: bo
 export async function getUnits(): Promise<UnitAsset[]> {
   try {
     const firestoreUnits = await firestoreClient.getUnitsFromFirestore();
-    if (firestoreUnits && firestoreUnits.length > 0) {
+    if (Array.isArray(firestoreUnits)) {
       safeSetItem('app_units', firestoreUnits);
       return firestoreUnits;
     }
@@ -101,7 +96,7 @@ export async function getUnits(): Promise<UnitAsset[]> {
 
   // Fallback to Express backend or LocalStorage
   const data = await fetchJson<UnitAsset[]>(`${BASE_API_URL}/units`);
-  if (data && Array.isArray(data) && data.length > 0) {
+  if (Array.isArray(data)) {
     safeSetItem('app_units', data);
     return data;
   }
@@ -167,7 +162,7 @@ export async function deleteUnit(code: string): Promise<boolean> {
 export async function getMaintenanceRequests(): Promise<MaintenanceRequest[]> {
   try {
     const firestoreMaint = await firestoreClient.getMaintenanceFromFirestore();
-    if (firestoreMaint && firestoreMaint.length > 0) {
+    if (Array.isArray(firestoreMaint)) {
       safeSetItem('app_maintenance_requests', firestoreMaint);
       return firestoreMaint;
     }
@@ -176,7 +171,7 @@ export async function getMaintenanceRequests(): Promise<MaintenanceRequest[]> {
   }
 
   const data = await fetchJson<MaintenanceRequest[]>(`${BASE_API_URL}/maintenance`);
-  if (data && Array.isArray(data) && data.length > 0) {
+  if (Array.isArray(data)) {
     safeSetItem('app_maintenance_requests', data);
     return data;
   }
@@ -236,13 +231,13 @@ export async function deleteMaintenanceRequest(id: string): Promise<boolean> {
 }
 
 // ============================================================================
-// 3. Occupancy & Housing Records (سجلات الإشغال والتسكين)
+// 3. Occupancy Records (سجلات الإشغال والتسكين)
 // ============================================================================
 
 export async function getOccupancyRecords(): Promise<OccupancyRecord[]> {
   try {
     const firestoreOcc = await firestoreClient.getOccupancyFromFirestore();
-    if (firestoreOcc && firestoreOcc.length > 0) {
+    if (Array.isArray(firestoreOcc)) {
       safeSetItem('app_occupancy_records', firestoreOcc);
       return firestoreOcc;
     }
@@ -251,7 +246,7 @@ export async function getOccupancyRecords(): Promise<OccupancyRecord[]> {
   }
 
   const data = await fetchJson<OccupancyRecord[]>(`${BASE_API_URL}/occupancy`);
-  if (data && Array.isArray(data) && data.length > 0) {
+  if (Array.isArray(data)) {
     safeSetItem('app_occupancy_records', data);
     return data;
   }
@@ -299,6 +294,11 @@ export async function updateOccupancyRecord(record: OccupancyRecord): Promise<Oc
 }
 
 export async function deleteOccupancyRecord(id: string): Promise<boolean> {
+  try {
+    await firestoreClient.deleteOccupancyFromFirestore(id);
+  } catch (err) {
+    console.warn('Firestore deleteOccupancy error:', err);
+  }
   fetchJson<{ success: boolean }>(`${BASE_API_URL}/occupancy/${encodeURIComponent(id)}`, {
     method: 'DELETE',
   }).catch(() => {});
@@ -312,7 +312,7 @@ export async function deleteOccupancyRecord(id: string): Promise<boolean> {
 export async function getPeriodicInspections(): Promise<PeriodicInspectionSchedule[]> {
   try {
     const firestoreInsp = await firestoreClient.getInspectionsFromFirestore();
-    if (firestoreInsp && firestoreInsp.length > 0) {
+    if (Array.isArray(firestoreInsp)) {
       safeSetItem('app_periodic_inspections', firestoreInsp);
       return firestoreInsp;
     }
@@ -321,7 +321,7 @@ export async function getPeriodicInspections(): Promise<PeriodicInspectionSchedu
   }
 
   const data = await fetchJson<PeriodicInspectionSchedule[]>(`${BASE_API_URL}/inspections`);
-  if (data && Array.isArray(data) && data.length > 0) {
+  if (Array.isArray(data)) {
     safeSetItem('app_periodic_inspections', data);
     return data;
   }
@@ -369,6 +369,11 @@ export async function updatePeriodicInspection(item: PeriodicInspectionSchedule)
 }
 
 export async function deletePeriodicInspection(id: string): Promise<boolean> {
+  try {
+    await firestoreClient.deleteInspectionFromFirestore(id);
+  } catch (err) {
+    console.warn('Firestore deleteInspection error:', err);
+  }
   fetchJson<{ success: boolean }>(`${BASE_API_URL}/inspections/${encodeURIComponent(id)}`, {
     method: 'DELETE',
   }).catch(() => {});
@@ -382,7 +387,7 @@ export async function deletePeriodicInspection(id: string): Promise<boolean> {
 export async function getAuditLogs(): Promise<AuditLogItem[]> {
   try {
     const firestoreLogs = await firestoreClient.getAuditLogsFromFirestore();
-    if (firestoreLogs && firestoreLogs.length > 0) {
+    if (Array.isArray(firestoreLogs)) {
       safeSetItem('app_audit_logs', firestoreLogs);
       return firestoreLogs;
     }
@@ -391,20 +396,11 @@ export async function getAuditLogs(): Promise<AuditLogItem[]> {
   }
 
   const data = await fetchJson<AuditLogItem[]>(`${BASE_API_URL}/audit-logs`);
-  if (data && Array.isArray(data) && data.length > 0) {
+  if (Array.isArray(data)) {
     safeSetItem('app_audit_logs', data);
     return data;
   }
   return safeParse('app_audit_logs', []);
-}
-
-export async function saveAuditLogs(logs: AuditLogItem[]): Promise<boolean> {
-  safeSetItem('app_audit_logs', logs);
-  fetchJson<{ success: boolean }>(`${BASE_API_URL}/audit-logs/bulk`, {
-    method: 'POST',
-    body: JSON.stringify({ logs }),
-  }).catch(() => {});
-  return true;
 }
 
 export async function addAuditLog(log: AuditLogItem): Promise<AuditLogItem> {
@@ -421,13 +417,13 @@ export async function addAuditLog(log: AuditLogItem): Promise<AuditLogItem> {
 }
 
 // ============================================================================
-// 6. Organization Hierarchy Entities (الهيكل التنظيمي)
+// 6. Organizational Entities (الهيكل التنظيمي والتشكيلات)
 // ============================================================================
 
 export async function getOrgEntities(): Promise<OrgEntity[]> {
   try {
     const firestoreEntities = await firestoreClient.getOrgEntitiesFromFirestore();
-    if (firestoreEntities && firestoreEntities.length > 0) {
+    if (Array.isArray(firestoreEntities)) {
       safeSetItem('app_ref_org_entities', firestoreEntities);
       return firestoreEntities;
     }
@@ -436,7 +432,7 @@ export async function getOrgEntities(): Promise<OrgEntity[]> {
   }
 
   const data = await fetchJson<OrgEntity[]>(`${BASE_API_URL}/org-entities`);
-  if (data && Array.isArray(data) && data.length > 0) {
+  if (Array.isArray(data)) {
     safeSetItem('app_ref_org_entities', data);
     return data;
   }
@@ -458,45 +454,57 @@ export async function saveOrgEntities(entities: OrgEntity[]): Promise<boolean> {
 }
 
 export async function addOrgEntity(entity: OrgEntity): Promise<OrgEntity> {
-  const current = await getOrgEntities();
-  const updated = [...current.filter((e) => e.id !== entity.id), entity];
-  await saveOrgEntities(updated);
+  const current = safeParse<OrgEntity[]>('app_ref_org_entities', []);
+  const updated = [entity, ...current.filter((e) => e.id !== entity.id)];
+  safeSetItem('app_ref_org_entities', updated);
+  try {
+    await firestoreClient.saveOrgEntitiesToFirestore(updated);
+  } catch (err) {
+    console.warn('Firestore addOrgEntity error:', err);
+  }
+  fetchJson<{ entity: OrgEntity }>(`${BASE_API_URL}/org-entities`, {
+    method: 'POST',
+    body: JSON.stringify(entity),
+  }).catch(() => {});
   return entity;
 }
 
 export async function updateOrgEntity(entity: OrgEntity): Promise<OrgEntity> {
-  const current = await getOrgEntities();
+  const current = safeParse<OrgEntity[]>('app_ref_org_entities', []);
   const updated = current.map((e) => (e.id === entity.id ? entity : e));
-  await saveOrgEntities(updated);
+  safeSetItem('app_ref_org_entities', updated);
+  try {
+    await firestoreClient.saveOrgEntitiesToFirestore(updated);
+  } catch (err) {
+    console.warn('Firestore updateOrgEntity error:', err);
+  }
+  fetchJson<{ entity: OrgEntity }>(`${BASE_API_URL}/org-entities/${encodeURIComponent(entity.id)}`, {
+    method: 'PUT',
+    body: JSON.stringify(entity),
+  }).catch(() => {});
   return entity;
 }
 
 export async function deleteOrgEntity(id: string): Promise<boolean> {
-  const current = await getOrgEntities();
-  const updated = current.filter((e) => e.id !== id);
-  safeSetItem('app_ref_org_entities', updated);
   try {
     await firestoreClient.deleteOrgEntityFromFirestore(id);
   } catch (err) {
-    console.warn('Firestore deleteOrgEntity note:', err);
+    console.warn('Firestore deleteOrgEntity error:', err);
   }
-  fetchJson<{ success: boolean }>(`${BASE_API_URL}/org-entities/${id}`, {
+  fetchJson<{ success: boolean }>(`${BASE_API_URL}/org-entities/${encodeURIComponent(id)}`, {
     method: 'DELETE',
-  }).catch(() => {
-    // fallback to bulk sync
-    saveOrgEntities(updated).catch(() => {});
-  });
+  }).catch(() => {});
   return true;
 }
 
 // ============================================================================
-// 7. System Branding (الهوية البصرية وشعار النظام)
+// 7. System Branding (الهوية البصرية وإعدادات النظام)
 // ============================================================================
 
 export async function getBranding(): Promise<SystemBranding | null> {
   try {
     const firestoreBranding = await firestoreClient.getBrandingFromFirestore();
-    if (firestoreBranding && firestoreBranding.systemName) {
+    if (firestoreBranding) {
       safeSetItem('app_branding', firestoreBranding);
       return firestoreBranding;
     }
@@ -533,7 +541,7 @@ export async function saveBranding(branding: SystemBranding): Promise<boolean> {
 export async function getUsers(): Promise<SystemUser[]> {
   try {
     const firestoreUsers = await firestoreClient.getUsersFromFirestore();
-    if (firestoreUsers && firestoreUsers.length > 0) {
+    if (Array.isArray(firestoreUsers) && firestoreUsers.length > 0) {
       safeSetItem('app_users', firestoreUsers);
       return firestoreUsers;
     }
@@ -542,7 +550,7 @@ export async function getUsers(): Promise<SystemUser[]> {
   }
 
   const data = await fetchJson<SystemUser[]>(`${BASE_API_URL}/users`);
-  if (data && Array.isArray(data) && data.length > 0) {
+  if (Array.isArray(data) && data.length > 0) {
     safeSetItem('app_users', data);
     return data;
   }
@@ -632,7 +640,58 @@ export async function saveReferenceData(refData: any): Promise<boolean> {
 }
 
 // ============================================================================
-// 10. Real-Time Synchronization Listener (المزامنة الفورية اللحظية للبيانات)
+// 10. System Factory Reset & Granular Reset API Actions
+// ============================================================================
+
+export async function triggerServerFactoryReset(
+  mode: 'wipe_all_except_admin' | 'full_default' = 'wipe_all_except_admin',
+  adminUser?: SystemUser
+): Promise<boolean> {
+  try {
+    if (adminUser) {
+      await firestoreClient.resetFirestoreComprehensive(adminUser);
+    }
+  } catch (err) {
+    console.warn('Firestore factory reset note:', err);
+  }
+
+  const res = await fetchJson<{ success: boolean }>(`${BASE_API_URL}/system/factory-reset`, {
+    method: 'POST',
+    body: JSON.stringify({ mode }),
+  });
+  return !!res?.success;
+}
+
+export async function triggerServerResetModule(
+  moduleName: 'units' | 'maintenance' | 'inspections' | 'occupancy' | 'users' | 'audit_logs',
+  actionType: 'clear' | 'default'
+): Promise<boolean> {
+  try {
+    if (actionType === 'clear') {
+      const colMap: Record<string, string> = {
+        units: 'units',
+        maintenance: 'maintenance_requests',
+        inspections: 'periodic_inspections',
+        occupancy: 'occupancy_records',
+        audit_logs: 'audit_logs',
+      };
+      if (colMap[moduleName]) {
+        await firestoreClient.clearFirestoreCollection(colMap[moduleName]);
+      }
+    }
+  } catch (err) {
+    console.warn('Firestore reset module note:', err);
+  }
+
+  const res = await fetchJson<{ success: boolean }>(`${BASE_API_URL}/system/reset-module`, {
+    method: 'POST',
+    body: JSON.stringify({ moduleName, actionType }),
+  });
+  return !!res?.success;
+}
+
+// ============================================================================
+// 11. Real-Time Synchronization Listener (المزامنة الفورية اللحظية للبيانات)
 // ============================================================================
 
 export interface RealtimeSyncEvent {
