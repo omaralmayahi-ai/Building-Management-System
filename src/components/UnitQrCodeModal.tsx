@@ -10,7 +10,7 @@ import {
   Compass,
 } from 'lucide-react';
 import { UnitAsset } from '../types';
-import { toArabicDigits, getServerDateFormatted } from '../utils/arabicUtils';
+import { toArabicDigits, getServerDateDDMMYYYY } from '../utils/arabicUtils';
 
 interface UnitQrCodeModalProps {
   unit: UnitAsset;
@@ -95,15 +95,18 @@ export const UnitQrCodeModal: React.FC<UnitQrCodeModalProps> = ({
           <div class="header">جمهورية العراق - وزارة النفط - شركة نفط الوسط</div>
           <div class="sub">لوحة التعريف الميداني المعتمدة ورمز الوصول السريع QR</div>
           <div class="code-box">${unit.code}</div>
+          ${unit.fixedAssetCode ? `<div style="font-family: monospace; font-size: 14px; font-weight: bold; color: #4338ca; margin-bottom: 12px;">رمز الأصل: ${unit.fixedAssetCode}</div>` : ''}
           <img class="qr-img" src="${qrDataUrl}" alt="QR Code" />
           <div class="info">
             <p><strong>اسم المنشأة:</strong> ${unit.name}</p>
+            <p><strong>رمز المنشأة الفريد:</strong> ${unit.code}</p>
+            ${unit.fixedAssetCode ? `<p><strong>رمز الأصل:</strong> ${unit.fixedAssetCode}</p>` : ''}
             <p><strong>الموقع الميداني:</strong> ${unit.governorate} • ${unit.field}</p>
+            <p><strong>المساحة الإجمالية:</strong> ${unit.totalAreaSqM ? `${unit.totalAreaSqM} م²` : 'غير محدد'} • عدد الطوابق: ${unit.floorsCount || 1}</p>
             <p><strong>الإحداثيات الجغرافية:</strong> ${unit.coordinates.lat}°, ${unit.coordinates.lng}°</p>
-            <p><strong>التقييم الهندسي:</strong> Grade ${unit.conditionGrade} • المساحة: ${unit.totalAreaSqM} م²</p>
             <p><strong>الجهة الشاغلة:</strong> ${unit.department}</p>
           </div>
-          <div class="footer">تاريخ الطباعة: ${getServerDateFormatted()} • الأرشيف الهندسي الموحد</div>
+          <div class="footer">تاريخ الطباعة: <span style="font-family: monospace; font-weight: bold;">${getServerDateDDMMYYYY()}</span></div>
         </div>
         <script>
           window.onload = function() { window.print(); window.close(); };
@@ -200,14 +203,31 @@ export const UnitQrCodeModal: React.FC<UnitQrCodeModalProps> = ({
             </div>
 
             {/* Code Box */}
-            <div className="space-y-1">
-              <span className={`text-[10px] font-bold block uppercase tracking-wider ${
-                isLight ? 'text-slate-600' : 'text-slate-400'
-              }`}>
-                الرمز الموحد للمنشأة (Structural Unit Code)
-              </span>
-              <div className="bg-slate-950 border-2 border-amber-500 rounded-xl py-2 px-4 font-mono text-2xl font-black text-amber-400 tracking-widest shadow-inner inline-block min-w-[220px]">
-                {toArabicDigits(unit.code)}
+            <div className="space-y-2">
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                <div className="space-y-1">
+                  <span className={`text-[10px] font-bold block uppercase tracking-wider ${
+                    isLight ? 'text-slate-600' : 'text-slate-400'
+                  }`}>
+                    رمز المنشأة الفريد (Code)
+                  </span>
+                  <div className="bg-slate-950 border-2 border-amber-500 rounded-xl py-2 px-4 font-mono text-xl font-black text-amber-400 tracking-widest shadow-inner inline-block min-w-[160px]">
+                    {toArabicDigits(unit.code)}
+                  </div>
+                </div>
+
+                {unit.fixedAssetCode && (
+                  <div className="space-y-1">
+                    <span className={`text-[10px] font-bold block uppercase tracking-wider ${
+                      isLight ? 'text-indigo-700' : 'text-indigo-300'
+                    }`}>
+                      رمز الأصل
+                    </span>
+                    <div className="bg-slate-950 border-2 border-indigo-500/80 rounded-xl py-2 px-4 font-mono text-xl font-black text-indigo-300 tracking-widest shadow-inner inline-block min-w-[160px]">
+                      {unit.fixedAssetCode}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -253,13 +273,15 @@ export const UnitQrCodeModal: React.FC<UnitQrCodeModalProps> = ({
                 <span className={`font-extrabold text-sm truncate ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
                   {unit.name}
                 </span>
-                <span className={`text-[10px] px-2 py-0.5 rounded font-bold shrink-0 border ${
-                  isLight
-                    ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
-                    : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
-                }`}>
-                  Grade {unit.conditionGrade}
-                </span>
+                {unit.fixedAssetCode && (
+                  <span className={`text-[10px] px-2 py-0.5 rounded font-mono font-bold shrink-0 border ${
+                    isLight
+                      ? 'bg-indigo-100 text-indigo-800 border-indigo-300'
+                      : 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30'
+                  }`}>
+                    أصل: {unit.fixedAssetCode}
+                  </span>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-2.5 text-[11px]">

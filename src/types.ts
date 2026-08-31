@@ -55,6 +55,7 @@ export interface UnitDesignFinishing {
 export interface UnitAsset {
   id: string; // e.g. "WS-AHD-BLD-014"
   code: string;
+  fixedAssetCode?: string; // رمز الأصل المثبت في سجلات أصول الشركة (10 أرقام أو 12 خانة مع النقاط .)
   name: string; // Local name, e.g. "إدارة حقل الأحدب الرئيسي"
   type: UnitType;
   siteId: string;

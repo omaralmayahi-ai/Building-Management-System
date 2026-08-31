@@ -30,6 +30,12 @@ import { safeSetItem } from '../utils/storageUtils';
 import { LocationPickerMap } from './LocationPickerMap';
 import { AttachmentViewerModal } from './AttachmentViewerModal';
 import { QuickAddOrgEntityModal } from './QuickAddOrgEntityModal';
+import {
+  cleanFixedAssetCodeInput,
+  validateFixedAssetCodeFormat,
+  checkFixedAssetCodeUniqueness,
+  formatToDottedAssetCode,
+} from '../utils/assetCodeUtils';
 
 interface EditUnitModalProps {
   unit: UnitAsset;
@@ -38,6 +44,7 @@ interface EditUnitModalProps {
   governorates?: { code?: string; nameAr: string }[];
   oilfields?: { code?: string; nameAr: string }[];
   unitTypes?: ReferenceUnitType[];
+  existingUnits?: UnitAsset[];
   orgEntities?: OrgEntity[];
   onAddOrgEntity?: (newEntity: OrgEntity) => void;
   theme?: 'dark' | 'light';
@@ -51,6 +58,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
   governorates = [],
   oilfields = [],
   unitTypes = [],
+  existingUnits = [],
   orgEntities = [],
   onAddOrgEntity,
   theme = 'dark',
@@ -66,6 +74,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
 
   // Editable Form State initialized from unit
   const [name, setName] = useState<string>(unit.name);
+  const [fixedAssetCode, setFixedAssetCode] = useState<string>(unit.fixedAssetCode || '');
   const [type, setType] = useState<UnitType>(unit.type);
   const [field, setField] = useState<string>(unit.field);
   const [governorate, setGovernorate] = useState<string>(unit.governorate);
@@ -456,6 +465,23 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate Fixed Asset Code if provided
+    if (fixedAssetCode.trim()) {
+      const codeFormatVal = validateFixedAssetCodeFormat(fixedAssetCode.trim());
+      if (!codeFormatVal.isValid) {
+        alert(`تنبيه بخصوص رمز الأصل:\n${codeFormatVal.message}`);
+        setActiveTab('basic');
+        return;
+      }
+      const uniquenessCheck = checkFixedAssetCodeUniqueness(fixedAssetCode.trim(), existingUnits, unit.id);
+      if (!uniquenessCheck.isUnique) {
+        alert('تنبيه: رمز الأصل مسجل مسبقاً لوحدة أخرى في النظام. رمز الأصل يجب أن يكون فريداً وغير مكرر.');
+        setActiveTab('basic');
+        return;
+      }
+    }
+
     const updatedFinishing = {
       archStyle,
       roofType,
@@ -473,6 +499,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
     const updated: UnitAsset = {
       ...unit,
       name: name.trim() || unit.name,
+      fixedAssetCode: fixedAssetCode.trim() || undefined,
       type,
       field,
       governorate,
@@ -896,6 +923,87 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                     }`}
                   />
                 </div>
+
+                {/* رمز الأصل في سجلات أصول الشركة */}
+                {(() => {
+                  const validation = fixedAssetCode ? validateFixedAssetCodeFormat(fixedAssetCode) : null;
+                  const isUnique = fixedAssetCode ? checkFixedAssetCodeUniqueness(fixedAssetCode, existingUnits, unit.id).isUnique : true;
+                  const isClean10Digits = /^\d{10}$/.test(fixedAssetCode.trim());
+
+                  return (
+                    <div
+                      className={`md:col-span-2 p-4 rounded-2xl border space-y-2.5 ${
+                        isLight
+                          ? 'bg-indigo-50/50 border-indigo-200'
+                          : 'bg-indigo-950/20 border-indigo-900/40'
+                      }`}
+                    >
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <Layers className="w-4 h-4 text-indigo-500 shrink-0" />
+                          <label className={`font-black text-xs ${isLight ? 'text-slate-800' : 'text-slate-200'}`}>
+                            رمز الأصل في سجلات أصول الشركة:
+                          </label>
+                          <span className="text-[10px] text-amber-500 font-bold">(حقل اختياري / فريد)</span>
+                        </div>
+
+                        {fixedAssetCode && (
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            {validation?.isValid && isUnique && (
+                              <span className="bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 text-[10px] px-2 py-0.5 rounded-full font-bold flex items-center gap-1">
+                                <Check className="w-3 h-3" />
+                                <span>رمز مطابق وفريد ({validation.type === 'dotted_12' ? '12 خانة منقطة' : '10 أرقام'})</span>
+                              </span>
+                            )}
+                            {!validation?.isValid && (
+                              <span className="bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/30 text-[10px] px-2 py-0.5 rounded-full font-bold">
+                                {validation?.message}
+                              </span>
+                            )}
+                            {validation?.isValid && !isUnique && (
+                              <span className="bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/30 text-[10px] px-2 py-0.5 rounded-full font-bold">
+                                رمز الأصل مكرر ومسجل مسبقاً لوحدة أخرى!
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="text"
+                          dir="ltr"
+                          value={fixedAssetCode}
+                          onChange={(e) => {
+                            const cleaned = cleanFixedAssetCodeInput(e.target.value);
+                            setFixedAssetCode(cleaned);
+                          }}
+                          placeholder="1002030405  أو  10.02.03.0405"
+                          className={`w-full border rounded-xl p-2.5 font-mono font-bold text-xs tracking-wider outline-none transition focus:border-indigo-500 ${
+                            isLight
+                              ? 'bg-white border-slate-300 text-slate-900'
+                              : 'bg-slate-950 border-slate-700 text-slate-100'
+                          }`}
+                        />
+
+                        {isClean10Digits && (
+                          <button
+                            type="button"
+                            onClick={() => setFixedAssetCode(formatToDottedAssetCode(fixedAssetCode))}
+                            className="shrink-0 bg-indigo-600 hover:bg-indigo-500 text-white text-xs px-3 py-2.5 rounded-xl font-bold transition flex items-center gap-1 cursor-pointer shadow-sm"
+                            title="تحويل الأرقام العشرة إلى تنسيق 12 خانة بالنقاط (10.02.03.0405)"
+                          >
+                            <span>تحويل لمنقط (.)</span>
+                          </button>
+                        )}
+                      </div>
+
+                      <p className={`text-[11px] leading-relaxed ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                        رمز الأصل المثبت في سجلات أصول الشركة (سلسلة من <strong>10 أرقام</strong> أو سلسلة من أرقام يفصلها رمز <span className="font-mono font-bold text-indigo-500">.</span> ليكون الإجمالي <strong>12 دجت</strong>).
+                      </p>
+                    </div>
+                  );
+                })()}
               </div>
             </div>
           )}

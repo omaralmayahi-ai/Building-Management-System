@@ -834,11 +834,12 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
       if (searchKeyword.trim()) {
         const kw = searchKeyword.toLowerCase();
         const matchesCode = (unit.code || '').toLowerCase().includes(kw);
+        const matchesAssetCode = (unit.fixedAssetCode || '').toLowerCase().includes(kw);
         const matchesName = (unit.name || '').toLowerCase().includes(kw);
         const matchesSite = (unit.siteName || '').toLowerCase().includes(kw);
         const matchesDept = (unit.department || '').toLowerCase().includes(kw);
         const matchesRoomOccupant = unit.rooms?.some((r) => (r.occupiedBy || '').toLowerCase().includes(kw));
-        if (!matchesCode && !matchesName && !matchesSite && !matchesDept && !matchesRoomOccupant) {
+        if (!matchesCode && !matchesAssetCode && !matchesName && !matchesSite && !matchesDept && !matchesRoomOccupant) {
           return false;
         }
       }
@@ -912,10 +913,11 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
       if (searchKeyword.trim()) {
         const kw = searchKeyword.toLowerCase();
         const matchesCode = (unit.code || '').toLowerCase().includes(kw);
+        const matchesAssetCode = (unit.fixedAssetCode || '').toLowerCase().includes(kw);
         const matchesName = (unit.name || '').toLowerCase().includes(kw);
         const matchesReason = (unit.decommissionReason || '').toLowerCase().includes(kw);
         const matchesDept = (unit.department || '').toLowerCase().includes(kw);
-        if (!matchesCode && !matchesName && !matchesReason && !matchesDept) return false;
+        if (!matchesCode && !matchesAssetCode && !matchesName && !matchesReason && !matchesDept) return false;
       }
 
       if (!matchesField(unit.field, selectedField)) return false;
@@ -1165,16 +1167,18 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
       });
     } else if (activeTab === 'units') {
       filename = `تقرير_حصر_الأصول_والوحدات_الهندسية_${dateStr}.csv`;
-      content += 'رمز الوحدة,اسم الوحدة,نوع المنشأة,الحقل النفطي,المحافظة,التقييم الإنشائي,الجهة الشاغلة,الغرف المشغولة,الغرف الشاغرة (فارغة),إجمالي غرف الوحدة,سنة الإنشاء,المساحة الإجمالية (م²),عدد الطوابق,عدد المعدات\n';
+      content += 'رمز الوحدة / الأصل,اسم الوحدة,نوع المنشأة,الحقل النفطي,المحافظة,التقييم الإنشائي,الجهة الشاغلة,الغرف المشغولة,الغرف الشاغرة (فارغة),إجمالي غرف الوحدة,سنة الإنشاء,المساحة الإجمالية (م²),عدد الطوابق,عدد المعدات\n';
       filteredUnits.forEach((u) => {
         const stats = getUnitOccupancyStats(u, selectedOrgEntity);
-        content += `"${toArabicDigits(u.code)}","${u.name}","${translateUnitType(u.type)}","${translateField(u.field)}","${translateGovernorate(u.governorate)}","${formatGradeArabic(u.conditionGrade)}","${stats.entity}","${toArabicDigits(stats.occupiedRoomsCount)}","${toArabicDigits(stats.vacantRoomsCount)}","${toArabicDigits(stats.totalRooms)}","${toArabicDigits(u.constructionYear)}","${toArabicDigits(u.totalAreaSqM)}","${toArabicDigits(u.floorsCount)}","${toArabicDigits(u.equipment.length)}"\n`;
+        const codeDisplay = u.fixedAssetCode ? `${toArabicDigits(u.code)} [أصل: ${u.fixedAssetCode}]` : toArabicDigits(u.code);
+        content += `"${codeDisplay}","${u.name}","${translateUnitType(u.type)}","${translateField(u.field)}","${translateGovernorate(u.governorate)}","${formatGradeArabic(u.conditionGrade)}","${stats.entity}","${toArabicDigits(stats.occupiedRoomsCount)}","${toArabicDigits(stats.vacantRoomsCount)}","${toArabicDigits(stats.totalRooms)}","${toArabicDigits(u.constructionYear)}","${toArabicDigits(u.totalAreaSqM)}","${toArabicDigits(u.floorsCount)}","${toArabicDigits(u.equipment.length)}"\n`;
       });
     } else if (activeTab === 'decommissioned') {
       filename = `تقرير_سجل_الوحدات_المشطوبة_والمجمدة_${dateStr}.csv`;
-      content += 'رمز المنشأة,اسم المنشأة المشطوبة,الحقل النفطي,المحافظة,الجهة السابقة,الحالة,تاريخ الشطب والتجميد,سبب ومبررات الشطب التوثيقي\n';
+      content += 'رمز المنشأة / الأصل,اسم المنشأة المشطوبة,الحقل النفطي,المحافظة,الجهة السابقة,الحالة,تاريخ الشطب والتجميد,سبب ومبررات الشطب التوثيقي\n';
       decommissionedUnits.forEach((u) => {
-        content += `"${toArabicDigits(u.code)}","${u.name}","${translateField(u.field)}","${translateGovernorate(u.governorate)}","${u.department}","مشطوبة ومجمدة عن الخدمة","${toArabicDigits(u.decommissionedAt || '2026')}","${(u.decommissionReason || 'تم الشطب بموجب محضر فحص فني').replace(/"/g, '""')}"\n`;
+        const codeDisplay = u.fixedAssetCode ? `${toArabicDigits(u.code)} [أصل: ${u.fixedAssetCode}]` : toArabicDigits(u.code);
+        content += `"${codeDisplay}","${u.name}","${translateField(u.field)}","${translateGovernorate(u.governorate)}","${u.department}","مشطوبة ومجمدة عن الخدمة","${toArabicDigits(u.decommissionedAt || '2026')}","${(u.decommissionReason || 'تم الشطب بموجب محضر فحص فني').replace(/"/g, '""')}"\n`;
       });
     } else {
       // activeTab === 'all'
@@ -1196,16 +1200,18 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
       });
 
       content += '\n=== 3. تقرير حصر الأصول والوحدات الهندسية ===\n';
-      content += 'رمز الوحدة,اسم الوحدة,نوع المنشأة,الحقل النفطي,المحافظة,التقييم الإنشائي,الجهة الشاغلة,الغرف المشغولة,الغرف الشاغرة (فارغة),إجمالي غرف الوحدة,سنة الإنشاء,المساحة (م²),عدد الطوابق,عدد المعدات\n';
+      content += 'رمز الوحدة / الأصل,اسم الوحدة,نوع المنشأة,الحقل النفطي,المحافظة,التقييم الإنشائي,الجهة الشاغلة,الغرف المشغولة,الغرف الشاغرة (فارغة),إجمالي غرف الوحدة,سنة الإنشاء,المساحة (م²),عدد الطوابق,عدد المعدات\n';
       filteredUnits.forEach((u) => {
         const stats = getUnitOccupancyStats(u, selectedOrgEntity);
-        content += `"${toArabicDigits(u.code)}","${u.name}","${translateUnitType(u.type)}","${translateField(u.field)}","${translateGovernorate(u.governorate)}","${formatGradeArabic(u.conditionGrade)}","${stats.entity}","${toArabicDigits(stats.occupiedRoomsCount)}","${toArabicDigits(stats.vacantRoomsCount)}","${toArabicDigits(stats.totalRooms)}","${toArabicDigits(u.constructionYear)}","${toArabicDigits(u.totalAreaSqM)}","${toArabicDigits(u.floorsCount)}","${toArabicDigits(u.equipment.length)}"\n`;
+        const codeDisplay = u.fixedAssetCode ? `${toArabicDigits(u.code)} [أصل: ${u.fixedAssetCode}]` : toArabicDigits(u.code);
+        content += `"${codeDisplay}","${u.name}","${translateUnitType(u.type)}","${translateField(u.field)}","${translateGovernorate(u.governorate)}","${formatGradeArabic(u.conditionGrade)}","${stats.entity}","${toArabicDigits(stats.occupiedRoomsCount)}","${toArabicDigits(stats.vacantRoomsCount)}","${toArabicDigits(stats.totalRooms)}","${toArabicDigits(u.constructionYear)}","${toArabicDigits(u.totalAreaSqM)}","${toArabicDigits(u.floorsCount)}","${toArabicDigits(u.equipment.length)}"\n`;
       });
 
       content += '\n=== 4. سجل وتقارير الوحدات المشطوبة والمجمدة ===\n';
-      content += 'رمز المنشأة,اسم المنشأة,الحقل النفطي,المحافظة,الجهة السابقة,الحالة,تاريخ الشطب,سبب الشطب\n';
+      content += 'رمز المنشأة / الأصل,اسم المنشأة,الحقل النفطي,المحافظة,الجهة السابقة,الحالة,تاريخ الشطب,سبب الشطب\n';
       decommissionedUnits.forEach((u) => {
-        content += `"${toArabicDigits(u.code)}","${u.name}","${translateField(u.field)}","${translateGovernorate(u.governorate)}","${u.department}","مشطوبة ومجمدة","${toArabicDigits(u.decommissionedAt || '2026')}","${(u.decommissionReason || 'تم الشطب بموجب محضر فحص فني').replace(/"/g, '""')}"\n`;
+        const codeDisplay = u.fixedAssetCode ? `${toArabicDigits(u.code)} [أصل: ${u.fixedAssetCode}]` : toArabicDigits(u.code);
+        content += `"${codeDisplay}","${u.name}","${translateField(u.field)}","${translateGovernorate(u.governorate)}","${u.department}","مشطوبة ومجمدة","${toArabicDigits(u.decommissionedAt || '2026')}","${(u.decommissionReason || 'تم الشطب بموجب محضر فحص فني').replace(/"/g, '""')}"\n`;
       });
     }
 
@@ -1524,7 +1530,10 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
         rows += `
           <tr style="${bg}">
             <td style="text-align: center; font-weight: bold; font-family: monospace;">${toArabicDigits(item.indexInSection + 1)}</td>
-            <td style="font-weight: bold; font-family: monospace; color: #78350f;">${toArabicDigits(u.code)}</td>
+            <td style="font-weight: bold; font-family: monospace; color: #78350f;">
+              <div>${toArabicDigits(u.code)}</div>
+              ${u.fixedAssetCode ? `<div style="font-size: 10px; color: #4338ca; font-weight: bold; margin-top: 2px;">أصل: ${u.fixedAssetCode}</div>` : ''}
+            </td>
             <td style="font-weight: bold; color: #0f172a;">${u.name}</td>
             <td>${translateField(u.field)} / ${translateGovernorate(u.governorate)}</td>
             <td>${translateUnitType(u.type)}</td>
@@ -2341,7 +2350,12 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                     {toArabicDigits(item.indexInSection + 1)}
                   </td>
                   <td className="border border-slate-400 p-1.5 font-bold font-mono text-amber-900">
-                    {toArabicDigits(u.code)}
+                    <div>{toArabicDigits(u.code)}</div>
+                    {u.fixedAssetCode && (
+                      <div className="text-[9.5px] text-indigo-700 font-bold tracking-tight mt-0.5">
+                        أصل: {u.fixedAssetCode}
+                      </div>
+                    )}
                   </td>
                   <td className="border border-slate-400 p-1.5 font-bold text-slate-900">
                     {u.name}
@@ -3561,7 +3575,14 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                     const stats = getUnitOccupancyStats(u, selectedOrgEntity);
                     return (
                       <tr key={u.id} className={isLight ? 'hover:bg-slate-50' : 'hover:bg-slate-800/40'}>
-                        <td className="p-2.5 font-mono font-bold text-amber-500 whitespace-nowrap">{toArabicDigits(u.code)}</td>
+                        <td className="p-2.5 font-mono font-bold whitespace-nowrap">
+                          <div className="text-amber-500">{toArabicDigits(u.code)}</div>
+                          {u.fixedAssetCode && (
+                            <div className="text-[10px] text-indigo-500 dark:text-indigo-400 font-bold mt-0.5">
+                              أصل: {u.fixedAssetCode}
+                            </div>
+                          )}
+                        </td>
                         <td className="p-2.5 font-bold whitespace-nowrap">
                           <div>{u.name}</div>
                           <span className="text-[10px] text-slate-500 font-normal">{translateUnitType(u.type)}</span>
@@ -3697,7 +3718,14 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                 ) : (
                   decommissionedUnits.map((u) => (
                     <tr key={u.id} className={isLight ? 'hover:bg-rose-50/50' : 'hover:bg-rose-950/20'}>
-                      <td className="p-2.5 font-mono font-bold text-rose-500 whitespace-nowrap">{toArabicDigits(u.code)}</td>
+                      <td className="p-2.5 font-mono font-bold whitespace-nowrap">
+                        <div className="text-rose-500">{toArabicDigits(u.code)}</div>
+                        {u.fixedAssetCode && (
+                          <div className="text-[10px] text-indigo-500 dark:text-indigo-400 font-bold mt-0.5">
+                            أصل: {u.fixedAssetCode}
+                          </div>
+                        )}
+                      </td>
                       <td className="p-2.5 font-bold whitespace-nowrap">{u.name}</td>
                       <td className="p-2.5 text-slate-400 whitespace-nowrap">{u.field} / {u.governorate}</td>
                       <td className="p-2.5 text-slate-400 whitespace-nowrap">{u.department}</td>

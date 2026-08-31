@@ -22,6 +22,7 @@ import {
 export interface DbUnitRow {
   id: string;
   code: string;
+  fixed_asset_code?: string;
   name: string;
   type: string;
   site_id: string;
@@ -144,6 +145,7 @@ export function mapUnitRowToModel(row: DbUnitRow): UnitAsset {
   return {
     id: row.id,
     code: row.code,
+    fixedAssetCode: row.fixed_asset_code,
     name: row.name,
     type: row.type as any,
     siteId: row.site_id,
@@ -182,6 +184,7 @@ export function mapModelToUnitRow(model: UnitAsset): DbUnitRow {
   return {
     id: model.id || model.code,
     code: model.code,
+    fixed_asset_code: model.fixedAssetCode,
     name: model.name,
     type: model.type,
     site_id: model.siteId,

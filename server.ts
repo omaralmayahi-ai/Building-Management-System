@@ -330,18 +330,19 @@ async function startServer() {
         const row = mapModelToUnitRow(unit);
         await query(
           `INSERT INTO units (
-            id, code, name, type, site_id, site_name, field, governorate,
+            id, code, fixed_asset_code, name, type, site_id, site_name, field, governorate,
             condition_grade, construction_year, department, departments,
             lat, lng, sector_address, total_area_sq_m, length_m, width_m, height_m,
             building_shape, floors_count, rooms, equipment, attachments, attachments_count,
             design_finishing, status, decommissioned_at, decommission_reason, last_updated
           ) VALUES (
-            $1, $2, $3, $4, $5, $6, $7, $8,
-            $9, $10, $11, $12,
-            $13, $14, $15, $16, $17, $18, $19,
-            $20, $21, $22, $23, $24, $25,
-            $26, $27, $28, $29, $30
+            $1, $2, $3, $4, $5, $6, $7, $8, $9,
+            $10, $11, $12, $13,
+            $14, $15, $16, $17, $18, $19, $20,
+            $21, $22, $23, $24, $25, $26,
+            $27, $28, $29, $30, $31
           ) ON CONFLICT (code) DO UPDATE SET
+            fixed_asset_code = EXCLUDED.fixed_asset_code,
             name = EXCLUDED.name,
             type = EXCLUDED.type,
             site_id = EXCLUDED.site_id,
@@ -371,7 +372,7 @@ async function startServer() {
             decommission_reason = EXCLUDED.decommission_reason,
             last_updated = EXCLUDED.last_updated`,
           [
-            row.id, row.code, row.name, row.type, row.site_id, row.site_name, row.field, row.governorate,
+            row.id, row.code, row.fixed_asset_code || null, row.name, row.type, row.site_id, row.site_name, row.field, row.governorate,
             row.condition_grade, row.construction_year, row.department, JSON.stringify(row.departments),
             row.lat, row.lng, row.sector_address, row.total_area_sq_m, row.length_m || null, row.width_m || null, row.height_m || null,
             row.building_shape || 'rectangular', row.floors_count, JSON.stringify(row.rooms), JSON.stringify(row.equipment),
@@ -402,16 +403,16 @@ async function startServer() {
         const row = mapModelToUnitRow(unit);
         await query(
           `UPDATE units SET
-            name = $1, type = $2, site_id = $3, site_name = $4, field = $5, governorate = $6,
-            condition_grade = $7, construction_year = $8, department = $9, departments = $10,
-            lat = $11, lng = $12, sector_address = $13, total_area_sq_m = $14, length_m = $15,
-            width_m = $16, height_m = $17, building_shape = $18, floors_count = $19,
-            rooms = $20, equipment = $21, attachments = $22, attachments_count = $23,
-            design_finishing = $24, status = $25, decommissioned_at = $26,
-            decommission_reason = $27, last_updated = $28
-          WHERE code = $29`,
+            fixed_asset_code = $1, name = $2, type = $3, site_id = $4, site_name = $5, field = $6, governorate = $7,
+            condition_grade = $8, construction_year = $9, department = $10, departments = $11,
+            lat = $12, lng = $13, sector_address = $14, total_area_sq_m = $15, length_m = $16,
+            width_m = $17, height_m = $18, building_shape = $19, floors_count = $20,
+            rooms = $21, equipment = $22, attachments = $23, attachments_count = $24,
+            design_finishing = $25, status = $26, decommissioned_at = $27,
+            decommission_reason = $28, last_updated = $29
+          WHERE code = $30`,
           [
-            row.name, row.type, row.site_id, row.site_name, row.field, row.governorate,
+            row.fixed_asset_code || null, row.name, row.type, row.site_id, row.site_name, row.field, row.governorate,
             row.condition_grade, row.construction_year, row.department, JSON.stringify(row.departments),
             row.lat, row.lng, row.sector_address, row.total_area_sq_m, row.length_m || null,
             row.width_m || null, row.height_m || null, row.building_shape || 'rectangular', row.floors_count,
@@ -472,18 +473,19 @@ async function startServer() {
               const row = mapModelToUnitRow(u);
               await client.query(
                 `INSERT INTO units (
-                  id, code, name, type, site_id, site_name, field, governorate,
+                  id, code, fixed_asset_code, name, type, site_id, site_name, field, governorate,
                   condition_grade, construction_year, department, departments,
                   lat, lng, sector_address, total_area_sq_m, length_m, width_m, height_m,
                   building_shape, floors_count, rooms, equipment, attachments, attachments_count,
                   design_finishing, status, decommissioned_at, decommission_reason, last_updated
                 ) VALUES (
-                  $1, $2, $3, $4, $5, $6, $7, $8,
-                  $9, $10, $11, $12,
-                  $13, $14, $15, $16, $17, $18, $19,
-                  $20, $21, $22, $23, $24, $25,
-                  $26, $27, $28, $29, $30
+                  $1, $2, $3, $4, $5, $6, $7, $8, $9,
+                  $10, $11, $12, $13,
+                  $14, $15, $16, $17, $18, $19, $20,
+                  $21, $22, $23, $24, $25, $26,
+                  $27, $28, $29, $30, $31
                 ) ON CONFLICT (code) DO UPDATE SET
+                  fixed_asset_code = EXCLUDED.fixed_asset_code,
                   name = EXCLUDED.name,
                   type = EXCLUDED.type,
                   site_id = EXCLUDED.site_id,
@@ -513,7 +515,7 @@ async function startServer() {
                   decommission_reason = EXCLUDED.decommission_reason,
                   last_updated = EXCLUDED.last_updated`,
                 [
-                  row.id, row.code, row.name, row.type, row.site_id, row.site_name, row.field, row.governorate,
+                  row.id, row.code, row.fixed_asset_code || null, row.name, row.type, row.site_id, row.site_name, row.field, row.governorate,
                   row.condition_grade, row.construction_year, row.department, JSON.stringify(row.departments),
                   row.lat, row.lng, row.sector_address, row.total_area_sq_m, row.length_m || null, row.width_m || null, row.height_m || null,
                   row.building_shape || 'rectangular', row.floors_count, JSON.stringify(row.rooms), JSON.stringify(row.equipment),

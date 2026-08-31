@@ -236,6 +236,17 @@ export function getServerDateFormatted(): string {
 }
 
 /**
+ * Returns current Server Date formatted as DD-MM-YYYY (Day-Month-Year e.g. 31-08-2026)
+ */
+export function getServerDateDDMMYYYY(): string {
+  const now = getServerNow();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${day}-${month}-${year}`;
+}
+
+/**
  * Returns current Server Time formatted in 12-hour system with AM/PM (e.g. 02:30:15 م)
  */
 export function getServerTimeFormatted(includeSeconds: boolean = true): string {

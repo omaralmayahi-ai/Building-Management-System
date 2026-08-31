@@ -1115,11 +1115,24 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
               className={`font-mono text-xs px-3.5 py-1 rounded-full font-black border flex items-center gap-1.5 shadow-xs ${
                 isLight ? 'bg-amber-100/90 text-amber-950 border-amber-300' : 'bg-amber-500/20 text-amber-300 border-amber-500/40'
               }`}
-              title="رمز المنشأة الفريد (Asset Code)"
+              title="رمز المنشأة الفريد (Structural Code)"
             >
               <Box className="w-3.5 h-3.5 text-amber-500" />
-              <span>{toArabicDigits(selectedUnit.code)}</span>
+              <span>رمز المنشأة: {toArabicDigits(selectedUnit.code)}</span>
             </span>
+
+            {/* Fixed Asset Code Badge if present */}
+            {selectedUnit.fixedAssetCode && (
+              <span
+                className={`font-mono text-xs px-3.5 py-1 rounded-full font-black border flex items-center gap-1.5 shadow-xs ${
+                  isLight ? 'bg-indigo-100/90 text-indigo-950 border-indigo-300' : 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40'
+                }`}
+                title="رمز الأصل في سجلات أصول الشركة"
+              >
+                <Layers className="w-3.5 h-3.5 text-indigo-500" />
+                <span>رمز الأصل: {selectedUnit.fixedAssetCode}</span>
+              </span>
+            )}
 
             <span className={`text-xs px-3 py-1 rounded-full font-bold border ${
               isLight ? 'bg-slate-100 text-slate-800 border-slate-300' : 'bg-slate-800 text-slate-300 border-slate-700'
@@ -1398,45 +1411,45 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
             </div>
           </div>
 
-          {/* Card 5: التقييم الهندسي (Grade) */}
+          {/* Card 5: رمز الأصل في سجلات الشركة */}
           <div className={`p-4 rounded-xl border flex flex-col justify-between transition ${
-            isLight ? 'bg-slate-50 border-slate-200/90 shadow-2xs hover:border-amber-300' : 'bg-slate-950/60 border-slate-800 hover:border-slate-700'
+            isLight ? 'bg-slate-50 border-slate-200/90 shadow-2xs hover:border-indigo-300' : 'bg-slate-950/60 border-slate-800 hover:border-indigo-900/60'
           }`}>
             <div className="space-y-1.5">
               <span className={`text-xs font-bold flex items-center gap-1.5 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
-                <AlertTriangle className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-                <span>التقييم الهندسي (Grade):</span>
+                <Layers className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+                <span>رمز الأصل:</span>
               </span>
               <div className="pt-0.5">
-                <span
-                  className={`inline-flex items-center justify-center w-full py-1.5 rounded-lg text-sm font-black border shadow-xs ${
-                    selectedUnit.conditionGrade === 'A'
-                      ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-500/40'
-                      : selectedUnit.conditionGrade === 'B'
-                      ? 'bg-blue-500/20 text-blue-600 dark:text-blue-400 border-blue-500/40'
-                      : selectedUnit.conditionGrade === 'C'
-                      ? 'bg-amber-500/20 text-amber-600 dark:text-amber-400 border-amber-500/40'
-                      : 'bg-red-500/20 text-red-600 dark:text-red-400 border-red-500/40'
-                  }`}
-                >
-                  الدرجة {selectedUnit.conditionGrade || 'غير محدد'}
-                </span>
+                {selectedUnit.fixedAssetCode ? (
+                  <span
+                    className={`inline-flex items-center justify-center w-full py-1.5 rounded-lg text-xs font-mono font-black border shadow-xs tracking-wider ${
+                      isLight
+                        ? 'bg-indigo-100/90 text-indigo-950 border-indigo-300'
+                        : 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40'
+                    }`}
+                  >
+                    {selectedUnit.fixedAssetCode}
+                  </span>
+                ) : (
+                  <span
+                    className={`inline-flex items-center justify-center w-full py-1.5 rounded-lg text-xs font-bold border ${
+                      isLight
+                        ? 'bg-slate-100 text-slate-500 border-slate-200'
+                        : 'bg-slate-900 text-slate-400 border-slate-800'
+                    }`}
+                  >
+                    غير مسجل
+                  </span>
+                )}
               </div>
             </div>
             <div className={`mt-2 pt-2 border-t text-[11px] font-medium flex items-center justify-between ${
               isLight ? 'border-slate-200 text-slate-500' : 'border-slate-800/80 text-slate-400'
             }`}>
-              <span>الحالة الإنشائية:</span>
-              <span className={`font-bold ${
-                selectedUnit.conditionGrade === 'A'
-                  ? 'text-emerald-600 dark:text-emerald-400'
-                  : selectedUnit.conditionGrade === 'B'
-                  ? 'text-blue-600 dark:text-blue-400'
-                  : selectedUnit.conditionGrade === 'C'
-                  ? 'text-amber-600 dark:text-amber-400'
-                  : 'text-red-600 dark:text-red-400'
-              }`}>
-                {selectedUnit.conditionGrade === 'A' ? 'ممتاز' : selectedUnit.conditionGrade === 'B' ? 'جيد جداً' : selectedUnit.conditionGrade === 'C' ? 'متوسط' : 'حرج / صيانة'}
+              <span>سجلات أصول الشركة:</span>
+              <span className={`font-bold ${selectedUnit.fixedAssetCode ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400'}`}>
+                {selectedUnit.fixedAssetCode ? 'موثق ومعتمد' : 'بانتظار التوثيق'}
               </span>
             </div>
           </div>
@@ -1768,6 +1781,7 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
           governorates={governorates}
           oilfields={oilfields}
           unitTypes={unitTypes}
+          existingUnits={units}
           orgEntities={orgEntities}
           onAddOrgEntity={onAddOrgEntity}
           theme={theme}
