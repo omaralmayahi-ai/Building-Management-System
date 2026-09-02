@@ -32,6 +32,7 @@ import {
   ConditionGrade,
   SystemUser,
   ReportAttachment,
+  Room,
 } from '../types';
 import { toArabicDigits } from '../utils/arabicUtils';
 import * as api from '../services/apiClient';
@@ -48,10 +49,15 @@ interface FieldInspectionViewProps {
   currentUser: SystemUser | null;
   onAddInspection: (inspection: PeriodicInspectionSchedule) => void;
   onUpdateGrade?: (unitCode: string, newGrade: ConditionGrade) => void;
-  onOpenMaintenanceModal: (unitCode: string) => void;
+  onOpenMaintenanceModal: (
+    unitCode: string,
+    isLocked?: boolean,
+    room?: any
+  ) => void;
   onOpenLocationMap?: (unit: UnitAsset) => void;
   theme?: 'dark' | 'light';
   initialUnitCode?: string;
+  initialViewMode?: 'overview' | 'new_inspection';
 }
 
 export const FieldInspectionView: React.FC<FieldInspectionViewProps> = ({
@@ -63,6 +69,7 @@ export const FieldInspectionView: React.FC<FieldInspectionViewProps> = ({
   onOpenLocationMap,
   theme = 'dark',
   initialUnitCode = '',
+  initialViewMode = 'new_inspection',
 }) => {
   const isLight = theme === 'light';
 
@@ -72,13 +79,15 @@ export const FieldInspectionView: React.FC<FieldInspectionViewProps> = ({
 
   // Unit Choice and Location Modals
   const [scannedUnitForChoice, setScannedUnitForChoice] = useState<UnitAsset | null>(null);
+  const [scannedRoomForChoice, setScannedRoomForChoice] = useState<Room | null>(null);
+  const [scannedQrPayloadForChoice, setScannedQrPayloadForChoice] = useState<any>(null);
   const [selectedUnitForMap, setSelectedUnitForMap] = useState<UnitAsset | null>(null);
 
   // Scanner Modal State
   const [isScannerOpen, setIsScannerOpen] = useState<boolean>(false);
 
-  // Mode: 'overview' | 'new_inspection'
-  const [viewMode, setViewMode] = useState<'overview' | 'new_inspection'>('overview');
+  // Mode: 'overview' | 'new_inspection' - defaults directly to new_inspection form
+  const [viewMode, setViewMode] = useState<'overview' | 'new_inspection'>(initialViewMode);
 
   // New Inspection Form State
   const [inspectionType] = useState<InspectionType>('comprehensive');
@@ -104,6 +113,7 @@ export const FieldInspectionView: React.FC<FieldInspectionViewProps> = ({
   useEffect(() => {
     if (initialUnitCode) {
       setSelectedUnitCode(initialUnitCode);
+      setViewMode('new_inspection');
     }
   }, [initialUnitCode]);
 
@@ -779,9 +789,21 @@ export const FieldInspectionView: React.FC<FieldInspectionViewProps> = ({
           units={units}
           theme={theme}
           onClose={() => setIsScannerOpen(false)}
-          onUnitDetected={(unit) => {
+          onUnitDetected={(matched, payload) => {
             setIsScannerOpen(false);
-            setScannedUnitForChoice(unit);
+            setScannedUnitForChoice(matched);
+            setScannedQrPayloadForChoice(payload || null);
+            if (payload?.isRoom) {
+              const r = matched.rooms?.find(
+                (rm) =>
+                  rm.code?.toUpperCase() === payload.roomCode?.toUpperCase() ||
+                  rm.id === payload.roomCode ||
+                  rm.name === payload.roomName
+              );
+              setScannedRoomForChoice(r || null);
+            } else {
+              setScannedRoomForChoice(null);
+            }
           }}
         />
       )}
@@ -849,9 +871,26 @@ export const FieldInspectionView: React.FC<FieldInspectionViewProps> = ({
         <UnitScanChoiceModal
           unit={scannedUnitForChoice}
           theme={theme}
-          onClose={() => setScannedUnitForChoice(null)}
+          isRoomScan={Boolean(scannedQrPayloadForChoice?.isRoom)}
+          scannedRoom={scannedRoomForChoice}
+          roomPayload={
+            scannedQrPayloadForChoice
+              ? {
+                  roomCode: scannedQrPayloadForChoice.roomCode,
+                  roomName: scannedQrPayloadForChoice.roomName,
+                  floor: scannedQrPayloadForChoice.floor,
+                }
+              : undefined
+          }
+          onClose={() => {
+            setScannedUnitForChoice(null);
+            setScannedRoomForChoice(null);
+            setScannedQrPayloadForChoice(null);
+          }}
           onSelectLocation={(unit) => {
             setScannedUnitForChoice(null);
+            setScannedRoomForChoice(null);
+            setScannedQrPayloadForChoice(null);
             if (onOpenLocationMap) {
               onOpenLocationMap(unit);
             } else {
@@ -860,12 +899,32 @@ export const FieldInspectionView: React.FC<FieldInspectionViewProps> = ({
           }}
           onSelectInspection={(unit) => {
             setScannedUnitForChoice(null);
+            setScannedRoomForChoice(null);
+            setScannedQrPayloadForChoice(null);
             setSelectedUnitCode(unit.code);
-            setViewMode('overview');
+            setViewMode('new_inspection');
           }}
-          onSelectMaintenance={(unit) => {
+          onSelectMaintenance={(unit, room) => {
+            const isRoom = Boolean(room || scannedQrPayloadForChoice?.isRoom);
+            let selectedRoom: Room | { code?: string; name: string; floor?: string; occupiedBy?: string } | null = null;
+            if (isRoom) {
+              if (room) {
+                selectedRoom = room;
+              } else if (scannedRoomForChoice) {
+                selectedRoom = scannedRoomForChoice;
+              } else if (scannedQrPayloadForChoice?.roomCode || scannedQrPayloadForChoice?.roomName) {
+                selectedRoom = {
+                  code: scannedQrPayloadForChoice.roomCode,
+                  name: scannedQrPayloadForChoice.roomName || 'غرفة',
+                  floor: scannedQrPayloadForChoice.floor,
+                  occupiedBy: scannedQrPayloadForChoice.occupiedBy || unit.department,
+                };
+              }
+            }
             setScannedUnitForChoice(null);
-            onOpenMaintenanceModal(unit.code);
+            setScannedRoomForChoice(null);
+            setScannedQrPayloadForChoice(null);
+            onOpenMaintenanceModal(unit.code, true, selectedRoom);
           }}
         />
       )}
@@ -876,15 +935,6 @@ export const FieldInspectionView: React.FC<FieldInspectionViewProps> = ({
           unit={selectedUnitForMap}
           theme={theme}
           onClose={() => setSelectedUnitForMap(null)}
-          onOpenInspection={(code) => {
-            setSelectedUnitForMap(null);
-            setSelectedUnitCode(code);
-            setViewMode('overview');
-          }}
-          onOpenMaintenance={(code) => {
-            setSelectedUnitForMap(null);
-            onOpenMaintenanceModal(code);
-          }}
         />
       )}
     </div>

@@ -65,6 +65,7 @@ import {
 import { OrgStructureBuilder } from './OrgStructureBuilder';
 import { DatabaseBackupManager } from './DatabaseBackupManager';
 import { toArabicDigits, getServerDateTimeFormatted, getServerTimestamp } from '../utils/arabicUtils';
+import { DEFAULT_SYSTEM_LOGO_SVG } from '../data/mockData';
 
 interface SettingsViewProps {
   units: UnitAsset[];
@@ -1393,29 +1394,20 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
                         {/* SAMPLE PRESET LOGOS */}
                         <div className="flex items-center gap-2 pt-1 flex-wrap">
-                          <span className="text-[10px] text-slate-400 font-bold">شعارات نموذجية سريعة:</span>
+                          <span className="text-[10px] text-slate-400 font-bold">الخيارات السريعة للشعار:</span>
                           <button
                             type="button"
                             onClick={() => {
                               setBrandingForm({
                                 ...brandingForm,
-                                logoUrl: 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=120&auto=format&fit=crop&q=80',
+                                logoUrl: DEFAULT_SYSTEM_LOGO_SVG,
                               });
-                              triggerSaveToast('تم اختيار الشعار الذهبي النموذجي');
+                              triggerSaveToast('تم استعادة الشعار الافتراضي للنظام');
                             }}
-                            className="text-[10px] bg-slate-900 hover:bg-slate-800 text-amber-400 px-2.5 py-1 rounded-lg border border-slate-800 font-bold transition cursor-pointer"
+                            className="text-xs bg-white hover:bg-slate-100 text-teal-800 hover:text-teal-900 px-3 py-1.5 rounded-lg border border-slate-300 font-bold transition cursor-pointer shadow-xs flex items-center gap-1.5"
                           >
-                            شعار نفط الوسط الذهبي
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setBrandingForm({ ...brandingForm, logoUrl: undefined });
-                              triggerSaveToast('تم العودة للدرع الافتراضي');
-                            }}
-                            className="text-[10px] bg-slate-900 hover:bg-slate-800 text-slate-400 px-2 py-1 rounded-lg border border-slate-800 font-semibold transition cursor-pointer"
-                          >
-                            درع السلامة الافتراضي
+                            <Building2 className="w-3.5 h-3.5 text-teal-600" />
+                            <span>الشعار الافتراضي للنظام</span>
                           </button>
                         </div>
                       </div>

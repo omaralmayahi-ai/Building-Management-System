@@ -26,6 +26,11 @@ import {
   Calendar,
   ArrowUpDown,
   RotateCcw,
+  DoorClosed,
+  Copy,
+  Check,
+  Sparkles,
+  MessageSquare,
 } from 'lucide-react';
 import { MaintenanceRequest, MaintenanceStatus, MaintenancePriority, UnitAsset, ReportAttachment, SystemUser, MaintenanceDepartmentRef } from '../types';
 import {
@@ -66,6 +71,10 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
   const [filterPriority, setFilterPriority] = useState<string>('all');
   const [sortOrder, setSortOrder] = useState<'newest_first' | 'oldest_first'>('newest_first');
   const [searchCode, setSearchCode] = useState<string>('');
+
+  // View Notes Popup Modal state
+  const [viewNotesReq, setViewNotesReq] = useState<MaintenanceRequest | null>(null);
+  const [copiedNotes, setCopiedNotes] = useState<boolean>(false);
 
   // Available maintenance departments list (dynamically sourced from Settings / maintenanceDepartments registry)
   const availableDepartments = useMemo(() => {
@@ -544,29 +553,50 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
           <table className="w-full text-right text-[11px] table-fixed">
             <thead className={`border-b ${isLight ? 'bg-slate-50 border-slate-200 text-slate-700' : 'bg-slate-950/50 border-slate-800 text-slate-400'}`}>
               <tr>
-                <th className="py-2.5 px-2 font-semibold w-[10%]">رقم وتاريخ الطلب</th>
-                <th className="py-2.5 px-2 font-semibold w-[14%]">رمز واسم الوحدة</th>
-                <th className="py-2.5 px-2 font-semibold w-[10%]">جهة الصيانة</th>
-                <th className="py-2.5 px-2 font-semibold w-[14%]">العطل</th>
-                <th className="py-2.5 px-1.5 font-semibold text-center w-[6%]">الأولوية</th>
+                <th className="py-2.5 px-2.5 font-semibold w-[12%]">رقم وتاريخ الطلب</th>
+                <th className="py-2.5 px-3 font-bold w-[30%]">رمز واسم وبيانات المنشأة</th>
+                <th className="py-2.5 px-2 font-semibold w-[9%]">جهة الصيانة</th>
+                <th className="py-2.5 px-2 font-semibold w-[15%]">العطل</th>
+                <th className="py-2.5 px-1 font-semibold text-center w-[5%]">الأولوية</th>
                 <th className="py-2.5 px-2 font-semibold w-[9%]">مقدّم الطلب</th>
-                <th className="py-2.5 px-1.5 font-semibold text-center w-[9%]">حالة الطلب</th>
-                <th className="py-2.5 px-2 font-semibold text-center w-[9%]">تاريخ الإنجاز والمدة</th>
-                <th className="py-2.5 px-1.5 font-semibold text-center w-[7%]">المرفقات</th>
-                <th className="py-2.5 px-2 font-semibold w-[11%]">النتائج / الملاحظات</th>
-                <th className="py-2.5 px-1.5 font-semibold text-center w-[11%]">الإجراءات</th>
+                <th className="py-2.5 px-1 font-semibold text-center w-[5%]">حالة الطلب</th>
+                <th className="py-2.5 px-1.5 font-semibold text-center w-[8%]">تاريخ الإنجاز والمدة</th>
+                <th className="py-2.5 px-1 font-semibold text-center w-[4%]">المرفقات</th>
+                <th className="py-2.5 px-1 font-semibold text-center w-[4%]">النتائج</th>
+                <th className="py-2.5 px-1.5 font-semibold text-center w-[7%]">الإجراءات</th>
               </tr>
             </thead>
             <tbody className={`divide-y ${isLight ? 'divide-slate-200 text-slate-800' : 'divide-slate-800 text-slate-300'}`}>
               {filteredRequests.map((req) => {
                 const matchedUnit = units.find((u) => u.code === req.unitCode || u.id === req.unitCode);
                 const unitName = req.unitName || matchedUnit?.name || 'غير محدد';
-                const occupyingEntity = matchedUnit?.department || 'هيئة التشغيل الميدانية';
+                const unitOccupant = matchedUnit
+                  ? (matchedUnit.departments && matchedUnit.departments.length > 0
+                      ? Array.from(new Set(matchedUnit.departments.filter(Boolean))).join(' ، ')
+                      : matchedUnit.department ||
+                        (matchedUnit.rooms && matchedUnit.rooms.length > 0
+                          ? Array.from(new Set(matchedUnit.rooms.map((r) => r.occupiedBy).filter(Boolean))).join(' ، ')
+                          : '')) || 'عام / غير محدد'
+                  : 'عام / غير محدد';
+
+                const matchedRoom = req.roomCode && matchedUnit?.rooms
+                  ? matchedUnit.rooms.find((r) => r.code === req.roomCode || r.id === req.roomCode)
+                  : undefined;
+                const roomOccupant = req.roomCode
+                  ? (req.occupyingEntity || matchedRoom?.occupiedBy || 'غير محدد')
+                  : undefined;
+
+                const hasNotes = Boolean(
+                  req.resolutionNotes?.trim() ||
+                  req.rejectionReason?.trim() ||
+                  req.status === 'completed' ||
+                  req.status === 'rejected'
+                );
 
                 return (
                   <tr key={req.id} className="hover:bg-amber-50/20 dark:hover:bg-slate-800/40 transition">
                     {/* رقم الطلب مدمج مع تاريخ الطلب */}
-                    <td className="py-2.5 px-2 align-middle">
+                    <td className="py-3 px-2 align-middle">
                       <div className="space-y-0.5">
                         <div className="font-mono font-bold text-amber-500 text-[11px]">
                           {toArabicDigits(req.id)}
@@ -578,38 +608,62 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
                       </div>
                     </td>
 
-                    {/* رمز الأصل واسم الوحدة والجهة الشاغلة */}
-                    <td className="py-2.5 px-2 align-middle">
-                      <div className="space-y-0.5">
-                        <div className="font-mono font-bold text-amber-400 text-[11px]">
-                          {toArabicDigits(req.unitCode)}
+                    {/* رمز واسم المنشأة والجهة الشاغلة وبيانات الغرفة */}
+                    <td className="py-3 px-2.5 align-middle">
+                      <div className="space-y-1">
+                        {/* السطر 1: رمز المنشأة واسمها */}
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <div className="font-mono font-black text-amber-500 dark:text-amber-400 text-xs flex items-center gap-1">
+                            <Building2 className="w-3.5 h-3.5 shrink-0 opacity-80" />
+                            <span>{toArabicDigits(req.unitCode)}</span>
+                          </div>
+                          <span className="opacity-40">•</span>
+                          <div className={`font-black text-xs leading-snug break-words ${isLight ? 'text-slate-900' : 'text-slate-100'}`} title={unitName}>
+                            {unitName}
+                          </div>
                         </div>
-                        <div className={`font-bold text-[11px] truncate ${isLight ? 'text-slate-900' : 'text-slate-100'}`} title={unitName}>
-                          {unitName}
+
+                        {/* السطر 2: الجهة الشاغلة للمنشأة */}
+                        <div className={`text-[10.5px] leading-tight flex items-center gap-1 ${isLight ? 'text-slate-600' : 'text-slate-400'}`} title={unitOccupant}>
+                          <UserCheck className="w-3 h-3 text-sky-500 shrink-0" />
+                          <span className="opacity-75">الجهة الشاغلة:</span>
+                          <span className="font-bold truncate">{unitOccupant}</span>
                         </div>
-                        <div className={`text-[10px] leading-tight truncate ${isLight ? 'text-slate-600' : 'text-slate-400'}`} title={occupyingEntity}>
-                          <span className="opacity-80">الشاغل: </span>
-                          <span className="font-medium">{occupyingEntity}</span>
-                        </div>
+
+                        {/* السطر 3: في حال كان الطلب لصيانة غرفة - رمز الغرفة والجهة الشاغلة لها */}
+                        {req.roomCode && (
+                          <div className="pt-1 mt-1 border-t border-slate-200/70 dark:border-slate-800/70 space-y-0.5">
+                            <div className="font-bold text-[10.5px] text-emerald-600 dark:text-emerald-400 flex items-center gap-1 bg-emerald-500/10 dark:bg-emerald-500/15 border border-emerald-500/25 px-2 py-0.5 rounded-md w-fit" title={`الغرفة: ${req.roomCode}${req.roomName ? ` - ${req.roomName}` : ''}`}>
+                              <DoorClosed className="w-3 h-3 text-emerald-500 shrink-0" />
+                              <span className="font-mono font-bold">غرفة: {toArabicDigits(req.roomCode)}</span>
+                              {req.roomName && <span>• {req.roomName}</span>}
+                              {req.roomFloor && <span className="text-[9.5px] opacity-80 font-sans">({req.roomFloor})</span>}
+                            </div>
+                            <div className="text-[10px] leading-tight flex items-center gap-1 text-emerald-700 dark:text-emerald-400 pr-0.5" title={roomOccupant}>
+                              <span className="opacity-75">شاغل الغرفة:</span>
+                              <span className="font-bold truncate">{roomOccupant}</span>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </td>
 
                     {/* جهة الصيانة */}
-                    <td className="py-2.5 px-2 align-middle">
+                    <td className="py-3 px-2 align-middle">
                       <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 block truncate text-center" title={req.maintenanceDepartment || 'الصيانة العامة'}>
                         {req.maintenanceDepartment || 'الصيانة العامة'}
                       </span>
                     </td>
 
                     {/* العطل */}
-                    <td className="py-2.5 px-2 align-middle">
-                      <div className={`font-bold text-[11px] line-clamp-2 leading-relaxed ${isLight ? 'text-slate-800' : 'text-slate-200'}`} title={req.issue}>
+                    <td className="py-3 px-2 align-middle">
+                      <div className={`font-bold text-[11px] line-clamp-3 leading-relaxed ${isLight ? 'text-slate-800' : 'text-slate-200'}`} title={req.issue}>
                         {req.issue}
                       </div>
                     </td>
 
                     {/* الأولوية */}
-                    <td className="py-2.5 px-1.5 text-center align-middle">
+                    <td className="py-3 px-1.5 text-center align-middle">
                       <span
                         className={`px-1.5 py-0.5 rounded text-[9.5px] font-bold inline-block ${
                           req.priority === 'critical'
@@ -624,7 +678,7 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
                     </td>
 
                     {/* مقدّم الطلب */}
-                    <td className="py-2.5 px-2 align-middle">
+                    <td className="py-3 px-2 align-middle">
                       <div className="flex items-center gap-1 font-bold text-[11px]">
                         <UserCheck className={`w-3 h-3 shrink-0 ${isLight ? 'text-amber-600' : 'text-amber-400'}`} />
                         <span className={`truncate ${isLight ? 'text-slate-900' : 'text-slate-100'}`} title={req.reportedBy}>
@@ -634,32 +688,40 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
                     </td>
 
                     {/* حالة الطلب */}
-                    <td className="py-2.5 px-1.5 text-center align-middle">
+                    <td className="py-3 px-1 text-center align-middle">
                       {req.status === 'completed' ? (
-                        <span className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1.5 py-0.5 rounded text-[9.5px] font-bold inline-flex items-center justify-center gap-1 w-full">
-                          <CheckCircle2 className="w-2.5 h-2.5 shrink-0" />
-                          <span>منجز</span>
+                        <span
+                          className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 p-1.5 rounded-lg inline-flex items-center justify-center transition"
+                          title="حالة الطلب: منجز"
+                        >
+                          <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
                         </span>
                       ) : req.status === 'rejected' ? (
-                        <span className="bg-rose-500/20 text-rose-400 border border-rose-500/30 px-1.5 py-0.5 rounded text-[9.5px] font-bold inline-flex items-center justify-center gap-1 w-full">
-                          <Ban className="w-2.5 h-2.5 shrink-0" />
-                          <span>مرفوض</span>
+                        <span
+                          className="bg-rose-500/20 text-rose-400 border border-rose-500/30 p-1.5 rounded-lg inline-flex items-center justify-center transition"
+                          title="حالة الطلب: مرفوض"
+                        >
+                          <Ban className="w-3.5 h-3.5 shrink-0" />
                         </span>
                       ) : req.status === 'cancelled' ? (
-                        <span className="bg-slate-500/20 text-slate-400 border border-slate-500/30 px-1.5 py-0.5 rounded text-[9.5px] font-bold inline-flex items-center justify-center gap-1 w-full">
-                          <XCircle className="w-2.5 h-2.5 shrink-0" />
-                          <span>ملغى</span>
+                        <span
+                          className="bg-slate-500/20 text-slate-400 border border-slate-500/30 p-1.5 rounded-lg inline-flex items-center justify-center transition"
+                          title="حالة الطلب: ملغى"
+                        >
+                          <XCircle className="w-3.5 h-3.5 shrink-0" />
                         </span>
                       ) : (
-                        <span className="bg-amber-500/20 text-amber-400 border border-amber-500/30 px-1.5 py-0.5 rounded text-[9.5px] font-bold inline-flex items-center justify-center gap-1 w-full">
-                          <Clock className="w-2.5 h-2.5 shrink-0" />
-                          <span>قيد المعالجة</span>
+                        <span
+                          className="bg-amber-500/20 text-amber-400 border border-amber-500/30 p-1.5 rounded-lg inline-flex items-center justify-center transition"
+                          title="حالة الطلب: قيد المعالجة"
+                        >
+                          <Clock className="w-3.5 h-3.5 shrink-0" />
                         </span>
                       )}
                     </td>
 
                     {/* تاريخ الإنجاز / الرفض + المدة مدمجة */}
-                    <td className="py-2.5 px-2 text-center align-middle font-mono text-[10px]">
+                    <td className="py-3 px-1.5 text-center align-middle font-mono text-[10px]">
                       <div className="space-y-0.5">
                         <div className="font-semibold truncate">
                           {getCompletionOrCancellationDate(req.completedAt, req.status)}
@@ -671,7 +733,7 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
                     </td>
 
                     {/* المرفقات - أيقونة فقط عند الضغط عليها تفتح الملف المرفق */}
-                    <td className="py-2.5 px-1.5 text-center align-middle">
+                    <td className="py-3 px-1 text-center align-middle">
                       {(() => {
                         const reqAttachments: ReportAttachment[] =
                           req.attachments && req.attachments.length > 0
@@ -711,7 +773,7 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
                                   unitCode: req.unitCode,
                                 });
                               }}
-                              className={`relative inline-flex items-center justify-center p-2 rounded-xl text-xs font-bold transition-all cursor-pointer border shadow-sm group hover:scale-110 active:scale-95 ${
+                              className={`relative inline-flex items-center justify-center p-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer border shadow-sm group hover:scale-110 active:scale-95 ${
                                 isLight
                                   ? 'bg-amber-50 text-amber-900 border-amber-300 hover:bg-amber-100 hover:border-amber-400'
                                   : 'bg-amber-500/15 text-amber-300 border-amber-500/35 hover:bg-amber-500/25 hover:border-amber-400'
@@ -722,9 +784,9 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
                                   : 'معاينة وفتح الملف المرفق'
                               }
                             >
-                              <Paperclip className="w-4 h-4 text-amber-500 group-hover:text-amber-400 transition-colors" />
+                              <Paperclip className="w-3.5 h-3.5 text-amber-500 group-hover:text-amber-400 transition-colors" />
                               {reqAttachments.length > 1 && (
-                                <span className="absolute -top-1.5 -right-1.5 min-w-[17px] h-[17px] px-1 rounded-full bg-amber-500 text-slate-950 text-[9px] font-black flex items-center justify-center shadow-md border border-slate-900">
+                                <span className="absolute -top-1.5 -right-1.5 min-w-[15px] h-[15px] px-0.5 rounded-full bg-amber-500 text-slate-950 text-[8.5px] font-black flex items-center justify-center shadow-md border border-slate-900">
                                   {toArabicDigits(reqAttachments.length)}
                                 </span>
                               )}
@@ -734,137 +796,128 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
                       })()}
                     </td>
 
-                    {/* النتائج / الملاحظات */}
-                    <td className="py-2.5 px-2 align-middle">
-                      {req.status === 'rejected' ? (
-                        <div
-                          className="p-2 rounded-lg bg-rose-500/10 border border-rose-500/25 text-rose-400 text-[10.5px] font-bold leading-relaxed shadow-xs"
-                          title={req.rejectionReason || req.resolutionNotes || 'تم رفض طلب الصيانة'}
-                        >
-                          <span className="line-clamp-2">
-                            {req.rejectionReason || req.resolutionNotes || 'تم رفض طلب الصيانة'}
-                          </span>
-                        </div>
-                      ) : req.status === 'completed' ? (
-                        <div
-                          className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 text-[10.5px] font-bold leading-relaxed shadow-xs"
-                          title={req.resolutionNotes || 'تمت المعالجة والإنجاز بنجاح'}
-                        >
-                          <span className="line-clamp-2">
-                            {req.resolutionNotes || 'تمت المعالجة والإنجاز بنجاح'}
-                          </span>
-                        </div>
-                      ) : req.status === 'cancelled' ? (
-                        <div
-                          className="p-2 rounded-lg bg-slate-500/15 border border-slate-500/30 text-slate-400 text-[10.5px] font-bold leading-relaxed shadow-xs"
-                          title={req.resolutionNotes || req.rejectionReason || 'تم إلغاء طلب الصيانة'}
-                        >
-                          <span className="line-clamp-2">
-                            {req.resolutionNotes || req.rejectionReason || 'تم إلغاء طلب الصيانة'}
-                          </span>
-                        </div>
-                      ) : req.resolutionNotes ? (
-                        <div
-                          className={`p-2 rounded-lg text-[10.5px] font-medium leading-relaxed border ${
-                            isLight
-                              ? 'bg-slate-50 border-slate-200 text-slate-700'
-                              : 'bg-slate-950/60 border-slate-800 text-slate-300'
+                    {/* النتائج والملاحظات - أيقونة مصغرة مع تلميح */}
+                    <td className="py-3 px-1 text-center align-middle">
+                      {hasNotes ? (
+                        <button
+                          type="button"
+                          onClick={() => setViewNotesReq(req)}
+                          className={`p-1.5 rounded-lg text-[10px] font-extrabold inline-flex items-center justify-center transition cursor-pointer border shadow-xs group hover:scale-110 active:scale-95 ${
+                            req.status === 'rejected'
+                              ? 'bg-rose-500/15 hover:bg-rose-500/25 text-rose-600 dark:text-rose-400 border-rose-500/30'
+                              : req.status === 'completed'
+                              ? 'bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-700 dark:text-emerald-400 border-emerald-500/30'
+                              : 'bg-amber-500/15 hover:bg-amber-500/25 text-amber-700 dark:text-amber-400 border-amber-500/30'
                           }`}
-                          title={req.resolutionNotes}
+                          title={
+                            req.status === 'rejected'
+                              ? 'عرض سبب الرفض والملاحظات الفنية بالتفصيل'
+                              : req.status === 'completed'
+                              ? 'عرض تقرير الإنجاز ونتائج الصيانة بالتفصيل'
+                              : 'عرض ملاحظات المعالجة والتوجيهات'
+                          }
                         >
-                          <span className="line-clamp-2">{req.resolutionNotes}</span>
-                        </div>
+                          {req.status === 'rejected' ? (
+                            <Ban className="w-3.5 h-3.5 text-rose-500 shrink-0" />
+                          ) : req.status === 'completed' ? (
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                          ) : (
+                            <FileText className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                          )}
+                        </button>
                       ) : (
-                        <span className="text-slate-500 text-[10px] font-mono">—</span>
+                        <span className="text-slate-400 dark:text-slate-500 text-[11px] font-mono select-none">—</span>
                       )}
                     </td>
-                  <td className="py-2.5 px-1.5 text-center align-middle">
-                    <div className="flex items-center justify-center gap-1.5 flex-wrap">
-                      {isMaintenanceEmployee ? (
-                        <>
-                          {req.status !== 'completed' && req.status !== 'rejected' && req.status !== 'cancelled' ? (
-                            <>
-                              {/* Complete Request Button */}
+
+                    {/* الإجراءات - أزرار أيقونات مصغرة */}
+                    <td className="py-3 px-1 text-center align-middle">
+                      <div className="flex items-center justify-center gap-1">
+                        {isMaintenanceEmployee ? (
+                          <>
+                            {req.status !== 'completed' && req.status !== 'rejected' && req.status !== 'cancelled' ? (
+                              <>
+                                {/* Complete Request Button */}
+                                <button
+                                  type="button"
+                                  onClick={() => handleOpenCompleteModal(req)}
+                                  className="p-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 transition cursor-pointer flex items-center justify-center shadow-sm shadow-emerald-500/20 hover:scale-105 active:scale-95"
+                                  title="إنجاز وتوثيق أعمال الصيانة"
+                                >
+                                  <CheckCircle2 className="w-3.5 h-3.5" />
+                                </button>
+
+                                {/* Reject Request Button */}
+                                <button
+                                  type="button"
+                                  onClick={() => handleOpenRejectModal(req)}
+                                  className="p-1.5 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 border border-rose-500/30 transition cursor-pointer flex items-center justify-center shadow-sm hover:scale-105 active:scale-95"
+                                  title="رفض الطلب مع تسجيل سبب الرفض"
+                                >
+                                  <Ban className="w-3.5 h-3.5" />
+                                </button>
+                              </>
+                            ) : req.status === 'completed' ? (
                               <button
                                 type="button"
                                 onClick={() => handleOpenCompleteModal(req)}
-                                className="px-2.5 py-1 rounded-lg text-[10px] font-extrabold bg-emerald-500 hover:bg-emerald-400 text-slate-950 transition cursor-pointer flex items-center gap-1 shadow-sm shadow-emerald-500/20"
-                                title="إنجاز وتوثيق أعمال الصيانة"
+                                className="p-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/30 transition cursor-pointer flex items-center justify-center shadow-sm hover:scale-105 active:scale-95"
+                                title="تعديل تقرير الإنجاز"
                               >
                                 <CheckCircle2 className="w-3.5 h-3.5" />
-                                <span>إنجاز الطلب</span>
                               </button>
-
-                              {/* Reject Request Button */}
+                            ) : req.status === 'rejected' ? (
                               <button
                                 type="button"
                                 onClick={() => handleOpenRejectModal(req)}
-                                className="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 border border-rose-500/30 transition cursor-pointer flex items-center gap-1 shadow-sm"
-                                title="رفض الطلب مع تسجيل سبب الرفض"
+                                className="p-1.5 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 border border-rose-500/30 transition cursor-pointer flex items-center justify-center shadow-sm hover:scale-105 active:scale-95"
+                                title="تعديل سبب الرفض"
                               >
                                 <Ban className="w-3.5 h-3.5" />
-                                <span>رفض الطلب</span>
                               </button>
-                            </>
-                          ) : req.status === 'completed' ? (
+                            ) : (
+                              <span className="text-slate-500 text-[10px]">مغلق</span>
+                            )}
+                          </>
+                        ) : (
+                          <>
+                            {/* Admin / General operator actions */}
                             <button
                               type="button"
-                              onClick={() => handleOpenCompleteModal(req)}
-                              className="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/30 transition cursor-pointer flex items-center gap-1 shadow-sm"
-                              title="تعديل تقرير الإنجاز"
+                              onClick={() => setDeleteConfirmReq(req)}
+                              className="p-1.5 bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 border border-rose-500/30 rounded-lg transition cursor-pointer flex items-center justify-center shadow-sm hover:scale-105 active:scale-95"
+                              title="حذف طلب الصيانة"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => handleOpenEditModal(req)}
+                              className={`p-1.5 rounded-lg transition cursor-pointer flex items-center justify-center shadow-sm hover:scale-105 active:scale-95 ${
+                                req.status === 'completed'
+                                  ? 'bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/30'
+                                  : req.status === 'rejected'
+                                  ? 'bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 border border-rose-500/30'
+                                  : 'bg-amber-500 text-slate-950 hover:bg-amber-400 shadow-amber-500/20'
+                              }`}
+                              title={
+                                req.status === 'completed'
+                                  ? 'معاينة / تعديل حالة الإنجاز'
+                                  : req.status === 'rejected'
+                                  ? 'معاينة / تعديل سبب الرفض'
+                                  : 'معالجة وتحديث حالة الصيانة'
+                              }
                             >
                               <CheckCircle2 className="w-3.5 h-3.5" />
-                              <span>تحديث التقرير</span>
                             </button>
-                          ) : req.status === 'rejected' ? (
-                            <button
-                              type="button"
-                              onClick={() => handleOpenRejectModal(req)}
-                              className="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 border border-rose-500/30 transition cursor-pointer flex items-center gap-1 shadow-sm"
-                              title="تعديل سبب الرفض"
-                            >
-                              <Ban className="w-3.5 h-3.5" />
-                              <span>تحديث سبب الرفض</span>
-                            </button>
-                          ) : (
-                            <span className="text-slate-500 text-[10px]">مغلق</span>
-                          )}
-                        </>
-                      ) : (
-                        <>
-                          {/* Admin / General operator actions */}
-                          <button
-                            type="button"
-                            onClick={() => setDeleteConfirmReq(req)}
-                            className="px-2 py-1 bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 border border-rose-500/30 rounded-lg text-[10px] font-bold transition cursor-pointer flex items-center gap-1 shadow-sm"
-                            title="حذف طلب الصيانة"
-                          >
-                            <Trash2 className="w-3 h-3" />
-                            <span>حذف</span>
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => handleOpenEditModal(req)}
-                            className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition cursor-pointer flex items-center gap-1 shadow-sm ${
-                              req.status === 'completed'
-                                ? 'bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/30'
-                                : req.status === 'rejected'
-                                ? 'bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 border border-rose-500/30'
-                                : 'bg-amber-500 text-slate-950 hover:bg-amber-400 font-extrabold shadow-amber-500/20'
-                            }`}
-                            title="معالجة وتغيير حالة الصيانة"
-                          >
-                            <CheckCircle2 className="w-3.5 h-3.5" />
-                            <span>تحديث الحالة</span>
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              );
-            })}
+                          </>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -1228,6 +1281,262 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
                 <Trash2 className="w-4 h-4" />
                 <span>تأكيد الحذف النهائي</span>
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* RESULTS / NOTES POPUP MODAL CARD */}
+      {viewNotesReq && (
+        <div className={`fixed inset-0 z-50 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto ${
+          isLight ? 'bg-slate-900/50' : 'bg-slate-950/85'
+        }`}>
+          <div className={`rounded-3xl p-6 w-full max-w-xl space-y-4 shadow-2xl relative border animate-in fade-in zoom-in-95 duration-150 ${
+            isLight ? 'bg-white border-slate-200 text-slate-900' : 'bg-slate-900 border-slate-800 text-slate-100'
+          }`}>
+            {/* Header */}
+            <div className={`flex items-start justify-between border-b pb-3.5 ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
+              <div className="flex items-center gap-3">
+                <div className={`p-2.5 rounded-2xl border ${
+                  viewNotesReq.status === 'rejected'
+                    ? 'bg-rose-500/20 text-rose-400 border-rose-500/30'
+                    : viewNotesReq.status === 'completed'
+                    ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                    : 'bg-amber-500/20 text-amber-400 border-amber-500/30'
+                }`}>
+                  {viewNotesReq.status === 'rejected' ? (
+                    <Ban className="w-6 h-6" />
+                  ) : viewNotesReq.status === 'completed' ? (
+                    <CheckCircle2 className="w-6 h-6" />
+                  ) : (
+                    <FileText className="w-6 h-6" />
+                  )}
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className={`font-black text-base ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                      {viewNotesReq.status === 'rejected'
+                        ? 'بطاقة سبب الرفض والملاحظات الفنية'
+                        : viewNotesReq.status === 'completed'
+                        ? 'بطاقة نتائج الإنجاز والتقرير الفني'
+                        : 'بطاقة نتائج وملاحظات طلب الصيانة'}
+                    </h3>
+                    <span className={`px-2 py-0.5 rounded-md font-bold text-[10.5px] border ${
+                      viewNotesReq.status === 'rejected'
+                        ? 'bg-rose-500/20 text-rose-400 border-rose-500/30'
+                        : viewNotesReq.status === 'completed'
+                        ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                        : 'bg-amber-500/20 text-amber-400 border-amber-500/30'
+                    }`}>
+                      {viewNotesReq.status === 'rejected'
+                        ? 'مرفوض'
+                        : viewNotesReq.status === 'completed'
+                        ? 'تم الإنجاز'
+                        : viewNotesReq.status === 'cancelled'
+                        ? 'ملغى'
+                        : 'قيد المعالجة'}
+                    </span>
+                  </div>
+                  <p className={`text-xs font-mono mt-0.5 ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                    طلب صيانة رقم: <span className="text-amber-500 font-bold">{toArabicDigits(viewNotesReq.id)}</span> • تاريخ الطلب: {formatDateOnly(viewNotesReq.createdAt)}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setViewNotesReq(null);
+                  setCopiedNotes(false);
+                }}
+                className={`p-2 rounded-xl transition cursor-pointer ${
+                  isLight ? 'text-slate-400 hover:text-slate-700 bg-slate-100' : 'text-slate-400 hover:text-slate-200 bg-slate-800'
+                }`}
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Overview Details Strip */}
+            {(() => {
+              const matchedUnit = units.find((u) => u.code === viewNotesReq.unitCode || u.id === viewNotesReq.unitCode);
+              const unitName = viewNotesReq.unitName || matchedUnit?.name || 'غير محدد';
+              const occupyingEntity = viewNotesReq.occupyingEntity || matchedUnit?.department || 'هيئة التشغيل الميدانية';
+
+              return (
+                <div className={`p-3.5 rounded-2xl border grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs ${
+                  isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-950/60 border-slate-800'
+                }`}>
+                  <div className="space-y-1">
+                    <div className="text-[11px] text-slate-400 font-semibold flex items-center gap-1">
+                      <Building2 className="w-3.5 h-3.5 text-amber-500" />
+                      <span>المنشأة والوحدة:</span>
+                    </div>
+                    <div className="font-bold text-slate-900 dark:text-slate-100">{unitName}</div>
+                    <div className="font-mono text-amber-500 font-bold text-[11px]">رمز الوحدة: {toArabicDigits(viewNotesReq.unitCode)}</div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <div className="text-[11px] text-slate-400 font-semibold flex items-center gap-1">
+                      <UserCheck className="w-3.5 h-3.5 text-sky-500" />
+                      <span>الجهة الشاغلة / الغرفة:</span>
+                    </div>
+                    <div className="font-semibold text-slate-800 dark:text-slate-200">{occupyingEntity}</div>
+                    {viewNotesReq.roomCode ? (
+                      <div className="font-bold text-emerald-500 text-[11px] flex items-center gap-1">
+                        <DoorClosed className="w-3.5 h-3.5" />
+                        <span>غرفة: {toArabicDigits(viewNotesReq.roomCode)} {viewNotesReq.roomName ? `(${viewNotesReq.roomName})` : ''}</span>
+                      </div>
+                    ) : (
+                      <div className="text-[11px] text-slate-400">صيانة عامة لكامل المنشأة</div>
+                    )}
+                  </div>
+
+                  <div className="sm:col-span-2 pt-2 border-t border-slate-200 dark:border-slate-800/80 space-y-1">
+                    <div className="text-[11px] text-slate-400 font-semibold flex items-center gap-1">
+                      <Wrench className="w-3.5 h-3.5 text-amber-500" />
+                      <span>العطل المطلوب معالجته:</span>
+                    </div>
+                    <div className="font-bold text-slate-800 dark:text-slate-200 leading-relaxed bg-white dark:bg-slate-900/80 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800">
+                      {viewNotesReq.issue}
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* Main Notes Box */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label className={`text-xs font-black flex items-center gap-1.5 ${
+                  viewNotesReq.status === 'rejected' ? 'text-rose-500' : 'text-emerald-500'
+                }`}>
+                  <FileText className="w-4 h-4" />
+                  <span>
+                    {viewNotesReq.status === 'rejected'
+                      ? 'سبب الرفض والملاحظات المسجلة:'
+                      : 'النتائج الفنية وملاحظات الإنجاز:'}
+                  </span>
+                </label>
+
+                {(viewNotesReq.resolutionNotes || viewNotesReq.rejectionReason) && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const textToCopy = viewNotesReq.rejectionReason || viewNotesReq.resolutionNotes || '';
+                      navigator.clipboard.writeText(textToCopy);
+                      setCopiedNotes(true);
+                      setTimeout(() => setCopiedNotes(false), 2000);
+                    }}
+                    className={`text-[11px] font-bold flex items-center gap-1 px-2.5 py-1 rounded-lg transition ${
+                      copiedNotes
+                        ? 'bg-emerald-500 text-slate-950'
+                        : isLight
+                        ? 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                        : 'bg-slate-800 hover:bg-slate-700 text-slate-300'
+                    }`}
+                  >
+                    {copiedNotes ? (
+                      <>
+                        <Check className="w-3 h-3" />
+                        <span>تم النسخ!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3 h-3" />
+                        <span>نسخ الملاحظات</span>
+                      </>
+                    )}
+                  </button>
+                )}
+              </div>
+
+              <div className={`p-4 rounded-2xl border leading-relaxed text-xs shadow-inner min-h-[90px] whitespace-pre-wrap font-medium ${
+                viewNotesReq.status === 'rejected'
+                  ? isLight
+                    ? 'bg-rose-50/80 border-rose-200 text-rose-950'
+                    : 'bg-rose-500/10 border-rose-500/30 text-rose-200'
+                  : isLight
+                  ? 'bg-emerald-50/80 border-emerald-200 text-emerald-950'
+                  : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-200'
+              }`}>
+                {viewNotesReq.rejectionReason || viewNotesReq.resolutionNotes || (
+                  viewNotesReq.status === 'completed'
+                    ? 'تمت المعالجة والإنجاز بنجاح وفق المواصفات المعتمدة.'
+                    : 'لا توجد ملاحظات إضافية مسجلة.'
+                )}
+              </div>
+            </div>
+
+            {/* Date, Duration & Department Indicators */}
+            <div className={`p-3 rounded-xl border flex flex-wrap items-center justify-between gap-2 text-[11px] ${
+              isLight ? 'bg-slate-50 border-slate-200 text-slate-600' : 'bg-slate-950/40 border-slate-800 text-slate-400'
+            }`}>
+              <div className="flex items-center gap-1.5 font-bold">
+                <Calendar className="w-3.5 h-3.5 text-amber-500" />
+                <span>تاريخ التوثيق:</span>
+                <span className="font-mono text-slate-800 dark:text-slate-200">
+                  {getCompletionOrCancellationDate(viewNotesReq.completedAt, viewNotesReq.status)}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-1.5 font-bold">
+                <Clock className="w-3.5 h-3.5 text-amber-500" />
+                <span>مدة الاستجابة:</span>
+                <span className="font-mono text-amber-500">
+                  {calculateMaintenanceDurationDays(viewNotesReq.createdAt, viewNotesReq.completedAt, viewNotesReq.status)}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-1.5 font-bold">
+                <Wrench className="w-3.5 h-3.5 text-amber-500" />
+                <span>الجهة:</span>
+                <span className="text-slate-800 dark:text-slate-200">
+                  {viewNotesReq.maintenanceDepartment || 'الصيانة العامة'}
+                </span>
+              </div>
+            </div>
+
+            {/* Footer Buttons */}
+            <div className={`flex items-center justify-between pt-3 border-t ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
+              <div className="text-[11px] text-slate-400">
+                مسؤول الإجراء: <strong className="text-slate-300">{viewNotesReq.reportedBy || currentUser?.name || 'فريق الصيانة'}</strong>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const reqToEdit = viewNotesReq;
+                    setViewNotesReq(null);
+                    if (isMaintenanceEmployee) {
+                      if (reqToEdit.status === 'rejected') {
+                        handleOpenRejectModal(reqToEdit);
+                      } else {
+                        handleOpenCompleteModal(reqToEdit);
+                      }
+                    } else {
+                      handleOpenEditModal(reqToEdit);
+                    }
+                  }}
+                  className={`px-3 py-1.5 rounded-xl font-bold text-xs flex items-center gap-1 transition ${
+                    isLight ? 'bg-slate-100 hover:bg-slate-200 text-slate-700' : 'bg-slate-800 hover:bg-slate-700 text-slate-300'
+                  }`}
+                >
+                  <Edit3 className="w-3.5 h-3.5 text-amber-500" />
+                  <span>تعديل التقرير / الحالة</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setViewNotesReq(null);
+                    setCopiedNotes(false);
+                  }}
+                  className="px-5 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-xl text-xs transition cursor-pointer shadow-md shadow-amber-500/20"
+                >
+                  إغلاق
+                </button>
+              </div>
             </div>
           </div>
         </div>

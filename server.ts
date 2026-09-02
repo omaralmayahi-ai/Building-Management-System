@@ -55,7 +55,7 @@ async function startServer() {
   app.use(express.json({ limit: '50mb' }));
   app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-  const OFFICIAL_MOC_LOGO_SVG = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200"><defs><linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="%23fbbf24"/><stop offset="50%" stop-color="%23d97706"/><stop offset="100%" stop-color="%2378350f"/></linearGradient><linearGradient id="flameGrad" x1="0%" y1="100%" x2="0%" y2="0%"><stop offset="0%" stop-color="%23dc2626"/><stop offset="50%" stop-color="%23f59e0b"/><stop offset="100%" stop-color="%23fef08a"/></linearGradient><linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="%230f172a"/><stop offset="100%" stop-color="%23020617"/></linearGradient></defs><circle cx="100" cy="100" r="94" fill="url(%23bgGrad)" stroke="url(%23goldGrad)" stroke-width="4"/><circle cx="100" cy="100" r="86" fill="none" stroke="%23d97706" stroke-width="1.5" stroke-dasharray="4 2"/><path d="M 40 100 A 60 60 0 0 1 160 100" fill="none" stroke="%23dc2626" stroke-width="6"/><path d="M 40 108 A 60 60 0 0 0 160 108" fill="none" stroke="%2316a34a" stroke-width="6"/><g fill="%23d97706" opacity="0.4"><circle cx="100" cy="100" r="56" fill="none" stroke="%23d97706" stroke-width="3"/></g><path d="M82 145 L94 65 L106 65 L118 145 Z" fill="none" stroke="url(%23goldGrad)" stroke-width="3"/><line x1="87" y1="125" x2="113" y2="125" stroke="%23fbbf24" stroke-width="2"/><line x1="90" y1="105" x2="110" y2="105" stroke="%23fbbf24" stroke-width="2"/><line x1="92" y1="85" x2="108" y2="85" stroke="%23fbbf24" stroke-width="2"/><line x1="87" y1="125" x2="110" y2="105" stroke="%23fbbf24" stroke-width="1.5"/><line x1="113" y1="125" x2="90" y2="105" stroke="%23fbbf24" stroke-width="1.5"/><path d="M100 40 C92 52 94 60 100 65 C106 60 108 52 100 40 Z" fill="url(%23flameGrad)"/><path d="M100 110 C92 122 93 134 100 138 C107 134 108 122 100 110 Z" fill="%230f172a" stroke="%23fbbf24" stroke-width="1.5"/><text x="100" y="28" fill="%23fbbf24" font-size="9" font-weight="900" text-anchor="middle" font-family="Arial, sans-serif" letter-spacing="1">وزارة النفط • شركة نفط الوسط</text><text x="100" y="180" fill="%23f59e0b" font-size="8" font-weight="bold" text-anchor="middle" font-family="Arial, sans-serif" letter-spacing="1.5">MIDLAND OIL COMPANY</text></svg>`;
+  const OFFICIAL_MOC_LOGO_SVG = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512"><g fill="%23248d9c"><rect x="36" y="412" width="440" height="44" rx="4"/><path d="M 152 412 L 152 260 L 194 260 L 194 68 L 366 138 L 366 412 Z"/></g><g fill="%23ffffff"><rect x="222" y="110" width="24" height="24" rx="2"/><rect x="222" y="154" width="24" height="24" rx="2"/><rect x="222" y="198" width="24" height="24" rx="2"/><rect x="260" y="126" width="24" height="24" rx="2"/><rect x="260" y="170" width="24" height="24" rx="2"/><rect x="260" y="214" width="24" height="24" rx="2"/><rect x="170" y="286" width="22" height="22" rx="2"/><rect x="202" y="286" width="22" height="22" rx="2"/><rect x="234" y="286" width="22" height="22" rx="2"/><rect x="266" y="286" width="22" height="22" rx="2"/><rect x="170" y="326" width="22" height="22" rx="2"/><rect x="202" y="326" width="22" height="22" rx="2"/><rect x="234" y="326" width="22" height="22" rx="2"/><rect x="266" y="326" width="22" height="22" rx="2"/><rect x="170" y="366" width="22" height="22" rx="2"/><rect x="202" y="366" width="22" height="22" rx="2"/><rect x="234" y="366" width="22" height="22" rx="2"/><rect x="266" y="366" width="22" height="22" rx="2"/><rect x="304" y="176" width="50" height="16" rx="2"/><rect x="304" y="214" width="50" height="16" rx="2"/><rect x="304" y="252" width="50" height="16" rx="2"/><rect x="304" y="290" width="50" height="16" rx="2"/><rect x="304" y="328" width="50" height="16" rx="2"/><rect x="304" y="366" width="50" height="16" rx="2"/></g></svg>`;
 
   // ==========================================================================
   // In-Memory Fallback Stores (active when PostgreSQL is not configured / during dev)
@@ -1764,6 +1764,60 @@ async function startServer() {
       console.error('Reset module failed:', err);
       return res.status(500).json({ success: false, error: 'فشل إعادة ضبط القسم' });
     }
+  });
+
+  // ==========================================================================
+  // Dynamic Web App Manifest (Reflects System Branding in Real-Time for PWA/Mobile/PC)
+  // ==========================================================================
+  app.get('/manifest.json', (req, res) => {
+    const branding = memStore.branding || {};
+    const systemName = (branding.systemName || '').trim() || 'السجل الرقمي الموحد للأصول الهندسية والإنشائية';
+    const companyName = (branding.companyName || '').trim() || 'شركة نفط الوسط';
+    const ministryName = (branding.ministryName || '').trim() || 'وزارة النفط العراقية';
+    const logoUrl = branding.logoUrl || '/icons/icon-512.png';
+    const shortName = systemName.length > 30 ? systemName.slice(0, 30) : systemName;
+    const isSvg = logoUrl.startsWith('data:image/svg') || logoUrl.endsWith('.svg');
+    const mimeType = isSvg ? 'image/svg+xml' : 'image/png';
+
+    const manifestData = {
+      id: '/',
+      name: `${companyName} - ${systemName}`,
+      short_name: shortName,
+      description: `${systemName} - ${companyName} - ${ministryName}`,
+      start_url: '/',
+      scope: '/',
+      display: 'standalone',
+      background_color: '#0f172a',
+      theme_color: '#0f172a',
+      orientation: 'any',
+      dir: 'rtl',
+      lang: 'ar',
+      categories: ['business', 'productivity', 'utilities'],
+      icons: [
+        {
+          src: logoUrl,
+          sizes: '192x192 512x512 any',
+          type: mimeType,
+          purpose: 'any maskable',
+        },
+        {
+          src: logoUrl,
+          sizes: '192x192',
+          type: mimeType,
+          purpose: 'any',
+        },
+        {
+          src: logoUrl,
+          sizes: '512x512',
+          type: mimeType,
+          purpose: 'any',
+        },
+      ],
+    };
+
+    res.setHeader('Content-Type', 'application/manifest+json; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    return res.json(manifestData);
   });
 
   // ==========================================================================

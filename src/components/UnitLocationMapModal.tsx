@@ -14,10 +14,9 @@ import {
   Check,
   Building,
   Layers,
-  Wrench,
-  ClipboardCheck,
-  Box,
-  Eye,
+  DoorClosed,
+  UserCheck,
+  ShieldAlert,
   Info,
 } from 'lucide-react';
 import { UnitAsset, ConditionGrade } from '../types';
@@ -89,6 +88,12 @@ const GRADE_BADGE_COLORS: Record<ConditionGrade, string> = {
 interface UnitLocationMapModalProps {
   unit: UnitAsset;
   theme?: 'dark' | 'light';
+  roomDetails?: {
+    floor?: string;
+    roomCode?: string;
+    roomName?: string;
+    occupiedBy?: string;
+  };
   onClose: () => void;
   onOpenInspection?: (unitCode: string) => void;
   onOpenMaintenance?: (unitCode: string) => void;
@@ -98,10 +103,8 @@ interface UnitLocationMapModalProps {
 export const UnitLocationMapModal: React.FC<UnitLocationMapModalProps> = ({
   unit,
   theme = 'dark',
+  roomDetails,
   onClose,
-  onOpenInspection,
-  onOpenMaintenance,
-  onOpen3D,
 }) => {
   const isLight = theme === 'light';
   const mapContainerRef = useRef<HTMLDivElement>(null);
@@ -118,6 +121,7 @@ export const UnitLocationMapModal: React.FC<UnitLocationMapModalProps> = ({
 
   const gradeColor = GRADE_BADGE_COLORS[unit.conditionGrade] || '#f59e0b';
   const typeConfig = UNIT_TYPE_CONFIG[unit.type] || UNIT_TYPE_CONFIG.building;
+  const isRoom = Boolean(roomDetails);
 
   const handleCopyCoords = () => {
     navigator.clipboard.writeText(`${lat}, ${lng}`);
@@ -151,6 +155,7 @@ export const UnitLocationMapModal: React.FC<UnitLocationMapModalProps> = ({
     const tileLayer = L.tileLayer(activeTile.url, {
       maxZoom: 19,
     }).addTo(map);
+
     tileLayerRef.current = tileLayer;
 
     // Custom Marker for Unit with distinctive type icon and grade pill
@@ -217,13 +222,24 @@ export const UnitLocationMapModal: React.FC<UnitLocationMapModalProps> = ({
       popupAnchor: [0, -48],
     });
 
-    const marker = L.marker([lat, lng], { icon: customIcon }).addTo(map);
+    const displayName = isRoom && roomDetails?.roomName ? roomDetails.roomName : unit.name;
+    const popupHtml = `
+      <div style="font-family: sans-serif; direction: rtl; text-align: right; min-width: 200px; padding: 4px;">
+        <div style="font-weight: 900; font-size: 13px; color: #0f172a; margin-bottom: 3px;">${displayName}</div>
+        <div style="font-size: 11px; color: #64748b; margin-bottom: 6px;">${unit.field} (${unit.governorate}) • رمز: ${unit.code}</div>
+        <a href="${googleMapsUrl}" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center; gap: 4px; background: #059669; color: #ffffff; padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: bold; text-decoration: none; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+          <span>🧭 فتح الاتجاهات في Google Maps</span>
+        </a>
+      </div>
+    `;
+
+    L.marker([lat, lng], { icon: customIcon }).addTo(map).bindPopup(popupHtml);
 
     return () => {
       map.remove();
       mapInstanceRef.current = null;
     };
-  }, [lat, lng, gradeColor, typeConfig]);
+  }, [lat, lng, gradeColor, typeConfig, isRoom, roomDetails, unit, googleMapsUrl]);
 
   // Handle layer switch
   useEffect(() => {
@@ -265,7 +281,7 @@ export const UnitLocationMapModal: React.FC<UnitLocationMapModalProps> = ({
             <div>
               <div className="flex items-center gap-2">
                 <span className="font-mono text-amber-500 font-bold text-xs">
-                  {toArabicDigits(unit.code)}
+                  {isRoom && roomDetails?.roomCode ? roomDetails.roomCode : toArabicDigits(unit.code)}
                 </span>
                 <span
                   className="px-2 py-0.5 rounded-full text-[10px] font-bold text-white shadow-sm"
@@ -273,8 +289,13 @@ export const UnitLocationMapModal: React.FC<UnitLocationMapModalProps> = ({
                 >
                   Grade {unit.conditionGrade}
                 </span>
+                <span className="text-[11px] font-bold px-2 py-0.5 rounded-md bg-blue-500/15 border border-blue-500/30 text-blue-600 dark:text-blue-400">
+                  {isRoom ? 'موقع الغرفة والقاعة' : 'موقع المنشأة الهندسية'}
+                </span>
               </div>
-              <h2 className="font-bold text-base sm:text-lg leading-tight">{unit.name}</h2>
+              <h2 className="font-extrabold text-base sm:text-lg leading-tight mt-0.5">
+                {isRoom && roomDetails?.roomName ? `${roomDetails.roomName}` : unit.name}
+              </h2>
             </div>
           </div>
 
@@ -285,56 +306,200 @@ export const UnitLocationMapModal: React.FC<UnitLocationMapModalProps> = ({
                 ? 'hover:bg-slate-200 text-slate-500'
                 : 'hover:bg-slate-800 text-slate-400 hover:text-white'
             }`}
+            title="إغلاق النافذة"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Map Type Bar & Details */}
+        {/* 4 Required Information Cards Panel */}
         <div
-          className={`px-4 sm:px-5 py-2.5 border-b flex flex-wrap items-center justify-between gap-2 text-xs ${
-            isLight ? 'bg-slate-100/70 border-slate-200' : 'bg-slate-950/40 border-slate-800'
+          className={`p-3.5 sm:p-4 border-b transition-colors ${
+            isLight ? 'bg-amber-50/70 border-amber-200' : 'bg-amber-500/10 border-amber-500/20'
+          }`}
+        >
+          {isRoom ? (
+            /* Room Scan: 4 Required Information Elements */
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+              {/* 1. اسم المنشأة */}
+              <div className={`p-2.5 rounded-xl border flex items-center gap-2.5 ${
+                isLight ? 'bg-white border-amber-200 text-slate-800' : 'bg-slate-900/90 border-amber-500/30 text-slate-100'
+              }`}>
+                <div className="w-8 h-8 rounded-lg bg-blue-500/15 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+                  <Building className="w-4 h-4" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-[10px] text-slate-400 font-medium">اسم المنشأة</div>
+                  <div className="text-xs font-black truncate" title={unit.name}>
+                    {unit.name}
+                  </div>
+                </div>
+              </div>
+
+              {/* 2. الطابق */}
+              <div className={`p-2.5 rounded-xl border flex items-center gap-2.5 ${
+                isLight ? 'bg-white border-amber-200 text-slate-800' : 'bg-slate-900/90 border-amber-500/30 text-slate-100'
+              }`}>
+                <div className="w-8 h-8 rounded-lg bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                  <Layers className="w-4 h-4" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-[10px] text-slate-400 font-medium">الطابق</div>
+                  <div className="text-xs font-black text-emerald-600 dark:text-emerald-400 truncate">
+                    {roomDetails?.floor || 'الطابق 1'}
+                  </div>
+                </div>
+              </div>
+
+              {/* 3. رمز الغرفة */}
+              <div className={`p-2.5 rounded-xl border flex items-center gap-2.5 ${
+                isLight ? 'bg-white border-amber-200 text-slate-800' : 'bg-slate-900/90 border-amber-500/30 text-slate-100'
+              }`}>
+                <div className="w-8 h-8 rounded-lg bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+                  <DoorClosed className="w-4 h-4" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-[10px] text-slate-400 font-medium">رمز الغرفة</div>
+                  <div className="text-xs font-mono font-black text-amber-600 dark:text-amber-400 truncate">
+                    {roomDetails?.roomCode || roomDetails?.roomName || '—'}
+                  </div>
+                </div>
+              </div>
+
+              {/* 4. الجهة الشاغلة */}
+              <div className={`p-2.5 rounded-xl border flex items-center gap-2.5 ${
+                isLight ? 'bg-white border-amber-200 text-slate-800' : 'bg-slate-900/90 border-amber-500/30 text-slate-100'
+              }`}>
+                <div className="w-8 h-8 rounded-lg bg-sky-500/15 text-sky-600 dark:text-sky-400 flex items-center justify-center shrink-0">
+                  <UserCheck className="w-4 h-4" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-[10px] text-slate-400 font-medium">الجهة الشاغلة</div>
+                  <div className="text-xs font-black text-sky-600 dark:text-sky-400 truncate" title={roomDetails?.occupiedBy || unit.department}>
+                    {roomDetails?.occupiedBy || unit.department || 'غير محدد'}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            /* Facility Scan: Facility Details */
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+              {/* 1. اسم المنشأة */}
+              <div className={`p-2.5 rounded-xl border flex items-center gap-2.5 ${
+                isLight ? 'bg-white border-amber-200 text-slate-800' : 'bg-slate-900/90 border-amber-500/30 text-slate-100'
+              }`}>
+                <div className="w-8 h-8 rounded-lg bg-blue-500/15 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+                  <Building className="w-4 h-4" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-[10px] text-slate-400 font-medium">اسم المنشأة</div>
+                  <div className="text-xs font-black truncate" title={unit.name}>
+                    {unit.name}
+                  </div>
+                </div>
+              </div>
+
+              {/* 2. رمز المنشأة ورمز الأصل */}
+              <div className={`p-2.5 rounded-xl border flex items-center gap-2.5 ${
+                isLight ? 'bg-white border-amber-200 text-slate-800' : 'bg-slate-900/90 border-amber-500/30 text-slate-100'
+              }`}>
+                <div className="w-8 h-8 rounded-lg bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+                  <Compass className="w-4 h-4" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-[10px] text-slate-400 font-medium">رمز المنشأة {unit.fixedAssetCode ? '/ الأصل' : ''}</div>
+                  <div className="text-xs font-mono font-black text-amber-600 dark:text-amber-400 truncate">
+                    {unit.code}
+                  </div>
+                  {unit.fixedAssetCode && (
+                    <div className="text-[10px] font-mono font-bold text-indigo-600 dark:text-indigo-400 truncate">
+                      أصل: {unit.fixedAssetCode}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* 3. الموقع والمحافظة */}
+              <div className={`p-2.5 rounded-xl border flex items-center gap-2.5 ${
+                isLight ? 'bg-white border-amber-200 text-slate-800' : 'bg-slate-900/90 border-amber-500/30 text-slate-100'
+              }`}>
+                <div className="w-8 h-8 rounded-lg bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                  <MapPin className="w-4 h-4" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-[10px] text-slate-400 font-medium">المحافظة والحقل</div>
+                  <div className="text-xs font-black text-emerald-600 dark:text-emerald-400 truncate">
+                    {unit.field} ({unit.governorate})
+                  </div>
+                </div>
+              </div>
+
+              {/* 4. الجهة الشاغلة / التابعة */}
+              <div className={`p-2.5 rounded-xl border flex items-center gap-2.5 ${
+                isLight ? 'bg-white border-amber-200 text-slate-800' : 'bg-slate-900/90 border-amber-500/30 text-slate-100'
+              }`}>
+                <div className="w-8 h-8 rounded-lg bg-sky-500/15 text-sky-600 dark:text-sky-400 flex items-center justify-center shrink-0">
+                  <UserCheck className="w-4 h-4" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-[10px] text-slate-400 font-medium">الجهة الشاغلة</div>
+                  <div className="text-xs font-black text-sky-600 dark:text-sky-400 truncate" title={unit.department}>
+                    {unit.department || 'غير محدد'}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Map Type Bar & Layer Switch */}
+        <div
+          className={`px-4 sm:px-5 py-2.5 border-b flex flex-wrap items-center justify-between gap-2.5 text-xs ${
+            isLight ? 'bg-slate-100/90 border-slate-200' : 'bg-slate-950/70 border-slate-800'
           }`}
         >
           <div className="flex items-center gap-2">
-            <span className="text-slate-400">الموقع الجغرافي:</span>
-            <span className="font-bold">
-              {unit.field} ({unit.governorate})
-            </span>
+            <a
+              href={googleMapsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-md transition cursor-pointer"
+            >
+              <Navigation className="w-3.5 h-3.5" />
+              <span>فتح الاتجاهات في Google Maps</span>
+              <ExternalLink className="w-3 h-3 opacity-80" />
+            </a>
           </div>
 
-          <div className="flex items-center gap-2">
-            {/* Map Layer Switch */}
-            <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800">
-              <button
-                type="button"
-                onClick={() => setMapType('satellite')}
-                className={`px-3 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${
-                  mapType === 'satellite'
-                    ? 'bg-amber-500 text-slate-950 shadow'
-                    : 'text-slate-400 hover:text-slate-200'
-                }`}
-              >
-                أقمار صناعية
-              </button>
-              <button
-                type="button"
-                onClick={() => setMapType('streets')}
-                className={`px-3 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${
-                  mapType === 'streets'
-                    ? 'bg-amber-500 text-slate-950 shadow'
-                    : 'text-slate-400 hover:text-slate-200'
-                }`}
-              >
-                شوارع
-              </button>
-            </div>
+          <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800">
+            <button
+              type="button"
+              onClick={() => setMapType('satellite')}
+              className={`px-3 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${
+                mapType === 'satellite'
+                  ? 'bg-amber-500 text-slate-950 shadow'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              أقمار صناعية
+            </button>
+            <button
+              type="button"
+              onClick={() => setMapType('streets')}
+              className={`px-3 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${
+                mapType === 'streets'
+                  ? 'bg-amber-500 text-slate-950 shadow'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              شوارع
+            </button>
           </div>
         </div>
 
         {/* Leaflet Map Body */}
-        <div className="relative flex-1 min-h-[350px] sm:min-h-[420px] bg-slate-950">
-          <div ref={mapContainerRef} className="w-full h-full min-h-[350px] sm:min-h-[420px] z-0" />
+        <div className="relative flex-1 min-h-[350px] sm:min-h-[400px] bg-slate-950">
+          <div ref={mapContainerRef} className="w-full h-full min-h-[350px] sm:min-h-[400px] z-0" />
 
           {/* Quick Coordinate Overlay */}
           <div className="absolute bottom-3 right-3 z-[400] bg-slate-950/90 backdrop-blur-sm border border-slate-800 px-3 py-2 rounded-xl text-xs font-mono text-slate-200 flex items-center gap-2 shadow-2xl">
@@ -352,7 +517,7 @@ export const UnitLocationMapModal: React.FC<UnitLocationMapModalProps> = ({
           </div>
         </div>
 
-        {/* Footer Actions */}
+        {/* Footer: Prominent Navigation and Close */}
         <div
           className={`p-4 sm:p-5 border-t flex flex-wrap items-center justify-between gap-3 shrink-0 ${
             isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-950/80 border-slate-800'
@@ -363,60 +528,30 @@ export const UnitLocationMapModal: React.FC<UnitLocationMapModalProps> = ({
               href={googleMapsUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition shadow cursor-pointer"
+              className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white rounded-xl text-xs sm:text-sm font-black flex items-center gap-2 transition shadow-lg cursor-pointer"
             >
-              <Navigation className="w-3.5 h-3.5" />
-              <span>ملاحة بالـ GPS</span>
-              <ExternalLink className="w-3 h-3 opacity-80" />
+              <Navigation className="w-4 h-4" />
+              <span>فتح الاتجاهات ورسم مسار الوصول عبر تطبيق الخرائط (Google Maps)</span>
+              <ExternalLink className="w-3.5 h-3.5 opacity-80" />
             </a>
-
-            {onOpen3D && (
-              <button
-                onClick={() => {
-                  onClose();
-                  onOpen3D(unit.code);
-                }}
-                className={`px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition border cursor-pointer ${
-                  isLight
-                    ? 'bg-white hover:bg-slate-100 border-slate-300 text-slate-800'
-                    : 'bg-slate-900 hover:bg-slate-800 border-slate-700 text-slate-200'
-                }`}
-              >
-                <Eye className="w-3.5 h-3.5 text-amber-400" />
-                <span>عرض ثلاثي الأبعاد 3D</span>
-              </button>
-            )}
           </div>
 
           <div className="flex items-center gap-2">
-            {onOpenInspection && (
-              <button
-                onClick={() => {
-                  onClose();
-                  onOpenInspection(unit.code);
-                }}
-                className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-bold flex items-center gap-1.5 transition cursor-pointer"
-              >
-                <ClipboardCheck className="w-3.5 h-3.5 text-emerald-400" />
-                <span>طلب كشف</span>
-              </button>
-            )}
-
-            {onOpenMaintenance && (
-              <button
-                onClick={() => {
-                  onClose();
-                  onOpenMaintenance(unit.code);
-                }}
-                className="px-3.5 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-xl text-xs font-bold flex items-center gap-1.5 transition shadow cursor-pointer"
-              >
-                <Wrench className="w-3.5 h-3.5" />
-                <span>طلب صيانة</span>
-              </button>
-            )}
+            <button
+              type="button"
+              onClick={onClose}
+              className={`px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition border cursor-pointer ${
+                isLight
+                  ? 'bg-slate-200 hover:bg-slate-300 border-slate-300 text-slate-800'
+                  : 'bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-200'
+              }`}
+            >
+              إغلاق
+            </button>
           </div>
         </div>
       </div>
     </div>
   );
 };
+

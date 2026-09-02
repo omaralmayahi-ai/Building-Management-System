@@ -1160,14 +1160,15 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
       });
     } else if (activeTab === 'maintenance') {
       filename = `تقرير_بلاغات_الصيانة_والتشغيل_${dateStr}.csv`;
-      content += 'رقم الطلب,كود الوحدة,جهة الصيانة,الحقل النفطي,المحافظة,وصف العطل والبلاغ,درجة الأهمية,محرر الطلب,تاريخ تسجيل البلاغ,تاريخ الإنجاز أو الإلغاء,مدة المعالجة (أيام),المرفق / الصورة,الحالة الحالية\n';
+      content += 'رقم الطلب,رمز المنشأة,جهة الصيانة,الحقل النفطي,المحافظة,وصف العطل والبلاغ,درجة الأهمية,محرر الطلب,تاريخ تسجيل البلاغ,تاريخ الإنجاز أو الإلغاء,مدة المعالجة (أيام),المرفق / الصورة,الحالة الحالية\n';
       filteredMaintenance.forEach((m) => {
         const u = units.find((unit) => unit.code === m.unitCode);
-        content += `"${toArabicDigits(m.id)}","${toArabicDigits(m.unitCode)}","${(m.maintenanceDepartment || 'الصيانة العامة').replace(/"/g, '""')}","${translateField(m.field)}","${translateGovernorate(u?.governorate || '')}","${m.issue.replace(/"/g, '""')}","${translatePriority(m.priority)}","${getCleanReporterName(m.reportedBy)}","${formatDateOnly(m.createdAt)}","${getCompletionOrCancellationDate(m.completedAt, m.status)}","${calculateMaintenanceDurationDays(m.createdAt, m.completedAt, m.status)}","${(m.attachmentName || (m.attachmentUrl ? 'صورة مرفقة' : 'لا يوجد')).replace(/"/g, '""')}","${translateMaintenanceStatus(m.status)}"\n`;
+        const codeDisplay = m.roomCode ? `${toArabicDigits(m.unitCode)} [غرفة: ${toArabicDigits(m.roomCode)}]` : toArabicDigits(m.unitCode);
+        content += `"${toArabicDigits(m.id)}","${codeDisplay}","${(m.maintenanceDepartment || 'الصيانة العامة').replace(/"/g, '""')}","${translateField(m.field)}","${translateGovernorate(u?.governorate || '')}","${m.issue.replace(/"/g, '""')}","${translatePriority(m.priority)}","${getCleanReporterName(m.reportedBy)}","${formatDateOnly(m.createdAt)}","${getCompletionOrCancellationDate(m.completedAt, m.status)}","${calculateMaintenanceDurationDays(m.createdAt, m.completedAt, m.status)}","${(m.attachmentName || (m.attachmentUrl ? 'صورة مرفقة' : 'لا يوجد')).replace(/"/g, '""')}","${translateMaintenanceStatus(m.status)}"\n`;
       });
     } else if (activeTab === 'units') {
       filename = `تقرير_حصر_الأصول_والوحدات_الهندسية_${dateStr}.csv`;
-      content += 'رمز الوحدة / الأصل,اسم الوحدة,نوع المنشأة,الحقل النفطي,المحافظة,التقييم الإنشائي,الجهة الشاغلة,الغرف المشغولة,الغرف الشاغرة (فارغة),إجمالي غرف الوحدة,سنة الإنشاء,المساحة الإجمالية (م²),عدد الطوابق,عدد المعدات\n';
+      content += 'رمز المنشأة,اسم المنشأة,نوع المنشأة,الحقل النفطي,المحافظة,التقييم الإنشائي,الجهة الشاغلة,الغرف المشغولة,الغرف الشاغرة (فارغة),إجمالي غرف الوحدة,سنة الإنشاء,المساحة الإجمالية (م²),عدد الطوابق,عدد المعدات\n';
       filteredUnits.forEach((u) => {
         const stats = getUnitOccupancyStats(u, selectedOrgEntity);
         const codeDisplay = u.fixedAssetCode ? `${toArabicDigits(u.code)} [أصل: ${u.fixedAssetCode}]` : toArabicDigits(u.code);
@@ -1194,13 +1195,14 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
       });
 
       content += '\n=== 2. تقرير بلاغات الصيانة ومتابعة الإنجاز ===\n';
-      content += 'رقم الطلب,كود الوحدة,الحقل النفطي,وصف العطل,درجة الأهمية,محرر الطلب,تاريخ البلاغ,تاريخ الإنجاز,المدة (أيام),المرفق,الحالة\n';
+      content += 'رقم الطلب,رمز المنشأة,الحقل النفطي,وصف العطل,درجة الأهمية,محرر الطلب,تاريخ البلاغ,تاريخ الإنجاز,المدة (أيام),المرفق,الحالة\n';
       filteredMaintenance.forEach((m) => {
-        content += `"${toArabicDigits(m.id)}","${toArabicDigits(m.unitCode)}","${translateField(m.field)}","${m.issue.replace(/"/g, '""')}","${translatePriority(m.priority)}","${getCleanReporterName(m.reportedBy)}","${formatDateOnly(m.createdAt)}","${getCompletionOrCancellationDate(m.completedAt, m.status)}","${calculateMaintenanceDurationDays(m.createdAt, m.completedAt, m.status)}","${(m.attachmentName || (m.attachmentUrl ? 'صورة مرفقة' : '-')).replace(/"/g, '""')}","${translateMaintenanceStatus(m.status)}"\n`;
+        const codeDisplay = m.roomCode ? `${toArabicDigits(m.unitCode)} [غرفة: ${toArabicDigits(m.roomCode)}]` : toArabicDigits(m.unitCode);
+        content += `"${toArabicDigits(m.id)}","${codeDisplay}","${translateField(m.field)}","${m.issue.replace(/"/g, '""')}","${translatePriority(m.priority)}","${getCleanReporterName(m.reportedBy)}","${formatDateOnly(m.createdAt)}","${getCompletionOrCancellationDate(m.completedAt, m.status)}","${calculateMaintenanceDurationDays(m.createdAt, m.completedAt, m.status)}","${(m.attachmentName || (m.attachmentUrl ? 'صورة مرفقة' : '-')).replace(/"/g, '""')}","${translateMaintenanceStatus(m.status)}"\n`;
       });
 
       content += '\n=== 3. تقرير حصر الأصول والوحدات الهندسية ===\n';
-      content += 'رمز الوحدة / الأصل,اسم الوحدة,نوع المنشأة,الحقل النفطي,المحافظة,التقييم الإنشائي,الجهة الشاغلة,الغرف المشغولة,الغرف الشاغرة (فارغة),إجمالي غرف الوحدة,سنة الإنشاء,المساحة (م²),عدد الطوابق,عدد المعدات\n';
+      content += 'رمز المنشأة,اسم المنشأة,نوع المنشأة,الحقل النفطي,المحافظة,التقييم الإنشائي,الجهة الشاغلة,الغرف المشغولة,الغرف الشاغرة (فارغة),إجمالي غرف الوحدة,سنة الإنشاء,المساحة (م²),عدد الطوابق,عدد المعدات\n';
       filteredUnits.forEach((u) => {
         const stats = getUnitOccupancyStats(u, selectedOrgEntity);
         const codeDisplay = u.fixedAssetCode ? `${toArabicDigits(u.code)} [أصل: ${u.fixedAssetCode}]` : toArabicDigits(u.code);
@@ -1450,7 +1452,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
           <thead>
             <tr>
               <th style="width: 25px; text-align: center;">#</th>
-              <th style="min-width: 140px;">بيانات الوحدة والموقع</th>
+              <th style="min-width: 140px;">بيانات المنشأة والموقع</th>
               <th>نوع ودورية الكشف</th>
               <th>تاريخ الكشف السابق</th>
               <th>تاريخ الاستحقاق</th>
@@ -1476,7 +1478,14 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
           <tr style="${bg}">
             <td style="text-align: center; font-weight: bold; font-family: monospace;">${toArabicDigits(item.indexInSection + 1)}</td>
             <td style="font-weight: bold; font-family: monospace; color: #78350f;">${toArabicDigits(m.id)}</td>
-            <td style="font-weight: bold; font-family: monospace;">${toArabicDigits(m.unitCode)}</td>
+            <td style="line-height: 1.45;">
+              <div style="font-weight: bold; font-family: monospace; color: #78350f; font-size: 8.5pt;">${toArabicDigits(m.unitCode)}</div>
+              ${m.roomCode ? `
+                <div style="display: inline-block; background-color: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; border-radius: 3px; padding: 1px 4px; font-size: 7.5pt; font-weight: bold; font-family: monospace; margin-top: 2px;">
+                  🚪 غرفة: ${toArabicDigits(m.roomCode)}
+                </div>
+              ` : ''}
+            </td>
             <td style="font-weight: bold; color: #78350f;">${m.maintenanceDepartment || 'الصيانة العامة'}</td>
             <td style="font-weight: 600; color: #0f172a;">${m.issue}</td>
             <td>${translateField(m.field)}</td>
@@ -1503,7 +1512,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
             <tr>
               <th style="width: 25px; text-align: center;">#</th>
               <th>رقم الطلب</th>
-              <th>كود الوحدة</th>
+              <th>رمز المنشأة</th>
               <th>جهة الصيانة</th>
               <th>وصف العطل / البلاغ</th>
               <th>الحقل</th>
@@ -1535,9 +1544,14 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
               ${u.fixedAssetCode ? `<div style="font-size: 10px; color: #4338ca; font-weight: bold; margin-top: 2px;">أصل: ${u.fixedAssetCode}</div>` : ''}
             </td>
             <td style="font-weight: bold; color: #0f172a;">${u.name}</td>
-            <td>${translateField(u.field)} / ${translateGovernorate(u.governorate)}</td>
+            <td>
+              <div style="font-weight: bold; color: #0f172a;">${translateGovernorate(u.governorate) || u.governorate}</div>
+              <div style="font-size: 8.5pt; color: #64748b;">${translateField(u.field) || u.field}</div>
+            </td>
             <td>${translateUnitType(u.type)}</td>
-            <td style="font-weight: 600;">${stats.entity}</td>
+            <td style="font-weight: 600; font-size: 8.5pt;">
+              ${stats.allOccupants && stats.allOccupants.length > 0 ? stats.allOccupants.map((occ: string) => `<div style="margin-bottom: 2px;">• ${occ}</div>`).join('') : (stats.entity || 'عام / غير محدد')}
+            </td>
             <td style="text-align: center; font-weight: bold; font-family: monospace; color: #059669;">${toArabicDigits(stats.occupiedRoomsCount)}</td>
             <td style="text-align: center; font-weight: bold; font-family: monospace; color: #d97706;">${stats.vacantRoomsCount > 0 ? `${toArabicDigits(stats.vacantRoomsCount)} فارغة` : '0'}</td>
             <td style="text-align: center; font-family: monospace;">${toArabicDigits(stats.totalRooms)}</td>
@@ -1553,8 +1567,8 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
             <tr>
               <th style="width: 25px; text-align: center;">#</th>
               <th>رمز المنشأة</th>
-              <th>اسم المنشأة / الأصل</th>
-              <th>الحقل / المحافظة</th>
+              <th>اسم المنشأة</th>
+              <th>المحافظة والحقل</th>
               <th>نوع المنشأة</th>
               <th>الجهة الشاغلة</th>
               <th style="text-align: center;">المشغولة</th>
@@ -2097,7 +2111,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
           <thead className="bg-slate-200 font-bold text-slate-900">
             <tr>
               <th className="border border-slate-400 p-1.5 w-8 text-center">#</th>
-              <th className="border border-slate-400 p-1.5 min-w-[130px]">بيانات الوحدة والموقع</th>
+              <th className="border border-slate-400 p-1.5 min-w-[130px]">بيانات المنشأة والموقع</th>
               <th className="border border-slate-400 p-1.5">نوع ودورية الكشف</th>
               <th className="border border-slate-400 p-1.5">تاريخ الكشف السابق</th>
               <th className="border border-slate-400 p-1.5">تاريخ الاستحقاق</th>
@@ -2185,7 +2199,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
             <tr>
               <th className="border border-slate-400 p-1.5 w-8 text-center">#</th>
               <th className="border border-slate-400 p-1.5 font-mono">رقم الطلب</th>
-              <th className="border border-slate-400 p-1.5 font-mono">كود الوحدة</th>
+              <th className="border border-slate-400 p-1.5 font-mono">رمز المنشأة</th>
               <th className="border border-slate-400 p-1.5">جهة الصيانة</th>
               <th className="border border-slate-400 p-1.5">وصف العطل / البلاغ</th>
               <th className="border border-slate-400 p-1.5">الحقل</th>
@@ -2209,8 +2223,13 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                   <td className="border border-slate-400 p-1.5 font-bold font-mono text-amber-900">
                     {toArabicDigits(m.id)}
                   </td>
-                  <td className="border border-slate-400 p-1.5 font-mono font-bold text-slate-800">
-                    {toArabicDigits(m.unitCode)}
+                  <td className="border border-slate-400 p-1.5 leading-snug">
+                    <div className="font-mono font-bold text-amber-900">{toArabicDigits(m.unitCode)}</div>
+                    {m.roomCode && (
+                      <div className="inline-block mt-0.5 px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-300 text-[8.5px] font-bold font-mono">
+                        🚪 غرفة: {toArabicDigits(m.roomCode)}
+                      </div>
+                    )}
                   </td>
                   <td className="border border-slate-400 p-1.5 font-semibold text-amber-900">
                     {m.maintenanceDepartment || 'الصيانة العامة'}
@@ -2327,8 +2346,8 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
             <tr>
               <th className="border border-slate-400 p-1.5 w-9 text-center">#</th>
               <th className="border border-slate-400 p-1.5 font-mono">رمز المنشأة</th>
-              <th className="border border-slate-400 p-1.5">اسم المنشأة / الأصل</th>
-              <th className="border border-slate-400 p-1.5">الحقل / المحافظة</th>
+              <th className="border border-slate-400 p-1.5">اسم المنشأة</th>
+              <th className="border border-slate-400 p-1.5">المحافظة والحقل</th>
               <th className="border border-slate-400 p-1.5">نوع المنشأة</th>
               <th className="border border-slate-400 p-1.5">الجهة الشاغلة</th>
               <th className="border border-slate-400 p-1.5 text-center font-bold text-emerald-800">المشغولة</th>
@@ -2361,13 +2380,25 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                     {u.name}
                   </td>
                   <td className="border border-slate-400 p-1.5 text-slate-700">
-                    {translateField(u.field)} / {translateGovernorate(u.governorate)}
+                    <div className="font-bold text-slate-900">{translateGovernorate(u.governorate) || u.governorate}</div>
+                    <div className="text-[9px] text-slate-600">{translateField(u.field) || u.field}</div>
                   </td>
                   <td className="border border-slate-400 p-1.5">
                     {translateUnitType(u.type)}
                   </td>
                   <td className="border border-slate-400 p-1.5 font-semibold text-slate-900">
-                    {stats.entity}
+                    {stats.allOccupants && stats.allOccupants.length > 0 ? (
+                      <div className="space-y-0.5">
+                        {stats.allOccupants.map((occ: string, oIdx: number) => (
+                          <div key={oIdx} className="leading-tight flex items-start gap-1">
+                            <span className="text-amber-700 font-bold">•</span>
+                            <span>{occ}</span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      stats.entity || 'عام / غير محدد'
+                    )}
                   </td>
                   <td className="border border-slate-400 p-1.5 text-center font-mono font-bold text-emerald-800">
                     {toArabicDigits(stats.occupiedRoomsCount)}
@@ -3182,7 +3213,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
 
       {/* Main Content Tables */}
 
-      {/* SECTION 1: Periodic Inspection History Table */}
+      {/* SECTION 1: Periodic Inspections Table */}
       {(activeTab === 'all' || activeTab === 'inspections') && (
         <div className={`p-4 rounded-2xl border ${isLight ? 'bg-white border-slate-200 shadow-sm' : 'bg-slate-900 border-slate-800'} space-y-3`}>
           <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
@@ -3199,7 +3230,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
             <table className="w-full text-right text-xs">
               <thead className={`border-b ${isLight ? 'bg-slate-100 border-slate-200 text-slate-700' : 'bg-slate-950 border-slate-800 text-slate-400'} font-bold`}>
                 <tr>
-                  <th className="p-2.5 min-w-[140px]">بيانات الوحدة والموقع</th>
+                  <th className="p-2.5 min-w-[140px]">بيانات المنشأة والموقع</th>
                   <th className="p-2.5">نوع ودورية الكشف</th>
                   <th className="p-2.5">تاريخ الكشف السابق</th>
                   <th className="p-2.5">التاريخ القادم</th>
@@ -3316,7 +3347,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
               <thead className={`border-b ${isLight ? 'bg-slate-100 border-slate-200 text-slate-700' : 'bg-slate-950 border-slate-800 text-slate-400'} font-bold`}>
                 <tr>
                   <th className="p-2.5">رقم الطلب</th>
-                  <th className="p-2.5">كود الوحدة</th>
+                  <th className="p-2.5">رمز المنشأة</th>
                   <th className="p-2.5">جهة الصيانة</th>
                   <th className="p-2.5">وصف العطل / البلاغ</th>
                   <th className="p-2.5">درجة الأهمية</th>
@@ -3339,7 +3370,14 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                   filteredMaintenance.map((req) => (
                     <tr key={req.id} className={isLight ? 'hover:bg-slate-50' : 'hover:bg-slate-800/40'}>
                       <td className="p-2.5 font-mono font-bold text-amber-500 whitespace-nowrap">{toArabicDigits(req.id)}</td>
-                      <td className="p-2.5 font-mono font-semibold text-slate-200 whitespace-nowrap">{toArabicDigits(req.unitCode)}</td>
+                      <td className="p-2.5 leading-snug whitespace-nowrap">
+                        <div className="font-mono font-bold text-amber-500">{toArabicDigits(req.unitCode)}</div>
+                        {req.roomCode && (
+                          <div className="inline-block mt-0.5 px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-[9px] font-mono font-bold">
+                            🚪 غرفة: {toArabicDigits(req.roomCode)}
+                          </div>
+                        )}
+                      </td>
                       <td className="p-2.5 font-semibold text-amber-400 whitespace-nowrap">{req.maintenanceDepartment || 'الصيانة العامة'}</td>
                       <td className="p-2.5 font-bold max-w-xs">{req.issue}</td>
                       <td className="p-2.5 whitespace-nowrap">
@@ -3511,7 +3549,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
             <div className="flex items-center gap-2">
               <Box className="w-5 h-5 text-amber-500" />
               <h3 className={`font-bold text-sm ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
-                3. تقرير حصر الأصول والوحدات ({toArabicDigits(filteredUnits.length)} وحدة)
+                3. تقرير حصر الأصول والمنشآت ({toArabicDigits(filteredUnits.length)} منشأة)
               </h3>
             </div>
             <span className="text-[11px] text-amber-500 font-mono font-bold">السجل العام للاصول</span>
@@ -3545,10 +3583,9 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
             <table className="w-full text-right text-xs">
               <thead className={`border-b ${isLight ? 'bg-slate-100 border-slate-200 text-slate-700' : 'bg-slate-950 border-slate-800 text-slate-400'} font-bold`}>
                 <tr>
-                  <th className="p-2.5">رمز الوحدة</th>
-                  <th className="p-2.5">اسم الوحدة</th>
-                  <th className="p-2.5">الحقل النفطي</th>
-                  <th className="p-2.5">المحافظة</th>
+                  <th className="p-2.5">رمز المنشأة</th>
+                  <th className="p-2.5">اسم المنشأة</th>
+                  <th className="p-2.5">المحافظة والحقل</th>
                   <th className="p-2.5">التقييم الإنشائي</th>
                   <th className="p-2.5">الجهة الشاغلة</th>
                   <th className="p-2.5 text-center font-black text-emerald-600 dark:text-emerald-400">
@@ -3566,7 +3603,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
               <tbody className={`divide-y ${isLight ? 'divide-slate-200 text-slate-800' : 'divide-slate-800 text-slate-300'}`}>
                 {filteredUnits.length === 0 ? (
                   <tr>
-                    <td colSpan={12} className="p-6 text-center text-slate-500 font-semibold">
+                    <td colSpan={11} className="p-6 text-center text-slate-500 font-semibold">
                       لا توجد وحدات هندسية تطابق معايير الفلترة المحددة.
                     </td>
                   </tr>
@@ -3587,8 +3624,14 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                           <div>{u.name}</div>
                           <span className="text-[10px] text-slate-500 font-normal">{translateUnitType(u.type)}</span>
                         </td>
-                        <td className="p-2.5 text-slate-400 whitespace-nowrap">{u.field}</td>
-                        <td className="p-2.5 text-slate-400 whitespace-nowrap">{u.governorate}</td>
+                        <td className="p-2.5 whitespace-nowrap">
+                          <div className={`font-bold text-xs ${isLight ? 'text-slate-800' : 'text-slate-200'}`}>
+                            {translateGovernorate(u.governorate) || u.governorate}
+                          </div>
+                          <div className={`text-[11px] ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                            {translateField(u.field) || u.field}
+                          </div>
+                        </td>
                         <td className="p-2.5 whitespace-nowrap">
                           <span
                             className={`px-2 py-0.5 rounded text-[10px] font-black ${
@@ -3604,14 +3647,29 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                             الدرجة {u.conditionGrade}
                           </span>
                         </td>
-                        <td className="p-2.5 whitespace-nowrap">
+                        <td className="p-2.5">
                           {selectedOrgEntity !== 'all' ? (
                             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30">
-                              <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                              {selectedOrgEntity}
+                              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
+                              <span className="truncate">{selectedOrgEntity}</span>
                             </span>
+                          ) : stats.allOccupants && stats.allOccupants.length > 0 ? (
+                            <div className="space-y-1">
+                              {stats.allOccupants.map((occ: string, oIdx: number) => (
+                                <div
+                                  key={oIdx}
+                                  className={`text-[11px] font-semibold leading-tight flex items-start gap-1.5 ${
+                                    isLight ? 'text-slate-800' : 'text-slate-200'
+                                  }`}
+                                  title={occ}
+                                >
+                                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0 mt-1" />
+                                  <span className="whitespace-normal leading-tight">{occ}</span>
+                                </div>
+                              ))}
+                            </div>
                           ) : (
-                            <span className="font-semibold">{stats.entity}</span>
+                            <span className="font-semibold text-slate-500 text-xs">{stats.entity || 'عام / غير محدد'}</span>
                           )}
                         </td>
                         <td className="p-2.5 whitespace-nowrap text-center">

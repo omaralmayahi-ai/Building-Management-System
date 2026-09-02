@@ -35,6 +35,11 @@ interface LoginViewProps {
     gov?: string;
     field?: string;
     src?: string;
+    isRoom?: boolean;
+    roomCode?: string;
+    roomName?: string;
+    floor?: string;
+    occupiedBy?: string;
   } | null;
 }
 
@@ -52,11 +57,11 @@ export const LoginView: React.FC<LoginViewProps> = ({
 
   // Find matched unit if present in units list
   const deepLinkUnitObj = useMemo(() => {
-    if (!pendingDeepLink || !pendingDeepLink.unit) return null;
+    if (!pendingDeepLink) return null;
     return units.find(
       (u) =>
-        u.code.toLowerCase() === pendingDeepLink.unit.toLowerCase() ||
-        u.id.toLowerCase() === pendingDeepLink.unit.toLowerCase()
+        (pendingDeepLink.unit && (u.code.toLowerCase() === pendingDeepLink.unit.toLowerCase() || u.id.toLowerCase() === pendingDeepLink.unit.toLowerCase())) ||
+        (pendingDeepLink.roomCode && u.rooms?.some((r) => r.code?.toUpperCase() === pendingDeepLink.roomCode?.toUpperCase() || r.id === pendingDeepLink.roomCode))
     );
   }, [pendingDeepLink, units]);
 
@@ -282,7 +287,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
           </div>
         </div>
 
-        {/* Day / Night Theme Toggle Button */}
+        {/* Theme Toggle Button (Light / Dark) */}
         <button
           onClick={onToggleTheme}
           type="button"
@@ -292,17 +297,17 @@ export const LoginView: React.FC<LoginViewProps> = ({
               ? 'bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-300'
               : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700'
           }`}
-          title={isLight ? 'التحويل للوضع الليلي' : 'التحويل للوضع النهاري'}
+          title={isLight ? 'التحويل للوضع الداكن' : 'التحويل للوضع الفاتح'}
         >
           {isLight ? (
             <>
               <Moon className="w-4 h-4 text-indigo-600" />
-              <span>الوضع الليلي</span>
+              <span>الوضع الداكن</span>
             </>
           ) : (
             <>
               <Sun className="w-4 h-4 text-amber-400" />
-              <span>الوضع النهاري</span>
+              <span>الوضع الفاتح</span>
             </>
           )}
         </button>
@@ -311,7 +316,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
       {/* Main Login Card Container */}
       <main className="relative z-10 w-full max-w-lg mx-auto my-auto px-4 py-6">
         {/* Deep Link Quick Access & External QR Location Card */}
-        {pendingDeepLink && pendingDeepLink.unit && (() => {
+        {pendingDeepLink && (pendingDeepLink.unit || pendingDeepLink.roomCode) && (() => {
           const lat = deepLinkUnitObj?.coordinates?.lat ?? pendingDeepLink.lat ?? 32.6189;
           const lng = deepLinkUnitObj?.coordinates?.lng ?? pendingDeepLink.lng ?? 45.7531;
           const unitName = deepLinkUnitObj?.name ?? pendingDeepLink.name ?? 'منشأة تابعة لشركة نفط الوسط';
@@ -319,6 +324,10 @@ export const LoginView: React.FC<LoginViewProps> = ({
           const unitField = deepLinkUnitObj?.field ?? pendingDeepLink.field ?? '';
           const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
           const grade = deepLinkUnitObj?.conditionGrade;
+          const isRoom = Boolean(pendingDeepLink.isRoom || pendingDeepLink.roomCode);
+          const roomName = pendingDeepLink.roomName || 'غرفة مخصصة';
+          const roomCode = pendingDeepLink.roomCode || '';
+          const floor = pendingDeepLink.floor || '';
 
           const handleCopyGps = () => {
             navigator.clipboard.writeText(`${lat}, ${lng}`);
@@ -343,7 +352,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
                   <div>
                     <div className="flex items-center gap-2">
                       <span className="text-[11px] font-bold text-amber-600 dark:text-amber-400">
-                        موقع المنشأة الجغرافي (مسح رمز QR):
+                        {isRoom ? 'موقع الغرفة والمنشأة (مسح رمز QR للغرفة):' : 'موقع المنشأة الجغرافي (مسح رمز QR):'}
                       </span>
                       {grade && (
                         <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
@@ -352,10 +361,13 @@ export const LoginView: React.FC<LoginViewProps> = ({
                       )}
                     </div>
                     <h3 className="font-extrabold text-base text-slate-900 dark:text-slate-100 mt-0.5">
-                      {unitName}
+                      {isRoom ? `${unitName} • ${roomName}` : unitName}
                     </h3>
                     <p className="text-xs text-slate-500 dark:text-slate-400">
-                      {unitGov} {unitField ? `• ${unitField}` : ''} • الرمز: <span className="font-mono font-bold text-amber-500">{toArabicDigits(pendingDeepLink.unit)}</span>
+                      {unitGov} {unitField ? `• ${unitField}` : ''} {floor ? `• ${floor}` : ''} • الرمز:{' '}
+                      <span className="font-mono font-bold text-amber-500">
+                        {toArabicDigits(isRoom && roomCode ? roomCode : pendingDeepLink.unit || '')}
+                      </span>
                     </p>
                   </div>
                 </div>

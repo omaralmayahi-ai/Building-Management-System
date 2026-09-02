@@ -20,6 +20,8 @@ import { UnitAsset } from '../types';
 import { toArabicDigits } from '../utils/arabicUtils';
 import {
   parseScannedQrText,
+  parseScannedQrPayload,
+  ScannedQrPayload,
   decodeVideoFrameAsync,
   decodeQrFromImageFile,
   checkBarcodeDetectorSupport,
@@ -29,7 +31,7 @@ interface InAppQrScannerModalProps {
   units: UnitAsset[];
   theme?: 'dark' | 'light';
   onClose: () => void;
-  onUnitDetected: (unit: UnitAsset) => void;
+  onUnitDetected: (unit: UnitAsset, scanPayload?: ScannedQrPayload) => void;
 }
 
 // Crisp Audio Chime for successful QR detection
@@ -91,14 +93,31 @@ export const InAppQrScannerModal: React.FC<InAppQrScannerModalProps> = ({
       if (isProcessingDetectionRef.current) return;
       isProcessingDetectionRef.current = true;
 
-      const targetCode = parseScannedQrText(decodedText);
+      const payload = parseScannedQrPayload(decodedText);
+      const targetCode = payload.unitCode;
       const cleanTarget = targetCode.toLowerCase().replace(/[\s_]/g, '-');
+      const roomTarget = (payload.roomCode || '').toUpperCase();
+      const cleanRawUpper = decodedText.toUpperCase().trim();
 
       const matched = units.find((u) => {
         const uCode = (u.code || '').toLowerCase().replace(/[\s_]/g, '-');
         const uId = (u.id || '').toLowerCase();
         const uName = (u.name || '').toLowerCase();
+        const uCodeUpper = (u.code || '').toUpperCase();
+        const unitBuildingSuffix = uCodeUpper.split('-')[3] || '';
+
+        // Check room match inside this unit
+        const hasRoomMatch = Boolean(
+          (payload.isRoom || cleanRawUpper.includes('-F') || cleanRawUpper.includes('ROOM') || cleanRawUpper.includes('RM-')) &&
+          (
+            (roomTarget && u.rooms?.some((rm) => rm.code?.toUpperCase() === roomTarget || rm.id === roomTarget)) ||
+            (u.rooms?.some((rm) => rm.code && cleanRawUpper.includes(rm.code.toUpperCase()))) ||
+            (unitBuildingSuffix && (roomTarget.startsWith(`${unitBuildingSuffix}-`) || cleanRawUpper.includes(`${unitBuildingSuffix}-F`)))
+          )
+        );
+
         return (
+          hasRoomMatch ||
           uCode === cleanTarget ||
           uId === cleanTarget ||
           cleanTarget.includes(uCode) ||
@@ -108,8 +127,33 @@ export const InAppQrScannerModal: React.FC<InAppQrScannerModalProps> = ({
       });
 
       if (matched) {
+        // Deep room check inside the matched unit to ensure isRoom is accurately set
+        const matchedRoom = matched.rooms?.find(
+          (r) =>
+            (roomTarget && (r.code?.toUpperCase() === roomTarget || r.id === roomTarget)) ||
+            (r.code && cleanRawUpper.includes(r.code.toUpperCase())) ||
+            (payload.roomCode && r.code?.toUpperCase() === payload.roomCode.toUpperCase()) ||
+            (payload.roomName && r.name === payload.roomName)
+        );
+
+        if (matchedRoom || payload.isRoom) {
+          payload.isRoom = true;
+          if (matchedRoom) {
+            payload.roomCode = matchedRoom.code || payload.roomCode;
+            payload.roomName = matchedRoom.name || payload.roomName;
+            payload.floor = matchedRoom.floor || payload.floor;
+            payload.occupiedBy = matchedRoom.occupiedBy || payload.occupiedBy;
+          }
+        }
+
         setSuccessDetected(true);
-        setMatchedUnitName(matched.name);
+        if (payload.isRoom) {
+          setMatchedUnitName(
+            `${matched.name} • ${matchedRoom ? matchedRoom.name : payload.roomName || 'غرفة مخصصة'}`
+          );
+        } else {
+          setMatchedUnitName(matched.name);
+        }
         setScanError(null);
 
         // Haptic feedback & Audio Beep
@@ -120,12 +164,12 @@ export const InAppQrScannerModal: React.FC<InAppQrScannerModalProps> = ({
 
         stopCamera();
         setTimeout(() => {
-          onUnitDetected(matched);
+          onUnitDetected(matched, payload);
         }, 350);
       } else {
         isProcessingDetectionRef.current = false;
         setScanError(
-          `الرمز الممسوح (${targetCode}) غير مسجل في منظومة شركة نفط الوسط. يرجى التأكد من مسح لوحة QR المعتمدة للمنشأة أو الكرفان.`
+          `الرمز الممسوح (${payload.roomCode || targetCode || decodedText}) غير مسجل في منظومة شركة نفط الوسط. يرجى التأكد من مسح لوحة QR المعتمدة للمنشأة أو الغرفة.`
         );
       }
     },

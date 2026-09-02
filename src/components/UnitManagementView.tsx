@@ -39,12 +39,20 @@ import {
   Minimize2,
   Users,
 } from 'lucide-react';
-import { UnitAsset, ConditionGrade, ReferenceUnitType, UnitAttachment, OrgEntity, GovernorateRef, OilfieldRef } from '../types';
+import { UnitAsset, ConditionGrade, ReferenceUnitType, UnitAttachment, OrgEntity, GovernorateRef, OilfieldRef, Room, SystemBranding } from '../types';
 import { ThreeBuildingCanvas } from './ThreeBuildingCanvas';
 import { EditUnitModal } from './EditUnitModal';
 import { AttachmentViewerModal } from './AttachmentViewerModal';
 import { UnitQrCodeModal } from './UnitQrCodeModal';
 import { UnitLocationMapModal } from './UnitLocationMapModal';
+import { RoomQrCardModal } from './RoomQrCardModal';
+import {
+  generateRoomCode,
+  getStandardRoomCode,
+  formatRoomOccupancyDisplay,
+  isCapacityBasedRoom,
+  isRoomVacant,
+} from '../utils/unitAndRoomCodeUtils';
 import { downloadAttachment } from '../utils/fileUtils';
 import { BUILDING_SHAPE_OPTIONS } from './NewUnitWizard';
 import { toArabicDigits } from '../utils/arabicUtils';
@@ -61,6 +69,7 @@ interface UnitManagementViewProps {
   onReactivateUnit?: (code: string) => void;
   onOpenMaintenanceModal: (code: string) => void;
   onOpenDossierModal: (unit: UnitAsset) => void;
+  branding?: SystemBranding;
   governorates?: GovernorateRef[];
   oilfields?: OilfieldRef[];
   unitTypes?: ReferenceUnitType[];
@@ -97,6 +106,7 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
   onReactivateUnit,
   onOpenMaintenanceModal,
   onOpenDossierModal,
+  branding,
   governorates = [],
   oilfields = [],
   unitTypes = [],
@@ -192,6 +202,7 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
   const [showDecommissionModal, setShowDecommissionModal] = useState<boolean>(false);
   const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
   const [showQrModal, setShowQrModal] = useState<boolean>(false);
+  const [selectedRoomForQrCard, setSelectedRoomForQrCard] = useState<Room | null>(null);
   const [showLocationMapModal, setShowLocationMapModal] = useState<boolean>(false);
   const [decommissionReasonInput, setDecommissionReasonInput] = useState<string>('');
   const [previewAttachment, setPreviewAttachment] = useState<UnitAttachment | null>(null);
@@ -1637,27 +1648,40 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
             <table className="w-full text-right text-xs">
               <thead>
                 <tr className={`${isLight ? 'bg-slate-100 text-slate-700 border-slate-200' : 'bg-slate-950 text-slate-400 border-slate-800'} border-b`}>
-                  <th className="p-3 font-semibold">رمز الغرفة</th>
+                  <th className="p-3 font-semibold">رمز الغرفة القياسي</th>
                   <th className="p-3 font-semibold">اسم الغرفة</th>
                   <th className="p-3 font-semibold">نوع الاستخدام</th>
                   <th className="p-3 font-semibold">الطابق</th>
                   <th className="p-3 font-semibold">المساحة (م²)</th>
+                  <th className="p-3 font-semibold">عدد الشاغلين</th>
                   <th className="p-3 font-semibold">الجهة الشاغلة</th>
                   <th className="p-3 font-semibold">الحالة</th>
+                  <th className="p-3 font-semibold text-center">بطاقة QR</th>
                 </tr>
               </thead>
               <tbody className={`divide-y ${isLight ? 'divide-slate-200 text-slate-800' : 'divide-slate-800 text-slate-300'}`}>
                 {selectedUnit.rooms.map((rm) => {
                   const isStopped = rm.status === 'Stopped' || rm.status === 'متوقفة';
+                  const roomComputedCode =
+                    getStandardRoomCode(selectedUnit.code, rm, selectedUnit.rooms);
+                  const occDisplay = formatRoomOccupancyDisplay(rm);
+
                   return (
                     <tr key={rm.id} className={`${isStopped ? (isLight ? 'bg-red-50/50' : 'bg-red-950/20') : isLight ? 'hover:bg-amber-50/40' : 'hover:bg-slate-800/40'} transition`}>
-                      <td className={`p-3 font-mono font-bold ${isLight ? 'text-amber-700' : 'text-amber-400'}`}>{rm.id}</td>
+                      <td className="p-3">
+                        <span className="font-mono font-black text-xs text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-lg border border-amber-500/20">
+                          {roomComputedCode}
+                        </span>
+                      </td>
                       <td className={`p-3 font-bold ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>{rm.name}</td>
                       <td className="p-3">{rm.type}</td>
                       <td className="p-3">{rm.floor}</td>
-                      <td className="p-3 font-semibold">{rm.areaSqM} م²</td>
+                      <td className="p-3 font-semibold">{toArabicDigits(rm.areaSqM)} م²</td>
+                      <td className="p-3 font-semibold">
+                        <span className={occDisplay.badgeClass}>{toArabicDigits(occDisplay.text)}</span>
+                      </td>
                       <td className={`p-3 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
-                        {rm.occupiedBy && rm.occupiedBy.trim() ? (
+                        {rm.occupiedBy && rm.occupiedBy.trim() && !isRoomVacant(rm.occupiedBy) ? (
                           <span className="font-semibold">{rm.occupiedBy}</span>
                         ) : (
                           <span className="text-amber-500/90 font-bold text-xs bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/20">
@@ -1681,6 +1705,17 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
                             </span>
                           )}
                         </div>
+                      </td>
+                      <td className="p-3 text-center">
+                        <button
+                          type="button"
+                          onClick={() => setSelectedRoomForQrCard({ ...rm, code: roomComputedCode })}
+                          className="p-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500 text-amber-500 hover:text-slate-950 transition cursor-pointer inline-flex items-center gap-1 text-[11px] font-bold"
+                          title="استعراض وطباعة بطاقة QR للغرفة"
+                        >
+                          <QrCode className="w-3.5 h-3.5" />
+                          <span>QR</span>
+                        </button>
                       </td>
                     </tr>
                   );
@@ -1923,6 +1958,7 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
       {selectedUnit && showQrModal && (
         <UnitQrCodeModal
           unit={selectedUnit}
+          branding={branding}
           theme={theme}
           onClose={() => setShowQrModal(false)}
         />
@@ -1934,10 +1970,17 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
           unit={selectedUnit}
           theme={theme}
           onClose={() => setShowLocationMapModal(false)}
-          onOpenMaintenance={(code) => {
-            setShowLocationMapModal(false);
-            onOpenMaintenanceModal(code);
-          }}
+        />
+      )}
+      {/* Room QR Card Modal */}
+      {selectedUnit && selectedRoomForQrCard && (
+        <RoomQrCardModal
+          unit={selectedUnit}
+          room={selectedRoomForQrCard}
+          allRooms={selectedUnit.rooms}
+          branding={branding}
+          theme={theme}
+          onClose={() => setSelectedRoomForQrCard(null)}
         />
       )}
     </div>

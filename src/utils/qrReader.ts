@@ -94,6 +94,104 @@ export function parseScannedQrText(rawText: string): string {
   return trimmed;
 }
 
+export interface ScannedQrPayload {
+  rawText: string;
+  unitCode: string;
+  isRoom: boolean;
+  roomCode?: string;
+  roomName?: string;
+  floor?: string;
+  occupiedBy?: string;
+}
+
+/**
+ * Parses scanned QR text into rich payload, identifying whether it is
+ * a facility building QR or a specific room QR code.
+ */
+export function parseScannedQrPayload(rawText: string): ScannedQrPayload {
+  if (!rawText) {
+    return { rawText: '', unitCode: '', isRoom: false };
+  }
+  const trimmed = rawText.trim();
+  let isRoom = false;
+  let unitCode = '';
+  let roomCode = '';
+  let roomName = '';
+  let floor = '';
+  let occupiedBy = '';
+
+  // 1. Check URL or query params
+  try {
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://') || trimmed.startsWith('//') || trimmed.includes('?')) {
+      const url = new URL(
+        trimmed.startsWith('//')
+          ? `https:${trimmed}`
+          : trimmed.startsWith('http')
+          ? trimmed
+          : `https://moc.iq/${trimmed.startsWith('?') ? '' : '?'}${trimmed}`
+      );
+      const typeParam = url.searchParams.get('type');
+      const srcParam = url.searchParams.get('src');
+      if (typeParam === 'room' || srcParam === 'room_qr' || url.searchParams.get('room') || url.searchParams.get('roomCode') || url.searchParams.get('roomId')) {
+        isRoom = true;
+      }
+      unitCode = url.searchParams.get('unit') || url.searchParams.get('code') || url.searchParams.get('id') || '';
+      roomCode = url.searchParams.get('room') || url.searchParams.get('roomCode') || url.searchParams.get('roomId') || '';
+      roomName = url.searchParams.get('roomName') || '';
+      floor = url.searchParams.get('floor') || '';
+      occupiedBy = url.searchParams.get('occupiedBy') || url.searchParams.get('dept') || '';
+    }
+  } catch {
+    // Ignore URL parse error
+  }
+
+  // 2. Check JSON
+  if (!unitCode && ((trimmed.startsWith('{') && trimmed.endsWith('}')) || (trimmed.startsWith('[') && trimmed.endsWith(']')))) {
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (parsed.type === 'room' || parsed.isRoom || parsed.roomCode || parsed.room || parsed.roomId) {
+        isRoom = true;
+      }
+      unitCode = String(parsed.unitCode || parsed.code || parsed.unit || parsed.id || '').trim();
+      roomCode = String(parsed.roomCode || parsed.room || parsed.roomId || '').trim();
+      roomName = String(parsed.roomName || '').trim();
+      floor = String(parsed.floor || '').trim();
+      occupiedBy = String(parsed.occupiedBy || parsed.dept || '').trim();
+    } catch {
+      // Ignore JSON error
+    }
+  }
+
+  // 3. Check Room Code patterns (e.g. ABCD-F1-OFF-101, 014-F1-OFF-101, WS-AHD-BLD-014-F1-OFF-101, RM-101, etc.)
+  if (!isRoom) {
+    // Pattern containing -F{floorNumber}- segment e.g. -F1- or -F2-
+    const floorSegmentMatch = trimmed.match(/(?:^|[-_])(?:([A-Za-z0-9]+)[-_])?F(\d+)[-_]([A-Za-z0-9]+)[-_](\d+)(?:$|[\s?&#])/i);
+    if (floorSegmentMatch) {
+      isRoom = true;
+      roomCode = trimmed.toUpperCase();
+      floor = `الطابق ${floorSegmentMatch[2]}`;
+      if (!unitCode && floorSegmentMatch[1]) {
+        unitCode = floorSegmentMatch[1];
+      }
+    } else if (trimmed.match(/^(?:RM|ROOM|GRF|OFFICE|HALL)[-_]?\d+/i)) {
+      isRoom = true;
+      roomCode = trimmed.toUpperCase();
+    }
+  }
+
+  const resolvedUnitCode = unitCode || parseScannedQrText(trimmed);
+
+  return {
+    rawText: trimmed,
+    unitCode: resolvedUnitCode,
+    isRoom,
+    roomCode: roomCode || undefined,
+    roomName: roomName || undefined,
+    floor: floor || undefined,
+    occupiedBy: occupiedBy || undefined,
+  };
+}
+
 /**
  * Decodes QR code from an HTML Video Element with extreme speed:
  * First attempts hardware BarcodeDetector (GPU/OS accelerated),

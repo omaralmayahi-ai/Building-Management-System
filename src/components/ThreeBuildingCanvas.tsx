@@ -774,10 +774,10 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
                 ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40'
                 : 'bg-amber-500/20 text-amber-700 border-amber-500/40'
             }`}
-            title={isNightMode ? 'الوضع الليلي (مفعل)' : 'وضع النهار (مفعل)'}
+            title={isNightMode ? 'الوضع الداكن (مفعل)' : 'الوضع الفاتح (مفعل)'}
           >
             {isNightMode ? <Moon className="w-3.5 h-3.5" /> : <Sun className="w-3.5 h-3.5" />}
-            <span>{isNightMode ? 'ليلي' : 'نهاري'}</span>
+            <span>{isNightMode ? 'داكن' : 'فاتح'}</span>
           </button>
 
           {isNightMode && (

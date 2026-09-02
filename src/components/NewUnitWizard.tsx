@@ -46,8 +46,13 @@ import {
   cleanFixedAssetCodeInput,
   validateFixedAssetCodeFormat,
   checkFixedAssetCodeUniqueness,
-  formatToDottedAssetCode,
+  formatToCaravanDottedCode,
+  formatToBuildingContinuousCode,
 } from '../utils/assetCodeUtils';
+import {
+  generateUnitCode,
+  normalizeUnitRoomsSequence,
+} from '../utils/unitAndRoomCodeUtils';
 
 export interface BuildingShapeOption {
   id: string;
@@ -413,9 +418,8 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
     const govPrefix = selectedGov ? selectedGov.code : 'WS';
     const fieldPrefix = selectedFld ? selectedFld.code : 'AHD';
     const typePrefix = selectedUnitType || 'BLD';
-    const randomNum = Math.floor(100 + Math.random() * 900);
 
-    const generated = `${govPrefix}-${fieldPrefix}-${typePrefix}-${randomNum}`;
+    const generated = generateUnitCode(govPrefix, fieldPrefix, typePrefix, existingUnits);
     setCode(generated);
     return generated;
   };
@@ -691,8 +695,8 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
         };
       });
 
-    // Aggregate rooms from all floors
-    const aggregatedRoomsList = Object.values(detailedRoomsMap)
+    // Aggregate rooms from all floors and normalize room sequences and standard room codes
+    const rawRoomsList = Object.values(detailedRoomsMap)
       .flat()
       .map((r: any) => {
         const isOccupied = !!(r.occupiedBy && r.occupiedBy.trim().length > 0);
@@ -704,9 +708,13 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
           floor: `الطابق ${r.floorNumber}`,
           status: isOccupied ? ('Active' as const) : ('Vacant' as const),
           occupiedBy: isOccupied ? r.occupiedBy.trim() : '',
+          occupantsCount: r.occupantsCount !== undefined ? r.occupantsCount : (isOccupied ? 2 : 0),
+          capacity: r.capacity !== undefined ? r.capacity : 10,
           notes: `رمز/رقم الغرفة: ${r.roomNumber}`,
         };
       });
+
+    const aggregatedRoomsList = normalizeUnitRoomsSequence(generatedCode, rawRoomsList);
 
     const finalDept = selectedDepartments.length > 0 ? selectedDepartments.join(' ، ') : (department || 'غير محدد');
 
@@ -1058,73 +1066,185 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
 
             {/* رمز الأصل في سجلات أصول الشركة */}
             {(() => {
-              const validation = fixedAssetCode ? validateFixedAssetCodeFormat(fixedAssetCode) : null;
-              const isUnique = fixedAssetCode ? checkFixedAssetCodeUniqueness(fixedAssetCode, existingUnits).isUnique : true;
-              const isClean10Digits = /^\d{10}$/.test(fixedAssetCode.trim());
+              const selectedTypeObj = unitTypes.find((ut) => ut.code === selectedUnitType);
+              const isCaravan = selectedUnitType.toLowerCase().includes('crv') ||
+                selectedUnitType.toLowerCase().includes('caravan') ||
+                (selectedTypeObj?.nameAr || '').includes('كرفان');
+              const inferredCategory = isCaravan ? 'caravan' : 'building';
+
+              const validation = fixedAssetCode
+                ? validateFixedAssetCodeFormat(fixedAssetCode, selectedUnitType ? inferredCategory : undefined)
+                : null;
+              const isUnique = fixedAssetCode
+                ? checkFixedAssetCodeUniqueness(fixedAssetCode, existingUnits).isUnique
+                : true;
+
+              const isContinuous = /^\d+$/.test(fixedAssetCode.trim());
+              const isDotted = fixedAssetCode.includes('.') && /^\d+(\.\d+)+$/.test(fixedAssetCode.trim());
 
               return (
-                <div className="bg-slate-900/80 border border-slate-800/90 rounded-2xl p-4 space-y-3">
+                <div
+                  className={`border rounded-2xl p-4 space-y-3.5 transition-colors ${
+                    isLight
+                      ? 'bg-indigo-50/50 border-indigo-200 shadow-xs'
+                      : 'bg-slate-900/90 border-slate-800'
+                  }`}
+                >
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
-                      <Layers className="w-4 h-4 text-indigo-400 shrink-0" />
-                      <label className="text-slate-200 font-black text-xs">
+                      <Layers className={`w-4 h-4 shrink-0 ${isLight ? 'text-indigo-600' : 'text-indigo-400'}`} />
+                      <label className={`font-black text-xs ${isLight ? 'text-slate-800' : 'text-slate-200'}`}>
                         رمز الأصل في سجلات أصول الشركة:
                       </label>
-                      <span className="text-[10px] text-amber-400/90 font-medium">(حقل اختياري / فريد)</span>
+                      <span className="text-[10px] text-amber-500 font-bold bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full">
+                        (حقل اختياري / فريد)
+                      </span>
                     </div>
 
                     {fixedAssetCode && (
                       <div className="flex items-center gap-1.5 flex-wrap">
                         {validation?.isValid && isUnique && (
-                          <span className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[10px] px-2 py-0.5 rounded-full font-bold flex items-center gap-1">
+                          <span
+                            className={`text-[10px] px-2.5 py-0.5 rounded-full font-bold flex items-center gap-1 border ${
+                              validation.isIdeal
+                                ? isLight
+                                  ? 'bg-emerald-500/15 text-emerald-700 border-emerald-500/30'
+                                  : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                                : isLight
+                                ? 'bg-amber-500/15 text-amber-700 border-amber-500/30'
+                                : 'bg-amber-500/20 text-amber-300 border-amber-500/30'
+                            }`}
+                          >
                             <CheckCircle2 className="w-3 h-3" />
-                            <span>رمز مطابق وفريد ({validation.type === 'dotted_12' ? '12 خانة منقطة' : '10 أرقام'})</span>
+                            <span>{validation.badgeText} - رمز فريد</span>
                           </span>
                         )}
                         {!validation?.isValid && (
-                          <span className="bg-rose-500/20 text-rose-400 border border-rose-500/30 text-[10px] px-2 py-0.5 rounded-full font-bold flex items-center gap-1">
+                          <span className="bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/30 text-[10px] px-2.5 py-0.5 rounded-full font-bold flex items-center gap-1">
                             <AlertTriangle className="w-3 h-3" />
                             <span>{validation?.message}</span>
                           </span>
                         )}
                         {validation?.isValid && !isUnique && (
-                          <span className="bg-rose-500/20 text-rose-400 border border-rose-500/30 text-[10px] px-2 py-0.5 rounded-full font-bold flex items-center gap-1">
+                          <span className="bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/30 text-[10px] px-2.5 py-0.5 rounded-full font-bold flex items-center gap-1">
                             <AlertTriangle className="w-3 h-3" />
-                            <span>رمز الأصل مكرر ومسجل مسبقاً لوحدة أخرى!</span>
+                            <span>رمز الأصل مكرر ومسجل مسبقاً لمنشأة أخرى!</span>
                           </span>
                         )}
                       </div>
                     )}
                   </div>
 
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="text"
-                      dir="ltr"
-                      value={fixedAssetCode}
-                      onChange={(e) => {
-                        const cleaned = cleanFixedAssetCodeInput(e.target.value);
-                        setFixedAssetCode(cleaned);
-                      }}
-                      placeholder="1002030405  أو  10.02.03.0405"
-                      className="w-full bg-slate-950 border border-slate-700/80 rounded-xl p-3 text-slate-100 focus:border-indigo-500 outline-none transition font-mono font-bold text-sm tracking-wider"
-                    />
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                    <div className="relative flex-1">
+                      <input
+                        type="text"
+                        dir="ltr"
+                        value={fixedAssetCode}
+                        onChange={(e) => {
+                          const cleaned = cleanFixedAssetCodeInput(e.target.value);
+                          setFixedAssetCode(cleaned);
+                        }}
+                        placeholder={
+                          inferredCategory === 'caravan'
+                            ? '123.1234.123 (أرقام مع فواصل للكرفانات)'
+                            : '0123456789 (أرقام بدون فواصل للأبنية)'
+                        }
+                        className={`w-full border rounded-xl p-3 font-mono font-bold text-sm tracking-wider outline-none transition focus:border-indigo-500 ${
+                          isLight
+                            ? 'bg-white border-slate-300 text-slate-900 placeholder:text-slate-400'
+                            : 'bg-slate-950 border-slate-700/80 text-slate-100 placeholder:text-slate-500 placeholder:text-xs'
+                        }`}
+                      />
+                    </div>
 
-                    {isClean10Digits && (
-                      <button
-                        type="button"
-                        onClick={() => setFixedAssetCode(formatToDottedAssetCode(fixedAssetCode))}
-                        className="shrink-0 bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 border border-indigo-500/40 text-xs px-3 py-3 rounded-xl font-bold transition flex items-center gap-1 cursor-pointer"
-                        title="تحويل الأرقام العشرة إلى تنسيق 12 خانة بالنقاط (10.02.03.0405)"
-                      >
-                        <span>تحويل إلى منقط (.)</span>
-                      </button>
-                    )}
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      {isContinuous && fixedAssetCode.length >= 6 && (
+                        <button
+                          type="button"
+                          onClick={() => setFixedAssetCode(formatToCaravanDottedCode(fixedAssetCode))}
+                          className={`text-[11px] px-3 py-2.5 rounded-xl font-bold transition flex items-center gap-1 cursor-pointer border ${
+                            isLight
+                              ? 'bg-indigo-600 hover:bg-indigo-700 text-white border-indigo-600 shadow-xs'
+                              : 'bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-300 border-indigo-500/40'
+                          }`}
+                          title="تحويل الأرقام إلى فورمات الكرفانات المنقط (مثال: 123.1234.123)"
+                        >
+                          <span>تحويل لكرفانات (123.1234.123)</span>
+                        </button>
+                      )}
+
+                      {isDotted && (
+                        <button
+                          type="button"
+                          onClick={() => setFixedAssetCode(formatToBuildingContinuousCode(fixedAssetCode))}
+                          className={`text-[11px] px-3 py-2.5 rounded-xl font-bold transition flex items-center gap-1 cursor-pointer border ${
+                            isLight
+                              ? 'bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-600 shadow-xs'
+                              : 'bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-300 border-emerald-500/40'
+                          }`}
+                          title="إزالة الفواصل والنقاط لفورمات الأبنية المتصل (مثال: 0123456789)"
+                        >
+                          <span>تحويل لأبنية (0123456789)</span>
+                        </button>
+                      )}
+                    </div>
                   </div>
 
-                  <p className="text-[11px] text-slate-400 leading-relaxed">
-                    <strong>ملاحظة تقنية:</strong> رمز الأصل يمثل رمز الأصل الثابت في سجلات أصول الشركة، وهو رمز فريد غير قابل للتكرار يكتب إما كسلسلة من <strong>10 أرقام</strong> (مثال: <span className="font-mono text-indigo-300">1002030405</span>) أو سلسلة أرقام يفصلها رمز النقطة ليكون الإجمالي <strong>12 دجت</strong> مع النقاط (مثال: <span className="font-mono text-indigo-300">10.02.03.0405</span>).
-                  </p>
+                  {/* صندوق معايير وتنسيق رمز الأصل */}
+                  <div
+                    className={`p-3.5 rounded-xl border space-y-2.5 text-xs ${
+                      isLight
+                        ? 'bg-white/90 border-indigo-100/90 shadow-xs'
+                        : 'bg-slate-950/70 border-slate-800/80'
+                    }`}
+                  >
+                    <p
+                      className={`font-bold flex items-center gap-1.5 text-[11px] ${
+                        isLight ? 'text-slate-800' : 'text-slate-300'
+                      }`}
+                    >
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500 inline-block"></span>
+                      <span>المعلومات داخل الحقل تكون بهذا الشكل:</span>
+                    </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
+                      <div
+                        className={`flex items-center gap-2 p-2 rounded-lg border ${
+                          isLight
+                            ? 'bg-slate-50 border-slate-200'
+                            : 'bg-slate-900/90 border-slate-800/90'
+                        }`}
+                      >
+                        <span className="font-mono text-emerald-600 dark:text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 shrink-0">
+                          0123456789
+                        </span>
+                        <span className={isLight ? 'text-slate-700 font-medium' : 'text-slate-300 font-medium'}>
+                          أرقام بدون فواصل للأبنية
+                        </span>
+                      </div>
+                      <div
+                        className={`flex items-center gap-2 p-2 rounded-lg border ${
+                          isLight
+                            ? 'bg-slate-50 border-slate-200'
+                            : 'bg-slate-900/90 border-slate-800/90'
+                        }`}
+                      >
+                        <span className="font-mono text-cyan-600 dark:text-cyan-400 font-bold bg-cyan-500/10 px-2 py-0.5 rounded border border-cyan-500/20 shrink-0">
+                          123.1234.123
+                        </span>
+                        <span className={isLight ? 'text-slate-700 font-medium' : 'text-slate-300 font-medium'}>
+                          أرقام مع فواصل للكرفانات
+                        </span>
+                      </div>
+                    </div>
+                    <p
+                      className={`text-[10.5px] leading-relaxed pt-0.5 ${
+                        isLight ? 'text-slate-500' : 'text-slate-400'
+                      }`}
+                    >
+                      يتم اعتماد هذا الفورمات كتقييم لحالة إدخال رمز الأصل ومطابقته للتنسيق المثالي في سجلات أصول الشركة.
+                    </p>
+                  </div>
                 </div>
               );
             })()}

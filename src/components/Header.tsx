@@ -558,11 +558,11 @@ export const Header: React.FC<HeaderProps> = ({
                           <span
                             className={`text-[10px] font-bold px-1.5 py-0.2 rounded-full border ${
                               isLight
-                                ? 'bg-amber-100 text-amber-900 border-amber-200'
+                                ? 'bg-teal-100 text-teal-900 border-teal-200'
                                 : 'bg-indigo-950 text-indigo-300 border-indigo-800'
                             }`}
                           >
-                            {isLight ? 'النهاري' : 'الليلي'}
+                            {isLight ? 'الفاتح' : 'الداكن'}
                           </span>
                         </div>
                         <p
@@ -570,7 +570,7 @@ export const Header: React.FC<HeaderProps> = ({
                             isLight ? 'text-slate-500' : 'text-slate-400'
                           }`}
                         >
-                          {isLight ? 'انقر للتحويل إلى الوضع الليلي' : 'انقر للتحويل إلى الوضع النهاري'}
+                          {isLight ? 'انقر للتحويل إلى الوضع الداكن' : 'انقر للتحويل إلى الوضع الفاتح'}
                         </p>
                       </div>
                     </div>

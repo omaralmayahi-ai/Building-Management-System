@@ -1133,7 +1133,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
               <table className="w-full text-right text-xs">
                 <thead className={`font-bold border-b ${isLight ? 'bg-slate-100 text-slate-700 border-slate-200' : 'bg-slate-950 text-slate-400 border-slate-800'}`}>
                   <tr>
-                    <th className="p-3.5">الوحدة الهندسية / المبنى</th>
+                    <th className="p-3.5">رمز المنشأة والجهة الشاغلة</th>
                     <th className="p-3.5">المحافظة والحقل</th>
                     <th className="p-3.5">عنوان ومسمى الكشف</th>
                     <th className="p-3.5">تاريخ البدء والتكرار</th>
@@ -1147,16 +1147,29 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                 <tbody className={`divide-y ${isLight ? 'divide-slate-200/80 bg-white' : 'divide-slate-800/60 bg-slate-900/40'}`}>
                   {filteredSchedules.map((sch) => {
                     const matchedUnit = units.find((u) => u.code === sch.unitCode);
+                    const occupyingEntity = matchedUnit
+                      ? (matchedUnit.departments && matchedUnit.departments.length > 0
+                          ? Array.from(new Set(matchedUnit.departments.filter(Boolean))).join(' ، ')
+                          : matchedUnit.department ||
+                            (matchedUnit.rooms && matchedUnit.rooms.length > 0
+                              ? Array.from(new Set(matchedUnit.rooms.map((r) => r.occupiedBy).filter(Boolean))).join(' ، ')
+                              : '')) || 'عام / غير محدد'
+                      : 'عام / غير محدد';
                     return (
                       <tr key={sch.id} className={`transition ${isLight ? 'hover:bg-amber-50/50' : 'hover:bg-slate-800/40'}`}>
-                        {/* Unit Info */}
+                        {/* Facility Code and Occupying Entity (Stacked) */}
                         <td className="p-3.5 font-medium">
                           <div className={`font-mono font-bold text-xs ${isLight ? 'text-amber-700' : 'text-amber-400'}`}>
                             {toArabicDigits(sch.unitCode)}
                           </div>
-                          <div className={`font-bold text-xs mt-0.5 ${isLight ? 'text-slate-900' : 'text-slate-200'}`}>
-                            {sch.unitName}
+                          <div className={`text-xs mt-0.5 font-bold ${isLight ? 'text-slate-800' : 'text-slate-200'}`}>
+                            {occupyingEntity}
                           </div>
+                          {sch.unitName && sch.unitName !== sch.unitCode && (
+                            <div className={`text-[11px] ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                              {sch.unitName}
+                            </div>
+                          )}
                           {matchedUnit && (
                             <div className="mt-1">
                               {getConditionGradeBadge(sch.conditionGradeGiven || matchedUnit.conditionGrade)}

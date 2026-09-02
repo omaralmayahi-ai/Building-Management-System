@@ -31,6 +31,7 @@ import { InAppQrScannerModal } from './components/InAppQrScannerModal';
 import { UnitScanChoiceModal } from './components/UnitScanChoiceModal';
 import { UnitLocationMapModal } from './components/UnitLocationMapModal';
 import { GISMapView } from './components/GISMapView';
+import { ScannedQrPayload } from './utils/qrReader';
 
 import {
   INITIAL_UNITS,
@@ -53,6 +54,7 @@ import {
 
 import {
   UnitAsset,
+  Room,
   ConditionGrade,
   MaintenanceRequest,
   OccupancyRecord,
@@ -83,6 +85,8 @@ import {
   getServerTimestamp,
 } from './utils/arabicUtils';
 import { safeParse, safeSetItem } from './utils/storageUtils';
+import { normalizeUnitRoomsSequence } from './utils/unitAndRoomCodeUtils';
+import { syncBrowserBranding } from './utils/brandingDomSync';
 import * as api from './services/apiClient';
 
 // Flag to control initial demo dataset seeding on empty storage
@@ -102,7 +106,7 @@ export function App() {
   });
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
     const saved = localStorage.getItem('app_theme');
-    return saved === 'light' || saved === 'dark' ? saved : 'dark';
+    return saved === 'light' || saved === 'dark' ? saved : 'light';
   });
   const [globalSearchTerm, setGlobalSearchTerm] = useState<string>('');
 
@@ -132,20 +136,34 @@ export function App() {
     gov?: string;
     field?: string;
     src?: string;
+    isRoom?: boolean;
+    roomCode?: string;
+    roomName?: string;
+    floor?: string;
+    occupiedBy?: string;
   } | null>(() => {
     if (typeof window === 'undefined') return null;
     try {
       const params = new URLSearchParams(window.location.search);
-      const view = params.get('view') || (params.get('src') === 'external_qr' ? 'map' : 'inspect');
-      const unit = params.get('unit') || params.get('code') || params.get('id');
+      const isRoom =
+        params.get('type') === 'room' ||
+        params.get('src') === 'room_qr' ||
+        Boolean(params.get('room')) ||
+        Boolean(params.get('roomCode'));
+      const view = params.get('view') || (isRoom ? 'choice' : (params.get('src') === 'external_qr' ? 'map' : 'inspect'));
+      const unit = params.get('unit') || params.get('code') || params.get('id') || '';
       const lat = params.get('lat') ? parseFloat(params.get('lat')!) : undefined;
       const lng = params.get('lng') ? parseFloat(params.get('lng')!) : undefined;
       const name = params.get('name') || undefined;
       const gov = params.get('gov') || undefined;
       const field = params.get('field') || undefined;
       const src = params.get('src') || undefined;
-      if (unit) {
-        return { view, unit, lat, lng, name, gov, field, src };
+      const roomCode = params.get('room') || params.get('roomCode') || undefined;
+      const roomName = params.get('roomName') || undefined;
+      const floor = params.get('floor') || undefined;
+      const occupiedBy = params.get('occupiedBy') || params.get('dept') || undefined;
+      if (unit || roomCode) {
+        return { view, unit, lat, lng, name, gov, field, src, isRoom, roomCode, roomName, floor, occupiedBy };
       }
     } catch (e) {
       console.warn('Error reading deep link query parameters:', e);
@@ -176,18 +194,48 @@ export function App() {
   // Global In-App QR Scanner & Choice & Map Modal states
   const [showInAppQrScanner, setShowInAppQrScanner] = useState<boolean>(false);
   const [scannedUnitForChoice, setScannedUnitForChoice] = useState<UnitAsset | null>(null);
+  const [scannedRoomForChoice, setScannedRoomForChoice] = useState<Room | null>(null);
+  const [scannedQrPayloadForChoice, setScannedQrPayloadForChoice] = useState<ScannedQrPayload | null>(null);
   const [locationMapUnit, setLocationMapUnit] = useState<UnitAsset | null>(null);
 
   const handleLogin = (user: SystemUser) => {
     setCurrentUser(user);
-    if (pendingDeepLink && pendingDeepLink.unit) {
-      setSelectedUnitCode(pendingDeepLink.unit);
-      if (pendingDeepLink.view === 'maintenance') {
-        setActiveTab('maintenance');
-      } else if (pendingDeepLink.view === 'map' || pendingDeepLink.src === 'external_qr') {
-        setActiveTab('units');
-      } else {
-        setActiveTab('field_inspection');
+    if (pendingDeepLink) {
+      const isRoom = Boolean(pendingDeepLink.isRoom || pendingDeepLink.roomCode);
+      const matched = units.find(
+        (u) =>
+          (pendingDeepLink.unit && (u.code.toLowerCase() === pendingDeepLink.unit.toLowerCase() || u.id.toLowerCase() === pendingDeepLink.unit.toLowerCase())) ||
+          (pendingDeepLink.roomCode && u.rooms?.some((r) => r.code?.toUpperCase() === pendingDeepLink.roomCode?.toUpperCase() || r.id === pendingDeepLink.roomCode))
+      );
+
+      if (matched) {
+        setSelectedUnitCode(matched.code);
+        if (isRoom) {
+          const matchedRoom = matched.rooms?.find(
+            (r) =>
+              r.code?.toUpperCase() === pendingDeepLink.roomCode?.toUpperCase() ||
+              r.id === pendingDeepLink.roomCode ||
+              r.name === pendingDeepLink.roomName
+          );
+          setScannedUnitForChoice(matched);
+          setScannedQrPayloadForChoice({
+            rawText: window.location.href,
+            unitCode: matched.code,
+            isRoom: true,
+            roomCode: pendingDeepLink.roomCode || matchedRoom?.code,
+            roomName: pendingDeepLink.roomName || matchedRoom?.name,
+            floor: pendingDeepLink.floor || matchedRoom?.floor,
+            occupiedBy: pendingDeepLink.occupiedBy || matchedRoom?.occupiedBy,
+          });
+          setScannedRoomForChoice(matchedRoom || null);
+        } else if (pendingDeepLink.view === 'maintenance') {
+          setActiveTab('maintenance');
+        } else if (pendingDeepLink.view === 'map' || pendingDeepLink.src === 'external_qr') {
+          setLocationMapUnit(matched);
+          setActiveTab('units');
+        } else {
+          setActiveTab('field_inspection');
+        }
       }
       setPendingDeepLink(null);
       if (typeof window !== 'undefined' && window.history && window.history.replaceState) {
@@ -239,30 +287,48 @@ export function App() {
   // Handle Pending Deep Link Navigation after authentication
   useEffect(() => {
     if (currentUser && pendingDeepLink) {
-      if (pendingDeepLink.unit) {
-        setSelectedUnitCode(pendingDeepLink.unit);
-        const matched = units.find(
-          (u) =>
-            u.code.toLowerCase() === pendingDeepLink.unit.toLowerCase() ||
-            u.id.toLowerCase() === pendingDeepLink.unit.toLowerCase()
-        );
-        if (pendingDeepLink.view === 'maintenance') {
+      const isRoom = Boolean(pendingDeepLink.isRoom || pendingDeepLink.roomCode);
+      const matched = units.find(
+        (u) =>
+          (pendingDeepLink.unit && (u.code.toLowerCase() === pendingDeepLink.unit.toLowerCase() || u.id.toLowerCase() === pendingDeepLink.unit.toLowerCase())) ||
+          (pendingDeepLink.roomCode && u.rooms?.some((r) => r.code?.toUpperCase() === pendingDeepLink.roomCode?.toUpperCase() || r.id === pendingDeepLink.roomCode))
+      );
+
+      if (matched) {
+        setSelectedUnitCode(matched.code);
+        if (isRoom) {
+          const matchedRoom = matched.rooms?.find(
+            (r) =>
+              r.code?.toUpperCase() === pendingDeepLink.roomCode?.toUpperCase() ||
+              r.id === pendingDeepLink.roomCode ||
+              r.name === pendingDeepLink.roomName
+          );
+          setScannedUnitForChoice(matched);
+          setScannedQrPayloadForChoice({
+            rawText: window.location.href,
+            unitCode: matched.code,
+            isRoom: true,
+            roomCode: pendingDeepLink.roomCode || matchedRoom?.code,
+            roomName: pendingDeepLink.roomName || matchedRoom?.name,
+            floor: pendingDeepLink.floor || matchedRoom?.floor,
+            occupiedBy: pendingDeepLink.occupiedBy || matchedRoom?.occupiedBy,
+          });
+          setScannedRoomForChoice(matchedRoom || null);
+        } else if (pendingDeepLink.view === 'maintenance') {
           setActiveTab('maintenance');
         } else if (pendingDeepLink.view === 'map' || pendingDeepLink.src === 'external_qr') {
-          if (matched) {
-            setLocationMapUnit(matched);
-          }
+          setLocationMapUnit(matched);
           setActiveTab('units');
         } else {
           setActiveTab('field_inspection');
         }
-        setPendingDeepLink(null);
+      }
+      setPendingDeepLink(null);
 
-        // Clean query parameters from URL to avoid re-triggering on page refresh
-        if (typeof window !== 'undefined' && window.history && window.history.replaceState) {
-          const cleanUrl = window.location.pathname;
-          window.history.replaceState({}, document.title, cleanUrl);
-        }
+      // Clean query parameters from URL to avoid re-triggering on page refresh
+      if (typeof window !== 'undefined' && window.history && window.history.replaceState) {
+        const cleanUrl = window.location.pathname;
+        window.history.replaceState({}, document.title, cleanUrl);
       }
     }
   }, [currentUser, pendingDeepLink, units]);
@@ -426,9 +492,15 @@ export function App() {
     safeParse('app_branding', INITIAL_BRANDING)
   );
 
+  // Synchronize browser tab title, favicon, meta tags and PWA manifest dynamically
+  useEffect(() => {
+    syncBrowserBranding(branding);
+  }, [branding]);
+
   const handleUpdateBranding = (newBranding: SystemBranding) => {
     setBranding(newBranding);
     safeSetItem('app_branding', newBranding);
+    syncBrowserBranding(newBranding);
     api.saveBranding(newBranding).catch((err) => {
       console.error('API saveBranding error:', err);
       showToast(err.message || 'فشل حفظ الهوية البصرية', 'error', 'خطأ في الحفظ');
@@ -880,6 +952,15 @@ export function App() {
   const [showNewMaintenanceModal, setShowNewMaintenanceModal] = useState(false);
   const [maintenanceUnitCode, setMaintenanceUnitCode] = useState('WS-AHD-BLD-014');
   const [isMaintenanceUnitLocked, setIsMaintenanceUnitLocked] = useState(false);
+  const [maintenanceRoomDetails, setMaintenanceRoomDetails] = useState<
+    Room | { code?: string; name: string; floor?: string; occupiedBy?: string } | null
+  >(null);
+  const [locationMapRoomDetails, setLocationMapRoomDetails] = useState<{
+    floor?: string;
+    roomCode?: string;
+    roomName?: string;
+    occupiedBy?: string;
+  } | undefined>(undefined);
   const [showDossierModal, setShowDossierModal] = useState(false);
   const [dossierUnit, setDossierUnit] = useState<UnitAsset | null>(null);
 
@@ -1533,40 +1614,44 @@ export function App() {
 
   // Add new unit handler from Wizard
   const handleAddUnit = (newUnit: UnitAsset) => {
+    const normalizedRooms = newUnit.rooms ? normalizeUnitRoomsSequence(newUnit.code, newUnit.rooms) : [];
+    const normalizedUnit: UnitAsset = { ...newUnit, rooms: normalizedRooms };
     setUnits((prev) => {
-      const updated = [newUnit, ...prev];
+      const updated = [normalizedUnit, ...prev];
       safeSetItem('app_units', updated);
       return updated;
     });
-    api.addUnit(newUnit).catch((err) => {
+    api.addUnit(normalizedUnit).catch((err) => {
       console.error('API addUnit error:', err);
       showToast(err.message || 'فشل حفظ الوحدة الجديدة في قاعدة البيانات المركزية', 'error', 'خطأ في حفظ البيانات');
     });
-    setSelectedUnitCode(newUnit.code);
+    setSelectedUnitCode(normalizedUnit.code);
     setActiveTab('units');
   };
 
   // Update existing unit handler
   const handleUpdateUnit = (updatedUnit: UnitAsset) => {
+    const normalizedRooms = updatedUnit.rooms ? normalizeUnitRoomsSequence(updatedUnit.code, updatedUnit.rooms) : [];
+    const normalizedUnit: UnitAsset = { ...updatedUnit, rooms: normalizedRooms };
     setUnits((prev) => {
-      const updated = prev.map((u) => (u.id === updatedUnit.id || u.code === updatedUnit.code ? updatedUnit : u));
+      const updated = prev.map((u) => (u.id === normalizedUnit.id || u.code === normalizedUnit.code ? normalizedUnit : u));
       safeSetItem('app_units', updated);
       return updated;
     });
-    api.updateUnit(updatedUnit).catch((err) => {
+    api.updateUnit(normalizedUnit).catch((err) => {
       console.error('API updateUnit error:', err);
       showToast(err.message || 'فشل تحديث بيانات الوحدة في قاعدة البيانات المركزية', 'error', 'خطأ في حفظ البيانات');
     });
     const newLog: AuditLogItem = {
       id: `LOG-${Math.floor(100 + Math.random() * 900)}`,
-      unitCode: updatedUnit.code,
+      unitCode: normalizedUnit.code,
       timestamp: getServerDateTimeFormatted(),
       action: 'تحديث بيانات الأصل والمبنى الـ 3D',
       user: currentUser?.name || 'غير معروف',
       userInitials: currentUser?.name ? currentUser.name.split(' ').map((w) => w[0]).join('').slice(0, 2) : '—',
       affectedField: 'تصميم وهيكلية الـ 3D والبيانات العامة',
       previousValue: 'البيانات السابقة',
-      newValue: `تم تحديث المبنى (${updatedUnit.name})`,
+      newValue: `تم تحديث المبنى (${normalizedUnit.name})`,
     };
     appendAuditLog(newLog);
   };
@@ -1752,9 +1837,14 @@ export function App() {
   };
 
   // Open maintenance modal for specific unit (locked to scanned or targeted unit)
-  const handleOpenMaintenanceForUnit = (code: string, isLocked: boolean = true) => {
+  const handleOpenMaintenanceForUnit = (
+    code: string,
+    isLocked: boolean = true,
+    room?: Room | { code?: string; name: string; floor?: string; occupiedBy?: string } | null
+  ) => {
     setMaintenanceUnitCode(code);
     setIsMaintenanceUnitLocked(isLocked);
+    setMaintenanceRoomDetails(room || null);
     setShowNewMaintenanceModal(true);
   };
 
@@ -2189,6 +2279,7 @@ export function App() {
               onReactivateUnit={handleReactivateUnit}
               onOpenMaintenanceModal={handleOpenMaintenanceForUnit}
               onOpenDossierModal={handleOpenDossier}
+              branding={branding}
               governorates={governorates}
               oilfields={oilfields}
               unitTypes={unitTypes}
@@ -2235,6 +2326,7 @@ export function App() {
               onAddEquipmentType={handleAddEquipmentType}
               onCancel={() => setActiveTab('dashboard')}
               theme={theme}
+              existingUnits={units}
             />
           )}
 
@@ -2421,9 +2513,14 @@ export function App() {
         <NewMaintenanceModal
           units={units}
           initialUnitCode={maintenanceUnitCode}
+          initialRoom={maintenanceRoomDetails}
           isUnitLocked={isMaintenanceUnitLocked}
+          isRoomLocked={Boolean(maintenanceRoomDetails)}
           onAddRequest={handleAddMaintenanceRequest}
-          onClose={() => setShowNewMaintenanceModal(false)}
+          onClose={() => {
+            setShowNewMaintenanceModal(false);
+            setMaintenanceRoomDetails(null);
+          }}
           isLight={theme === 'light'}
           currentUser={currentUser}
           maintenanceDepartments={maintenanceDepartments}
@@ -2441,9 +2538,21 @@ export function App() {
           units={units}
           theme={theme}
           onClose={() => setShowInAppQrScanner(false)}
-          onUnitDetected={(matched) => {
+          onUnitDetected={(matched, payload) => {
             setShowInAppQrScanner(false);
             setScannedUnitForChoice(matched);
+            setScannedQrPayloadForChoice(payload || null);
+            if (payload?.isRoom) {
+              const r = matched.rooms?.find(
+                (rm) =>
+                  rm.code?.toUpperCase() === payload.roomCode?.toUpperCase() ||
+                  rm.id === payload.roomCode ||
+                  rm.name === payload.roomName
+              );
+              setScannedRoomForChoice(r || null);
+            } else {
+              setScannedRoomForChoice(null);
+            }
           }}
         />
       )}
@@ -2453,23 +2562,74 @@ export function App() {
         <UnitScanChoiceModal
           unit={scannedUnitForChoice}
           theme={theme}
-          onClose={() => setScannedUnitForChoice(null)}
-          onSelectLocation={(unit) => {
+          isRoomScan={Boolean(scannedQrPayloadForChoice?.isRoom)}
+          scannedRoom={scannedRoomForChoice}
+          roomPayload={
+            scannedQrPayloadForChoice
+              ? {
+                  roomCode: scannedQrPayloadForChoice.roomCode,
+                  roomName: scannedQrPayloadForChoice.roomName,
+                  floor: scannedQrPayloadForChoice.floor,
+                }
+              : undefined
+          }
+          onClose={() => {
             setScannedUnitForChoice(null);
+            setScannedRoomForChoice(null);
+            setScannedQrPayloadForChoice(null);
+          }}
+          onSelectLocation={(unit) => {
+            const roomDetails = scannedQrPayloadForChoice?.isRoom
+              ? {
+                  floor: scannedRoomForChoice?.floor || scannedQrPayloadForChoice.floor,
+                  roomCode: scannedRoomForChoice?.code || scannedQrPayloadForChoice.roomCode,
+                  roomName: scannedRoomForChoice?.name || scannedQrPayloadForChoice.roomName,
+                  occupiedBy:
+                    scannedRoomForChoice?.occupiedBy ||
+                    scannedQrPayloadForChoice.occupiedBy ||
+                    unit.department,
+                }
+              : undefined;
+            setScannedUnitForChoice(null);
+            setScannedRoomForChoice(null);
+            setScannedQrPayloadForChoice(null);
             setSelectedUnitCode(unit.code);
+            setLocationMapRoomDetails(roomDetails);
             setLocationMapUnit(unit);
           }}
           onSelectInspection={(unit) => {
             setScannedUnitForChoice(null);
+            setScannedRoomForChoice(null);
+            setScannedQrPayloadForChoice(null);
             setSelectedUnitCode(unit.code);
             setActiveTab('field_inspection');
           }}
-          onSelectMaintenance={(unit) => {
+          onSelectMaintenance={(unit, room) => {
+            const isRoom = Boolean(room || scannedQrPayloadForChoice?.isRoom);
+            let selectedRoom: Room | { code?: string; name: string; floor?: string; occupiedBy?: string } | null = null;
+            if (isRoom) {
+              if (room) {
+                selectedRoom = room;
+              } else if (scannedRoomForChoice) {
+                selectedRoom = scannedRoomForChoice;
+              } else if (scannedQrPayloadForChoice?.roomCode || scannedQrPayloadForChoice?.roomName) {
+                selectedRoom = {
+                  code: scannedQrPayloadForChoice.roomCode,
+                  name: scannedQrPayloadForChoice.roomName || 'غرفة',
+                  floor: scannedQrPayloadForChoice.floor,
+                  occupiedBy: scannedQrPayloadForChoice.occupiedBy || unit.department,
+                };
+              }
+            }
             setScannedUnitForChoice(null);
-            handleOpenMaintenanceForUnit(unit.code);
+            setScannedRoomForChoice(null);
+            setScannedQrPayloadForChoice(null);
+            handleOpenMaintenanceForUnit(unit.code, true, selectedRoom);
           }}
           onSelect3D={(unit) => {
             setScannedUnitForChoice(null);
+            setScannedRoomForChoice(null);
+            setScannedQrPayloadForChoice(null);
             setSelectedUnitCode(unit.code);
             setActiveTab('units');
           }}
@@ -2481,15 +2641,10 @@ export function App() {
         <UnitLocationMapModal
           unit={locationMapUnit}
           theme={theme}
-          onClose={() => setLocationMapUnit(null)}
-          onOpenInspection={(code) => {
+          roomDetails={locationMapRoomDetails}
+          onClose={() => {
             setLocationMapUnit(null);
-            setSelectedUnitCode(code);
-            setActiveTab('field_inspection');
-          }}
-          onOpenMaintenance={(code) => {
-            setLocationMapUnit(null);
-            handleOpenMaintenanceForUnit(code);
+            setLocationMapRoomDetails(undefined);
           }}
         />
       )}

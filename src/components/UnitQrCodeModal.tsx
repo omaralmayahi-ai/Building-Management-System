@@ -9,22 +9,72 @@ import {
   ShieldCheck,
   Compass,
 } from 'lucide-react';
-import { UnitAsset } from '../types';
+import { UnitAsset, SystemBranding } from '../types';
 import { toArabicDigits, getServerDateDDMMYYYY } from '../utils/arabicUtils';
+import { INITIAL_BRANDING } from '../data/mockData';
 
 interface UnitQrCodeModalProps {
   unit: UnitAsset;
+  branding?: SystemBranding;
   theme?: 'dark' | 'light';
   onClose: () => void;
 }
 
 export const UnitQrCodeModal: React.FC<UnitQrCodeModalProps> = ({
   unit,
+  branding,
   theme = 'dark',
   onClose,
 }) => {
   const isLight = theme === 'light';
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
+
+  const currentBranding: SystemBranding =
+    branding ||
+    (() => {
+      try {
+        const saved = localStorage.getItem('app_branding');
+        return saved ? JSON.parse(saved) : INITIAL_BRANDING;
+      } catch {
+        return INITIAL_BRANDING;
+      }
+    })();
+
+  const countryName = currentBranding.countryName || 'جمهورية العراق';
+  const ministryName = currentBranding.ministryName || 'وزارة النفط';
+  const companyName = currentBranding.companyName || 'شركة نفط الوسط';
+  const systemName = currentBranding.systemName || 'إدارة الأصول والمنشآت';
+  const countryMinistryHeader = `${countryName} - ${ministryName}`;
+
+  // Gather unique occupying entities without any duplicate repetition
+  const rawOccupyingSources: string[] = [
+    unit.department || '',
+    ...(unit.rooms?.map((r) => r.occupiedBy || '') || []),
+  ];
+
+  const seenOccupying = new Set<string>();
+  const occupyingList: string[] = [];
+
+  for (const raw of rawOccupyingSources) {
+    if (!raw) continue;
+    // Split by Arabic comma '،', English comma ',', newlines, semicolons, or bullets
+    const parts = raw.split(/[،,\n;\t•]+/);
+    for (const part of parts) {
+      const trimmed = part.trim().replace(/\s+/g, ' ');
+      if (!trimmed || trimmed === '-' || trimmed === '—' || trimmed === 'غير محدد') continue;
+      
+      const normalizedKey = trimmed.toLowerCase();
+      if (!seenOccupying.has(normalizedKey)) {
+        seenOccupying.add(normalizedKey);
+        occupyingList.push(trimmed);
+      }
+    }
+  }
+
+  const occupyingDisplay =
+    occupyingList.length > 0
+      ? occupyingList.join(' ، ')
+      : (unit.department?.trim() || 'غير محدد');
 
   // Payload encoded inside the Quick Access QR Code:
   // When scanned from OUTSIDE the app (camera/browser) -> Directly leads to the unit's location on the map & GPS directions
@@ -78,35 +128,93 @@ export const UnitQrCodeModal: React.FC<UnitQrCodeModalProps> = ({
       <!DOCTYPE html>
       <html dir="rtl" lang="ar">
       <head>
-        <title>لوحة التثبيت الميدانية - رمز الوصول السريع - ${unit.code}</title>
+        <title>لوحة التعريف الميدانية - رمز الوصول السريع - ${unit.code}</title>
         <style>
-          body { font-family: system-ui, sans-serif; background: #fff; padding: 20px; text-align: center; }
-          .plate { border: 4px solid #1e293b; border-radius: 16px; padding: 24px; max-w: 480px; margin: 0 auto; background: #f8fafc; }
-          .header { font-size: 14px; font-weight: bold; color: #b45309; margin-bottom: 4px; }
-          .sub { font-size: 11px; color: #475569; margin-bottom: 16px; }
-          .code-box { background: #0f172a; color: #f59e0b; font-family: monospace; font-size: 24px; font-weight: 900; padding: 10px; border-radius: 8px; margin-bottom: 16px; letter-spacing: 2px; }
-          .qr-img { width: 220px; height: 220px; margin: 0 auto 16px; border: 2px solid #cbd5e1; padding: 8px; background: #fff; border-radius: 12px; }
-          .info { text-align: right; font-size: 12px; color: #334155; line-height: 1.8; border-top: 1px solid #e2e8f0; pt: 12px; }
-          .footer { font-size: 10px; color: #94a3b8; margin-top: 16px; font-weight: bold; }
+          @page { size: A4 portrait; margin: 10mm; }
+          * { box-sizing: border-box; }
+          body { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; background: #f8fafc; padding: 20px; text-align: center; color: #0f172a; margin: 0; }
+          .plate { border: 2.5px solid #0f172a; border-radius: 16px; padding: 22px 20px; max-width: 480px; margin: 0 auto; background: #ffffff; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+          .header { border-bottom: 2px solid #e2e8f0; padding-bottom: 12px; margin-bottom: 14px; text-align: center; }
+          .header-line1 { font-size: 14px; font-weight: 900; color: #b45309; margin-bottom: 2px; }
+          .header-line2 { font-size: 13px; font-weight: 800; color: #0f172a; margin-bottom: 2px; }
+          .header-line3 { font-size: 12px; font-weight: 700; color: #334155; margin-bottom: 4px; }
+          .header-tag { display: inline-block; margin-top: 4px; background: #fef3c7; color: #92400e; border: 1px solid #fde68a; font-size: 11px; font-weight: 900; padding: 3px 14px; border-radius: 20px; }
+          
+          .code-section { margin-bottom: 12px; }
+          .code-label { display: block; font-size: 10.5px; font-weight: bold; color: #64748b; margin-bottom: 4px; }
+          .code-box { background: #0f172a; color: #f59e0b; font-family: monospace; font-size: 22px; font-weight: 900; padding: 8px 16px; border-radius: 10px; display: inline-block; letter-spacing: 1.5px; border: 2px solid #f59e0b; }
+          
+          .qr-wrapper { margin: 10px auto 14px; padding: 8px; border: 2px solid #cbd5e1; border-radius: 14px; background: #ffffff; display: inline-block; }
+          .qr-img { width: 195px; height: 195px; display: block; }
+          
+          .details-list { text-align: right; margin-top: 6px; border: 1.5px solid #e2e8f0; border-radius: 12px; overflow: hidden; background: #ffffff; }
+          .detail-row { display: flex; justify-content: space-between; align-items: flex-start; padding: 9px 12px; border-bottom: 1px solid #f1f5f9; font-size: 12px; gap: 10px; }
+          .detail-row:last-child { border-bottom: none; }
+          .detail-row.alt { background: #f8fafc; }
+          .detail-label { color: #64748b; font-weight: 700; font-size: 11.5px; shrink: 0; min-width: 110px; text-align: right; }
+          .detail-value { font-weight: 900; color: #0f172a; text-align: left; word-break: break-word; }
+          .detail-value.mono { font-family: monospace; letter-spacing: 0.5px; }
+          .detail-value.highlight-name { color: #0f172a; font-size: 13px; font-weight: 900; }
+          .detail-value.highlight-code { color: #0284c7; font-size: 12.5px; }
+          .detail-value.highlight-asset { color: #4f46e5; }
+          .detail-value.highlight-loc { color: #b45309; }
+          .detail-value.highlight-area { color: #047857; }
+          .detail-value.highlight-coords { color: #0369a1; font-size: 11.5px; }
+          .detail-value.highlight-occ { color: #0f172a; font-size: 11.5px; text-align: left; }
+          
+          .footer-date { font-size: 9px; color: #94a3b8; margin-top: 14px; font-weight: bold; }
         </style>
       </head>
       <body>
         <div class="plate">
-          <div class="header">جمهورية العراق - وزارة النفط - شركة نفط الوسط</div>
-          <div class="sub">لوحة التعريف الميداني المعتمدة ورمز الوصول السريع QR</div>
-          <div class="code-box">${unit.code}</div>
-          ${unit.fixedAssetCode ? `<div style="font-family: monospace; font-size: 14px; font-weight: bold; color: #4338ca; margin-bottom: 12px;">رمز الأصل: ${unit.fixedAssetCode}</div>` : ''}
-          <img class="qr-img" src="${qrDataUrl}" alt="QR Code" />
-          <div class="info">
-            <p><strong>اسم المنشأة:</strong> ${unit.name}</p>
-            <p><strong>رمز المنشأة الفريد:</strong> ${unit.code}</p>
-            ${unit.fixedAssetCode ? `<p><strong>رمز الأصل:</strong> ${unit.fixedAssetCode}</p>` : ''}
-            <p><strong>الموقع الميداني:</strong> ${unit.governorate} • ${unit.field}</p>
-            <p><strong>المساحة الإجمالية:</strong> ${unit.totalAreaSqM ? `${unit.totalAreaSqM} م²` : 'غير محدد'} • عدد الطوابق: ${unit.floorsCount || 1}</p>
-            <p><strong>الإحداثيات الجغرافية:</strong> ${unit.coordinates.lat}°, ${unit.coordinates.lng}°</p>
-            <p><strong>الجهة الشاغلة:</strong> ${unit.department}</p>
+          <div class="header">
+            <div class="header-line1">${countryMinistryHeader}</div>
+            <div class="header-line2">${companyName}</div>
+            <div class="header-line3">${systemName}</div>
+            <div class="header-tag">لوحة التعريف الميدانية ورمز الوصول السريع (QR)</div>
           </div>
-          <div class="footer">تاريخ الطباعة: <span style="font-family: monospace; font-weight: bold;">${getServerDateDDMMYYYY()}</span></div>
+          
+          <div class="code-section">
+            <span class="code-label">رمز المنشأة</span>
+            <div class="code-box">${unit.code}</div>
+          </div>
+          
+          <div class="qr-wrapper">
+            <img class="qr-img" src="${qrDataUrl}" alt="Unit QR Code" />
+          </div>
+
+          <div class="details-list">
+            <div class="detail-row alt">
+              <span class="detail-label">اسم المنشأة:</span>
+              <span class="detail-value highlight-name">${unit.name}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">رمز المنشأة:</span>
+              <span class="detail-value mono highlight-code">${unit.code}</span>
+            </div>
+            <div class="detail-row alt">
+              <span class="detail-label">رمز الأصل:</span>
+              <span class="detail-value mono highlight-asset">${unit.fixedAssetCode || 'غير مسجل'}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">الموقع الميداني:</span>
+              <span class="detail-value highlight-loc">${unit.governorate} • ${unit.field}</span>
+            </div>
+            <div class="detail-row alt">
+              <span class="detail-label">المساحة الإجمالية:</span>
+              <span class="detail-value highlight-area">${unit.totalAreaSqM ? `${unit.totalAreaSqM} م²` : 'غير محدد'} • عدد الطوابق: ${unit.floorsCount || 1}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">الإحداثيات الجغرافية:</span>
+              <span class="detail-value mono highlight-coords">${unit.coordinates.lat}°, ${unit.coordinates.lng}°</span>
+            </div>
+            <div class="detail-row alt">
+              <span class="detail-label">الجهة الشاغلة:</span>
+              <span class="detail-value highlight-occ">${occupyingDisplay}</span>
+            </div>
+          </div>
+
+          <div class="footer-date">تاريخ الطباعة: <span style="font-family: monospace; font-weight: bold;">${getServerDateDDMMYYYY()}</span></div>
         </div>
         <script>
           window.onload = function() { window.print(); window.close(); };
@@ -187,47 +295,35 @@ export const UnitQrCodeModal: React.FC<UnitQrCodeModalProps> = ({
                 : 'bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900 border-amber-500/50 shadow-2xl'
             }`}
           >
-            {/* Badge Header */}
+            {/* Badge Header with Dynamic Branding */}
             <div
-              className={`flex items-center justify-between text-[10px] font-bold border-b pb-2 ${
-                isLight
-                  ? 'text-amber-800 border-slate-200'
-                  : 'text-amber-400 border-slate-800'
+              className={`border-b pb-3 text-center space-y-1 ${
+                isLight ? 'border-slate-200' : 'border-slate-800'
               }`}
             >
-              <span className="flex items-center gap-1">
-                <Building className="w-3.5 h-3.5" />
-                <span>وزارة النفط - شركة نفط الوسط</span>
-              </span>
-              <span className="font-mono text-slate-500">MIDLAND OIL COMPANY</span>
+              <div className="text-[12.5px] font-black text-amber-600 dark:text-amber-400">
+                {countryMinistryHeader}
+              </div>
+              <div className={`text-[12px] font-extrabold ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                {companyName}
+              </div>
+              <div className={`text-[11px] font-bold ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                {systemName}
+              </div>
+              <div className="inline-block bg-amber-500/15 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-[10.5px] font-black px-3 py-0.5 rounded-full mt-0.5">
+                لوحة التعريف الميدانية ورمز الوصول السريع (QR)
+              </div>
             </div>
 
-            {/* Code Box */}
-            <div className="space-y-2">
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-                <div className="space-y-1">
-                  <span className={`text-[10px] font-bold block uppercase tracking-wider ${
-                    isLight ? 'text-slate-600' : 'text-slate-400'
-                  }`}>
-                    رمز المنشأة الفريد (Code)
-                  </span>
-                  <div className="bg-slate-950 border-2 border-amber-500 rounded-xl py-2 px-4 font-mono text-xl font-black text-amber-400 tracking-widest shadow-inner inline-block min-w-[160px]">
-                    {toArabicDigits(unit.code)}
-                  </div>
-                </div>
-
-                {unit.fixedAssetCode && (
-                  <div className="space-y-1">
-                    <span className={`text-[10px] font-bold block uppercase tracking-wider ${
-                      isLight ? 'text-indigo-700' : 'text-indigo-300'
-                    }`}>
-                      رمز الأصل
-                    </span>
-                    <div className="bg-slate-950 border-2 border-indigo-500/80 rounded-xl py-2 px-4 font-mono text-xl font-black text-indigo-300 tracking-widest shadow-inner inline-block min-w-[160px]">
-                      {unit.fixedAssetCode}
-                    </div>
-                  </div>
-                )}
+            {/* Code Box above QR Code */}
+            <div className="space-y-1">
+              <span className={`text-[10.5px] font-bold block ${
+                isLight ? 'text-slate-600' : 'text-slate-400'
+              }`}>
+                رمز المنشأة
+              </span>
+              <div className="bg-slate-950 border-2 border-amber-500 rounded-xl py-2 px-5 font-mono text-xl font-black text-amber-400 tracking-widest shadow-inner inline-block min-w-[180px]">
+                {unit.code}
               </div>
             </div>
 
@@ -257,65 +353,61 @@ export const UnitQrCodeModal: React.FC<UnitQrCodeModalProps> = ({
               </div>
             </div>
 
-            {/* Unit Details Box inside Plate */}
+            {/* Sequential Details List below QR Code */}
             <div
-              className={`rounded-xl p-3.5 text-right text-xs space-y-2.5 border transition-colors ${
+              className={`rounded-2xl border overflow-hidden text-xs divide-y text-right transition-colors ${
                 isLight
-                  ? 'bg-white border-slate-200 text-slate-800 shadow-xs'
-                  : 'bg-slate-900/90 border-slate-800 text-slate-300'
+                  ? 'bg-white border-slate-200 divide-slate-100 text-slate-900 shadow-xs'
+                  : 'bg-slate-950 border-slate-800 divide-slate-900 text-slate-100'
               }`}
             >
-              <div
-                className={`flex items-center justify-between border-b pb-2 ${
-                  isLight ? 'border-slate-200' : 'border-slate-800/80'
-                }`}
-              >
-                <span className={`font-extrabold text-sm truncate ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+              <div className={`flex justify-between items-center px-4 py-2.5 ${isLight ? 'bg-slate-50/70' : 'bg-slate-900/40'}`}>
+                <span className="text-slate-400 font-bold text-[11px]">اسم المنشأة:</span>
+                <span className={`font-black text-xs ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
                   {unit.name}
                 </span>
-                {unit.fixedAssetCode && (
-                  <span className={`text-[10px] px-2 py-0.5 rounded font-mono font-bold shrink-0 border ${
-                    isLight
-                      ? 'bg-indigo-100 text-indigo-800 border-indigo-300'
-                      : 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30'
-                  }`}>
-                    أصل: {unit.fixedAssetCode}
-                  </span>
-                )}
               </div>
 
-              <div className="grid grid-cols-2 gap-2.5 text-[11px]">
-                <div>
-                  <span className={`block text-[10px] ${isLight ? 'text-slate-500 font-medium' : 'text-slate-500'}`}>
-                    الموقع الميداني:
-                  </span>
-                  <span className={`font-bold ${isLight ? 'text-amber-800' : 'text-amber-400'}`}>
-                    {unit.governorate} • {unit.field}
-                  </span>
-                </div>
+              <div className="flex justify-between items-center px-4 py-2.5">
+                <span className="text-slate-400 font-bold text-[11px]">رمز المنشأة:</span>
+                <span className="font-mono font-black text-sky-500 tracking-wide text-xs">
+                  {unit.code}
+                </span>
+              </div>
 
-                <div>
-                  <span className={`block text-[10px] ${isLight ? 'text-slate-500 font-medium' : 'text-slate-500'}`}>
-                    المساحة والطوابق:
-                  </span>
-                  <span className={`font-bold ${isLight ? 'text-slate-900' : 'text-slate-200'}`}>
-                    {toArabicDigits(unit.totalAreaSqM)} م² ({toArabicDigits(unit.floorsCount)} طابق)
-                  </span>
-                </div>
+              <div className={`flex justify-between items-center px-4 py-2.5 ${isLight ? 'bg-slate-50/70' : 'bg-slate-900/40'}`}>
+                <span className="text-slate-400 font-bold text-[11px]">رمز الأصل:</span>
+                <span className="font-mono font-bold text-indigo-400 text-xs">
+                  {unit.fixedAssetCode || 'غير مسجل'}
+                </span>
+              </div>
 
-                <div
-                  className={`col-span-2 pt-2 border-t flex items-center justify-between ${
-                    isLight ? 'border-slate-200' : 'border-slate-800/60'
-                  }`}
-                >
-                  <span className={`text-[10px] flex items-center gap-1 ${isLight ? 'text-slate-500 font-medium' : 'text-slate-500'}`}>
-                    <Compass className={`w-3 h-3 ${isLight ? 'text-amber-600' : 'text-amber-500'}`} />
-                    <span>الإحداثيات الجغرافية (GPS):</span>
-                  </span>
-                  <span className={`font-mono font-bold text-[11px] ${isLight ? 'text-amber-800' : 'text-amber-400'}`}>
-                    {toArabicDigits(unit.coordinates.lat)}°, {toArabicDigits(unit.coordinates.lng)}°
-                  </span>
-                </div>
+              <div className="flex justify-between items-center px-4 py-2.5">
+                <span className="text-slate-400 font-bold text-[11px]">الموقع الميداني:</span>
+                <span className="font-bold text-amber-600 dark:text-amber-400 text-xs">
+                  {unit.governorate} • {unit.field}
+                </span>
+              </div>
+
+              <div className={`flex justify-between items-center px-4 py-2.5 ${isLight ? 'bg-slate-50/70' : 'bg-slate-900/40'}`}>
+                <span className="text-slate-400 font-bold text-[11px]">المساحة الإجمالية:</span>
+                <span className="font-bold text-emerald-600 dark:text-emerald-400 text-xs">
+                  {unit.totalAreaSqM ? `${toArabicDigits(unit.totalAreaSqM)} م²` : 'غير محدد'} • عدد الطوابق: {toArabicDigits(unit.floorsCount || 1)}
+                </span>
+              </div>
+
+              <div className="flex justify-between items-center px-4 py-2.5">
+                <span className="text-slate-400 font-bold text-[11px]">الإحداثيات الجغرافية:</span>
+                <span className="font-mono font-bold text-sky-600 dark:text-sky-400 text-xs">
+                  {toArabicDigits(unit.coordinates.lat)}°, {toArabicDigits(unit.coordinates.lng)}°
+                </span>
+              </div>
+
+              <div className={`flex justify-between items-start px-4 py-2.5 gap-2 ${isLight ? 'bg-slate-50/70' : 'bg-slate-900/40'}`}>
+                <span className="text-slate-400 font-bold text-[11px] shrink-0">الجهة الشاغلة:</span>
+                <span className="font-bold text-slate-800 dark:text-slate-200 text-xs text-left">
+                  {occupyingDisplay}
+                </span>
               </div>
             </div>
 
@@ -327,7 +419,7 @@ export const UnitQrCodeModal: React.FC<UnitQrCodeModalProps> = ({
                 }`}
               >
                 <ShieldCheck className="w-3.5 h-3.5" />
-                <span>رمز وصول سريع موثق إلكترونياً ومربوط بالدليل الجغرافي MOC</span>
+                <span>رمز وصول سريع موثق إلكترونياً ومربوط بالدليل الجغرافي للمنظومة</span>
               </div>
               <div
                 className={`p-2.5 rounded-xl text-[10px] leading-relaxed text-right border ${

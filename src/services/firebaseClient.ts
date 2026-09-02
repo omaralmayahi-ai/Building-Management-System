@@ -1,10 +1,14 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import {
+  initializeFirestore,
   getFirestore,
+  persistentLocalCache,
+  persistentMultipleTabManager,
   collection,
   doc,
   getDocs,
   getDoc,
+  getDocFromServer,
   setDoc,
   deleteDoc,
   writeBatch,
@@ -36,10 +40,55 @@ import {
 // Initialize Firebase App
 const app = getApps().length === 0 ? initializeApp(firebaseConfigJson) : getApp();
 
-// Initialize Firestore with custom database ID if provided
-export const db: Firestore = (firebaseConfigJson as any).firestoreDatabaseId
-  ? getFirestore(app, (firebaseConfigJson as any).firestoreDatabaseId)
-  : getFirestore(app);
+// Initialize Firestore with custom database ID, long-polling fallback, and persistent local cache
+const databaseId = (firebaseConfigJson as any).firestoreDatabaseId;
+
+export const db: Firestore = (() => {
+  try {
+    return initializeFirestore(
+      app,
+      {
+        experimentalAutoDetectLongPolling: true,
+        localCache: persistentLocalCache({
+          tabManager: persistentMultipleTabManager(),
+        }),
+      },
+      databaseId || '(default)'
+    );
+  } catch {
+    // If already initialized or fallback
+    return databaseId ? getFirestore(app, databaseId) : getFirestore(app);
+  }
+})();
+
+// Optional connection check
+export async function testConnection(): Promise<boolean> {
+  try {
+    await getDocFromServer(doc(db, 'test', 'connection'));
+    return true;
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('the client is offline')) {
+      console.warn('Firestore is running in offline cached mode.');
+    }
+    return false;
+  }
+}
+
+// Timeout helper for Firestore network requests to prevent UI stalls
+async function withTimeout<T>(promise: Promise<T>, timeoutMs = 4000, fallback: T): Promise<T> {
+  let timer: NodeJS.Timeout;
+  const timeoutPromise = new Promise<T>((resolve) => {
+    timer = setTimeout(() => resolve(fallback), timeoutMs);
+  });
+  try {
+    const result = await Promise.race([promise, timeoutPromise]);
+    clearTimeout(timer!);
+    return result;
+  } catch {
+    clearTimeout(timer!);
+    return fallback;
+  }
+}
 
 // Helper to remove undefined fields before sending to Firestore
 function sanitizeDoc<T extends Record<string, any>>(obj: T): T {
@@ -70,8 +119,8 @@ export async function ensureDatabaseSeeded(): Promise<void> {
   if (isSeeded) return;
   try {
     const metaRef = doc(db, 'system_settings', 'metadata');
-    const metaSnap = await getDoc(metaRef);
-    if (!metaSnap.exists()) {
+    const metaSnap = await withTimeout(getDoc(metaRef), 3000, null);
+    if (metaSnap && !metaSnap.exists()) {
       console.log('🌱 Firestore database is newly initialized. Seeding initial baseline data...');
       const batch = writeBatch(db);
 
@@ -142,7 +191,8 @@ export async function ensureDatabaseSeeded(): Promise<void> {
 export async function getUnitsFromFirestore(): Promise<UnitAsset[]> {
   await ensureDatabaseSeeded();
   try {
-    const snap = await getDocs(collection(db, 'units'));
+    const snap = await withTimeout(getDocs(collection(db, 'units')), 4000, null);
+    if (!snap || snap.empty) return [];
     return snap.docs.map((d) => d.data() as UnitAsset);
   } catch (err) {
     console.warn('Firestore getUnits error:', err);
@@ -175,7 +225,8 @@ export async function deleteUnitFromFirestore(code: string): Promise<void> {
 export async function getUsersFromFirestore(): Promise<SystemUser[]> {
   await ensureDatabaseSeeded();
   try {
-    const snap = await getDocs(collection(db, 'system_users'));
+    const snap = await withTimeout(getDocs(collection(db, 'system_users')), 4000, null);
+    if (!snap || snap.empty) return [];
     return snap.docs.map((d) => d.data() as SystemUser);
   } catch (err) {
     console.warn('Firestore getUsers error:', err);
@@ -199,7 +250,8 @@ export async function deleteUserFromFirestore(id: string): Promise<void> {
 export async function getMaintenanceFromFirestore(): Promise<MaintenanceRequest[]> {
   await ensureDatabaseSeeded();
   try {
-    const snap = await getDocs(collection(db, 'maintenance_requests'));
+    const snap = await withTimeout(getDocs(collection(db, 'maintenance_requests')), 4000, null);
+    if (!snap || snap.empty) return [];
     return snap.docs.map((d) => d.data() as MaintenanceRequest);
   } catch (err) {
     console.warn('Firestore getMaintenance error:', err);
@@ -232,7 +284,8 @@ export async function deleteMaintenanceFromFirestore(id: string): Promise<void> 
 export async function getOccupancyFromFirestore(): Promise<OccupancyRecord[]> {
   await ensureDatabaseSeeded();
   try {
-    const snap = await getDocs(collection(db, 'occupancy_records'));
+    const snap = await withTimeout(getDocs(collection(db, 'occupancy_records')), 4000, null);
+    if (!snap || snap.empty) return [];
     return snap.docs.map((d) => d.data() as OccupancyRecord);
   } catch (err) {
     console.warn('Firestore getOccupancy error:', err);
@@ -265,7 +318,8 @@ export async function deleteOccupancyFromFirestore(id: string): Promise<void> {
 export async function getInspectionsFromFirestore(): Promise<PeriodicInspectionSchedule[]> {
   await ensureDatabaseSeeded();
   try {
-    const snap = await getDocs(collection(db, 'periodic_inspections'));
+    const snap = await withTimeout(getDocs(collection(db, 'periodic_inspections')), 4000, null);
+    if (!snap || snap.empty) return [];
     return snap.docs.map((d) => d.data() as PeriodicInspectionSchedule);
   } catch (err) {
     console.warn('Firestore getInspections error:', err);
@@ -298,7 +352,8 @@ export async function deleteInspectionFromFirestore(id: string): Promise<void> {
 export async function getAuditLogsFromFirestore(): Promise<AuditLogItem[]> {
   await ensureDatabaseSeeded();
   try {
-    const snap = await getDocs(collection(db, 'audit_logs'));
+    const snap = await withTimeout(getDocs(collection(db, 'audit_logs')), 4000, null);
+    if (!snap || snap.empty) return [];
     return snap.docs.map((d) => d.data() as AuditLogItem);
   } catch (err) {
     console.warn('Firestore getAuditLogs error:', err);
@@ -322,7 +377,8 @@ export async function deleteAuditLogFromFirestore(id: string): Promise<void> {
 export async function getOrgEntitiesFromFirestore(): Promise<OrgEntity[]> {
   await ensureDatabaseSeeded();
   try {
-    const snap = await getDocs(collection(db, 'org_entities'));
+    const snap = await withTimeout(getDocs(collection(db, 'org_entities')), 4000, null);
+    if (!snap || snap.empty) return [];
     return snap.docs.map((d) => d.data() as OrgEntity);
   } catch (err) {
     console.warn('Firestore getOrgEntities error:', err);
@@ -350,8 +406,8 @@ export async function deleteOrgEntityFromFirestore(id: string): Promise<void> {
 export async function getBrandingFromFirestore(): Promise<SystemBranding> {
   await ensureDatabaseSeeded();
   try {
-    const snap = await getDoc(doc(db, 'system_settings', 'branding'));
-    if (snap.exists()) {
+    const snap = await withTimeout(getDoc(doc(db, 'system_settings', 'branding')), 4000, null);
+    if (snap && snap.exists()) {
       return snap.data() as SystemBranding;
     }
   } catch (err) {
@@ -368,8 +424,8 @@ export async function saveBrandingToFirestore(branding: SystemBranding): Promise
 export async function getReferenceDataFromFirestore(): Promise<any> {
   await ensureDatabaseSeeded();
   try {
-    const snap = await getDoc(doc(db, 'system_settings', 'reference_data'));
-    if (snap.exists()) {
+    const snap = await withTimeout(getDoc(doc(db, 'system_settings', 'reference_data')), 4000, null);
+    if (snap && snap.exists()) {
       return snap.data();
     }
   } catch (err) {

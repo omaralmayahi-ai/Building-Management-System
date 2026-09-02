@@ -68,8 +68,12 @@ export const ExportDossierModal: React.FC<ExportDossierModalProps> = ({ unit, br
           {/* Key Identifiers Grid */}
           <div className="grid grid-cols-2 gap-4 border p-3 rounded-lg bg-slate-50 font-mono text-xs">
             <div>
-              <span className="text-slate-500 block text-[10px]">رمز الأصل الموحد:</span>
+              <span className="text-slate-500 block text-[10px]">رمز المنشأة الموحد (System Code):</span>
               <span className="font-bold text-amber-800 text-sm">{unit.code}</span>
+            </div>
+            <div>
+              <span className="text-slate-500 block text-[10px]">رمز الأصل في السجلات (Fixed Asset Code):</span>
+              <span className="font-bold text-indigo-700 text-sm">{unit.fixedAssetCode || 'غير مسجل'}</span>
             </div>
             <div>
               <span className="text-slate-500 block text-[10px]">درجة السلامة العامة:</span>
@@ -79,7 +83,7 @@ export const ExportDossierModal: React.FC<ExportDossierModalProps> = ({ unit, br
               <span className="text-slate-500 block text-[10px]">اسم المنشأة:</span>
               <span className="font-bold text-slate-900">{unit.name}</span>
             </div>
-            <div>
+            <div className="col-span-2">
               <span className="text-slate-500 block text-[10px]">الحقل والموقع:</span>
               <span className="font-bold text-slate-900">{unit.field} - {unit.siteName}</span>
             </div>

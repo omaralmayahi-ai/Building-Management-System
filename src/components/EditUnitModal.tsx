@@ -22,6 +22,7 @@ import {
   FileCode,
   Image,
   Users,
+  QrCode,
 } from 'lucide-react';
 import { UnitAsset, ConditionGrade, UnitType, Room, EquipmentItem, ReferenceUnitType, UnitAttachment, OrgEntity } from '../types';
 import { BUILDING_SHAPE_OPTIONS, getShapeFactor, calculateUnitArea } from './NewUnitWizard';
@@ -30,11 +31,26 @@ import { safeSetItem } from '../utils/storageUtils';
 import { LocationPickerMap } from './LocationPickerMap';
 import { AttachmentViewerModal } from './AttachmentViewerModal';
 import { QuickAddOrgEntityModal } from './QuickAddOrgEntityModal';
+import { RoomQrCardModal } from './RoomQrCardModal';
+import {
+  generateRoomCode,
+  getRoomTypeCode,
+  isOccupantsBasedRoom,
+  isCapacityBasedRoom,
+  isNonOccupancyRoom,
+  isRoomVacant,
+  formatRoomOccupancyDisplay,
+  getStandardRoomCode,
+  normalizeUnitRoomsSequence,
+  extractFloorNumber,
+  calculateRoomSequenceNumber,
+} from '../utils/unitAndRoomCodeUtils';
 import {
   cleanFixedAssetCodeInput,
   validateFixedAssetCodeFormat,
   checkFixedAssetCodeUniqueness,
-  formatToDottedAssetCode,
+  formatToCaravanDottedCode,
+  formatToBuildingContinuousCode,
 } from '../utils/assetCodeUtils';
 
 interface EditUnitModalProps {
@@ -71,6 +87,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
     initialTab || 'basic'
   );
   const [showQuickAddOrgModal, setShowQuickAddOrgModal] = useState(false);
+  const [selectedRoomForQr, setSelectedRoomForQr] = useState<Room | null>(null);
 
   // Editable Form State initialized from unit
   const [name, setName] = useState<string>(unit.name);
@@ -404,16 +421,20 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
     setRooms((prev) =>
       prev.map((rm) => {
         if (rm.id === roomId) {
+          const updated = { ...rm, [key]: value };
           if (key === 'status') {
             const isReactivating = value === 'Active' || value === 'فعالة' || value === 'نشطة';
-            return {
-              ...rm,
-              status: isReactivating ? 'Active' : value,
-              // Automatically delete stoppage notes when reactivated
-              notes: isReactivating ? '' : rm.notes,
-            };
+            updated.status = isReactivating ? 'Active' : value;
+            updated.notes = isReactivating ? '' : rm.notes;
           }
-          return { ...rm, [key]: value };
+          if (key === 'type' || key === 'floor') {
+            const floorNum = parseInt(String(key === 'floor' ? value : rm.floor || '').replace(/\D/g, ''), 10) || 1;
+            const roomType = key === 'type' ? value : rm.type;
+            const typeCode = getRoomTypeCode(roomType);
+            updated.roomTypeCode = typeCode;
+            updated.code = generateRoomCode(unit.code, floorNum, roomType, rm.sequenceNumber || 101, true);
+          }
+          return updated;
         }
         return rm;
       })
@@ -426,14 +447,26 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
 
   const handleAddRoom = () => {
     const nextNum = rooms.length + 1;
+    const floorNum = 1;
+    const sameFloorRooms = rooms.filter(
+      (r) => extractFloorNumber(r.floor) === floorNum
+    );
+    const seqNum = calculateRoomSequenceNumber(floorNum, sameFloorRooms.length + 1);
+    const typeCode = getRoomTypeCode('مكتب إداري');
+    const roomCode = generateRoomCode(unit.code, floorNum, 'مكتب إداري', seqNum, true);
+
     const newRm: Room = {
       id: `RM-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
       name: `غرفة مخصصة جديدة ${nextNum}`,
       type: 'مكتب إداري',
-      floor: '1',
-      areaSqM: 20,
+      floor: 'الطابق 1',
+      areaSqM: 25,
       status: 'Active',
       occupiedBy: department || (orgEntities.find((e) => e.status === 'active')?.nameAr || ''),
+      code: roomCode,
+      roomTypeCode: typeCode,
+      sequenceNumber: seqNum,
+      occupantsCount: 1,
     };
     setRooms((prev) => [...prev, newRm]);
   };
@@ -468,7 +501,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
 
     // Validate Fixed Asset Code if provided
     if (fixedAssetCode.trim()) {
-      const codeFormatVal = validateFixedAssetCodeFormat(fixedAssetCode.trim());
+      const codeFormatVal = validateFixedAssetCodeFormat(fixedAssetCode.trim(), unit.type);
       if (!codeFormatVal.isValid) {
         alert(`تنبيه بخصوص رمز الأصل:\n${codeFormatVal.message}`);
         setActiveTab('basic');
@@ -496,6 +529,8 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
     const finalDept =
       selectedDepartments.length > 0 ? selectedDepartments.join(' ، ') : department || 'غير محدد';
 
+    const normalizedRooms = normalizeUnitRoomsSequence(unit.code, rooms);
+
     const updated: UnitAsset = {
       ...unit,
       name: name.trim() || unit.name,
@@ -515,7 +550,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
       heightM: Number(heightM),
       buildingShape,
       floorsCount: Number(floorsCount) || unit.floorsCount,
-      rooms,
+      rooms: normalizedRooms,
       equipment,
       attachments,
       attachmentsCount: attachments.length,
@@ -926,13 +961,19 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
 
                 {/* رمز الأصل في سجلات أصول الشركة */}
                 {(() => {
-                  const validation = fixedAssetCode ? validateFixedAssetCodeFormat(fixedAssetCode) : null;
-                  const isUnique = fixedAssetCode ? checkFixedAssetCodeUniqueness(fixedAssetCode, existingUnits, unit.id).isUnique : true;
-                  const isClean10Digits = /^\d{10}$/.test(fixedAssetCode.trim());
+                  const validation = fixedAssetCode
+                    ? validateFixedAssetCodeFormat(fixedAssetCode, unit.type)
+                    : null;
+                  const isUnique = fixedAssetCode
+                    ? checkFixedAssetCodeUniqueness(fixedAssetCode, existingUnits, unit.id).isUnique
+                    : true;
+
+                  const isContinuous = /^\d+$/.test(fixedAssetCode.trim());
+                  const isDotted = fixedAssetCode.includes('.') && /^\d+(\.\d+)+$/.test(fixedAssetCode.trim());
 
                   return (
                     <div
-                      className={`md:col-span-2 p-4 rounded-2xl border space-y-2.5 ${
+                      className={`md:col-span-2 p-4 rounded-2xl border space-y-3 ${
                         isLight
                           ? 'bg-indigo-50/50 border-indigo-200'
                           : 'bg-indigo-950/20 border-indigo-900/40'
@@ -944,63 +985,145 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                           <label className={`font-black text-xs ${isLight ? 'text-slate-800' : 'text-slate-200'}`}>
                             رمز الأصل في سجلات أصول الشركة:
                           </label>
-                          <span className="text-[10px] text-amber-500 font-bold">(حقل اختياري / فريد)</span>
+                          <span className="text-[10px] text-amber-500 font-bold bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full">
+                            (حقل اختياري / فريد)
+                          </span>
                         </div>
 
                         {fixedAssetCode && (
                           <div className="flex items-center gap-1.5 flex-wrap">
                             {validation?.isValid && isUnique && (
-                              <span className="bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 text-[10px] px-2 py-0.5 rounded-full font-bold flex items-center gap-1">
+                              <span
+                                className={`text-[10px] px-2.5 py-0.5 rounded-full font-bold flex items-center gap-1 border ${
+                                  validation.isIdeal
+                                    ? isLight
+                                      ? 'bg-emerald-500/15 text-emerald-700 border-emerald-500/30'
+                                      : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                                    : isLight
+                                    ? 'bg-amber-500/15 text-amber-700 border-amber-500/30'
+                                    : 'bg-amber-500/20 text-amber-300 border-amber-500/30'
+                                }`}
+                              >
                                 <Check className="w-3 h-3" />
-                                <span>رمز مطابق وفريد ({validation.type === 'dotted_12' ? '12 خانة منقطة' : '10 أرقام'})</span>
+                                <span>{validation.badgeText} - رمز فريد</span>
                               </span>
                             )}
                             {!validation?.isValid && (
-                              <span className="bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/30 text-[10px] px-2 py-0.5 rounded-full font-bold">
+                              <span className="bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/30 text-[10px] px-2.5 py-0.5 rounded-full font-bold">
                                 {validation?.message}
                               </span>
                             )}
                             {validation?.isValid && !isUnique && (
-                              <span className="bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/30 text-[10px] px-2 py-0.5 rounded-full font-bold">
-                                رمز الأصل مكرر ومسجل مسبقاً لوحدة أخرى!
+                              <span className="bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/30 text-[10px] px-2.5 py-0.5 rounded-full font-bold">
+                                رمز الأصل مكرر ومسجل مسبقاً لمنشأة أخرى!
                               </span>
                             )}
                           </div>
                         )}
                       </div>
 
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="text"
-                          dir="ltr"
-                          value={fixedAssetCode}
-                          onChange={(e) => {
-                            const cleaned = cleanFixedAssetCodeInput(e.target.value);
-                            setFixedAssetCode(cleaned);
-                          }}
-                          placeholder="1002030405  أو  10.02.03.0405"
-                          className={`w-full border rounded-xl p-2.5 font-mono font-bold text-xs tracking-wider outline-none transition focus:border-indigo-500 ${
-                            isLight
-                              ? 'bg-white border-slate-300 text-slate-900'
-                              : 'bg-slate-950 border-slate-700 text-slate-100'
-                          }`}
-                        />
+                      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                        <div className="relative flex-1">
+                          <input
+                            type="text"
+                            dir="ltr"
+                            value={fixedAssetCode}
+                            onChange={(e) => {
+                              const cleaned = cleanFixedAssetCodeInput(e.target.value);
+                              setFixedAssetCode(cleaned);
+                            }}
+                            placeholder={
+                              unit.type === 'caravan'
+                                ? '123.1234.123 (أرقام مع فواصل للكرفانات)'
+                                : '0123456789 (أرقام بدون فواصل للأبنية)'
+                            }
+                            className={`w-full border rounded-xl p-2.5 font-mono font-bold text-xs tracking-wider outline-none transition focus:border-indigo-500 ${
+                              isLight
+                                ? 'bg-white border-slate-300 text-slate-900 placeholder:text-slate-400'
+                                : 'bg-slate-950 border-slate-700 text-slate-100 placeholder:text-slate-500'
+                            }`}
+                          />
+                        </div>
 
-                        {isClean10Digits && (
-                          <button
-                            type="button"
-                            onClick={() => setFixedAssetCode(formatToDottedAssetCode(fixedAssetCode))}
-                            className="shrink-0 bg-indigo-600 hover:bg-indigo-500 text-white text-xs px-3 py-2.5 rounded-xl font-bold transition flex items-center gap-1 cursor-pointer shadow-sm"
-                            title="تحويل الأرقام العشرة إلى تنسيق 12 خانة بالنقاط (10.02.03.0405)"
-                          >
-                            <span>تحويل لمنقط (.)</span>
-                          </button>
-                        )}
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          {isContinuous && fixedAssetCode.length >= 6 && (
+                            <button
+                              type="button"
+                              onClick={() => setFixedAssetCode(formatToCaravanDottedCode(fixedAssetCode))}
+                              className="bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] px-3 py-2.5 rounded-xl font-bold transition flex items-center gap-1 cursor-pointer shadow-sm"
+                              title="تحويل الأرقام إلى فورمات الكرفانات المنقط (مثال: 123.1234.123)"
+                            >
+                              <span>تحويل لكرفانات (123.1234.123)</span>
+                            </button>
+                          )}
+
+                          {isDotted && (
+                            <button
+                              type="button"
+                              onClick={() => setFixedAssetCode(formatToBuildingContinuousCode(fixedAssetCode))}
+                              className="bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] px-3 py-2.5 rounded-xl font-bold transition flex items-center gap-1 cursor-pointer shadow-sm"
+                              title="إزالة الفواصل والنقاط لفورمات الأبنية المتصل (مثال: 0123456789)"
+                            >
+                              <span>تحويل لأبنية (0123456789)</span>
+                            </button>
+                          )}
+                        </div>
                       </div>
 
-                      <p className={`text-[11px] leading-relaxed ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
-                        رمز الأصل المثبت في سجلات أصول الشركة (سلسلة من <strong>10 أرقام</strong> أو سلسلة من أرقام يفصلها رمز <span className="font-mono font-bold text-indigo-500">.</span> ليكون الإجمالي <strong>12 دجت</strong>).
-                      </p>
+                      {/* صندوق معايير وتنسيق رمز الأصل */}
+                      <div
+                        className={`p-3 rounded-xl border space-y-2 text-xs ${
+                          isLight
+                            ? 'bg-white/80 border-indigo-100'
+                            : 'bg-slate-950/70 border-slate-800/80'
+                        }`}
+                      >
+                        <p
+                          className={`font-bold flex items-center gap-1.5 text-[11px] ${
+                            isLight ? 'text-slate-800' : 'text-slate-300'
+                          }`}
+                        >
+                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 inline-block"></span>
+                          <span>المعلومات داخل الحقل تكون بهذا الشكل:</span>
+                        </p>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
+                          <div
+                            className={`flex items-center gap-2 p-2 rounded-lg border ${
+                              isLight
+                                ? 'bg-slate-50 border-slate-200'
+                                : 'bg-slate-900/90 border-slate-800/90'
+                            }`}
+                          >
+                            <span className="font-mono text-emerald-600 dark:text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 shrink-0">
+                              0123456789
+                            </span>
+                            <span className={isLight ? 'text-slate-700 font-medium' : 'text-slate-300 font-medium'}>
+                              أرقام بدون فواصل للأبنية
+                            </span>
+                          </div>
+                          <div
+                            className={`flex items-center gap-2 p-2 rounded-lg border ${
+                              isLight
+                                ? 'bg-slate-50 border-slate-200'
+                                : 'bg-slate-900/90 border-slate-800/90'
+                            }`}
+                          >
+                            <span className="font-mono text-cyan-600 dark:text-cyan-400 font-bold bg-cyan-500/10 px-2 py-0.5 rounded border border-cyan-500/20 shrink-0">
+                              123.1234.123
+                            </span>
+                            <span className={isLight ? 'text-slate-700 font-medium' : 'text-slate-300 font-medium'}>
+                              أرقام مع فواصل للكرفانات
+                            </span>
+                          </div>
+                        </div>
+                        <p
+                          className={`text-[10px] leading-relaxed pt-0.5 ${
+                            isLight ? 'text-slate-500' : 'text-slate-400'
+                          }`}
+                        >
+                          يتم اعتماد هذا الفورمات كتقييم لحالة إدخال رمز الأصل ومطابقته للتنسيق المثالي في سجلات أصول الشركة.
+                        </p>
+                      </div>
                     </div>
                   );
                 })()}
@@ -1411,9 +1534,11 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                     >
                       <tr>
                         <th className="p-2.5">اسم الغرفة / القاعة</th>
+                        <th className="p-2.5">رمز الغرفة القياسي</th>
                         <th className="p-2.5">نوع الاستخدام</th>
                         <th className="p-2.5">الطابق</th>
                         <th className="p-2.5">المساحة (م²)</th>
+                        <th className="p-2.5">عدد الشاغلين</th>
                         <th className="p-2.5">الجهة الشاغلة</th>
                         <th className="p-2.5 w-28">الحالة التشغيلية</th>
                         <th className="p-2.5">سبب التوقف / ملاحظات</th>
@@ -1423,6 +1548,11 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                     <tbody className={`divide-y ${isLight ? 'divide-slate-200' : 'divide-slate-800/60'}`}>
                       {rooms.map((rm) => {
                         const isStopped = rm.status === 'Stopped' || rm.status === 'متوقفة';
+                        const roomComputedCode = getStandardRoomCode(unit.code, rm, rooms);
+                        const isNonOcc = isNonOccupancyRoom(rm.type);
+                        const isCap = isCapacityBasedRoom(rm.type);
+                        const isVacant = isRoomVacant(rm.occupiedBy);
+
                         return (
                           <tr key={rm.id} className={isStopped ? (isLight ? 'bg-red-50/60' : 'bg-red-950/20') : ''}>
                             <td className="p-2">
@@ -1434,6 +1564,21 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                                   isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-slate-900 border-slate-800 text-slate-100'
                                 }`}
                               />
+                            </td>
+                            <td className="p-2">
+                              <div className="flex items-center gap-1.5 whitespace-nowrap">
+                                <span className="font-mono font-black text-[11px] text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-lg border border-amber-500/20">
+                                  {roomComputedCode}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => setSelectedRoomForQr({ ...rm, code: roomComputedCode })}
+                                  className="p-1 rounded-lg bg-amber-500/10 hover:bg-amber-500 text-amber-500 hover:text-slate-950 transition cursor-pointer"
+                                  title="استعراض وطباعة بطاقة QR للغرفة"
+                                >
+                                  <QrCode className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
                             </td>
                             <td className="p-2 w-28">
                               <input
@@ -1464,6 +1609,46 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                                   isLight ? 'bg-slate-50 border-slate-300' : 'bg-slate-900 border-slate-800'
                                 }`}
                               />
+                            </td>
+                            <td className="p-2 w-32">
+                              {isNonOcc ? (
+                                <span className="text-slate-400 text-[11px] font-normal px-2 py-1 bg-slate-500/5 rounded-lg border border-slate-500/10 block text-center">
+                                  — (غير مخصص)
+                                </span>
+                              ) : isCap ? (
+                                <div className="flex items-center gap-1">
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    placeholder="السعة"
+                                    value={rm.capacity ?? ''}
+                                    onChange={(e) => handleUpdateRoom(rm.id, 'capacity', Number(e.target.value) || 0)}
+                                    className={`w-full border rounded-lg px-2 py-1 text-xs font-bold outline-none ${
+                                      isLight ? 'bg-slate-50 border-slate-300' : 'bg-slate-900 border-slate-800'
+                                    }`}
+                                  />
+                                  <span className="text-[10px] text-sky-600 dark:text-sky-400 font-semibold whitespace-nowrap">طاقة</span>
+                                </div>
+                              ) : (
+                                <div className="space-y-0.5">
+                                  <div className="flex items-center gap-1">
+                                    <input
+                                      type="number"
+                                      min="0"
+                                      placeholder="شاغلين"
+                                      value={rm.occupantsCount ?? ''}
+                                      onChange={(e) => handleUpdateRoom(rm.id, 'occupantsCount', Number(e.target.value) || 0)}
+                                      className={`w-full border rounded-lg px-2 py-1 text-xs font-bold outline-none ${
+                                        isLight ? 'bg-slate-50 border-slate-300' : 'bg-slate-900 border-slate-800'
+                                      }`}
+                                    />
+                                    <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold whitespace-nowrap">شاغل</span>
+                                  </div>
+                                  {isVacant && (
+                                    <span className="text-[9px] text-amber-500 block">تظهر (—) لأنها شاغرة</span>
+                                  )}
+                                </div>
+                              )}
                             </td>
                             <td className="p-2">
                               <select
@@ -2150,6 +2335,16 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
           setDepartment(newDeptName);
         }}
       />
+      {/* Room QR Card Modal */}
+      {selectedRoomForQr && (
+        <RoomQrCardModal
+          unit={unit}
+          room={selectedRoomForQr}
+          allRooms={rooms}
+          theme={theme}
+          onClose={() => setSelectedRoomForQr(null)}
+        />
+      )}
     </div>
   );
 };

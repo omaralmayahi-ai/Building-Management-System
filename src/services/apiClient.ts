@@ -91,7 +91,7 @@ async function fetchJson<T>(
 export async function getUnits(): Promise<UnitAsset[]> {
   try {
     const firestoreUnits = await firestoreClient.getUnitsFromFirestore();
-    if (Array.isArray(firestoreUnits)) {
+    if (Array.isArray(firestoreUnits) && firestoreUnits.length > 0) {
       safeSetItem('app_units', firestoreUnits);
       return firestoreUnits;
     }
@@ -101,7 +101,7 @@ export async function getUnits(): Promise<UnitAsset[]> {
 
   // Fallback to Express backend or LocalStorage
   const data = await fetchJson<UnitAsset[]>(`${BASE_API_URL}/units`);
-  if (Array.isArray(data)) {
+  if (Array.isArray(data) && data.length > 0) {
     safeSetItem('app_units', data);
     return data;
   }
@@ -167,7 +167,7 @@ export async function deleteUnit(code: string): Promise<boolean> {
 export async function getMaintenanceRequests(): Promise<MaintenanceRequest[]> {
   try {
     const firestoreMaint = await firestoreClient.getMaintenanceFromFirestore();
-    if (Array.isArray(firestoreMaint)) {
+    if (Array.isArray(firestoreMaint) && firestoreMaint.length > 0) {
       safeSetItem('app_maintenance_requests', firestoreMaint);
       return firestoreMaint;
     }
@@ -176,7 +176,7 @@ export async function getMaintenanceRequests(): Promise<MaintenanceRequest[]> {
   }
 
   const data = await fetchJson<MaintenanceRequest[]>(`${BASE_API_URL}/maintenance`);
-  if (Array.isArray(data)) {
+  if (Array.isArray(data) && data.length > 0) {
     safeSetItem('app_maintenance_requests', data);
     return data;
   }
@@ -239,7 +239,7 @@ export async function deleteMaintenanceRequest(id: string): Promise<boolean> {
 export async function getOccupancyRecords(): Promise<OccupancyRecord[]> {
   try {
     const firestoreOcc = await firestoreClient.getOccupancyFromFirestore();
-    if (Array.isArray(firestoreOcc)) {
+    if (Array.isArray(firestoreOcc) && firestoreOcc.length > 0) {
       safeSetItem('app_occupancy_records', firestoreOcc);
       return firestoreOcc;
     }
@@ -248,7 +248,7 @@ export async function getOccupancyRecords(): Promise<OccupancyRecord[]> {
   }
 
   const data = await fetchJson<OccupancyRecord[]>(`${BASE_API_URL}/occupancy`);
-  if (Array.isArray(data)) {
+  if (Array.isArray(data) && data.length > 0) {
     safeSetItem('app_occupancy_records', data);
     return data;
   }
@@ -314,7 +314,7 @@ export async function deleteOccupancyRecord(id: string): Promise<boolean> {
 export async function getPeriodicInspections(): Promise<PeriodicInspectionSchedule[]> {
   try {
     const firestoreInsp = await firestoreClient.getInspectionsFromFirestore();
-    if (Array.isArray(firestoreInsp)) {
+    if (Array.isArray(firestoreInsp) && firestoreInsp.length > 0) {
       safeSetItem('app_periodic_inspections', firestoreInsp);
       return firestoreInsp;
     }
@@ -323,7 +323,7 @@ export async function getPeriodicInspections(): Promise<PeriodicInspectionSchedu
   }
 
   const data = await fetchJson<PeriodicInspectionSchedule[]>(`${BASE_API_URL}/inspections`);
-  if (Array.isArray(data)) {
+  if (Array.isArray(data) && data.length > 0) {
     safeSetItem('app_periodic_inspections', data);
     return data;
   }
@@ -385,7 +385,7 @@ export async function deletePeriodicInspection(id: string): Promise<boolean> {
 export async function getAuditLogs(): Promise<AuditLogItem[]> {
   try {
     const firestoreLogs = await firestoreClient.getAuditLogsFromFirestore();
-    if (Array.isArray(firestoreLogs)) {
+    if (Array.isArray(firestoreLogs) && firestoreLogs.length > 0) {
       safeSetItem('app_audit_logs', firestoreLogs);
       return firestoreLogs;
     }
@@ -394,7 +394,7 @@ export async function getAuditLogs(): Promise<AuditLogItem[]> {
   }
 
   const data = await fetchJson<AuditLogItem[]>(`${BASE_API_URL}/audit-logs`);
-  if (Array.isArray(data)) {
+  if (Array.isArray(data) && data.length > 0) {
     safeSetItem('app_audit_logs', data);
     return data;
   }
@@ -421,7 +421,7 @@ export async function addAuditLog(log: AuditLogItem): Promise<AuditLogItem> {
 export async function getOrgEntities(): Promise<OrgEntity[]> {
   try {
     const firestoreEntities = await firestoreClient.getOrgEntitiesFromFirestore();
-    if (Array.isArray(firestoreEntities)) {
+    if (Array.isArray(firestoreEntities) && firestoreEntities.length > 0) {
       safeSetItem('app_ref_org_entities', firestoreEntities);
       return firestoreEntities;
     }
@@ -430,7 +430,7 @@ export async function getOrgEntities(): Promise<OrgEntity[]> {
   }
 
   const data = await fetchJson<OrgEntity[]>(`${BASE_API_URL}/org-entities`);
-  if (Array.isArray(data)) {
+  if (Array.isArray(data) && data.length > 0) {
     safeSetItem('app_ref_org_entities', data);
     return data;
   }

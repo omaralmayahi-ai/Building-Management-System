@@ -10,12 +10,17 @@ export type OccupancyStatus = 'full' | 'partial' | 'vacant';
 
 export interface Room {
   id: string;
+  code?: string; // رمز الغرفة الموحد (مثال: ABCD-F1-OFF-101)
   name: string;
   type: string;
+  roomTypeCode?: string; // اختصار نوع الغرفة (OFF, MTG, TRN, WRK, STR, WSH, BED, DIN, KTN, EQP, SRV, GEN)
+  sequenceNumber?: number; // رقم تسلسل الغرفة في الطابق (101, 102, 201...)
   areaSqM: number;
   floor: string;
   status: 'Active' | 'Stopped' | 'Review' | 'Maintenance' | string;
   occupiedBy?: string;
+  occupantsCount?: number; // عدد شاغلي الغرفة (للمكاتب، الورش الفنية، غرف النوم السكنية)
+  capacity?: number; // الطاقة الاستيعابية القصوى (لقاعات الاجتماعات، قاعات التدريب، قاعات الطعام، دورات المياه)
   notes?: string;
 }
 
@@ -55,7 +60,7 @@ export interface UnitDesignFinishing {
 export interface UnitAsset {
   id: string; // e.g. "WS-AHD-BLD-014"
   code: string;
-  fixedAssetCode?: string; // رمز الأصل المثبت في سجلات أصول الشركة (10 أرقام أو 12 خانة مع النقاط .)
+  fixedAssetCode?: string; // رمز الأصل في سجلات أصول الشركة (0123456789 للأبنية / 123.1234.123 للكرفانات)
   name: string; // Local name, e.g. "إدارة حقل الأحدب الرئيسي"
   type: UnitType;
   siteId: string;
@@ -121,6 +126,10 @@ export interface MaintenanceRequest {
   id: string; // e.g. "MR-2024-001" or "REQ-9921"
   unitCode: string;
   unitName?: string;
+  roomCode?: string; // رمز الغرفة الموحد (مثال: A398-F1-OFF-101)
+  roomName?: string; // اسم الغرفة أو القاعة
+  roomFloor?: string; // الطابق
+  occupyingEntity?: string; // الجهة الشاغلة للغرفة / الوحدة
   field: string;
   issue: string; // e.g. "HVAC Failure" / "فشل نظام التبريد"
   priority: MaintenancePriority;

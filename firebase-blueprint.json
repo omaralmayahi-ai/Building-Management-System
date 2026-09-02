@@ -6,6 +6,7 @@
       "type": "object",
       "properties": {
         "code": { "type": "string" },
+        "fixedAssetCode": { "type": "string" },
         "name": { "type": "string" },
         "type": { "type": "string" },
         "governorate": { "type": "string" },
