@@ -81,8 +81,10 @@ export const RoomQrCardModal: React.FC<RoomQrCardModalProps> = ({
 
   // App Base URL for QR scan payload
   const appBaseUrl =
+    (import.meta as any).env?.VITE_APP_URL ||
+    (import.meta as any).env?.APP_URL ||
     (typeof window !== 'undefined'
-      ? `${window.location.protocol}//${window.location.host}`
+      ? `${window.location.origin}${window.location.pathname.replace(/\/index\.html$/, '').replace(/\/+$/, '')}`
       : '');
 
   // Room QR payload contains type=room, unit code, room code, room name, floor

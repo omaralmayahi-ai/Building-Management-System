@@ -1,10 +1,10 @@
 {
-  "id": "/",
-  "name": "شركة نفط الوسط - نظام إدارة الأصول والمباني",
-  "short_name": "نفط الوسط",
-  "description": "نظام إدارة وتتبع الأصول الهندسية والمباني والكرفانات والكشوفات الميدانية - شركة نفط الوسط",
-  "start_url": "/",
-  "scope": "/",
+  "id": "./",
+  "name": "السجل الرقمي الموحد للأصول - شركة نفط الوسط",
+  "short_name": "إدارة الأبنية",
+  "description": "السجل الرقمي الموحد للأصول الهندسية والإنشائية - شركة نفط الوسط",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#0f172a",
   "theme_color": "#0f172a",
@@ -14,37 +14,37 @@
   "categories": ["business", "productivity", "utilities"],
   "icons": [
     {
-      "src": "/icons/icon-192.png",
+      "src": "./icons/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icons/icon-512.png",
+      "src": "./icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icons/icon-maskable-192.png",
+      "src": "./icons/icon-maskable-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "/icons/icon-maskable-512.png",
+      "src": "./icons/icon-maskable-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "/icons/apple-touch-icon.png",
+      "src": "./icons/apple-touch-icon.png",
       "sizes": "180x180",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icons/icon.svg",
+      "src": "./icons/icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any"

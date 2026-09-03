@@ -83,7 +83,7 @@ export const UnitQrCodeModal: React.FC<UnitQrCodeModalProps> = ({
     (import.meta as any).env?.VITE_APP_URL ||
     (import.meta as any).env?.APP_URL ||
     (typeof window !== 'undefined'
-      ? `${window.location.protocol}//${window.location.host}`
+      ? `${window.location.origin}${window.location.pathname.replace(/\/index\.html$/, '').replace(/\/+$/, '')}`
       : '');
   const qrPayload = `${appBaseUrl}/?view=map&unit=${encodeURIComponent(unit.code)}&lat=${unit.coordinates?.lat || ''}&lng=${unit.coordinates?.lng || ''}&name=${encodeURIComponent(unit.name || '')}&gov=${encodeURIComponent(unit.governorate || '')}&field=${encodeURIComponent(unit.field || '')}&src=external_qr`;
 

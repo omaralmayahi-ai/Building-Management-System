@@ -2,116 +2,101 @@ import sharp from 'sharp';
 import fs from 'fs';
 import path from 'path';
 
+// Official System Architecture Building Logo SVG
 const svgStandard = `<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
   <defs>
-    <radialGradient id="glow" cx="50%" cy="35%" r="60%">
+    <radialGradient id="appBg" cx="50%" cy="40%" r="75%">
       <stop offset="0%" stop-color="#1e293b" />
-      <stop offset="100%" stop-color="#090d16" />
+      <stop offset="100%" stop-color="#0f172a" />
     </radialGradient>
-    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#fef08a" />
-      <stop offset="40%" stop-color="#f59e0b" />
-      <stop offset="100%" stop-color="#b45309" />
-    </linearGradient>
-    <linearGradient id="goldLight" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#fde047" />
-      <stop offset="100%" stop-color="#d97706" />
-    </linearGradient>
-    <linearGradient id="shieldBorder" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.8" />
-      <stop offset="50%" stop-color="#38bdf8" stop-opacity="0.3" />
-      <stop offset="100%" stop-color="#f59e0b" stop-opacity="0.6" />
-    </linearGradient>
-    <filter id="dropShadow" x="-10%" y="-10%" width="120%" height="130%">
-      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000000" flood-opacity="0.6" />
+    <filter id="subtleGlow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="6" stdDeviation="10" flood-color="#000000" flood-opacity="0.5" />
     </filter>
   </defs>
 
-  <!-- Base App Background -->
-  <rect width="512" height="512" rx="115" fill="url(#glow)" />
-  <rect x="12" y="12" width="488" height="488" rx="103" fill="none" stroke="url(#shieldBorder)" stroke-width="6" />
+  <!-- Base App Background with refined slate radius -->
+  <rect width="512" height="512" rx="112" fill="url(#appBg)" />
+  <rect x="12" y="12" width="488" height="488" rx="100" fill="none" stroke="#334155" stroke-width="4" stroke-opacity="0.8" />
 
-  <!-- Inner Badge / Shield -->
-  <g filter="url(#dropShadow)">
-    <!-- Central Engineering Building & Oil Drop -->
-    <g transform="translate(106, 75) scale(3.0)">
-      <!-- Architectural Building Body -->
-      <path d="M 12 78 L 12 34 L 50 12 L 88 34 L 88 78 Z" fill="#0f172a" stroke="url(#gold)" stroke-width="4.5" stroke-linejoin="round" />
-      
-      <!-- Stepped Foundation Lines -->
-      <line x1="6" y1="84" x2="94" y2="84" stroke="url(#gold)" stroke-width="4" stroke-linecap="round" />
-      <line x1="16" y1="89" x2="84" y2="89" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round" opacity="0.7" />
-
-      <!-- Modern Engineering Grid / Windows -->
-      <rect x="22" y="42" width="13" height="13" rx="2.5" fill="url(#goldLight)" />
-      <rect x="43" y="42" width="14" height="13" rx="2.5" fill="url(#goldLight)" />
-      <rect x="65" y="42" width="13" height="13" rx="2.5" fill="url(#goldLight)" />
-      
-      <rect x="22" y="61" width="13" height="13" rx="2.5" fill="url(#goldLight)" />
-      <rect x="43" y="61" width="14" height="13" rx="2.5" fill="url(#goldLight)" />
-      <rect x="65" y="61" width="13" height="13" rx="2.5" fill="url(#goldLight)" />
-
-      <!-- Crown Oil Flame / Golden Drop -->
-      <path d="M 50 10 C 50 10 37 23 37 30 C 37 37 42.8 42 50 42 C 57.2 42 63 37 63 30 C 63 23 50 10 50 10 Z" fill="url(#gold)" stroke="#fef08a" stroke-width="1.5" />
-      <circle cx="48" cy="27" r="3" fill="#ffffff" opacity="0.6" />
+  <!-- Teal Architectural Building Logo with White Windows -->
+  <g filter="url(#subtleGlow)" transform="translate(68, 68) scale(0.734)">
+    <g fill="#248d9c">
+      <rect x="36" y="412" width="440" height="44" rx="6"/>
+      <path d="M 152 412 L 152 260 L 194 260 L 194 68 L 366 138 L 366 412 Z"/>
+    </g>
+    <g fill="#ffffff">
+      <rect x="222" y="110" width="24" height="24" rx="3"/>
+      <rect x="222" y="154" width="24" height="24" rx="3"/>
+      <rect x="222" y="198" width="24" height="24" rx="3"/>
+      <rect x="260" y="126" width="24" height="24" rx="3"/>
+      <rect x="260" y="170" width="24" height="24" rx="3"/>
+      <rect x="260" y="214" width="24" height="24" rx="3"/>
+      <rect x="170" y="286" width="22" height="22" rx="3"/>
+      <rect x="202" y="286" width="22" height="22" rx="3"/>
+      <rect x="234" y="286" width="22" height="22" rx="3"/>
+      <rect x="266" y="286" width="22" height="22" rx="3"/>
+      <rect x="170" y="326" width="22" height="22" rx="3"/>
+      <rect x="202" y="326" width="22" height="22" rx="3"/>
+      <rect x="234" y="326" width="22" height="22" rx="3"/>
+      <rect x="266" y="326" width="22" height="22" rx="3"/>
+      <rect x="170" y="366" width="22" height="22" rx="3"/>
+      <rect x="202" y="366" width="22" height="22" rx="3"/>
+      <rect x="234" y="366" width="22" height="22" rx="3"/>
+      <rect x="266" y="366" width="22" height="22" rx="3"/>
+      <rect x="304" y="176" width="50" height="16" rx="3"/>
+      <rect x="304" y="214" width="50" height="16" rx="3"/>
+      <rect x="304" y="252" width="50" height="16" rx="3"/>
+      <rect x="304" y="290" width="50" height="16" rx="3"/>
+      <rect x="304" y="328" width="50" height="16" rx="3"/>
+      <rect x="304" y="366" width="50" height="16" rx="3"/>
     </g>
   </g>
-
-  <!-- MDOC Central Oil Co. Typography Badge -->
-  <rect x="136" y="392" width="240" height="52" rx="26" fill="#1e293b" stroke="#f59e0b" stroke-width="2.5" stroke-opacity="0.7" />
-  <text x="256" y="428" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Cairo', sans-serif" font-size="28" font-weight="900" fill="#f8fafc" text-anchor="middle" letter-spacing="3">MDOC</text>
-  <text x="256" y="468" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Cairo', sans-serif" font-size="16" font-weight="700" fill="#fbbf24" text-anchor="middle">شركة نفط الوسط</text>
 </svg>`;
 
 // Safe-zone padded maskable SVG for Android adaptive launcher icons
 const svgMaskable = `<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
   <defs>
-    <radialGradient id="glowM" cx="50%" cy="40%" r="60%">
+    <radialGradient id="appBgM" cx="50%" cy="40%" r="75%">
       <stop offset="0%" stop-color="#1e293b" />
-      <stop offset="100%" stop-color="#090d16" />
+      <stop offset="100%" stop-color="#0f172a" />
     </radialGradient>
-    <linearGradient id="goldM" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#fef08a" />
-      <stop offset="40%" stop-color="#f59e0b" />
-      <stop offset="100%" stop-color="#b45309" />
-    </linearGradient>
-    <linearGradient id="goldLightM" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#fde047" />
-      <stop offset="100%" stop-color="#d97706" />
-    </linearGradient>
   </defs>
 
-  <!-- Full bleed background for maskable safe area -->
-  <rect width="512" height="512" fill="url(#glowM)" />
+  <!-- Full bleed background for Android maskable safe area -->
+  <rect width="512" height="512" fill="url(#appBgM)" />
   
-  <!-- Scaled center graphics to fit within 75% safe area circle -->
-  <g transform="translate(64, 48) scale(0.75)">
-    <g transform="translate(106, 75) scale(3.0)">
-      <!-- Architectural Building Body -->
-      <path d="M 12 78 L 12 34 L 50 12 L 88 34 L 88 78 Z" fill="#0f172a" stroke="url(#goldM)" stroke-width="4.5" stroke-linejoin="round" />
-      
-      <!-- Stepped Foundation Lines -->
-      <line x1="6" y1="84" x2="94" y2="84" stroke="url(#goldM)" stroke-width="4" stroke-linecap="round" />
-      <line x1="16" y1="89" x2="84" y2="89" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round" opacity="0.7" />
-
-      <!-- Modern Engineering Grid / Windows -->
-      <rect x="22" y="42" width="13" height="13" rx="2.5" fill="url(#goldLightM)" />
-      <rect x="43" y="42" width="14" height="13" rx="2.5" fill="url(#goldLightM)" />
-      <rect x="65" y="42" width="13" height="13" rx="2.5" fill="url(#goldLightM)" />
-      
-      <rect x="22" y="61" width="13" height="13" rx="2.5" fill="url(#goldLightM)" />
-      <rect x="43" y="61" width="14" height="13" rx="2.5" fill="url(#goldLightM)" />
-      <rect x="65" y="61" width="13" height="13" rx="2.5" fill="url(#goldLightM)" />
-
-      <!-- Crown Oil Flame / Golden Drop -->
-      <path d="M 50 10 C 50 10 37 23 37 30 C 37 37 42.8 42 50 42 C 57.2 42 63 37 63 30 C 63 23 50 10 50 10 Z" fill="url(#goldM)" stroke="#fef08a" stroke-width="1.5" />
-      <circle cx="48" cy="27" r="3" fill="#ffffff" opacity="0.6" />
+  <!-- Scaled center graphics to fit within 70% safe area circle -->
+  <g transform="translate(86, 86) scale(0.664)">
+    <g fill="#248d9c">
+      <rect x="36" y="412" width="440" height="44" rx="6"/>
+      <path d="M 152 412 L 152 260 L 194 260 L 194 68 L 366 138 L 366 412 Z"/>
     </g>
-
-    <!-- MDOC Typography Badge -->
-    <rect x="136" y="392" width="240" height="52" rx="26" fill="#1e293b" stroke="#f59e0b" stroke-width="2.5" stroke-opacity="0.7" />
-    <text x="256" y="428" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Cairo', sans-serif" font-size="28" font-weight="900" fill="#f8fafc" text-anchor="middle" letter-spacing="3">MDOC</text>
-    <text x="256" y="468" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Cairo', sans-serif" font-size="16" font-weight="700" fill="#fbbf24" text-anchor="middle">شركة نفط الوسط</text>
+    <g fill="#ffffff">
+      <rect x="222" y="110" width="24" height="24" rx="3"/>
+      <rect x="222" y="154" width="24" height="24" rx="3"/>
+      <rect x="222" y="198" width="24" height="24" rx="3"/>
+      <rect x="260" y="126" width="24" height="24" rx="3"/>
+      <rect x="260" y="170" width="24" height="24" rx="3"/>
+      <rect x="260" y="214" width="24" height="24" rx="3"/>
+      <rect x="170" y="286" width="22" height="22" rx="3"/>
+      <rect x="202" y="286" width="22" height="22" rx="3"/>
+      <rect x="234" y="286" width="22" height="22" rx="3"/>
+      <rect x="266" y="286" width="22" height="22" rx="3"/>
+      <rect x="170" y="326" width="22" height="22" rx="3"/>
+      <rect x="202" y="326" width="22" height="22" rx="3"/>
+      <rect x="234" y="326" width="22" height="22" rx="3"/>
+      <rect x="266" y="326" width="22" height="22" rx="3"/>
+      <rect x="170" y="366" width="22" height="22" rx="3"/>
+      <rect x="202" y="366" width="22" height="22" rx="3"/>
+      <rect x="234" y="366" width="22" height="22" rx="3"/>
+      <rect x="266" y="366" width="22" height="22" rx="3"/>
+      <rect x="304" y="176" width="50" height="16" rx="3"/>
+      <rect x="304" y="214" width="50" height="16" rx="3"/>
+      <rect x="304" y="252" width="50" height="16" rx="3"/>
+      <rect x="304" y="290" width="50" height="16" rx="3"/>
+      <rect x="304" y="328" width="50" height="16" rx="3"/>
+      <rect x="304" y="366" width="50" height="16" rx="3"/>
+    </g>
   </g>
 </svg>`;
 

@@ -37,7 +37,7 @@ export function syncBrowserBranding(branding: Partial<SystemBranding> | null | u
   setOrUpdateMetaTag('property', 'og:image', logoUrl);
 
   // 3. Mobile / PWA App Names
-  const shortName = systemName.length > 30 ? systemName.slice(0, 30) : systemName;
+  const shortName = systemName.length > 20 ? 'إدارة الأبنية' : systemName;
   setOrUpdateMetaTag('name', 'apple-mobile-web-app-title', shortName);
   setOrUpdateMetaTag('name', 'application-name', shortName);
 
@@ -45,43 +45,59 @@ export function syncBrowserBranding(branding: Partial<SystemBranding> | null | u
   const isSvg = logoUrl.startsWith('data:image/svg') || logoUrl.endsWith('.svg');
   const mimeType = isSvg ? 'image/svg+xml' : 'image/png';
 
-  // Remove existing static icons to force browser repaint of new icon
-  const iconSelectors = [
+  // Base path calculation for current deployment (supports GitHub Pages sub-directories)
+  const pathname = window.location.pathname;
+  const basePath = pathname.endsWith('/') ? pathname : pathname.substring(0, pathname.lastIndexOf('/') + 1) || './';
+  const defaultPngIcon = `${basePath}icons/apple-touch-icon.png`;
+
+  // Standard Favicons in browser tab
+  const faviconSelectors = [
     "link[rel='icon']",
     "link[rel='shortcut icon']",
-    "link[rel='apple-touch-icon']",
-    "link[rel='apple-touch-icon-precomposed']",
   ];
-
-  const existingIcons = document.querySelectorAll<HTMLLinkElement>(iconSelectors.join(', '));
-  if (existingIcons.length > 0) {
-    existingIcons.forEach((el) => {
+  const existingFavicons = document.querySelectorAll<HTMLLinkElement>(faviconSelectors.join(', '));
+  if (existingFavicons.length > 0) {
+    existingFavicons.forEach((el) => {
       el.href = logoUrl;
       el.type = mimeType;
     });
   } else {
-    // If no icon tags exist, create them
     const newFavicon = document.createElement('link');
     newFavicon.rel = 'icon';
     newFavicon.type = mimeType;
     newFavicon.href = logoUrl;
     document.head.appendChild(newFavicon);
+  }
 
+  // Apple Touch Icon for iOS Safari Add-to-Home-Screen (iOS strictly requires PNG)
+  const appleSelectors = [
+    "link[rel='apple-touch-icon']",
+    "link[rel='apple-touch-icon-precomposed']",
+  ];
+  const appleIconUrl = isSvg ? defaultPngIcon : logoUrl;
+  const existingAppleIcons = document.querySelectorAll<HTMLLinkElement>(appleSelectors.join(', '));
+  if (existingAppleIcons.length > 0) {
+    existingAppleIcons.forEach((el) => {
+      el.href = appleIconUrl;
+      el.type = 'image/png';
+    });
+  } else {
     const newAppleIcon = document.createElement('link');
     newAppleIcon.rel = 'apple-touch-icon';
-    newAppleIcon.href = logoUrl;
+    newAppleIcon.type = 'image/png';
+    newAppleIcon.href = appleIconUrl;
     document.head.appendChild(newAppleIcon);
   }
 
   // 5. Dynamic Web App Manifest (for installation on Desktop PC & Mobile phone)
   try {
     const dynamicManifest = {
-      id: '/',
-      name: `${companyName} - ${systemName}`,
+      id: basePath,
+      name: `${systemName} - ${companyName}`,
       short_name: shortName,
       description: metaDescription,
-      start_url: '/',
-      scope: '/',
+      start_url: basePath,
+      scope: basePath,
       display: 'standalone',
       background_color: '#0f172a',
       theme_color: '#0f172a',
@@ -91,20 +107,38 @@ export function syncBrowserBranding(branding: Partial<SystemBranding> | null | u
       categories: ['business', 'productivity', 'utilities'],
       icons: [
         {
-          src: logoUrl,
-          sizes: '192x192 512x512 any',
-          type: mimeType,
-          purpose: 'any maskable',
+          src: `${basePath}icons/icon-192.png`,
+          sizes: '192x192',
+          type: 'image/png',
+          purpose: 'any',
         },
         {
-          src: logoUrl,
+          src: `${basePath}icons/icon-512.png`,
+          sizes: '512x512',
+          type: 'image/png',
+          purpose: 'any',
+        },
+        {
+          src: `${basePath}icons/icon-maskable-192.png`,
           sizes: '192x192',
-          type: mimeType,
+          type: 'image/png',
+          purpose: 'maskable',
+        },
+        {
+          src: `${basePath}icons/icon-maskable-512.png`,
+          sizes: '512x512',
+          type: 'image/png',
+          purpose: 'maskable',
+        },
+        {
+          src: `${basePath}icons/apple-touch-icon.png`,
+          sizes: '180x180',
+          type: 'image/png',
           purpose: 'any',
         },
         {
           src: logoUrl,
-          sizes: '512x512',
+          sizes: 'any',
           type: mimeType,
           purpose: 'any',
         },
