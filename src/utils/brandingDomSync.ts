@@ -1,7 +1,5 @@
 import { SystemBranding } from '../types';
 
-let currentManifestBlobUrl: string | null = null;
-
 function setOrUpdateMetaTag(attrKey: 'name' | 'property', attrValue: string, content: string) {
   if (typeof document === 'undefined') return;
   let element = document.querySelector<HTMLMetaElement>(`meta[${attrKey}="${attrValue}"]`);
@@ -89,80 +87,6 @@ export function syncBrowserBranding(branding: Partial<SystemBranding> | null | u
     document.head.appendChild(newAppleIcon);
   }
 
-  // 5. Dynamic Web App Manifest (for installation on Desktop PC & Mobile phone)
-  try {
-    const dynamicManifest = {
-      id: basePath,
-      name: `${systemName} - ${companyName}`,
-      short_name: shortName,
-      description: metaDescription,
-      start_url: basePath,
-      scope: basePath,
-      display: 'standalone',
-      background_color: '#0f172a',
-      theme_color: '#0f172a',
-      orientation: 'any',
-      dir: 'rtl',
-      lang: 'ar',
-      categories: ['business', 'productivity', 'utilities'],
-      icons: [
-        {
-          src: `${basePath}icons/icon-192.png`,
-          sizes: '192x192',
-          type: 'image/png',
-          purpose: 'any',
-        },
-        {
-          src: `${basePath}icons/icon-512.png`,
-          sizes: '512x512',
-          type: 'image/png',
-          purpose: 'any',
-        },
-        {
-          src: `${basePath}icons/icon-maskable-192.png`,
-          sizes: '192x192',
-          type: 'image/png',
-          purpose: 'maskable',
-        },
-        {
-          src: `${basePath}icons/icon-maskable-512.png`,
-          sizes: '512x512',
-          type: 'image/png',
-          purpose: 'maskable',
-        },
-        {
-          src: `${basePath}icons/apple-touch-icon.png`,
-          sizes: '180x180',
-          type: 'image/png',
-          purpose: 'any',
-        },
-        {
-          src: logoUrl,
-          sizes: 'any',
-          type: mimeType,
-          purpose: 'any',
-        },
-      ],
-    };
-
-    if (currentManifestBlobUrl) {
-      URL.revokeObjectURL(currentManifestBlobUrl);
-      currentManifestBlobUrl = null;
-    }
-
-    const manifestBlob = new Blob([JSON.stringify(dynamicManifest, null, 2)], {
-      type: 'application/manifest+json',
-    });
-    currentManifestBlobUrl = URL.createObjectURL(manifestBlob);
-
-    let manifestLink = document.querySelector<HTMLLinkElement>("link[rel='manifest']");
-    if (!manifestLink) {
-      manifestLink = document.createElement('link');
-      manifestLink.rel = 'manifest';
-      document.head.appendChild(manifestLink);
-    }
-    manifestLink.href = currentManifestBlobUrl;
-  } catch (err) {
-    console.warn('Note: Dynamic manifest blob generation failed:', err);
-  }
+  // 5. PWA Manifest is loaded statically via <link rel="manifest" href="./manifest.json" /> in index.html.
+  // Note: Modern browsers reject blob: URLs for PWA manifest start_url/scope, so keeping the static manifest avoids all console warnings.
 }
