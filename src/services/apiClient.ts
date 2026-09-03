@@ -12,6 +12,7 @@ import { safeSetItem, safeParse } from '../utils/storageUtils';
 import { sanitizeAndCompressAttachments } from '../utils/imageCompressor';
 import * as firestoreClient from './firebaseClient';
 import { syncQueue, SyncQueueStatus } from './syncQueue';
+import { INITIAL_ORG_ENTITIES } from '../data/mockData';
 
 export { syncQueue, type SyncQueueStatus };
 
@@ -422,8 +423,9 @@ export async function getOrgEntities(): Promise<OrgEntity[]> {
   try {
     const firestoreEntities = await firestoreClient.getOrgEntitiesFromFirestore();
     if (Array.isArray(firestoreEntities) && firestoreEntities.length > 0) {
-      safeSetItem('app_ref_org_entities', firestoreEntities);
-      return firestoreEntities;
+      const sorted = [...firestoreEntities].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+      safeSetItem('app_ref_org_entities', sorted);
+      return sorted;
     }
   } catch (err) {
     console.warn('Firestore getOrgEntities note:', err);
@@ -431,22 +433,31 @@ export async function getOrgEntities(): Promise<OrgEntity[]> {
 
   const data = await fetchJson<OrgEntity[]>(`${BASE_API_URL}/org-entities`);
   if (Array.isArray(data) && data.length > 0) {
-    safeSetItem('app_ref_org_entities', data);
-    return data;
+    const sorted = [...data].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+    safeSetItem('app_ref_org_entities', sorted);
+    return sorted;
   }
-  return safeParse('app_ref_org_entities', []);
+  const cached = safeParse('app_ref_org_entities', INITIAL_ORG_ENTITIES);
+  if (Array.isArray(cached) && cached.length > 0) {
+    return [...cached].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+  }
+  return INITIAL_ORG_ENTITIES.map((e, idx) => ({ ...e, sortOrder: e.sortOrder ?? idx }));
 }
 
 export async function saveOrgEntities(entities: OrgEntity[]): Promise<boolean> {
-  safeSetItem('app_ref_org_entities', entities);
+  const ordered = entities.map((e, idx) => ({
+    ...e,
+    sortOrder: e.sortOrder !== undefined ? e.sortOrder : idx,
+  }));
+  safeSetItem('app_ref_org_entities', ordered);
   try {
-    await firestoreClient.saveOrgEntitiesToFirestore(entities);
+    await firestoreClient.saveOrgEntitiesToFirestore(ordered);
   } catch (err) {
     console.warn('Firestore saveOrgEntities error:', err);
   }
   fetchJson<{ success: boolean }>(`${BASE_API_URL}/org-entities/bulk`, {
     method: 'POST',
-    body: JSON.stringify({ entities }),
+    body: JSON.stringify({ entities: ordered }),
   }).catch(() => {});
   return true;
 }
@@ -484,6 +495,9 @@ export async function updateOrgEntity(entity: OrgEntity): Promise<OrgEntity> {
 }
 
 export async function deleteOrgEntity(id: string): Promise<boolean> {
+  const current = safeParse<OrgEntity[]>('app_ref_org_entities', []);
+  const updated = current.filter((e) => e.id !== id);
+  safeSetItem('app_ref_org_entities', updated);
   try {
     await firestoreClient.deleteOrgEntityFromFirestore(id);
   } catch (err) {
@@ -492,6 +506,46 @@ export async function deleteOrgEntity(id: string): Promise<boolean> {
   fetchJson<{ success: boolean }>(`${BASE_API_URL}/org-entities/${encodeURIComponent(id)}`, {
     method: 'DELETE',
   }).catch(() => {});
+  return true;
+}
+
+export async function deleteOrgEntitiesBatch(ids: string[]): Promise<boolean> {
+  const current = safeParse<OrgEntity[]>('app_ref_org_entities', []);
+  const idSet = new Set(ids);
+  const updated = current.filter((e) => !idSet.has(e.id));
+  safeSetItem('app_ref_org_entities', updated);
+  try {
+    await firestoreClient.deleteOrgEntitiesBatchFromFirestore(ids);
+  } catch (err) {
+    console.warn('Firestore deleteOrgEntitiesBatch error:', err);
+  }
+  for (const id of ids) {
+    fetchJson<{ success: boolean }>(`${BASE_API_URL}/org-entities/${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+    }).catch(() => {});
+  }
+  return true;
+}
+
+export async function clearOrgEntities(): Promise<boolean> {
+  safeSetItem('app_ref_org_entities', []);
+  try {
+    await firestoreClient.clearOrgEntitiesFromFirestore();
+  } catch (err) {
+    console.warn('Firestore clearOrgEntities error:', err);
+  }
+  triggerServerResetModule('org_entities', 'clear').catch(() => {});
+  return true;
+}
+
+export async function resetOrgEntitiesToDefault(): Promise<boolean> {
+  safeSetItem('app_ref_org_entities', INITIAL_ORG_ENTITIES);
+  try {
+    await firestoreClient.saveOrgEntitiesToFirestore(INITIAL_ORG_ENTITIES);
+  } catch (err) {
+    console.warn('Firestore resetOrgEntitiesToDefault error:', err);
+  }
+  triggerServerResetModule('org_entities', 'default').catch(() => {});
   return true;
 }
 
@@ -661,7 +715,7 @@ export async function triggerServerFactoryReset(
 }
 
 export async function triggerServerResetModule(
-  moduleName: 'units' | 'maintenance' | 'inspections' | 'occupancy' | 'users' | 'audit_logs',
+  moduleName: 'units' | 'maintenance' | 'inspections' | 'occupancy' | 'users' | 'audit_logs' | 'org_entities',
   actionType: 'clear' | 'default'
 ): Promise<boolean> {
   try {
@@ -672,9 +726,14 @@ export async function triggerServerResetModule(
         inspections: 'periodic_inspections',
         occupancy: 'occupancy_records',
         audit_logs: 'audit_logs',
+        org_entities: 'org_entities',
       };
       if (colMap[moduleName]) {
         await firestoreClient.clearFirestoreCollection(colMap[moduleName]);
+      }
+    } else if (actionType === 'default') {
+      if (moduleName === 'org_entities') {
+        await firestoreClient.saveOrgEntitiesToFirestore(INITIAL_ORG_ENTITIES);
       }
     }
   } catch (err) {

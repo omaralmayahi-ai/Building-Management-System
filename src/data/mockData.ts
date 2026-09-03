@@ -11,6 +11,7 @@ import {
   OrgEntity,
   MaintenanceDepartmentRef,
 } from '../types';
+import { MIDLAND_OIL_COMPANY_ORG_ENTITIES } from './midlandOrgStructure';
 
 export const INITIAL_UNITS: UnitAsset[] = [];
 
@@ -83,7 +84,10 @@ export const INITIAL_EQUIPMENT_TYPES = [
   { id: 'EQT-FUEL', code: 'fuel_tank', nameAr: 'خزان وقود ديزل أرضي', nameEn: 'Diesel Fuel Tank', iconName: 'Database', renderGeometry: 'cylinder' as const, defaultCapacity: '5000 Liters', status: 'active' as const },
 ];
 
-export const INITIAL_ORG_ENTITIES: OrgEntity[] = [];
+export const INITIAL_ORG_ENTITIES: OrgEntity[] = MIDLAND_OIL_COMPANY_ORG_ENTITIES.map((e, idx) => ({
+  ...e,
+  sortOrder: e.sortOrder !== undefined ? e.sortOrder : idx,
+}));
 
 export const DEFAULT_SYSTEM_LOGO_SVG = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512"><g fill="%23248d9c"><rect x="36" y="412" width="440" height="44" rx="4"/><path d="M 152 412 L 152 260 L 194 260 L 194 68 L 366 138 L 366 412 Z"/></g><g fill="%23ffffff"><rect x="222" y="110" width="24" height="24" rx="2"/><rect x="222" y="154" width="24" height="24" rx="2"/><rect x="222" y="198" width="24" height="24" rx="2"/><rect x="260" y="126" width="24" height="24" rx="2"/><rect x="260" y="170" width="24" height="24" rx="2"/><rect x="260" y="214" width="24" height="24" rx="2"/><rect x="170" y="286" width="22" height="22" rx="2"/><rect x="202" y="286" width="22" height="22" rx="2"/><rect x="234" y="286" width="22" height="22" rx="2"/><rect x="266" y="286" width="22" height="22" rx="2"/><rect x="170" y="326" width="22" height="22" rx="2"/><rect x="202" y="326" width="22" height="22" rx="2"/><rect x="234" y="326" width="22" height="22" rx="2"/><rect x="266" y="326" width="22" height="22" rx="2"/><rect x="170" y="366" width="22" height="22" rx="2"/><rect x="202" y="366" width="22" height="22" rx="2"/><rect x="234" y="366" width="22" height="22" rx="2"/><rect x="266" y="366" width="22" height="22" rx="2"/><rect x="304" y="176" width="50" height="16" rx="2"/><rect x="304" y="214" width="50" height="16" rx="2"/><rect x="304" y="252" width="50" height="16" rx="2"/><rect x="304" y="290" width="50" height="16" rx="2"/><rect x="304" y="328" width="50" height="16" rx="2"/><rect x="304" y="366" width="50" height="16" rx="2"/></g></svg>`;
 

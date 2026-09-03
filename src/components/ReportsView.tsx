@@ -28,6 +28,7 @@ import {
   ExternalLink,
   FileSpreadsheet,
   Users,
+  Network,
 } from 'lucide-react';
 import {
   UnitAsset,
@@ -49,7 +50,9 @@ import {
   INITIAL_GOVERNORATES,
   INITIAL_OILFIELDS,
   INITIAL_USERS,
+  INITIAL_ORG_ENTITIES,
 } from '../data/mockData';
+import { OrgEntityPickerModal } from './OrgEntityPickerModal';
 import {
   toArabicDigits,
   formatDateOnly,
@@ -338,6 +341,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
   const [selectedField, setSelectedField] = useState('all');
   const [selectedGovernorate, setSelectedGovernorate] = useState('all');
   const [selectedOrgEntity, setSelectedOrgEntity] = useState('all');
+  const [showOrgPickerModal, setShowOrgPickerModal] = useState(false);
   const [selectedGrade, setSelectedGrade] = useState<string>('all');
   const [selectedInspectionStatus, setSelectedInspectionStatus] = useState<string>('all');
   const [selectedMaintenanceStatus, setSelectedMaintenanceStatus] = useState<string>('all');
@@ -489,20 +493,30 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
     [activeOilfieldsList, getCanonicalFieldKey]
   );
 
+  // Effective Org Entities (with fallback to INITIAL_ORG_ENTITIES so it never empties)
+  const effectiveOrgEntities = useMemo(() => {
+    if (Array.isArray(orgEntities) && orgEntities.length > 0) {
+      return orgEntities;
+    }
+    return INITIAL_ORG_ENTITIES;
+  }, [orgEntities]);
+
   // Available Org Entities list
   const availableOrgEntities = useMemo(() => {
     const set = new Set<string>();
-    (orgEntities || []).forEach((e) => {
-      if (e.status === 'active' && e.nameAr) set.add(e.nameAr);
+    effectiveOrgEntities.forEach((e) => {
+      if (e.status !== 'disabled' && e.nameAr) {
+        set.add(e.nameAr.trim());
+      }
     });
     units.forEach((u) => {
-      if (u.department) set.add(u.department);
+      if (u.department) set.add(u.department.trim());
       u.rooms?.forEach((r) => {
-        if (r.occupiedBy) set.add(r.occupiedBy);
+        if (r.occupiedBy) set.add(r.occupiedBy.trim());
       });
     });
-    return Array.from(set);
-  }, [orgEntities, units]);
+    return Array.from(set).sort((a, b) => a.localeCompare(b, 'ar'));
+  }, [effectiveOrgEntities, units]);
 
   // Unit lookup map for fast checks
   const unitByCode = useMemo(() => {
@@ -3015,20 +3029,39 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
             {/* Org Entity / Department Select */}
             <div className="space-y-1">
               <label className={`text-[11px] font-bold ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>التشكيل / الجهة الشاغلة:</label>
-              <select
-                value={selectedOrgEntity}
-                onChange={(e) => setSelectedOrgEntity(e.target.value)}
-                className={`w-full px-2.5 py-1.5 text-xs rounded-lg border outline-none transition ${
-                  isLight ? 'bg-white border-slate-300 text-slate-800' : 'bg-slate-900 border-slate-800 text-slate-200'
-                }`}
-              >
-                <option value="all">جميع التشكيلات والجهات</option>
-                {availableOrgEntities.map((dept) => (
-                  <option key={dept} value={dept}>
-                    {dept}
-                  </option>
-                ))}
-              </select>
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setShowOrgPickerModal(true)}
+                  className={`w-full px-3 py-1.5 text-xs rounded-lg border font-bold transition flex items-center justify-between gap-2 cursor-pointer shadow-sm ${
+                    selectedOrgEntity !== 'all'
+                      ? 'bg-amber-500 text-slate-950 border-amber-400 font-black ring-1 ring-amber-400'
+                      : isLight
+                      ? 'bg-white hover:bg-slate-50 border-slate-300 text-slate-700'
+                      : 'bg-slate-900 hover:bg-slate-800 border-slate-800 text-slate-200'
+                  }`}
+                  title="فتح صفحة التشكيلات للاختيار منها"
+                >
+                  <div className="flex items-center gap-1.5 truncate">
+                    <Network className={`w-3.5 h-3.5 shrink-0 ${selectedOrgEntity !== 'all' ? 'text-slate-950' : 'text-amber-500'}`} />
+                    <span className="truncate">
+                      {selectedOrgEntity !== 'all' ? selectedOrgEntity : 'اختيار التشكيل / الجهة الشاغلة...'}
+                    </span>
+                  </div>
+                  <ChevronDown className="w-3.5 h-3.5 shrink-0 opacity-70" />
+                </button>
+
+                {selectedOrgEntity !== 'all' && (
+                  <button
+                    type="button"
+                    onClick={() => setSelectedOrgEntity('all')}
+                    className="p-1.5 rounded-lg border border-red-500/30 text-red-500 hover:bg-red-500/10 transition cursor-pointer shrink-0"
+                    title="إلغاء تصفية التشكيل"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Governorate Select */}
@@ -4043,6 +4076,18 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
           onClose={() => setPreviewAttachment(null)}
         />
       )}
+
+      {/* Org Entity Picker Modal */}
+      <OrgEntityPickerModal
+        isOpen={showOrgPickerModal}
+        onClose={() => setShowOrgPickerModal(false)}
+        orgEntities={effectiveOrgEntities}
+        selectedEntity={selectedOrgEntity}
+        onSelectEntity={(entityName) => setSelectedOrgEntity(entityName)}
+        title="اختيار التشكيل / الجهة الشاغلة للتقارير"
+        subtitle="اختر تشكيلاً أو قسماً من الهيكل الإداري للشركة لتصفية وطباعة وتصدير كافة السجلات والمنشآت التابعة له"
+        theme={theme}
+      />
     </div>
   );
 };

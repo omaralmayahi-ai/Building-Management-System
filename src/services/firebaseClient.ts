@@ -378,26 +378,88 @@ export async function getOrgEntitiesFromFirestore(): Promise<OrgEntity[]> {
   await ensureDatabaseSeeded();
   try {
     const snap = await withTimeout(getDocs(collection(db, 'org_entities')), 4000, null);
-    if (!snap || snap.empty) return [];
-    return snap.docs.map((d) => d.data() as OrgEntity);
+    if (!snap || snap.empty) {
+      // Auto-populate with initial org entities if empty
+      try {
+        const batch = writeBatch(db);
+        for (let i = 0; i < INITIAL_ORG_ENTITIES.length; i++) {
+          const org = {
+            ...INITIAL_ORG_ENTITIES[i],
+            sortOrder: INITIAL_ORG_ENTITIES[i].sortOrder !== undefined ? INITIAL_ORG_ENTITIES[i].sortOrder : i,
+          };
+          const ref = doc(db, 'org_entities', org.id);
+          batch.set(ref, sanitizeDoc(org));
+        }
+        await batch.commit();
+      } catch (e) {
+        console.warn('Auto-seed org_entities note:', e);
+      }
+      return INITIAL_ORG_ENTITIES.map((e, i) => ({
+        ...e,
+        sortOrder: e.sortOrder !== undefined ? e.sortOrder : i,
+      }));
+    }
+    const list = snap.docs.map((d) => d.data() as OrgEntity);
+    // Sort deterministically by sortOrder to strictly preserve drag-and-drop custom hierarchy
+    list.sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+    return list;
   } catch (err) {
     console.warn('Firestore getOrgEntities error:', err);
-    return [];
+    return INITIAL_ORG_ENTITIES.map((e, i) => ({
+      ...e,
+      sortOrder: e.sortOrder !== undefined ? e.sortOrder : i,
+    }));
   }
 }
 
 export async function saveOrgEntitiesToFirestore(entities: OrgEntity[]): Promise<void> {
-  const batch = writeBatch(db);
-  for (const e of entities) {
-    const ref = doc(db, 'org_entities', e.id);
-    batch.set(ref, sanitizeDoc(e), { merge: true });
+  try {
+    const snap = await getDocs(collection(db, 'org_entities'));
+    const newIds = new Set(entities.map((e) => e.id));
+    const batch = writeBatch(db);
+
+    // Delete documents that were removed
+    snap.docs.forEach((docSnap) => {
+      if (!newIds.has(docSnap.id)) {
+        batch.delete(docSnap.ref);
+      }
+    });
+
+    // Write or update existing entities with explicit sortOrder preservation
+    for (let i = 0; i < entities.length; i++) {
+      const e = entities[i];
+      const entityWithOrder: OrgEntity = {
+        ...e,
+        sortOrder: e.sortOrder !== undefined ? e.sortOrder : i,
+      };
+      const ref = doc(db, 'org_entities', e.id);
+      batch.set(ref, sanitizeDoc(entityWithOrder), { merge: true });
+    }
+
+    await batch.commit();
+  } catch (err) {
+    console.error('Firestore saveOrgEntitiesToFirestore error:', err);
+    throw err;
   }
-  await batch.commit();
 }
 
 export async function deleteOrgEntityFromFirestore(id: string): Promise<void> {
   const ref = doc(db, 'org_entities', id);
   await deleteDoc(ref);
+}
+
+export async function deleteOrgEntitiesBatchFromFirestore(ids: string[]): Promise<void> {
+  if (!ids || ids.length === 0) return;
+  const batch = writeBatch(db);
+  for (const id of ids) {
+    const ref = doc(db, 'org_entities', id);
+    batch.delete(ref);
+  }
+  await batch.commit();
+}
+
+export async function clearOrgEntitiesFromFirestore(): Promise<void> {
+  await clearFirestoreCollection('org_entities');
 }
 
 // ============================================================================
@@ -464,6 +526,7 @@ export async function resetFirestoreComprehensive(adminUser: SystemUser): Promis
     await clearFirestoreCollection('periodic_inspections');
     await clearFirestoreCollection('audit_logs');
     await clearFirestoreCollection('system_users');
+    await clearFirestoreCollection('org_entities');
 
     // Re-seed only the Primary Administrator
     const userRef = doc(db, 'system_users', adminUser.id);

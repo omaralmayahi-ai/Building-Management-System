@@ -23,6 +23,7 @@ import {
   Image,
   Users,
   QrCode,
+  Network,
 } from 'lucide-react';
 import { UnitAsset, ConditionGrade, UnitType, Room, EquipmentItem, ReferenceUnitType, UnitAttachment, OrgEntity } from '../types';
 import { BUILDING_SHAPE_OPTIONS, getShapeFactor, calculateUnitArea } from './NewUnitWizard';
@@ -32,6 +33,7 @@ import { LocationPickerMap } from './LocationPickerMap';
 import { AttachmentViewerModal } from './AttachmentViewerModal';
 import { QuickAddOrgEntityModal } from './QuickAddOrgEntityModal';
 import { RoomQrCardModal } from './RoomQrCardModal';
+import { OrgChartModal } from './OrgChartModal';
 import {
   generateRoomCode,
   getRoomTypeCode,
@@ -87,6 +89,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
     initialTab || 'basic'
   );
   const [showQuickAddOrgModal, setShowQuickAddOrgModal] = useState(false);
+  const [showOrgChartModal, setShowOrgChartModal] = useState(false);
   const [selectedRoomForQr, setSelectedRoomForQr] = useState<Room | null>(null);
 
   // Editable Form State initialized from unit
@@ -140,6 +143,11 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
     const updated = [deptName, ...otherDepts];
     setSelectedDepartments(updated);
     setDepartment(updated.join(' ، '));
+  };
+
+  const handleSaveSelectionFromOrgChart = (selectedNames: string[]) => {
+    setSelectedDepartments(selectedNames);
+    setDepartment(selectedNames.join(' ، '));
   };
   const [lengthM, setLengthM] = useState<number>(unit.lengthM || 20);
   const [widthM, setWidthM] = useState<number>(unit.widthM || 16);
@@ -462,7 +470,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
       floor: 'الطابق 1',
       areaSqM: 25,
       status: 'Active',
-      occupiedBy: department || (orgEntities.find((e) => e.status === 'active')?.nameAr || ''),
+      occupiedBy: selectedDepartments[0] || department || '',
       code: roomCode,
       roomTypeCode: typeCode,
       sequenceNumber: seqNum,
@@ -834,31 +842,22 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                     </button>
                   </div>
 
-                  {/* Dropdown to add an entity from Org Structure */}
-                  <div className="flex items-center gap-2">
-                    <select
-                      value={selectedDeptToAdd}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        if (val) {
-                          handleAddDepartment(val);
-                        }
-                      }}
-                      className={`w-full border rounded-xl p-2.5 font-bold text-xs focus:border-amber-500 outline-none transition cursor-pointer ${
-                        isLight
-                          ? 'bg-slate-50 border-slate-300 text-slate-900'
-                          : 'bg-slate-900 border-slate-800 text-slate-100'
-                      }`}
+                  {/* Selection Controls: Button to open Org Chart Modal */}
+                  <div>
+                    <button
+                      type="button"
+                      onClick={() => setShowOrgChartModal(true)}
+                      className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs sm:text-sm transition cursor-pointer shadow-md shadow-amber-500/20 active:scale-[0.99]"
+                      title="فتح الهيكل التنظيمي المعتمد لاختيار وتحديد التشكيلات والجهات الشاغلة"
                     >
-                      <option value="">-- اختر جهة شاغلة لإضافتها للمنشأة --</option>
-                      {orgEntities
-                        .filter((e) => e.status === 'active' && !selectedDepartments.includes(e.nameAr))
-                        .map((ent) => (
-                          <option key={ent.id} value={ent.nameAr}>
-                            {ent.nameAr} ({ent.code}) - الكادر: {toArabicDigits(ent.employeeCount || 0)} موظف
-                          </option>
-                        ))}
-                    </select>
+                      <Network className="w-4 h-4 text-slate-950" />
+                      <span>عرض الهيكل التنظيمي لاختيار وتحديد التشكيلات والجهات الشاغلة</span>
+                      {selectedDepartments.length > 0 && (
+                        <span className="px-2 py-0.5 rounded-full bg-slate-950 text-amber-300 text-[11px] font-black mr-1.5">
+                          {toArabicDigits(selectedDepartments.length)} محددة
+                        </span>
+                      )}
+                    </button>
                   </div>
 
                   {/* Selected Occupying Entities Display Cards/Chips */}
@@ -882,7 +881,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                             : 'bg-slate-900/40 border-slate-800 text-slate-400'
                         }`}
                       >
-                        لم يتم اختيار جهات شاغلة بعد. اختر جهة من القائمة أعلاه أو أضف جهة جديدة.
+                        لم يتم اختيار جهات شاغلة بعد. اضغط على زر "عرض الهيكل التنظيمي" أعلاه لتحديد التشكيلات الشاغلة.
                       </div>
                     ) : (
                       <div className="flex flex-wrap gap-2">
@@ -1662,32 +1661,25 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                                     handleUpdateRoom(rm.id, 'status', 'Active');
                                   }
                                 }}
-                                className={`w-full border rounded-lg px-2 py-1 text-xs outline-none cursor-pointer ${
-                                  isLight ? 'bg-slate-50 border-slate-300 text-slate-900 font-medium' : 'bg-slate-900 border-slate-800 text-slate-100'
+                                className={`w-full border rounded-lg px-2 py-1 text-xs outline-none cursor-pointer transition ${
+                                  isLight ? 'bg-slate-50 border-slate-300 text-slate-900 font-medium focus:border-amber-500' : 'bg-slate-900 border-slate-800 text-slate-100 focus:border-amber-500'
                                 }`}
                               >
                                 <option value="">🏢 شاغرة (بدون إشغال / فارغة)</option>
-                                {selectedDepartments.length > 0 && (
-                                  <optgroup label="الجهات الشاغلة للمنشأة">
-                                    {selectedDepartments.map((deptName) => (
-                                      <option key={deptName} value={deptName}>
-                                        ★ {deptName}
-                                      </option>
-                                    ))}
-                                  </optgroup>
-                                )}
-                                <optgroup label="كافة تشكيلات الهيكل التنظيمي">
-                                  {orgEntities.filter((e) => e.status === 'active').map((ent) => (
-                                    <option key={ent.id} value={ent.nameAr}>
-                                      {ent.nameAr} ({ent.code})
+                                {selectedDepartments.length > 0 ? (
+                                  selectedDepartments.map((deptName, idx) => (
+                                    <option key={deptName} value={deptName}>
+                                      {idx === 0 ? `★ ${deptName} (الجهة الرئيسية)` : `• ${deptName}`}
                                     </option>
-                                  ))}
-                                </optgroup>
-                                {rm.occupiedBy &&
-                                  !orgEntities.some((e) => e.nameAr === rm.occupiedBy) &&
-                                  !selectedDepartments.includes(rm.occupiedBy) && (
-                                    <option value={rm.occupiedBy}>{rm.occupiedBy}</option>
-                                  )}
+                                  ))
+                                ) : (
+                                  <option value="" disabled>
+                                    ⚠️ يرجى تحديد الجهات الشاغلة للمنشأة أولاً من الهيكل التنظيمي أعلاه
+                                  </option>
+                                )}
+                                {rm.occupiedBy && !selectedDepartments.includes(rm.occupiedBy) && (
+                                  <option value={rm.occupiedBy}>{rm.occupiedBy} (سابق)</option>
+                                )}
                               </select>
                             </td>
                             <td className="p-2 w-28">
@@ -2343,6 +2335,20 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
           allRooms={rooms}
           theme={theme}
           onClose={() => setSelectedRoomForQr(null)}
+        />
+      )}
+
+      {/* Org Chart Modal for Occupant Entities Selection */}
+      {showOrgChartModal && (
+        <OrgChartModal
+          isOpen={showOrgChartModal}
+          onClose={() => setShowOrgChartModal(false)}
+          orgEntities={orgEntities}
+          units={existingUnits}
+          isParentLight={isLight}
+          selectionMode={true}
+          initialSelectedEntities={selectedDepartments}
+          onSaveSelection={handleSaveSelectionFromOrgChart}
         />
       )}
     </div>

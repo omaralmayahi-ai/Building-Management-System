@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   LayoutDashboard,
   Box,
@@ -386,7 +386,10 @@ export function App() {
         if (apiOcc && apiOcc.length > 0) setOccupancyRecords(apiOcc);
         if (apiInsp && apiInsp.length > 0) setPeriodicInspections(apiInsp);
         if (apiLogs && apiLogs.length > 0) setAuditLogs(apiLogs);
-        if (apiEntities && apiEntities.length > 0) setOrgEntities(apiEntities);
+        if (apiEntities && apiEntities.length > 0) {
+          const sorted = [...apiEntities].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+          setOrgEntities(sorted);
+        }
         if (apiBranding && apiBranding.systemName) setBranding(apiBranding);
         if (apiUsers && apiUsers.length > 0) {
           const sanitized = apiUsers.map((u) => {
@@ -420,6 +423,7 @@ export function App() {
 
   // Real-Time Synchronization State & Listener (المزامنة الفورية اللحظية عند إضافة/تعديل/حذف)
   const [syncStatus, setSyncStatus] = useState<'connected' | 'reconnecting' | 'polling'>('connected');
+  const lastOrgEntitySaveTimeRef = useRef<number>(0);
 
   useEffect(() => {
     const unsubscribe = api.subscribeToRealtimeSync(
@@ -456,9 +460,14 @@ export function App() {
             }
           }
           if (event.type === 'org_entities_updated' || event.type === 'all_updated') {
+            // If we just saved locally less than 3.5 seconds ago, keep our authoritative local state
+            if (Date.now() - lastOrgEntitySaveTimeRef.current < 3500) {
+              return;
+            }
             const latestEntities = await api.getOrgEntities();
             if (latestEntities && Array.isArray(latestEntities)) {
-              setOrgEntities(latestEntities);
+              const sorted = [...latestEntities].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+              setOrgEntities(sorted);
             }
           }
           if (event.type === 'branding_updated' || event.type === 'all_updated') {
@@ -545,14 +554,38 @@ export function App() {
   );
 
   const [orgEntities, setOrgEntities] = useState<OrgEntity[]>(() => {
-    const rawEntities: OrgEntity[] = safeParse('app_ref_org_entities', INITIAL_ORG_ENTITIES);
-    return rawEntities.map((e) => {
+    let rawEntities: OrgEntity[] = safeParse('app_ref_org_entities', INITIAL_ORG_ENTITIES);
+    if (!rawEntities || rawEntities.length === 0) {
+      rawEntities = INITIAL_ORG_ENTITIES;
+      safeSetItem('app_ref_org_entities', INITIAL_ORG_ENTITIES);
+    }
+    const mapped = rawEntities.map((e, idx) => {
       let level = e.level as string;
-      if (level === 'directorate') level = 'central_dept';
+      if (level === 'directorate') level = 'commission';
       if (level === 'division') level = 'department';
       if (level === 'unit_team') level = 'unit';
-      return { ...e, level: level as OrgLevel };
+
+      // Auto-migrate commissions & central departments if previously lumped
+      const name = (e.nameAr || '').trim();
+      if (
+        (level === 'central_dept' || !level) &&
+        (name.startsWith('هيئة') || name.startsWith('الهيئة') || (e.code && e.code.startsWith('COMM-')))
+      ) {
+        level = 'commission';
+      } else if (
+        (level === 'department' || level === 'central_dept') &&
+        (e.parentId === 'ORG-DG' || !e.parentId) &&
+        (name.startsWith('قسم') || name.startsWith('القسم'))
+      ) {
+        level = 'central_dept';
+      }
+      return {
+        ...e,
+        level: level as OrgLevel,
+        sortOrder: e.sortOrder !== undefined && e.sortOrder !== null ? e.sortOrder : idx,
+      };
     });
+    return mapped.sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
   });
 
   // Sync reference tables to LocalStorage
@@ -777,9 +810,9 @@ export function App() {
     const parentId = entity?.parentId || null;
 
     let updated: OrgEntity[] = [];
+    const toDeleteIds = new Set<string>([id]);
     if (deleteChildren) {
       // Cascade delete: remove entity and any descendant
-      const toDeleteIds = new Set<string>([id]);
       let changed = true;
       while (changed) {
         changed = false;
@@ -802,6 +835,7 @@ export function App() {
     safeSetItem('app_ref_org_entities', updated);
 
     try {
+      await api.deleteOrgEntitiesBatch(Array.from(toDeleteIds));
       await api.saveOrgEntities(updated);
       showToast('تم حذف التشكيل التنظيمي وحفظ التحديثات نهائياً بنجاح', 'success', 'نجاح الحذف');
     } catch (err: any) {
@@ -822,12 +856,25 @@ export function App() {
     }
   };
 
-  const handleBulkSaveOrgEntities = async (entities: OrgEntity[]) => {
-    setOrgEntities(entities);
-    safeSetItem('app_ref_org_entities', entities);
+  const handleBulkSaveOrgEntities = async (
+    entities: OrgEntity[],
+    customToastMessage?: string,
+    customAction?: string
+  ) => {
+    lastOrgEntitySaveTimeRef.current = Date.now();
+    const ordered = entities.map((e, idx) => ({
+      ...e,
+      sortOrder: e.sortOrder !== undefined && e.sortOrder !== null ? e.sortOrder : idx,
+    }));
+    setOrgEntities(ordered);
+    safeSetItem('app_ref_org_entities', ordered);
     try {
-      await api.saveOrgEntities(entities);
-      showToast(`تم استيراد وحفظ ${entities.length} تشكيل بنجاح في قاعدة البيانات`, 'success', 'نجاح الاستيراد');
+      await api.saveOrgEntities(ordered);
+      showToast(
+        customToastMessage || `تم حفظ وترتيب ${ordered.length} تشكيل بنجاح في قاعدة البيانات`,
+        'success',
+        customAction || 'إعادة ترتيب الهيكل'
+      );
     } catch (err: any) {
       console.error('API saveOrgEntities error:', err);
       showToast(err.message || 'فشل حفظ الهيكل التنظيمي في قاعدة البيانات المركزية', 'error', 'خطأ في الحفظ');
@@ -835,12 +882,12 @@ export function App() {
     appendAuditLog({
       id: `LOG-${getServerTimestamp()}`,
       timestamp: getServerDateTimeFormatted(),
-      action: 'استيراد/تحديث شامل للهيكل التنظيمي',
+      action: customAction || 'إعادة ترتيب الهيكل التنظيمي',
       user: currentUser?.name || 'غير معروف',
       userInitials: currentUser?.name ? currentUser.name.split(' ').map((w) => w[0]).join('').slice(0, 2) : '—',
       affectedField: 'الهيكل التنظيمي',
-      previousValue: 'هيكل سابق',
-      newValue: `تم تحديث ${entities.length} تشكيل بالكامل`,
+      previousValue: 'ترتيب سابق',
+      newValue: `تم تثبيت مواقع وترتيب ${ordered.length} تشكيل بالكامل`,
     });
   };
 
@@ -865,9 +912,46 @@ export function App() {
     }
   };
 
-  const handleResetOrgEntitiesToDefault = () => {
+  const handleClearOrgEntities = async () => {
+    setOrgEntities([]);
+    safeSetItem('app_ref_org_entities', []);
+    try {
+      await api.clearOrgEntities();
+      showToast('تم مسح وتفريغ الهيكل التنظيمي بالكامل بنجاح', 'success', 'تفريغ الهيكل');
+    } catch (err) {
+      console.error('Clear org entities error:', err);
+    }
+    appendAuditLog({
+      id: `LOG-${getServerTimestamp()}`,
+      timestamp: getServerDateTimeFormatted(),
+      action: 'مسح الهيكل التنظيمي',
+      user: currentUser?.name || 'مدير النظام',
+      userInitials: 'عم',
+      affectedField: 'الهيكل التنظيمي',
+      previousValue: `${orgEntities.length} تشكيل`,
+      newValue: 'تفريغ الهيكل بالكامل (0)',
+    });
+  };
+
+  const handleResetOrgEntitiesToDefault = async () => {
     setOrgEntities(INITIAL_ORG_ENTITIES);
     safeSetItem('app_ref_org_entities', INITIAL_ORG_ENTITIES);
+    try {
+      await api.resetOrgEntitiesToDefault();
+      showToast('تمت استعادة الهيكل التنظيمي الافتراضي لشركة نفط الوسط بنجاح', 'success', 'استعادة الهيكل');
+    } catch (err) {
+      console.error('Reset org entities error:', err);
+    }
+    appendAuditLog({
+      id: `LOG-${getServerTimestamp()}`,
+      timestamp: getServerDateTimeFormatted(),
+      action: 'استعادة الهيكل التنظيمي الافتراضي',
+      user: currentUser?.name || 'مدير النظام',
+      userInitials: 'عم',
+      affectedField: 'الهيكل التنظيمي',
+      previousValue: 'الهيكل السابق',
+      newValue: `استعادة ${INITIAL_ORG_ENTITIES.length} تشكيل افتراضي`,
+    });
   };
 
   // Maintenance Departments Handlers
@@ -1360,6 +1444,7 @@ export function App() {
     setMaintenanceRequests([]);
     setOccupancyRecords([]);
     setPeriodicInspections([]);
+    setOrgEntities([]);
     setAuditLogs([initialResetLog]);
 
     // Update localStorage safely
@@ -1370,6 +1455,7 @@ export function App() {
     safeSetItem('app_maintenance_requests', []);
     safeSetItem('app_occupancy_records', []);
     safeSetItem('app_periodic_inspections', []);
+    safeSetItem('app_ref_org_entities', []);
     safeSetItem('app_audit_logs', [initialResetLog]);
     safeSetItem('app_ref_unit_types', INITIAL_REFERENCE_UNIT_TYPES);
     safeSetItem('app_ref_governorates', INITIAL_GOVERNORATES);
@@ -2409,6 +2495,7 @@ export function App() {
               onDeleteOrgEntity={handleDeleteOrgEntity}
               onToggleOrgEntityStatus={handleToggleOrgEntityStatus}
               onResetOrgEntitiesToDefault={handleResetOrgEntitiesToDefault}
+              onClearOrgEntities={handleClearOrgEntities}
               onBulkSaveOrgEntities={handleBulkSaveOrgEntities}
               onUpdateBranding={handleUpdateBranding}
               onAddUser={handleAddUser}

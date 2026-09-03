@@ -107,7 +107,12 @@ interface SettingsViewProps {
   onDeleteOrgEntity?: (id: string, deleteChildren?: boolean) => void;
   onToggleOrgEntityStatus?: (id: string) => void;
   onResetOrgEntitiesToDefault?: () => void;
-  onBulkSaveOrgEntities?: (entities: OrgEntity[]) => void;
+  onClearOrgEntities?: () => void;
+  onBulkSaveOrgEntities?: (
+    entities: OrgEntity[],
+    customToastMessage?: string,
+    customAction?: string
+  ) => void;
 
   onAddUnitType: (type: ReferenceUnitType) => void;
   onUpdateUnitType: (type: ReferenceUnitType) => void;
@@ -215,6 +220,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   onDeleteOrgEntity,
   onToggleOrgEntityStatus,
   onResetOrgEntitiesToDefault,
+  onClearOrgEntities,
   onBulkSaveOrgEntities,
   onAddUnitType,
   onUpdateUnitType,
@@ -936,365 +942,365 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Settings Navigation Tabs Sidebar (3 cols) */}
-        <div
-          className={`lg:col-span-3 rounded-2xl p-3 shadow-lg space-y-1.5 text-xs border ${
-            isLight ? 'bg-white border-slate-200 shadow-slate-200/50' : 'bg-slate-900 border-slate-800'
-          }`}
-        >
-          <div
-            className={`px-3 py-1 text-[10px] font-bold uppercase tracking-wider ${
-              isLight ? 'text-slate-500' : 'text-slate-500'
-            }`}
-          >
-            إعدادات النظام العامة
+      {/* Top Horizontal Navigation Panel for Settings (Replaces sidebar, distributes buttons harmoniously) */}
+      <div
+        className={`rounded-2xl p-4 sm:p-5 shadow-lg border space-y-4 ${
+          isLight ? 'bg-white border-slate-200 shadow-slate-200/50' : 'bg-slate-900 border-slate-800'
+        }`}
+      >
+        {/* Section 1 & Section 3: General Settings & Backup/Monitoring in a 2-column balanced row */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* إعدادات النظام العامة */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between px-1">
+              <span className={`text-[11px] font-black uppercase tracking-wider flex items-center gap-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                <Settings className="w-3.5 h-3.5 text-amber-500" />
+                <span>إعدادات النظام العامة</span>
+              </span>
+              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${isLight ? 'bg-amber-100 text-amber-800' : 'bg-amber-500/10 text-amber-400'}`}>
+                ٣ أقسام رئيسية
+              </span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              {/* Branding */}
+              <button
+                onClick={() => setActiveTab('branding')}
+                className={`p-2.5 rounded-xl font-bold transition flex items-center justify-between cursor-pointer border text-xs ${
+                  activeTab === 'branding'
+                    ? isLight
+                      ? 'bg-amber-100 text-amber-950 border-amber-300 shadow-xs'
+                      : 'bg-amber-500/20 text-amber-300 border-amber-500/40 shadow-xs'
+                    : isLight
+                    ? 'bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200'
+                    : 'bg-slate-800/60 text-slate-300 hover:bg-slate-800 border-slate-700/60'
+                }`}
+              >
+                <span className="flex items-center gap-1.5 truncate">
+                  <Palette className={`w-4 h-4 shrink-0 ${isLight ? 'text-amber-600' : 'text-amber-400'}`} />
+                  <span className="truncate">الهوية البصرية</span>
+                </span>
+                <Sparkles className={`w-3.5 h-3.5 shrink-0 ${isLight ? 'text-amber-600' : 'text-amber-400'}`} />
+              </button>
+
+              {/* Org */}
+              <button
+                onClick={() => setActiveTab('org')}
+                className={`p-2.5 rounded-xl font-bold transition flex items-center justify-between cursor-pointer border text-xs ${
+                  activeTab === 'org'
+                    ? isLight
+                      ? 'bg-amber-100 text-amber-950 border-amber-300 shadow-xs'
+                      : 'bg-amber-500/20 text-amber-300 border-amber-500/40 shadow-xs'
+                    : isLight
+                    ? 'bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200'
+                    : 'bg-slate-800/60 text-slate-300 hover:bg-slate-800 border-slate-700/60'
+                }`}
+              >
+                <span className="flex items-center gap-1.5 truncate">
+                  <Network className={`w-4 h-4 shrink-0 ${isLight ? 'text-amber-600' : 'text-amber-500'}`} />
+                  <span className="truncate">الهيكل التنظيمي</span>
+                </span>
+                <span
+                  className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold shrink-0 ${
+                    isLight ? 'bg-amber-200/80 text-amber-900' : 'bg-slate-950 text-amber-400'
+                  }`}
+                >
+                  {toArabicDigits(orgEntities.length)}
+                </span>
+              </button>
+
+              {/* Users */}
+              <button
+                onClick={() => setActiveTab('users')}
+                className={`p-2.5 rounded-xl font-bold transition flex items-center justify-between cursor-pointer border text-xs ${
+                  activeTab === 'users'
+                    ? isLight
+                      ? 'bg-emerald-100 text-emerald-950 border-emerald-300 shadow-xs'
+                      : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 shadow-xs'
+                    : isLight
+                    ? 'bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200'
+                    : 'bg-slate-800/60 text-slate-300 hover:bg-slate-800 border-slate-700/60'
+                }`}
+              >
+                <span className="flex items-center gap-1.5 truncate">
+                  <Users className={`w-4 h-4 shrink-0 ${isLight ? 'text-emerald-600' : 'text-emerald-400'}`} />
+                  <span className="truncate">المستخدمين</span>
+                </span>
+                <span
+                  className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold shrink-0 ${
+                    isLight ? 'bg-emerald-200/80 text-emerald-900' : 'bg-slate-950 text-emerald-400'
+                  }`}
+                >
+                  {toArabicDigits(users.length)}
+                </span>
+              </button>
+            </div>
           </div>
 
-          <button
-            onClick={() => setActiveTab('branding')}
-            className={`w-full text-right p-3 rounded-xl font-bold transition flex items-center justify-between cursor-pointer ${
-              activeTab === 'branding'
-                ? isLight
-                  ? 'bg-amber-100 text-amber-900 border border-amber-300 shadow-xs'
-                  : 'bg-amber-500/20 text-amber-400 border border-amber-500/30 shadow-xs'
-                : isLight
-                ? 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-                : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'
-            }`}
-          >
-            <span className="flex items-center gap-2">
-              <Palette className={`w-4 h-4 ${isLight ? 'text-amber-600' : 'text-amber-400'}`} />
-              <span>الهوية البصرية واسم النظام</span>
-            </span>
-            <Sparkles className={`w-3.5 h-3.5 ${isLight ? 'text-amber-600' : 'text-amber-400'}`} />
-          </button>
+          {/* النسخ الاحتياطي والمراقبة */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between px-1">
+              <span className={`text-[11px] font-black uppercase tracking-wider flex items-center gap-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                <ShieldCheck className="w-3.5 h-3.5 text-sky-500" />
+                <span>النسخ الاحتياطي والمراقبة</span>
+              </span>
+              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${isLight ? 'bg-sky-100 text-sky-800' : 'bg-sky-500/10 text-sky-400'}`}>
+                أمان وتدقيق
+              </span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              {/* Backup & Restore */}
+              <button
+                onClick={() => setActiveTab('backup_restore')}
+                className={`p-2.5 rounded-xl font-bold transition flex items-center justify-between cursor-pointer border text-xs ${
+                  activeTab === 'backup_restore'
+                    ? isLight
+                      ? 'bg-amber-100 text-amber-950 border-amber-300 shadow-xs'
+                      : 'bg-amber-500/20 text-amber-300 border-amber-500/40 shadow-xs'
+                    : isLight
+                    ? 'bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200'
+                    : 'bg-slate-800/60 text-slate-300 hover:bg-slate-800 border-slate-700/60'
+                }`}
+              >
+                <span className="flex items-center gap-1.5 truncate">
+                  <Database className={`w-4 h-4 shrink-0 ${isLight ? 'text-amber-600' : 'text-amber-400'}`} />
+                  <span className="truncate">النسخ الاحتياطي</span>
+                </span>
+                <span
+                  className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold shrink-0 ${
+                    isLight ? 'bg-amber-200/80 text-amber-900' : 'bg-slate-950 text-amber-400'
+                  }`}
+                >
+                  شامل
+                </span>
+              </button>
 
-          <button
-            onClick={() => setActiveTab('org')}
-            className={`w-full text-right p-3 rounded-xl font-bold transition flex items-center justify-between cursor-pointer ${
-              activeTab === 'org'
-                ? isLight
-                  ? 'bg-amber-100 text-amber-900 border border-amber-300 shadow-xs'
-                  : 'bg-amber-500/20 text-amber-400 border border-amber-500/30 shadow-xs'
-                : isLight
-                ? 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-                : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'
-            }`}
-          >
-            <span className="flex items-center gap-2">
-              <Network className={`w-4 h-4 ${isLight ? 'text-amber-600' : 'text-amber-500'}`} />
-              <span>الهيكل التنظيمي للمؤسسة</span>
-            </span>
-            <span
-              className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold ${
-                isLight
-                  ? 'bg-slate-100 text-amber-800 border border-slate-200'
-                  : 'bg-slate-950 text-amber-400'
-              }`}
-            >
-              {orgEntities.length}
-            </span>
-          </button>
+              {/* Audit */}
+              <button
+                onClick={() => setActiveTab('audit')}
+                className={`p-2.5 rounded-xl font-bold transition flex items-center justify-between cursor-pointer border text-xs ${
+                  activeTab === 'audit'
+                    ? isLight
+                      ? 'bg-teal-100 text-teal-950 border-teal-300 shadow-xs'
+                      : 'bg-teal-500/20 text-teal-300 border-teal-500/40 shadow-xs'
+                    : isLight
+                    ? 'bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200'
+                    : 'bg-slate-800/60 text-slate-300 hover:bg-slate-800 border-slate-700/60'
+                }`}
+              >
+                <span className="flex items-center gap-1.5 truncate">
+                  <Activity className={`w-4 h-4 shrink-0 ${isLight ? 'text-teal-600' : 'text-teal-400'}`} />
+                  <span className="truncate">سجل النشاطات</span>
+                </span>
+                <span
+                  className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold shrink-0 ${
+                    isLight ? 'bg-teal-200/80 text-teal-900' : 'bg-slate-950 text-teal-400'
+                  }`}
+                >
+                  {toArabicDigits(auditLogs.length)}
+                </span>
+              </button>
 
-          <button
-            onClick={() => setActiveTab('users')}
-            className={`w-full text-right p-3 rounded-xl font-bold transition flex items-center justify-between cursor-pointer ${
-              activeTab === 'users'
-                ? isLight
-                  ? 'bg-emerald-100 text-emerald-900 border border-emerald-300 shadow-xs'
-                  : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shadow-xs'
-                : isLight
-                ? 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-                : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'
-            }`}
-          >
-            <span className="flex items-center gap-2">
-              <Users className={`w-4 h-4 ${isLight ? 'text-emerald-600' : 'text-emerald-400'}`} />
-              <span>إدارة المستخدمين والصلاحيات</span>
-            </span>
-            <span
-              className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold ${
-                isLight
-                  ? 'bg-slate-100 text-slate-700 border border-slate-200'
-                  : 'bg-slate-950 text-slate-400'
-              }`}
-            >
-              {users.length}
-            </span>
-          </button>
-
-          <div
-            className={`px-3 pt-3 pb-1 text-[10px] font-bold uppercase tracking-wider ${
-              isLight ? 'text-slate-500' : 'text-slate-500'
-            }`}
-          >
-            الجداول والدليل المرجعي
+              {/* Factory Reset */}
+              <button
+                onClick={() => setActiveTab('reset')}
+                className={`p-2.5 rounded-xl font-bold transition flex items-center justify-between cursor-pointer border text-xs ${
+                  activeTab === 'reset'
+                    ? isLight
+                      ? 'bg-red-100 text-red-950 border-red-300 shadow-xs'
+                      : 'bg-red-500/20 text-red-300 border-red-500/40 shadow-xs'
+                    : isLight
+                    ? 'bg-slate-50 text-slate-700 hover:bg-red-50 hover:text-red-700 border-slate-200'
+                    : 'bg-slate-800/60 text-slate-300 hover:bg-red-500/10 hover:text-red-300 border-slate-700/60'
+                }`}
+              >
+                <span className="flex items-center gap-1.5 truncate">
+                  <RotateCcw className={`w-4 h-4 shrink-0 ${isLight ? 'text-red-600' : 'text-red-400'}`} />
+                  <span className="truncate">ضبط المصنع</span>
+                </span>
+                <AlertTriangle className={`w-3.5 h-3.5 shrink-0 ${isLight ? 'text-red-600' : 'text-red-400'}`} />
+              </button>
+            </div>
           </div>
-
-          <button
-            onClick={() => setActiveTab('governorates')}
-            className={`w-full text-right p-3 rounded-xl font-bold transition flex items-center justify-between cursor-pointer ${
-              activeTab === 'governorates'
-                ? isLight
-                  ? 'bg-amber-100 text-amber-900 border border-amber-300'
-                  : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                : isLight
-                ? 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-                : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'
-            }`}
-          >
-            <span className="flex items-center gap-2">
-              <MapPin className={`w-4 h-4 ${isLight ? 'text-sky-600' : 'text-sky-400'}`} />
-              <span>المحافظات العراقية</span>
-            </span>
-            <span
-              className={`px-2 py-0.5 rounded-full text-[10px] font-mono ${
-                isLight ? 'bg-slate-100 text-slate-600' : 'bg-slate-950 text-slate-400'
-              }`}
-            >
-              {governorates.length}
-            </span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('oilfields')}
-            className={`w-full text-right p-3 rounded-xl font-bold transition flex items-center justify-between cursor-pointer ${
-              activeTab === 'oilfields'
-                ? isLight
-                  ? 'bg-amber-100 text-amber-900 border border-amber-300'
-                  : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                : isLight
-                ? 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-                : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'
-            }`}
-          >
-            <span className="flex items-center gap-2">
-              <Database className={`w-4 h-4 ${isLight ? 'text-amber-600' : 'text-amber-500'}`} />
-              <span>الحقول النفطية</span>
-            </span>
-            <span
-              className={`px-2 py-0.5 rounded-full text-[10px] font-mono ${
-                isLight ? 'bg-slate-100 text-slate-600' : 'bg-slate-950 text-slate-400'
-              }`}
-            >
-              {oilfields.length}
-            </span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('sites')}
-            className={`w-full text-right p-3 rounded-xl font-bold transition flex items-center justify-between cursor-pointer ${
-              activeTab === 'sites'
-                ? isLight
-                  ? 'bg-amber-100 text-amber-900 border border-amber-300'
-                  : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                : isLight
-                ? 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-                : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'
-            }`}
-          >
-            <span className="flex items-center gap-2">
-              <Building2 className={`w-4 h-4 ${isLight ? 'text-indigo-600' : 'text-indigo-400'}`} />
-              <span>المواقع والمنشآت الحقليّة</span>
-            </span>
-            <span
-              className={`px-2 py-0.5 rounded-full text-[10px] font-mono ${
-                isLight ? 'bg-slate-100 text-slate-600' : 'bg-slate-950 text-slate-400'
-              }`}
-            >
-              {sites.length}
-            </span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('unit_types')}
-            className={`w-full text-right p-3 rounded-xl font-bold transition flex items-center justify-between cursor-pointer ${
-              activeTab === 'unit_types'
-                ? isLight
-                  ? 'bg-amber-100 text-amber-900 border border-amber-300'
-                  : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                : isLight
-                ? 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-                : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'
-            }`}
-          >
-            <span className="flex items-center gap-2">
-              <Box className={`w-4 h-4 ${isLight ? 'text-purple-600' : 'text-purple-400'}`} />
-              <span>أنواع المباني والكرفانات</span>
-            </span>
-            <span
-              className={`px-2 py-0.5 rounded-full text-[10px] font-mono ${
-                isLight ? 'bg-slate-100 text-slate-600' : 'bg-slate-950 text-slate-400'
-              }`}
-            >
-              {unitTypes.length}
-            </span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('rooms')}
-            className={`w-full text-right p-3 rounded-xl font-bold transition flex items-center justify-between cursor-pointer ${
-              activeTab === 'rooms'
-                ? isLight
-                  ? 'bg-amber-100 text-amber-900 border border-amber-300'
-                  : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                : isLight
-                ? 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-                : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'
-            }`}
-          >
-            <span className="flex items-center gap-2">
-              <Layers className={`w-4 h-4 ${isLight ? 'text-pink-600' : 'text-pink-400'}`} />
-              <span>تصنيفات الغرف والقاعات</span>
-            </span>
-            <span
-              className={`px-2 py-0.5 rounded-full text-[10px] font-mono ${
-                isLight ? 'bg-slate-100 text-slate-600' : 'bg-slate-950 text-slate-400'
-              }`}
-            >
-              {roomTypes.length}
-            </span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('equipment')}
-            className={`w-full text-right p-3 rounded-xl font-bold transition flex items-center justify-between cursor-pointer ${
-              activeTab === 'equipment'
-                ? isLight
-                  ? 'bg-amber-100 text-amber-900 border border-amber-300'
-                  : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                : isLight
-                ? 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-                : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'
-            }`}
-          >
-            <span className="flex items-center gap-2">
-              <Zap className={`w-4 h-4 ${isLight ? 'text-amber-600' : 'text-amber-400'}`} />
-              <span>المعدات والملحقات المرفقة</span>
-            </span>
-            <span
-              className={`px-2 py-0.5 rounded-full text-[10px] font-mono ${
-                isLight ? 'bg-slate-100 text-slate-600' : 'bg-slate-950 text-slate-400'
-              }`}
-            >
-              {equipmentTypes.length}
-            </span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('maintenance_depts')}
-            className={`w-full text-right p-3 rounded-xl font-bold transition flex items-center justify-between cursor-pointer ${
-              activeTab === 'maintenance_depts'
-                ? isLight
-                  ? 'bg-amber-100 text-amber-900 border border-amber-300'
-                  : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                : isLight
-                ? 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-                : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'
-            }`}
-          >
-            <span className="flex items-center gap-2">
-              <Wrench className={`w-4 h-4 ${isLight ? 'text-amber-600' : 'text-amber-400'}`} />
-              <span>جهات وأقسام الصيانة</span>
-            </span>
-            <span
-              className={`px-2 py-0.5 rounded-full text-[10px] font-mono ${
-                isLight ? 'bg-slate-100 text-slate-600' : 'bg-slate-950 text-slate-400'
-              }`}
-            >
-              {maintenanceDepartments.length}
-            </span>
-          </button>
-
-          <div
-            className={`px-3 pt-3 pb-1 text-[10px] font-bold uppercase tracking-wider ${
-              isLight ? 'text-slate-500' : 'text-slate-500'
-            }`}
-          >
-            النسخ الاحتياطي والمراقبة
-          </div>
-
-          <button
-            onClick={() => setActiveTab('backup_restore')}
-            className={`w-full text-right p-3 rounded-xl font-bold transition flex items-center justify-between cursor-pointer ${
-              activeTab === 'backup_restore'
-                ? isLight
-                  ? 'bg-amber-100 text-amber-900 border border-amber-300 shadow-xs'
-                  : 'bg-amber-500/20 text-amber-400 border border-amber-500/30 shadow-xs'
-                : isLight
-                ? 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-                : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'
-            }`}
-          >
-            <span className="flex items-center gap-2">
-              <Database className={`w-4 h-4 ${isLight ? 'text-amber-600' : 'text-amber-400'}`} />
-              <span>النسخ الاحتياطي واستعادة البيانات</span>
-            </span>
-            <span
-              className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold ${
-                isLight
-                  ? 'bg-amber-100 text-amber-900 border border-amber-300'
-                  : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-              }`}
-            >
-              شامل
-            </span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('audit')}
-            className={`w-full text-right p-3 rounded-xl font-bold transition flex items-center justify-between cursor-pointer ${
-              activeTab === 'audit'
-                ? isLight
-                  ? 'bg-amber-100 text-amber-900 border border-amber-300'
-                  : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                : isLight
-                ? 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-                : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'
-            }`}
-          >
-            <span className="flex items-center gap-2">
-              <Activity className={`w-4 h-4 ${isLight ? 'text-teal-600' : 'text-teal-400'}`} />
-              <span>سجل النشاطات والتغييرات</span>
-            </span>
-            <span
-              className={`px-2 py-0.5 rounded-full text-[10px] font-mono ${
-                isLight ? 'bg-slate-100 text-slate-600' : 'bg-slate-950 text-slate-400'
-              }`}
-            >
-              {auditLogs.length}
-            </span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('reset')}
-            className={`w-full text-right p-3 rounded-xl font-bold transition flex items-center justify-between cursor-pointer ${
-              activeTab === 'reset'
-                ? isLight
-                  ? 'bg-red-100 text-red-900 border border-red-300'
-                  : 'bg-red-500/20 text-red-400 border border-red-500/30'
-                : isLight
-                ? 'text-slate-600 hover:bg-red-50 hover:text-red-700'
-                : 'text-slate-400 hover:bg-red-500/10 hover:text-red-300'
-            }`}
-          >
-            <span className="flex items-center gap-2">
-              <RotateCcw className={`w-4 h-4 ${isLight ? 'text-red-600' : 'text-red-400'}`} />
-              <span>استعادة ضبط المصنع</span>
-            </span>
-            <AlertTriangle className={`w-3.5 h-3.5 ${isLight ? 'text-red-600' : 'text-red-400'}`} />
-          </button>
         </div>
 
-        {/* Content Body Area (9 cols) */}
-        <div
-          className={`lg:col-span-9 rounded-2xl p-5 shadow-lg space-y-4 text-xs border ${
-            isLight
-              ? 'bg-white border-slate-200 shadow-slate-200/50 text-slate-800'
-              : 'bg-slate-900 border-slate-800 text-slate-100'
-          }`}
-        >
+        {/* Section 2: الجداول والدليل المرجعي (7 buttons in a neat responsive grid across the full width) */}
+        <div className="space-y-2 pt-3 border-t border-slate-200/80 dark:border-slate-800">
+          <div className="flex items-center justify-between px-1">
+            <span className={`text-[11px] font-black uppercase tracking-wider flex items-center gap-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+              <Layers className="w-3.5 h-3.5 text-amber-500" />
+              <span>الجداول والدليل المرجعي</span>
+            </span>
+            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${isLight ? 'bg-slate-100 text-slate-600' : 'bg-slate-800 text-slate-400'}`}>
+              ٧ جداول مرجعية مركزية
+            </span>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-2">
+            {/* 1. المحافظات */}
+            <button
+              onClick={() => setActiveTab('governorates')}
+              className={`p-2.5 rounded-xl font-bold transition flex items-center justify-between cursor-pointer border text-xs ${
+                activeTab === 'governorates'
+                  ? isLight
+                    ? 'bg-amber-100 text-amber-950 border-amber-300 shadow-xs'
+                    : 'bg-amber-500/20 text-amber-300 border-amber-500/40 shadow-xs'
+                  : isLight
+                  ? 'bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200'
+                  : 'bg-slate-800/60 text-slate-300 hover:bg-slate-800 border-slate-700/60'
+              }`}
+            >
+              <span className="flex items-center gap-1.5 truncate">
+                <MapPin className={`w-4 h-4 shrink-0 ${isLight ? 'text-sky-600' : 'text-sky-400'}`} />
+                <span className="truncate">المحافظات</span>
+              </span>
+              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold shrink-0 ${isLight ? 'bg-slate-200/70 text-slate-700' : 'bg-slate-950 text-slate-400'}`}>
+                {toArabicDigits(governorates.length)}
+              </span>
+            </button>
+
+            {/* 2. الحقول النفطية */}
+            <button
+              onClick={() => setActiveTab('oilfields')}
+              className={`p-2.5 rounded-xl font-bold transition flex items-center justify-between cursor-pointer border text-xs ${
+                activeTab === 'oilfields'
+                  ? isLight
+                    ? 'bg-amber-100 text-amber-950 border-amber-300 shadow-xs'
+                    : 'bg-amber-500/20 text-amber-300 border-amber-500/40 shadow-xs'
+                  : isLight
+                  ? 'bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200'
+                  : 'bg-slate-800/60 text-slate-300 hover:bg-slate-800 border-slate-700/60'
+              }`}
+            >
+              <span className="flex items-center gap-1.5 truncate">
+                <Database className={`w-4 h-4 shrink-0 ${isLight ? 'text-amber-600' : 'text-amber-500'}`} />
+                <span className="truncate">الحقول النفطية</span>
+              </span>
+              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold shrink-0 ${isLight ? 'bg-slate-200/70 text-slate-700' : 'bg-slate-950 text-slate-400'}`}>
+                {toArabicDigits(oilfields.length)}
+              </span>
+            </button>
+
+            {/* 3. المواقع والمنشآت */}
+            <button
+              onClick={() => setActiveTab('sites')}
+              className={`p-2.5 rounded-xl font-bold transition flex items-center justify-between cursor-pointer border text-xs ${
+                activeTab === 'sites'
+                  ? isLight
+                    ? 'bg-amber-100 text-amber-950 border-amber-300 shadow-xs'
+                    : 'bg-amber-500/20 text-amber-300 border-amber-500/40 shadow-xs'
+                  : isLight
+                  ? 'bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200'
+                  : 'bg-slate-800/60 text-slate-300 hover:bg-slate-800 border-slate-700/60'
+              }`}
+            >
+              <span className="flex items-center gap-1.5 truncate">
+                <Building2 className={`w-4 h-4 shrink-0 ${isLight ? 'text-indigo-600' : 'text-indigo-400'}`} />
+                <span className="truncate">المواقع والمنشآت</span>
+              </span>
+              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold shrink-0 ${isLight ? 'bg-slate-200/70 text-slate-700' : 'bg-slate-950 text-slate-400'}`}>
+                {toArabicDigits(sites.length)}
+              </span>
+            </button>
+
+            {/* 4. أنواع المباني والكرفانات */}
+            <button
+              onClick={() => setActiveTab('unit_types')}
+              className={`p-2.5 rounded-xl font-bold transition flex items-center justify-between cursor-pointer border text-xs ${
+                activeTab === 'unit_types'
+                  ? isLight
+                    ? 'bg-amber-100 text-amber-950 border-amber-300 shadow-xs'
+                    : 'bg-amber-500/20 text-amber-300 border-amber-500/40 shadow-xs'
+                  : isLight
+                  ? 'bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200'
+                  : 'bg-slate-800/60 text-slate-300 hover:bg-slate-800 border-slate-700/60'
+              }`}
+            >
+              <span className="flex items-center gap-1.5 truncate">
+                <Box className={`w-4 h-4 shrink-0 ${isLight ? 'text-purple-600' : 'text-purple-400'}`} />
+                <span className="truncate">أنواع المباني</span>
+              </span>
+              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold shrink-0 ${isLight ? 'bg-slate-200/70 text-slate-700' : 'bg-slate-950 text-slate-400'}`}>
+                {toArabicDigits(unitTypes.length)}
+              </span>
+            </button>
+
+            {/* 5. تصنيفات الغرف */}
+            <button
+              onClick={() => setActiveTab('rooms')}
+              className={`p-2.5 rounded-xl font-bold transition flex items-center justify-between cursor-pointer border text-xs ${
+                activeTab === 'rooms'
+                  ? isLight
+                    ? 'bg-amber-100 text-amber-950 border-amber-300 shadow-xs'
+                    : 'bg-amber-500/20 text-amber-300 border-amber-500/40 shadow-xs'
+                  : isLight
+                  ? 'bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200'
+                  : 'bg-slate-800/60 text-slate-300 hover:bg-slate-800 border-slate-700/60'
+              }`}
+            >
+              <span className="flex items-center gap-1.5 truncate">
+                <Layers className={`w-4 h-4 shrink-0 ${isLight ? 'text-pink-600' : 'text-pink-400'}`} />
+                <span className="truncate">تصنيفات الغرف</span>
+              </span>
+              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold shrink-0 ${isLight ? 'bg-slate-200/70 text-slate-700' : 'bg-slate-950 text-slate-400'}`}>
+                {toArabicDigits(roomTypes.length)}
+              </span>
+            </button>
+
+            {/* 6. المعدات والملحقات */}
+            <button
+              onClick={() => setActiveTab('equipment')}
+              className={`p-2.5 rounded-xl font-bold transition flex items-center justify-between cursor-pointer border text-xs ${
+                activeTab === 'equipment'
+                  ? isLight
+                    ? 'bg-amber-100 text-amber-950 border-amber-300 shadow-xs'
+                    : 'bg-amber-500/20 text-amber-300 border-amber-500/40 shadow-xs'
+                  : isLight
+                  ? 'bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200'
+                  : 'bg-slate-800/60 text-slate-300 hover:bg-slate-800 border-slate-700/60'
+              }`}
+            >
+              <span className="flex items-center gap-1.5 truncate">
+                <Zap className={`w-4 h-4 shrink-0 ${isLight ? 'text-amber-600' : 'text-amber-400'}`} />
+                <span className="truncate">المعدات والملحقات</span>
+              </span>
+              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold shrink-0 ${isLight ? 'bg-slate-200/70 text-slate-700' : 'bg-slate-950 text-slate-400'}`}>
+                {toArabicDigits(equipmentTypes.length)}
+              </span>
+            </button>
+
+            {/* 7. جهات وأقسام الصيانة */}
+            <button
+              onClick={() => setActiveTab('maintenance_depts')}
+              className={`p-2.5 rounded-xl font-bold transition flex items-center justify-between cursor-pointer border text-xs ${
+                activeTab === 'maintenance_depts'
+                  ? isLight
+                    ? 'bg-amber-100 text-amber-950 border-amber-300 shadow-xs'
+                    : 'bg-amber-500/20 text-amber-300 border-amber-500/40 shadow-xs'
+                  : isLight
+                  ? 'bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200'
+                  : 'bg-slate-800/60 text-slate-300 hover:bg-slate-800 border-slate-700/60'
+              }`}
+            >
+              <span className="flex items-center gap-1.5 truncate">
+                <Wrench className={`w-4 h-4 shrink-0 ${isLight ? 'text-amber-600' : 'text-amber-400'}`} />
+                <span className="truncate">أقسام الصيانة</span>
+              </span>
+              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold shrink-0 ${isLight ? 'bg-slate-200/70 text-slate-700' : 'bg-slate-950 text-slate-400'}`}>
+                {toArabicDigits(maintenanceDepartments.length)}
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Content Body Area (Spans 100% Full Width of the Screen) */}
+      <div
+        className={`w-full rounded-2xl p-5 shadow-lg space-y-4 text-xs border ${
+          isLight
+            ? 'bg-white border-slate-200 shadow-slate-200/50 text-slate-800'
+            : 'bg-slate-900 border-slate-800 text-slate-100'
+        }`}
+      >
           {/* TAB 0: Visual Identity & Branding */}
           {activeTab === 'branding' && (
             <div className="space-y-6">
@@ -1589,6 +1595,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               isLight={isLight}
               orgEntities={orgEntities}
               units={units}
+              branding={branding}
               onAddOrgEntity={onAddOrgEntity || (() => {})}
               onUpdateOrgEntity={onUpdateOrgEntity || (() => {})}
               onDeleteOrgEntity={onDeleteOrgEntity || (() => {})}
@@ -3721,6 +3728,64 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     </button>
                   </div>
                 </div>
+
+                {/* 10. Organizational Structure */}
+                <div className="bg-slate-950 border border-slate-800 rounded-2xl p-4 space-y-3 flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <div className="p-2 bg-teal-500/10 text-teal-400 border border-teal-500/20 rounded-xl">
+                          <Network className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <h4 className="font-bold text-slate-100 text-xs">مسح/إعادة تعيين الهيكل التنظيمي للمؤسسة</h4>
+                          <span className="text-[11px] text-teal-400 font-mono font-bold">
+                            العدد الحالي: {orgEntities.length} تشكيل إداري
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <p className="text-slate-400 text-[11px] leading-relaxed">
+                      شجرة الهرم الإداري (إدارات، أقسام، شعب، وحدات، لجان) والتبعية الهيكلية لكافة التشكيلات بالمؤسسة.
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 pt-2 border-t border-slate-800/80">
+                    <button
+                      onClick={() =>
+                        setCustomResetModal({
+                          title: 'مسح وتفريغ الهيكل التنظيمي بالكامل',
+                          description: 'هل أنت متأكد من مسح وتفريغ كافة التشكيلات والأقسام والشعب من شجرة الهيكل التنظيمي؟ سيتم حذف جميع التشكيلات من النظام وقاعدة البيانات نهائياً وتصبح الشجرة فارغة.',
+                          actionType: 'clear',
+                          onConfirm: () => {
+                            if (onClearOrgEntities) onClearOrgEntities();
+                            triggerSaveToast('تم مسح وتفريغ الهيكل التنظيمي بالكامل بنجاح');
+                          },
+                        })
+                      }
+                      className="flex-1 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 font-bold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      <span>مسح الكل (تفريغ)</span>
+                    </button>
+                    <button
+                      onClick={() =>
+                        setCustomResetModal({
+                          title: 'إعادة تعيين الهيكل التنظيمي للوضع الافتراضي',
+                          description: 'هل ترغب بإعادة تحميل وتعيين شجرة الهيكل التنظيمي الافتراضية لشركة نفط الوسط بكافة أقسامها وإداراتها الأصلية؟',
+                          actionType: 'resetDefault',
+                          onConfirm: () => {
+                            if (onResetOrgEntitiesToDefault) onResetOrgEntitiesToDefault();
+                            triggerSaveToast('تمت استعادة الهيكل التنظيمي الافتراضي بنجاح');
+                          },
+                        })
+                      }
+                      className="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5 text-amber-400" />
+                      <span>الوضع الافتراضي</span>
+                    </button>
+                  </div>
+                </div>
               </div>
 
               {/* Full System Reset Callout */}
@@ -3730,7 +3795,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   <div className="space-y-1">
                     <h4 className="font-bold text-slate-100 text-sm">استعادة ضبط المصنع الشاملة للنظام (مسح وتفريغ كامل)</h4>
                     <p className="text-slate-300 text-xs leading-relaxed">
-                      يقوم هذا الإجراء بتفريغ ومسح كافة الأصول والوحدات، طلبات الصيانة، الكشوفات والمعاينات، أوامر التخصيص، سجلات التدقيق، وكافة حسابات المستخدمين مع الإبقاء فقط وحصرياً على حساب مدير النظام الأستاذ عمر المياحي.
+                      يقوم هذا الإجراء بتفريغ ومسح كافة الأصول والوحدات، الهيكل التنظيمي، طلبات الصيانة، الكشوفات والمعاينات، أوامر التخصيص، سجلات التدقيق، وكافة حسابات المستخدمين مع الإبقاء فقط وحصرياً على حساب مدير النظام الأستاذ عمر المياحي.
                     </p>
                   </div>
                 </div>
@@ -3748,7 +3813,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             </div>
           )}
         </div>
-      </div>
 
       {/* ==================== MODAL: Universal Create / Edit ==================== */}
       {showModal && (

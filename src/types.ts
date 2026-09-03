@@ -269,6 +269,7 @@ export type OrgLevel =
   | 'company'
   | 'director_general'
   | 'deputy_director'
+  | 'commission'
   | 'central_dept'
   | 'department'
   | 'section'
@@ -283,6 +284,7 @@ export interface OrgEntity {
   level: OrgLevel;
   employeeCount: number;
   status: 'active' | 'disabled';
+  sortOrder?: number;
 }
 
 export interface DepartmentRef {

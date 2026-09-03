@@ -22,6 +22,7 @@ import {
   INITIAL_PERIODIC_INSPECTIONS,
   INITIAL_USERS,
   INITIAL_AUDIT_LOGS,
+  INITIAL_ORG_ENTITIES,
 } from './src/data/mockData';
 
 async function startServer() {
@@ -134,6 +135,14 @@ async function startServer() {
     }
   } catch (err) {
     console.warn('Note: Could not load persistence file on startup:', err);
+  }
+
+  // Seed default official Midland Oil Company organizational entities if empty
+  if (!memStore.orgEntities || memStore.orgEntities.length === 0) {
+    memStore.orgEntities = INITIAL_ORG_ENTITIES;
+    try {
+      fs.writeFileSync(PERSISTENCE_FILE_PATH, JSON.stringify(memStore, null, 2), 'utf-8');
+    } catch (e) {}
   }
 
   function saveMemStoreToDisk() {
@@ -1234,22 +1243,29 @@ async function startServer() {
   app.get('/api/org-entities', async (req, res) => {
     try {
       if (getDbPool()) {
-        const result = await query<DbOrgEntityRow>('SELECT * FROM org_entities ORDER BY level ASC, name_ar ASC');
-        return res.json(result.rows.map((r) => ({
-          id: r.id,
-          code: r.code,
-          nameAr: r.name_ar,
-          nameEn: r.name_en,
-          parentId: r.parent_id,
-          level: r.level as any,
-          employeeCount: r.employee_count,
-          status: r.status,
-        })));
+        const result = await query<DbOrgEntityRow>('SELECT * FROM org_entities');
+        if (result.rows && result.rows.length > 0) {
+          const list = result.rows.map((r: any) => ({
+            id: r.id,
+            code: r.code,
+            nameAr: r.name_ar,
+            nameEn: r.name_en,
+            parentId: r.parent_id,
+            level: r.level as any,
+            employeeCount: r.employee_count,
+            status: r.status,
+            sortOrder: r.sort_order !== undefined && r.sort_order !== null ? Number(r.sort_order) : 0,
+          }));
+          list.sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+          return res.json(list);
+        }
       }
     } catch (err) {
       console.warn('DB query failed for /api/org-entities:', err);
     }
-    res.json(memStore.orgEntities);
+    const memList = [...(memStore.orgEntities || [])];
+    memList.sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+    res.json(memList);
   });
 
   app.post('/api/org-entities', async (req, res) => {
@@ -1329,32 +1345,55 @@ async function startServer() {
   });
 
   app.post('/api/org-entities/bulk', async (req, res) => {
-    const entities = req.body.entities || [];
+    const rawEntities = req.body.entities || [];
+    const entities = rawEntities.map((e: any, idx: number) => ({
+      ...e,
+      sortOrder: e.sortOrder !== undefined && e.sortOrder !== null ? e.sortOrder : idx,
+    }));
     try {
       const pool = getDbPool();
       if (pool) {
         const client = await pool.connect();
         try {
           await client.query('BEGIN');
+          await client.query('ALTER TABLE org_entities ADD COLUMN IF NOT EXISTS sort_order INTEGER DEFAULT 0').catch(() => {});
           if (entities.length === 0) {
             await client.query('DELETE FROM org_entities');
           } else {
             const ids = entities.map((e: any) => e.id);
             await client.query('DELETE FROM org_entities WHERE id != ALL($1::text[])', [ids]);
-            for (const e of entities) {
-              await client.query(
-                `INSERT INTO org_entities (id, code, name_ar, name_en, parent_id, level, employee_count, status)
-                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-                 ON CONFLICT (id) DO UPDATE SET
-                   code = EXCLUDED.code,
-                   name_ar = EXCLUDED.name_ar,
-                   name_en = EXCLUDED.name_en,
-                   parent_id = EXCLUDED.parent_id,
-                   level = EXCLUDED.level,
-                   employee_count = EXCLUDED.employee_count,
-                   status = EXCLUDED.status`,
-                [e.id, e.code, e.nameAr, e.nameEn || null, e.parentId || null, e.level, e.employeeCount || 0, e.status || 'active']
-              );
+            for (let i = 0; i < entities.length; i++) {
+              const e = entities[i];
+              try {
+                await client.query(
+                  `INSERT INTO org_entities (id, code, name_ar, name_en, parent_id, level, employee_count, status, sort_order)
+                   VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+                   ON CONFLICT (id) DO UPDATE SET
+                     code = EXCLUDED.code,
+                     name_ar = EXCLUDED.name_ar,
+                     name_en = EXCLUDED.name_en,
+                     parent_id = EXCLUDED.parent_id,
+                     level = EXCLUDED.level,
+                     employee_count = EXCLUDED.employee_count,
+                     status = EXCLUDED.status,
+                     sort_order = EXCLUDED.sort_order`,
+                  [e.id, e.code, e.nameAr, e.nameEn || null, e.parentId || null, e.level, e.employeeCount || 0, e.status || 'active', e.sortOrder ?? i]
+                );
+              } catch {
+                await client.query(
+                  `INSERT INTO org_entities (id, code, name_ar, name_en, parent_id, level, employee_count, status)
+                   VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+                   ON CONFLICT (id) DO UPDATE SET
+                     code = EXCLUDED.code,
+                     name_ar = EXCLUDED.name_ar,
+                     name_en = EXCLUDED.name_en,
+                     parent_id = EXCLUDED.parent_id,
+                     level = EXCLUDED.level,
+                     employee_count = EXCLUDED.employee_count,
+                     status = EXCLUDED.status`,
+                  [e.id, e.code, e.nameAr, e.nameEn || null, e.parentId || null, e.level, e.employeeCount || 0, e.status || 'active']
+                );
+              }
             }
           }
           await client.query('COMMIT');
@@ -1654,12 +1693,14 @@ async function startServer() {
         memStore.inspections = INITIAL_PERIODIC_INSPECTIONS;
         memStore.users = INITIAL_USERS;
         memStore.auditLogs = INITIAL_AUDIT_LOGS;
+        memStore.orgEntities = INITIAL_ORG_ENTITIES;
       } else {
         // 'wipe_all_except_admin' (Default requested by user)
         memStore.units = [];
         memStore.maintenance = [];
         memStore.occupancy = [];
         memStore.inspections = [];
+        memStore.orgEntities = [];
         memStore.users = [adminUser];
         memStore.auditLogs = [
           {
@@ -1691,6 +1732,7 @@ async function startServer() {
             await query('DELETE FROM occupancy_records');
             await query('DELETE FROM periodic_inspections');
             await query('DELETE FROM audit_logs');
+            await query('DELETE FROM org_entities');
             await query(
               `INSERT INTO system_settings (key, value, updated_at)
                VALUES ('app_users', $1, CURRENT_TIMESTAMP)
@@ -1756,6 +1798,26 @@ async function startServer() {
           memStore.auditLogs = actionType === 'clear' ? [] : INITIAL_AUDIT_LOGS;
           if (getDbPool() && actionType === 'clear') await query('DELETE FROM audit_logs').catch(() => {});
           notifySyncChange('audit_logs_updated', { action: 'bulk' });
+          break;
+        case 'org_entities':
+          if (actionType === 'clear') {
+            memStore.orgEntities = [];
+            if (getDbPool()) await query('DELETE FROM org_entities').catch(() => {});
+          } else {
+            memStore.orgEntities = INITIAL_ORG_ENTITIES;
+            if (getDbPool()) {
+              await query('DELETE FROM org_entities').catch(() => {});
+              for (const e of INITIAL_ORG_ENTITIES) {
+                await query(
+                  `INSERT INTO org_entities (id, code, name_ar, name_en, parent_id, level, employee_count, status)
+                   VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+                   ON CONFLICT (id) DO NOTHING`,
+                  [e.id, e.code, e.nameAr, e.nameEn || null, e.parentId || null, e.level, e.employeeCount || 0, e.status || 'active']
+                ).catch(() => {});
+              }
+            }
+          }
+          notifySyncChange('org_entities_updated', { action: 'bulk' });
           break;
       }
       saveMemStoreToDisk();

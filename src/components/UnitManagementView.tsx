@@ -38,6 +38,7 @@ import {
   Maximize2,
   Minimize2,
   Users,
+  Network,
 } from 'lucide-react';
 import { UnitAsset, ConditionGrade, ReferenceUnitType, UnitAttachment, OrgEntity, GovernorateRef, OilfieldRef, Room, SystemBranding } from '../types';
 import { ThreeBuildingCanvas } from './ThreeBuildingCanvas';
@@ -56,7 +57,8 @@ import {
 import { downloadAttachment } from '../utils/fileUtils';
 import { BUILDING_SHAPE_OPTIONS } from './NewUnitWizard';
 import { toArabicDigits } from '../utils/arabicUtils';
-import { INITIAL_GOVERNORATES, INITIAL_OILFIELDS } from '../data/mockData';
+import { INITIAL_GOVERNORATES, INITIAL_OILFIELDS, INITIAL_ORG_ENTITIES } from '../data/mockData';
+import { OrgEntityPickerModal } from './OrgEntityPickerModal';
 
 interface UnitManagementViewProps {
   units: UnitAsset[];
@@ -181,20 +183,30 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
     }
   };
 
+  // Effective Org Entities (with fallback to INITIAL_ORG_ENTITIES)
+  const effectiveOrgEntities = useMemo(() => {
+    if (Array.isArray(orgEntities) && orgEntities.length > 0) {
+      return orgEntities;
+    }
+    return INITIAL_ORG_ENTITIES;
+  }, [orgEntities]);
+
   // Extract list of org entities / departments for filter
   const availableOrgEntities = useMemo(() => {
     const set = new Set<string>();
-    orgEntities.forEach((e) => {
-      if (e.status === 'active' && e.nameAr) set.add(e.nameAr);
+    effectiveOrgEntities.forEach((e) => {
+      if (e.status !== 'disabled' && e.nameAr) set.add(e.nameAr.trim());
     });
     units.forEach((u) => {
-      if (u.department) set.add(u.department);
+      if (u.department) set.add(u.department.trim());
       u.rooms?.forEach((r) => {
-        if (r.occupiedBy) set.add(r.occupiedBy);
+        if (r.occupiedBy) set.add(r.occupiedBy.trim());
       });
     });
-    return Array.from(set);
-  }, [orgEntities, units]);
+    return Array.from(set).sort((a, b) => a.localeCompare(b, 'ar'));
+  }, [effectiveOrgEntities, units]);
+
+  const [showOrgPickerModal, setShowOrgPickerModal] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<'rooms' | 'equipment' | 'history' | 'attachments'>('rooms');
   const [view3DMode, setView3DMode] = useState<'exterior' | 'floor_cut' | 'walkthrough' | 'blueprint2d'>('exterior');
   const [selectedFloor, setSelectedFloor] = useState<string>('G');
@@ -467,26 +479,39 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
   return (
     <div className="space-y-6">
       {/* Top Header & Search Filter Bar */}
-      <div className={`border rounded-2xl p-4 shadow-lg flex flex-col lg:flex-row lg:items-center justify-between gap-4 transition-colors ${
+      <div className={`border rounded-2xl p-4 sm:p-5 shadow-lg flex flex-col gap-3.5 transition-colors ${
         isLight ? 'bg-white border-slate-200 text-slate-900 shadow-sm' : 'bg-slate-900 border-slate-800 text-white'
       }`}>
-        <div>
-          <h2 className={`text-lg font-bold flex items-center gap-2 ${isLight ? 'text-slate-900' : 'text-white'}`}>
-            <Box className="w-5 h-5 text-amber-500" />
-            <span>الوحدات والمشاهدة ثلاثية الأبعاد (3D)</span>
-          </h2>
-          <p className={`text-xs mt-0.5 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
-            استعراض المنشآت النفطية بالـ 3D، قطع الطوابق، التقييم الهندسي، وتعديل كافة البيانات الهندسية
-          </p>
+        {/* Title & Subtitle Phrase Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b pb-3 border-slate-200 dark:border-slate-800">
+          <div>
+            <h2 className={`text-lg sm:text-xl font-black flex items-center gap-2.5 ${isLight ? 'text-slate-900' : 'text-white'}`}>
+              <div className="w-8 h-8 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-500 font-bold shrink-0">
+                <Box className="w-5 h-5 text-amber-500" />
+              </div>
+              <span>الوحدات والمشاهدة ثلاثية الأبعاد (3D)</span>
+            </h2>
+            <p className={`text-xs mt-1 font-medium ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+              استعراض المنشآت النفطية بالـ 3D، قطع الطوابق، التقييم الهندسي، وتعديل كافة البيانات الهندسية
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2 text-xs">
+            <span className={`px-3 py-1.5 rounded-xl border font-bold ${
+              isLight ? 'bg-slate-50 border-slate-200 text-slate-700' : 'bg-slate-800/80 border-slate-700 text-slate-300'
+            }`}>
+              المنشآت المطابقة: <b className="text-amber-500 font-black">{toArabicDigits(filteredUnits.length)}</b> من {toArabicDigits(units.length)}
+            </span>
+          </div>
         </div>
 
-        {/* Filter Controls */}
-        <div className="flex flex-wrap items-center gap-2 text-xs">
+        {/* Filter Controls Bar - PLACED DIRECTLY BELOW THE PHRASE */}
+        <div className="flex flex-wrap items-center gap-2 pt-0.5 text-xs">
           {/* Governorate Filter */}
           <select
             value={filterGovernorate}
             onChange={(e) => handleGovernorateFilterChange(e.target.value)}
-            className={`border rounded-lg px-3 py-1.5 focus:outline-none focus:border-amber-500 font-semibold cursor-pointer ${
+            className={`border rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-amber-500 font-semibold cursor-pointer ${
               isLight ? 'bg-slate-50 border-slate-300 text-slate-800' : 'bg-slate-950 border-slate-800 text-slate-200'
             }`}
           >
@@ -504,7 +529,7 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
           <select
             value={filterField}
             onChange={(e) => setFilterField(e.target.value)}
-            className={`border rounded-lg px-3 py-1.5 focus:outline-none focus:border-amber-500 font-semibold cursor-pointer ${
+            className={`border rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-amber-500 font-semibold cursor-pointer ${
               isLight ? 'bg-slate-50 border-slate-300 text-slate-800' : 'bg-slate-950 border-slate-800 text-slate-200'
             }`}
           >
@@ -516,27 +541,46 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
             ))}
           </select>
 
-          {/* Org Entity / Department Filter */}
-          <select
-            value={filterOrgEntity}
-            onChange={(e) => setFilterOrgEntity(e.target.value)}
-            className={`border rounded-lg px-3 py-1.5 focus:outline-none focus:border-amber-500 font-semibold cursor-pointer ${
-              isLight ? 'bg-slate-50 border-slate-300 text-slate-800' : 'bg-slate-950 border-slate-800 text-slate-200'
-            }`}
-          >
-            <option value="all">كافة التشكيلات / الجهات الشاغلة</option>
-            {availableOrgEntities.map((dept) => (
-              <option key={dept} value={dept}>
-                {dept}
-              </option>
-            ))}
-          </select>
+          {/* زر التشكيلات / الجهات الشاغلة - يظهر صفحة التشكيلات للاختيار منها */}
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => setShowOrgPickerModal(true)}
+              className={`px-3 py-1.5 rounded-lg border font-bold flex items-center gap-1.5 transition cursor-pointer shadow-sm ${
+                filterOrgEntity !== 'all'
+                  ? 'bg-amber-500 text-slate-950 border-amber-400 font-black ring-1 ring-amber-400'
+                  : isLight
+                  ? 'bg-amber-50/90 hover:bg-amber-100 border-amber-300 text-amber-950'
+                  : 'bg-amber-500/15 hover:bg-amber-500/25 border-amber-500/40 text-amber-400'
+              }`}
+              title="فتح صفحة التشكيلات والجهات الشاغلة للاختيار منها"
+            >
+              <Network className="w-3.5 h-3.5 shrink-0 text-amber-500" />
+              <span className="truncate max-w-[200px]">
+                {filterOrgEntity !== 'all' ? `التشكيل: ${filterOrgEntity}` : 'التشكيلات / الجهات الشاغلة'}
+              </span>
+              <ChevronDown className="w-3.5 h-3.5 shrink-0 opacity-70" />
+            </button>
+
+            {filterOrgEntity !== 'all' && (
+              <button
+                type="button"
+                onClick={() => setFilterOrgEntity('all')}
+                className={`p-1.5 rounded-lg border text-red-500 hover:bg-red-500/10 transition cursor-pointer ${
+                  isLight ? 'border-red-200 bg-red-50' : 'border-red-900/40 bg-red-950/30'
+                }`}
+                title="إلغاء تصفية التشكيل"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
 
           {/* Condition Grade Filter */}
           <select
             value={filterGrade}
             onChange={(e) => setFilterGrade(e.target.value)}
-            className={`border rounded-lg px-3 py-1.5 focus:outline-none focus:border-amber-500 font-semibold cursor-pointer ${
+            className={`border rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-amber-500 font-semibold cursor-pointer ${
               isLight ? 'bg-slate-50 border-slate-300 text-slate-800' : 'bg-slate-950 border-slate-800 text-slate-200'
             }`}
           >
@@ -551,7 +595,7 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value)}
-            className={`border rounded-lg px-3 py-1.5 focus:outline-none focus:border-amber-500 font-semibold cursor-pointer ${
+            className={`border rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-amber-500 font-semibold cursor-pointer ${
               isLight ? 'bg-slate-50 border-slate-300 text-slate-800' : 'bg-slate-950 border-slate-800 text-slate-200'
             }`}
           >
@@ -568,7 +612,7 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value as any)}
-            className={`border rounded-lg px-3 py-1.5 focus:outline-none focus:border-amber-500 font-semibold cursor-pointer ${
+            className={`border rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-amber-500 font-semibold cursor-pointer ${
               isLight ? 'bg-slate-50 border-slate-300 text-slate-800' : 'bg-slate-950 border-slate-800 text-slate-200'
             }`}
           >
@@ -578,14 +622,14 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
           </select>
 
           {/* Quick Search */}
-          <div className="relative w-52">
+          <div className="relative w-48 sm:w-56">
             <Search className={`absolute right-2.5 top-2 w-3.5 h-3.5 ${isLight ? 'text-slate-400' : 'text-slate-500'}`} />
             <input
               type="text"
               value={searchCode}
               onChange={(e) => setSearchCode(e.target.value)}
               placeholder="ابحث بالرمز، الاسم، التشكيل..."
-              className={`w-full border rounded-lg pr-8 pl-2 py-1 text-xs focus:outline-none focus:border-amber-500 ${
+              className={`w-full border rounded-lg pr-8 pl-2 py-1.5 text-xs focus:outline-none focus:border-amber-500 ${
                 isLight ? 'bg-slate-50 border-slate-300 text-slate-800 placeholder-slate-400' : 'bg-slate-950 border-slate-800 text-slate-200 placeholder-slate-500'
               }`}
             />
@@ -1983,6 +2027,18 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
           onClose={() => setSelectedRoomForQrCard(null)}
         />
       )}
+
+      {/* Org Entity Picker Modal (صفحة التشكيلات للاختيار منها) */}
+      <OrgEntityPickerModal
+        isOpen={showOrgPickerModal}
+        onClose={() => setShowOrgPickerModal(false)}
+        orgEntities={effectiveOrgEntities}
+        selectedEntity={filterOrgEntity}
+        onSelectEntity={(entityName) => setFilterOrgEntity(entityName)}
+        title="اختيار التشكيل / الجهة الشاغلة للمنشآت النفطية"
+        subtitle="اختر تشكيلاً أو قسماً من الهيكل الإداري للشركة لتصفية وعرض المباني والمنشآت التابعة له بالـ 3D"
+        theme={theme}
+      />
     </div>
   );
 };
