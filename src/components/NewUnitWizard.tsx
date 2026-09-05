@@ -2710,16 +2710,18 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
       )}
       {/* Modal Dialog for Adding New Saved Department */}
       {/* Quick Add Org Entity Modal (Linked to Org Structure) */}
-      <QuickAddOrgEntityModal
-        isOpen={showAddDeptModal}
-        onClose={() => setShowAddDeptModal(false)}
-        isLight={isLight}
-        orgEntities={orgEntities}
-        onAddOrgEntity={onAddOrgEntity || (() => {})}
-        onSelectNewlyCreated={(newDeptName) => {
-          setDepartment(newDeptName);
-        }}
-      />
+      {showAddDeptModal && (
+        <QuickAddOrgEntityModal
+          isOpen={showAddDeptModal}
+          onClose={() => setShowAddDeptModal(false)}
+          isLight={isLight}
+          orgEntities={orgEntities}
+          onAddOrgEntity={onAddOrgEntity || (() => {})}
+          onSelectNewlyCreated={(newDeptName) => {
+            setDepartment(newDeptName);
+          }}
+        />
+      )}
 
       {/* Org Chart Modal for Occupant Entities Selection */}
       {showOrgChartModal && (

@@ -2317,16 +2317,18 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
         />
       )}
       {/* Quick Add Org Entity Modal */}
-      <QuickAddOrgEntityModal
-        isOpen={showQuickAddOrgModal}
-        onClose={() => setShowQuickAddOrgModal(false)}
-        isLight={isLight}
-        orgEntities={orgEntities}
-        onAddOrgEntity={onAddOrgEntity || (() => {})}
-        onSelectNewlyCreated={(newDeptName) => {
-          setDepartment(newDeptName);
-        }}
-      />
+      {showQuickAddOrgModal && (
+        <QuickAddOrgEntityModal
+          isOpen={showQuickAddOrgModal}
+          onClose={() => setShowQuickAddOrgModal(false)}
+          isLight={isLight}
+          orgEntities={orgEntities}
+          onAddOrgEntity={onAddOrgEntity || (() => {})}
+          onSelectNewlyCreated={(newDeptName) => {
+            setDepartment(newDeptName);
+          }}
+        />
+      )}
       {/* Room QR Card Modal */}
       {selectedRoomForQr && (
         <RoomQrCardModal

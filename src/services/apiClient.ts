@@ -18,6 +18,7 @@ export { syncQueue, type SyncQueueStatus };
 
 
 const BASE_API_URL = '/api';
+const API_SECRET_KEY = 'midland_oil_secure_api_key_2026';
 
 /**
  * Global synchronized server time offset in milliseconds.
@@ -53,6 +54,7 @@ async function fetchJson<T>(
       ...options,
       headers: {
         'Content-Type': 'application/json',
+        'X-API-Key': API_SECRET_KEY,
         ...(options?.headers || {}),
       },
       signal: controller.signal,

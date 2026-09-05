@@ -2029,16 +2029,18 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
       )}
 
       {/* Org Entity Picker Modal (صفحة التشكيلات للاختيار منها) */}
-      <OrgEntityPickerModal
-        isOpen={showOrgPickerModal}
-        onClose={() => setShowOrgPickerModal(false)}
-        orgEntities={effectiveOrgEntities}
-        selectedEntity={filterOrgEntity}
-        onSelectEntity={(entityName) => setFilterOrgEntity(entityName)}
-        title="اختيار التشكيل / الجهة الشاغلة للمنشآت النفطية"
-        subtitle="اختر تشكيلاً أو قسماً من الهيكل الإداري للشركة لتصفية وعرض المباني والمنشآت التابعة له بالـ 3D"
-        theme={theme}
-      />
+      {showOrgPickerModal && (
+        <OrgEntityPickerModal
+          isOpen={showOrgPickerModal}
+          onClose={() => setShowOrgPickerModal(false)}
+          orgEntities={effectiveOrgEntities}
+          selectedEntity={filterOrgEntity}
+          onSelectEntity={(entityName) => setFilterOrgEntity(entityName)}
+          title="اختيار التشكيل / الجهة الشاغلة للمنشآت النفطية"
+          subtitle="اختر تشكيلاً أو قسماً من الهيكل الإداري للشركة لتصفية وعرض المباني والمنشآت التابعة له بالـ 3D"
+          theme={theme}
+        />
+      )}
     </div>
   );
 };

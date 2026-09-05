@@ -452,6 +452,36 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
   const [previewAttachment, setPreviewAttachment] = useState<UnitAttachment | null>(null);
   const reportFileInputRef = React.useRef<HTMLInputElement | null>(null);
 
+  // Trigger Maintenance Request from Complete Modal
+  const [createMaintenance, setCreateMaintenance] = useState(false);
+  const [maintIssue, setMaintIssue] = useState('');
+  const [maintPriority, setMaintPriority] = useState<'critical' | 'normal' | 'low'>('normal');
+  const [maintDept, setMaintDept] = useState('');
+  const [maintDate, setMaintDate] = useState('');
+
+  // Keep maintDept synced with available active maintenance departments if empty
+  useEffect(() => {
+    if (!maintDept && activeMaintenanceDepts.length > 0) {
+      setMaintDept(activeMaintenanceDepts[0].nameAr);
+    }
+  }, [activeMaintenanceDepts, maintDept]);
+
+  // Edit Schedule Form state
+  const [editTitle, setEditTitle] = useState('');
+  const [editInspectionType, setEditInspectionType] = useState<InspectionType>('comprehensive');
+  const [editStatus, setEditStatus] = useState<InspectionStatus>('scheduled');
+  const [editFrequency, setEditFrequency] = useState<InspectionFrequency>('quarterly');
+  const [editCustomDays, setEditCustomDays] = useState(90);
+  const [editLastDate, setEditLastDate] = useState('');
+  const [editNextDate, setEditNextDate] = useState('');
+  const [editAssignedTeam, setEditAssignedTeam] = useState('');
+  const [editInspectorName, setEditInspectorName] = useState('');
+  const [editPerformedByName, setEditPerformedByName] = useState('');
+  const [editNotes, setEditNotes] = useState('');
+
+  // Delete Schedule Confirm state
+  const [deleteConfirmSchedule, setDeleteConfirmSchedule] = useState<PeriodicInspectionSchedule | null>(null);
+
   const ALLOWED_REPORT_EXTENSIONS = ['png', 'jpg', 'jpeg', 'webp', 'gif', 'pdf', 'doc', 'docx', 'xls', 'xlsx'];
 
   const handleReportFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -520,37 +550,6 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
       size: reportFile ? `${(reportFile.size / 1024).toFixed(1)} KB` : '1.2 MB',
     });
   };
-
-
-  // Trigger Maintenance Request from Complete Modal
-  const [createMaintenance, setCreateMaintenance] = useState(false);
-  const [maintIssue, setMaintIssue] = useState('');
-  const [maintPriority, setMaintPriority] = useState<'critical' | 'normal' | 'low'>('normal');
-  const [maintDept, setMaintDept] = useState('');
-  const [maintDate, setMaintDate] = useState('');
-
-  // Keep maintDept synced with available active maintenance departments if empty
-  useEffect(() => {
-    if (!maintDept && activeMaintenanceDepts.length > 0) {
-      setMaintDept(activeMaintenanceDepts[0].nameAr);
-    }
-  }, [activeMaintenanceDepts, maintDept]);
-
-  // Edit Schedule Form state
-  const [editTitle, setEditTitle] = useState('');
-  const [editInspectionType, setEditInspectionType] = useState<InspectionType>('comprehensive');
-  const [editStatus, setEditStatus] = useState<InspectionStatus>('scheduled');
-  const [editFrequency, setEditFrequency] = useState<InspectionFrequency>('quarterly');
-  const [editCustomDays, setEditCustomDays] = useState(90);
-  const [editLastDate, setEditLastDate] = useState('');
-  const [editNextDate, setEditNextDate] = useState('');
-  const [editAssignedTeam, setEditAssignedTeam] = useState('');
-  const [editInspectorName, setEditInspectorName] = useState('');
-  const [editPerformedByName, setEditPerformedByName] = useState('');
-  const [editNotes, setEditNotes] = useState('');
-
-  // Delete Schedule Confirm state
-  const [deleteConfirmSchedule, setDeleteConfirmSchedule] = useState<PeriodicInspectionSchedule | null>(null);
 
   // Helper calculation for Next Due Date when start date or frequency changes
   const updateCalculatedNextDate = (startDateStr: string, freq: InspectionFrequency, customDays: number) => {

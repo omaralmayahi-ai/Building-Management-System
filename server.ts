@@ -30,7 +30,7 @@ async function startServer() {
   // Trust first proxy (Cloud Run / Nginx reverse proxy)
   app.set('trust proxy', 1);
 
-  const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
+  const PORT = 3000;
   const API_SECRET_KEY = process.env.API_SECRET_KEY || 'CHANGE_ME_BEFORE_DEPLOY';
 
   // Production Security Warning Check for insecure placeholder secrets
@@ -302,7 +302,16 @@ async function startServer() {
       return next();
     }
     const clientKey = req.headers['x-api-key'] as string | undefined;
-    const isSameOrigin = req.headers['sec-fetch-site'] === 'same-origin' || req.headers['sec-fetch-site'] === 'none';
+    const host = req.headers.host;
+    const referer = req.headers.referer;
+    const origin = req.headers.origin;
+    const isRefererSameHost = Boolean(referer && host && referer.includes(host));
+    const isOriginSameHost = Boolean(origin && host && origin.includes(host));
+    const isSameOrigin =
+      req.headers['sec-fetch-site'] === 'same-origin' ||
+      req.headers['sec-fetch-site'] === 'none' ||
+      isRefererSameHost ||
+      isOriginSameHost;
     const isKnownKey =
       Boolean(clientKey) &&
       (clientKey === API_SECRET_KEY ||

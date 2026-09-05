@@ -1938,14 +1938,16 @@ export const OrgStructureBuilder: React.FC<OrgStructureBuilderProps> = ({
         </div>
       )}
       {/* Interactive Printable Org Chart Modal */}
-      <OrgChartModal
-        isOpen={showOrgChartModal}
-        onClose={() => setShowOrgChartModal(false)}
-        orgEntities={orgEntities}
-        branding={branding}
-        units={units}
-        isParentLight={isLight}
-      />
+      {showOrgChartModal && (
+        <OrgChartModal
+          isOpen={showOrgChartModal}
+          onClose={() => setShowOrgChartModal(false)}
+          orgEntities={orgEntities}
+          branding={branding}
+          units={units}
+          isParentLight={isLight}
+        />
+      )}
     </div>
   );
 };

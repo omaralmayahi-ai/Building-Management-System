@@ -4078,16 +4078,18 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
       )}
 
       {/* Org Entity Picker Modal */}
-      <OrgEntityPickerModal
-        isOpen={showOrgPickerModal}
-        onClose={() => setShowOrgPickerModal(false)}
-        orgEntities={effectiveOrgEntities}
-        selectedEntity={selectedOrgEntity}
-        onSelectEntity={(entityName) => setSelectedOrgEntity(entityName)}
-        title="اختيار التشكيل / الجهة الشاغلة للتقارير"
-        subtitle="اختر تشكيلاً أو قسماً من الهيكل الإداري للشركة لتصفية وطباعة وتصدير كافة السجلات والمنشآت التابعة له"
-        theme={theme}
-      />
+      {showOrgPickerModal && (
+        <OrgEntityPickerModal
+          isOpen={showOrgPickerModal}
+          onClose={() => setShowOrgPickerModal(false)}
+          orgEntities={effectiveOrgEntities}
+          selectedEntity={selectedOrgEntity}
+          onSelectEntity={(entityName) => setSelectedOrgEntity(entityName)}
+          title="اختيار التشكيل / الجهة الشاغلة للتقارير"
+          subtitle="اختر تشكيلاً أو قسماً من الهيكل الإداري للشركة لتصفية وطباعة وتصدير كافة السجلات والمنشآت التابعة له"
+          theme={theme}
+        />
+      )}
     </div>
   );
 };
