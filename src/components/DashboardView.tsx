@@ -355,17 +355,34 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const unitTypesBreakdown = useMemo(() => {
     const map: { [key: string]: number } = {};
     const typeLabelMap: { [key: string]: string } = {
-      caravan: 'كرفانات سكن ومكاتب',
-      building: 'مبانٍ إنشائية ثابتة',
-      warehouse: 'مخازن ومستودعات',
-      equipment: 'معدات ومرافق خاصة',
-      safety_system: 'أنظمة سلامة وإطفاء',
-      storage_tank: 'خزانات ومجمعات',
+      caravan: 'كرفانات سكن ومكاتب (CRV)',
+      building: 'مبانٍ إنشائية إدارية (BLD)',
+      warehouse: 'مخازن ومستودعات (WHS)',
+      equipment: 'معدات ومرافق خاصة (EQP)',
+      safety_system: 'أنظمة سلامة وإطفاء (SFT)',
+      storage_tank: 'خزانات ومجمعات (TNK)',
     };
 
+    if (unitTypes && unitTypes.length > 0) {
+      unitTypes.forEach((ut) => {
+        typeLabelMap[ut.code] = `${ut.nameAr} (${ut.code})`;
+        typeLabelMap[ut.code.toLowerCase()] = `${ut.nameAr} (${ut.code})`;
+        if (ut.code === 'BLD') typeLabelMap['building'] = `${ut.nameAr} (${ut.code})`;
+        if (ut.code === 'CRV') typeLabelMap['caravan'] = `${ut.nameAr} (${ut.code})`;
+        if (ut.code === 'WHS') typeLabelMap['warehouse'] = `${ut.nameAr} (${ut.code})`;
+      });
+    }
+
     filteredUnits.forEach((u) => {
-      const typeKey = u.type || 'building';
-      const label = typeLabelMap[typeKey] || typeKey;
+      let typeKey = u.unitTypeCode || u.type || 'building';
+      if (!u.unitTypeCode && u.code) {
+        const parts = u.code.split('-');
+        if (parts.length >= 4) {
+          const c = parts[2].toUpperCase();
+          if (typeLabelMap[c]) typeKey = c;
+        }
+      }
+      const label = typeLabelMap[typeKey] || (u.unitTypeCode ? `${u.unitTypeCode}` : typeKey);
       map[label] = (map[label] || 0) + 1;
     });
 
@@ -375,7 +392,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       count,
       percentage: Math.round((count / denom) * 100),
     })).sort((a, b) => b.count - a.count);
-  }, [filteredUnits, totalUnits]);
+  }, [filteredUnits, totalUnits, unitTypes]);
 
   return (
     <div className="space-y-6 text-right dir-rtl">

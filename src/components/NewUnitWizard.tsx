@@ -30,11 +30,11 @@ import {
 } from 'lucide-react';
 import {
   UnitAsset,
+  UnitType,
   UnitAttachment,
   ConditionGrade,
   GovernorateRef,
   OilfieldRef,
-  SiteRef,
   ReferenceUnitType,
   EquipmentTypeRef,
   OrgEntity,
@@ -102,7 +102,6 @@ export const calculateUnitArea = (length: number, width: number, shape: string):
 interface NewUnitWizardProps {
   governorates: GovernorateRef[];
   oilfields: OilfieldRef[];
-  sites: SiteRef[];
   unitTypes: ReferenceUnitType[];
   equipmentTypes: EquipmentTypeRef[];
   existingUnits?: UnitAsset[];
@@ -129,7 +128,6 @@ interface AttachedFileItem {
 export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
   governorates,
   oilfields,
-  sites,
   unitTypes,
   equipmentTypes,
   existingUnits = [],
@@ -749,7 +747,8 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
       code: generatedCode,
       fixedAssetCode: fixedAssetCode.trim() || undefined,
       name: name.trim(),
-      type: selectedUnitType === 'CRV' ? 'caravan' : 'building',
+      type: (selectedUnitType === 'CRV' ? 'caravan' : selectedUnitType === 'BLD' ? 'building' : selectedUnitType === 'WHS' ? 'warehouse' : (selectedUnitType || 'building')) as UnitType,
+      unitTypeCode: selectedUnitType || 'BLD',
       siteId: 'WST-AHD-CPF-001',
       siteName: selectedFld ? `منشأة ${selectedFld.nameAr}` : 'المحطة المركزية',
       field: selectedFld?.nameAr || 'حقل الأحدب',

@@ -57,7 +57,7 @@ import {
 import { downloadAttachment } from '../utils/fileUtils';
 import { BUILDING_SHAPE_OPTIONS } from './NewUnitWizard';
 import { toArabicDigits } from '../utils/arabicUtils';
-import { INITIAL_GOVERNORATES, INITIAL_OILFIELDS, INITIAL_ORG_ENTITIES } from '../data/mockData';
+import { INITIAL_GOVERNORATES, INITIAL_OILFIELDS, INITIAL_ORG_ENTITIES, INITIAL_REFERENCE_UNIT_TYPES } from '../data/mockData';
 import { OrgEntityPickerModal } from './OrgEntityPickerModal';
 
 interface UnitManagementViewProps {
@@ -135,6 +135,16 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
   const effectiveOilfields = useMemo(() => {
     return oilfields && oilfields.length > 0 ? oilfields : INITIAL_OILFIELDS;
   }, [oilfields]);
+
+  // Effective reference unit types synchronized with System Settings
+  const effectiveUnitTypes = useMemo(() => {
+    return unitTypes && unitTypes.length > 0 ? unitTypes : INITIAL_REFERENCE_UNIT_TYPES;
+  }, [unitTypes]);
+
+  // Synchronized strictly with Reference Building Types in System Settings (including future additions)
+  const availableFilterTypes = useMemo(() => {
+    return effectiveUnitTypes.filter((ut) => ut.status !== 'disabled');
+  }, [effectiveUnitTypes]);
 
   // Selected Governorate object
   const selectedGovObj = useMemo(() => {
@@ -284,7 +294,34 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
       u.department === filterOrgEntity ||
       u.rooms?.some((r) => r.occupiedBy === filterOrgEntity);
     const matchGrade = filterGrade === 'all' || u.conditionGrade === filterGrade;
-    const matchType = filterType === 'all' || u.type === filterType;
+    let matchType = false;
+    if (filterType === 'all') {
+      matchType = true;
+    } else {
+      const targetCode = filterType.trim().toUpperCase();
+      const unitTypeStr = (u.type || '').trim().toUpperCase();
+      const explicitCode = (u.unitTypeCode || '').trim().toUpperCase();
+
+      if (explicitCode && explicitCode === targetCode) {
+        matchType = true;
+      } else if (unitTypeStr === targetCode) {
+        matchType = true;
+      } else if (targetCode === 'BLD' && (unitTypeStr === 'BUILDING' || (u.code && u.code.toUpperCase().includes('-BLD-')))) {
+        matchType = true;
+      } else if (targetCode === 'CRV' && (unitTypeStr === 'CARAVAN' || (u.code && u.code.toUpperCase().includes('-CRV-')))) {
+        matchType = true;
+      } else if (targetCode === 'WHS' && (unitTypeStr === 'WAREHOUSE' || (u.code && u.code.toUpperCase().includes('-WHS-')))) {
+        matchType = true;
+      } else if (targetCode === 'EQP' && unitTypeStr === 'EQUIPMENT') {
+        matchType = true;
+      } else if (targetCode === 'SFT' && unitTypeStr === 'SAFETY_SYSTEM') {
+        matchType = true;
+      } else if (targetCode === 'TNK' && unitTypeStr === 'STORAGE_TANK') {
+        matchType = true;
+      } else if (u.code && u.code.toUpperCase().includes(`-${targetCode}-`)) {
+        matchType = true;
+      }
+    }
     const matchStatus =
       filterStatus === 'all' ||
       (filterStatus === 'active' && (u.status === 'active' || !u.status)) ||
@@ -434,20 +471,30 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
     setExpandedFields(newFields);
   };
 
-  const getUnitTypeLabel = (typeStr: string) => {
-    if (unitTypes && unitTypes.length > 0) {
-      const match = unitTypes.find(
-        (ut) =>
-          (ut.code === 'BLD' && typeStr === 'building') ||
-          (ut.code === 'CRV' && typeStr === 'caravan') ||
-          (ut.code === 'WHS' && typeStr === 'warehouse') ||
-          (ut.code === 'EQP' && typeStr === 'equipment') ||
-          (ut.code === 'SFT' && typeStr === 'safety_system') ||
-          (ut.code === 'TNK' && typeStr === 'storage_tank') ||
-          ut.code === typeStr
-      );
-      if (match) return `${match.nameAr} (${match.code})`;
+  const getUnitTypeLabel = (typeStr: string, unitCode?: string) => {
+    const list = availableFilterTypes;
+    let codeFromUnit = '';
+    if (unitCode) {
+      const parts = unitCode.split('-');
+      if (parts.length >= 4) {
+        codeFromUnit = parts[2].toUpperCase();
+      }
     }
+
+    const match = list.find(
+      (ut) =>
+        (codeFromUnit && ut.code.toUpperCase() === codeFromUnit) ||
+        (typeStr && ut.code.toUpperCase() === typeStr.toUpperCase()) ||
+        (ut.code === 'BLD' && typeStr === 'building') ||
+        (ut.code === 'CRV' && typeStr === 'caravan') ||
+        (ut.code === 'WHS' && typeStr === 'warehouse') ||
+        (ut.code === 'EQP' && typeStr === 'equipment') ||
+        (ut.code === 'SFT' && typeStr === 'safety_system') ||
+        (ut.code === 'TNK' && typeStr === 'storage_tank') ||
+        ut.code === typeStr
+    );
+    if (match) return `${match.nameAr} (${match.code})`;
+
     switch (typeStr) {
       case 'caravan':
         return 'كرفان حقلي ساندويتش بانل (CRV)';
@@ -591,7 +638,7 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
             <option value="D">Grade D - حرج</option>
           </select>
 
-          {/* Unit Type Filter */}
+          {/* Unit Type Filter (Synchronized dynamically with Reference Building Types in System Settings) */}
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value)}
@@ -599,13 +646,12 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
               isLight ? 'bg-slate-50 border-slate-300 text-slate-800' : 'bg-slate-950 border-slate-800 text-slate-200'
             }`}
           >
-            <option value="all">كافة أنواع المنشآت</option>
-            <option value="building">مبانٍ خرسانية إدارية (BLD)</option>
-            <option value="caravan">كرفانات ساندويتش بانل (CRV)</option>
-            <option value="warehouse">مخازن جملون حديدية (WHS)</option>
-            <option value="equipment">محطات ضخ ومعدات ثقيلة (EQP)</option>
-            <option value="safety_system">منظومات إطفاء وسلامة (SFT)</option>
-            <option value="storage_tank">خزانات تجمع خام (TNK)</option>
+            <option value="all">كافة أنواع المنشآت ({toArabicDigits(availableFilterTypes.length)})</option>
+            {availableFilterTypes.map((ut) => (
+              <option key={ut.code} value={ut.code}>
+                {ut.nameAr} ({ut.code})
+              </option>
+            ))}
           </select>
 
           {/* Unit Status Filter */}
@@ -1192,7 +1238,7 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
             <span className={`text-xs px-3 py-1 rounded-full font-bold border ${
               isLight ? 'bg-slate-100 text-slate-800 border-slate-300' : 'bg-slate-800 text-slate-300 border-slate-700'
             }`}>
-              {getUnitTypeLabel(selectedUnit.type)}
+              {getUnitTypeLabel(selectedUnit.type, selectedUnit.code)}
             </span>
 
             {selectedUnit.status === 'decommissioned' ? (

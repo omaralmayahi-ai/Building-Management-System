@@ -48,7 +48,6 @@ import {
   ReferenceUnitType,
   GovernorateRef,
   OilfieldRef,
-  SiteRef,
   RoomTypeRef,
   EquipmentTypeRef,
   MaintenanceDepartmentRef,
@@ -96,7 +95,6 @@ interface SettingsViewProps {
   unitTypes: ReferenceUnitType[];
   governorates: GovernorateRef[];
   oilfields: OilfieldRef[];
-  sites: SiteRef[];
   roomTypes: RoomTypeRef[];
   equipmentTypes: EquipmentTypeRef[];
   maintenanceDepartments?: MaintenanceDepartmentRef[];
@@ -126,10 +124,6 @@ interface SettingsViewProps {
   onUpdateOilfield: (field: OilfieldRef) => void;
   onDeleteOilfield: (id: string) => void;
 
-  onAddSite: (site: SiteRef) => void;
-  onUpdateSite: (site: SiteRef) => void;
-  onDeleteSite: (id: string) => void;
-
   onAddRoomType: (rt: RoomTypeRef) => void;
   onUpdateRoomType: (rt: RoomTypeRef) => void;
   onDeleteRoomType: (id: string) => void;
@@ -146,7 +140,7 @@ interface SettingsViewProps {
   onResetMaintenanceDepartmentsToDefault?: () => void;
 
   onToggleStatus: (
-    category: 'unitType' | 'governorate' | 'oilfield' | 'site' | 'roomType' | 'equipmentType',
+    category: 'unitType' | 'governorate' | 'oilfield' | 'roomType' | 'equipmentType',
     idOrCode: string
   ) => void;
 
@@ -162,9 +156,6 @@ interface SettingsViewProps {
 
   onClearGovernorates: () => void;
   onResetGovernoratesToDefault: () => void;
-
-  onClearSites: () => void;
-  onResetSitesToDefault: () => void;
 
   onClearUsers: () => void;
   onResetUsersToDefault: () => void;
@@ -210,7 +201,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   unitTypes,
   governorates,
   oilfields,
-  sites,
   roomTypes,
   equipmentTypes,
   maintenanceDepartments = [],
@@ -231,9 +221,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   onAddOilfield,
   onUpdateOilfield,
   onDeleteOilfield,
-  onAddSite,
-  onUpdateSite,
-  onDeleteSite,
   onAddRoomType,
   onUpdateRoomType,
   onDeleteRoomType,
@@ -255,8 +242,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   onResetUnitTypesToDefault,
   onClearGovernorates,
   onResetGovernoratesToDefault,
-  onClearSites,
-  onResetSitesToDefault,
   onClearUsers,
   onResetUsersToDefault,
   onClearRoomTypes,
@@ -280,7 +265,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     | 'users'
     | 'governorates'
     | 'oilfields'
-    | 'sites'
     | 'unit_types'
     | 'rooms'
     | 'equipment'
@@ -424,14 +408,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const [fldNameAr, setFldNameAr] = useState('');
   const [fldNameEn, setFldNameEn] = useState('');
   const [fldCode, setFldCode] = useState('');
-
-  // Sites
-  const [siteFieldId, setSiteFieldId] = useState('');
-  const [siteNameAr, setSiteNameAr] = useState('');
-  const [siteNameEn, setSiteNameEn] = useState('');
-  const [siteCode, setSiteCode] = useState('');
-  const [siteLat, setSiteLat] = useState('32.6189');
-  const [siteLng, setSiteLng] = useState('45.7531');
 
   // Unit Types
   const [utCode, setUtCode] = useState('');
@@ -612,13 +588,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     setFldNameEn('');
     setFldCode('');
 
-    setSiteFieldId(oilfields[0]?.id || '');
-    setSiteNameAr('');
-    setSiteNameEn('');
-    setSiteCode('');
-    setSiteLat('32.6189');
-    setSiteLng('45.7531');
-
     setUtCode('');
     setUtNameAr('');
     setUtNameEn('');
@@ -655,13 +624,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       setFldNameAr(item.nameAr || '');
       setFldNameEn(item.nameEn || '');
       setFldCode(item.code || '');
-    } else if (activeTab === 'sites') {
-      setSiteFieldId(item.fieldId || '');
-      setSiteNameAr(item.nameAr || '');
-      setSiteNameEn(item.nameEn || '');
-      setSiteCode(item.code || '');
-      setSiteLat(item.coordinates?.lat?.toString() || '32.6189');
-      setSiteLng(item.coordinates?.lng?.toString() || '45.7531');
     } else if (activeTab === 'unit_types') {
       setUtCode(item.code || '');
       setUtNameAr(item.nameAr || '');
@@ -733,31 +695,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           status: 'active',
         });
         triggerSaveToast('تم إضافة الحقل النفطي الجديد');
-      }
-    } else if (activeTab === 'sites') {
-      if (!siteNameAr || !siteFieldId) return;
-      if (editingItem) {
-        onUpdateSite({
-          ...editingItem,
-          fieldId: siteFieldId,
-          nameAr: siteNameAr,
-          nameEn: siteNameEn || siteNameAr,
-          code: (siteCode || siteNameAr.slice(0, 3)).toUpperCase(),
-          coordinates: { lat: parseFloat(siteLat) || 32.6189, lng: parseFloat(siteLng) || 45.7531 },
-        });
-        triggerSaveToast('تم تحديث بيانات الموقع / المنشأة');
-      } else {
-        onAddSite({
-          id: `SITE-${Date.now()}`,
-          fieldId: siteFieldId,
-          nameAr: siteNameAr,
-          nameEn: siteNameEn || siteNameAr,
-          code: (siteCode || siteNameAr.slice(0, 3)).toUpperCase(),
-          coordinates: { lat: parseFloat(siteLat) || 32.6189, lng: parseFloat(siteLng) || 45.7531 },
-          totalUnits: 0,
-          status: 'active',
-        });
-        triggerSaveToast('تم إضافة المنشأة الجديدة');
       }
     } else if (activeTab === 'unit_types') {
       if (!utCode || !utNameAr) return;
@@ -863,7 +800,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
     if (type === 'governorate') onDeleteGovernorate(id);
     else if (type === 'oilfield') onDeleteOilfield(id);
-    else if (type === 'site') onDeleteSite(id);
     else if (type === 'unitType') onDeleteUnitType(id);
     else if (type === 'roomType') onDeleteRoomType(id);
     else if (type === 'equipmentType') onDeleteEquipmentType(id);
@@ -1180,29 +1116,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               </span>
             </button>
 
-            {/* 3. المواقع والمنشآت */}
-            <button
-              onClick={() => setActiveTab('sites')}
-              className={`p-2.5 rounded-xl font-bold transition flex items-center justify-between cursor-pointer border text-xs ${
-                activeTab === 'sites'
-                  ? isLight
-                    ? 'bg-amber-100 text-amber-950 border-amber-300 shadow-xs'
-                    : 'bg-amber-500/20 text-amber-300 border-amber-500/40 shadow-xs'
-                  : isLight
-                  ? 'bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200'
-                  : 'bg-slate-800/60 text-slate-300 hover:bg-slate-800 border-slate-700/60'
-              }`}
-            >
-              <span className="flex items-center gap-1.5 truncate">
-                <Building2 className={`w-4 h-4 shrink-0 ${isLight ? 'text-indigo-600' : 'text-indigo-400'}`} />
-                <span className="truncate">المواقع والمنشآت</span>
-              </span>
-              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold shrink-0 ${isLight ? 'bg-slate-200/70 text-slate-700' : 'bg-slate-950 text-slate-400'}`}>
-                {toArabicDigits(sites.length)}
-              </span>
-            </button>
-
-            {/* 4. أنواع المباني والكرفانات */}
+            {/* 3. أنواع المباني والكرفانات */}
             <button
               onClick={() => setActiveTab('unit_types')}
               className={`p-2.5 rounded-xl font-bold transition flex items-center justify-between cursor-pointer border text-xs ${
@@ -2536,109 +2450,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             </div>
           )}
 
-          {/* TAB 4: Sites Table */}
-          {activeTab === 'sites' && (
-            <div className="space-y-3">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-800 gap-2">
-                <div>
-                  <h3 className="font-bold text-slate-100 text-sm">دليل المواقع والمنشآت والمحطات الحقليّة</h3>
-                  <span className="text-[11px] text-slate-400">إدارة تفصيلية مع إضافة وتعديل الإحداثيات وحذف المنشأة</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEditingItem(null);
-                    setSiteFieldId(oilfields[0]?.id || '');
-                    setSiteNameAr('');
-                    setSiteNameEn('');
-                    setSiteCode(`STE-${Date.now().toString().slice(-4)}`);
-                    setSiteLat('32.6189');
-                    setSiteLng('45.7531');
-                    setShowModal(true);
-                  }}
-                  className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5 shadow self-start sm:self-auto"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>إضافة موقع / منشأة جديدة</span>
-                </button>
-              </div>
-
-              <div className="overflow-x-auto">
-                <table className="w-full text-right text-xs">
-                  <thead>
-                    <tr className="bg-slate-950 text-slate-400 border-b border-slate-800">
-                      <th className="p-3 font-semibold">رمز الموقع</th>
-                      <th className="p-3 font-semibold">اسم الموقع/المنشأة</th>
-                      <th className="p-3 font-semibold">الحقل النفطي</th>
-                      <th className="p-3 font-semibold">الإحداثيات GIS</th>
-                      <th className="p-3 font-semibold text-center">الحالة</th>
-                      <th className="p-3 font-semibold text-center">إجراءات</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-800 text-slate-300">
-                    {sites.map((st) => {
-                      const parentFld = oilfields.find((f) => f.id === st.fieldId);
-                      return (
-                        <tr key={st.id} className="hover:bg-slate-800/40 transition">
-                          <td className="p-3 font-mono font-bold text-amber-400">{st.code}</td>
-                          <td className="p-3 font-bold text-slate-100">{st.nameAr}</td>
-                          <td className="p-3 text-slate-300">{parentFld?.nameAr || 'غير محدد'}</td>
-                          <td className="p-3 font-mono text-slate-400">
-                            {st.coordinates?.lat?.toFixed(4) || '0.0000'}°, {st.coordinates?.lng?.toFixed(4) || '0.0000'}°
-                          </td>
-                          <td className="p-3 text-center">
-                            <span
-                              className={`px-2.5 py-0.5 rounded font-bold ${
-                                st.status === 'active'
-                                  ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                                  : 'bg-slate-800 text-slate-500'
-                              }`}
-                            >
-                              {st.status === 'active' ? 'نشط' : 'معطل'}
-                            </span>
-                          </td>
-                          <td className="p-3 text-center">
-                            <div className="flex items-center justify-center gap-2">
-                              <button
-                                onClick={() => onToggleStatus('site', st.id)}
-                                className="p-1 text-slate-400 hover:text-amber-400 transition cursor-pointer"
-                              >
-                                {st.status === 'active' ? (
-                                  <ToggleRight className="w-5 h-5 text-emerald-400" />
-                                ) : (
-                                  <ToggleLeft className="w-5 h-5 text-slate-500" />
-                                )}
-                              </button>
-                              <button
-                                onClick={() => handleOpenEditModal(st)}
-                                className="p-1 text-slate-400 hover:text-amber-400 transition cursor-pointer"
-                              >
-                                <Edit2 className="w-4 h-4" />
-                              </button>
-                              <button
-                                onClick={() =>
-                                  setDeleteConfirm({
-                                    type: 'site',
-                                    id: st.id,
-                                    name: st.nameAr,
-                                  })
-                                }
-                                className="p-1 text-slate-400 hover:text-red-400 transition cursor-pointer"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-
-          {/* TAB 5: Unit Types Table */}
+          {/* TAB 4: Unit Types Table */}
           {activeTab === 'unit_types' && (
             <div className="space-y-3">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-800 gap-2">
@@ -3180,7 +2992,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               unitTypes={unitTypes}
               governorates={governorates}
               oilfields={oilfields}
-              sites={sites}
               roomTypes={roomTypes}
               equipmentTypes={equipmentTypes}
               maintenanceDepartments={maintenanceDepartments}
@@ -3439,65 +3250,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   </div>
                 </div>
 
-                {/* 5. Sites & Installations */}
-                <div className="bg-slate-950 border border-slate-800 rounded-2xl p-4 space-y-3 flex flex-col justify-between">
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <div className="p-2 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-xl">
-                          <Globe className="w-5 h-5" />
-                        </div>
-                        <div>
-                          <h4 className="font-bold text-slate-100 text-xs">مسح/إعادة تعيين المواقع والمنشآت</h4>
-                          <span className="text-[11px] text-indigo-400 font-mono font-bold">
-                            العدد الحالي: {sites.length} موقع
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                    <p className="text-slate-400 text-[11px] leading-relaxed">
-                      المواقع الميدانية ومحطات الكبس والعزل الرئيسية المسجلة بالمحافظات.
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2 pt-2 border-t border-slate-800/80">
-                    <button
-                      onClick={() =>
-                        setCustomResetModal({
-                          title: 'مسح جميع المواقع والمنشآت',
-                          description: 'هل ترغب بمسح كافة المواقع الميدانية والمنشآت من السجل؟',
-                          actionType: 'clear',
-                          onConfirm: () => {
-                            onClearSites();
-                            triggerSaveToast('تم مسح جميع المواقع الميدانية بنجاح');
-                          },
-                        })
-                      }
-                      className="flex-1 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 font-bold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                      <span>مسح الكل (تفريغ)</span>
-                    </button>
-                    <button
-                      onClick={() =>
-                        setCustomResetModal({
-                          title: 'إعادة تعيين المواقع للوضع الافتراضي',
-                          description: 'هل ترغب باستعادة المواقع والمنشآت الميدانية الافتراضية؟',
-                          actionType: 'resetDefault',
-                          onConfirm: () => {
-                            onResetSitesToDefault();
-                            triggerSaveToast('تمت استعادة المواقع الافتراضية بنجاح');
-                          },
-                        })
-                      }
-                      className="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
-                    >
-                      <RotateCcw className="w-3.5 h-3.5 text-amber-400" />
-                      <span>الوضع الافتراضي</span>
-                    </button>
-                  </div>
-                </div>
-
-                {/* 6. System Users */}
+                {/* 5. System Users */}
                 <div className="bg-slate-950 border border-slate-800 rounded-2xl p-4 space-y-3 flex flex-col justify-between">
                   <div>
                     <div className="flex items-center justify-between mb-2">
@@ -3904,59 +3657,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       placeholder="MJN"
                       className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 font-mono text-amber-400 font-bold"
                     />
-                  </div>
-                </>
-              )}
-
-              {/* Site Inputs */}
-              {activeTab === 'sites' && (
-                <>
-                  <div>
-                    <label className="block text-slate-300 font-bold mb-1">الحقل النفطي التابع له:</label>
-                    <select
-                      required
-                      value={siteFieldId}
-                      onChange={(e) => setSiteFieldId(e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-slate-100"
-                    >
-                      <option value="">-- اختر الحقل النفطي --</option>
-                      {oilfields.map((f) => (
-                        <option key={f.id} value={f.id}>
-                          {f.nameAr} ({f.code})
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-slate-300 font-bold mb-1">اسم الموقع أو المنشأة:</label>
-                    <input
-                      type="text"
-                      required
-                      value={siteNameAr}
-                      onChange={(e) => setSiteNameAr(e.target.value)}
-                      placeholder="محطة العزل الرئيسية الضفة الشمالية"
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-slate-100"
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <label className="block text-slate-300 font-bold mb-1">خط العرض Lat:</label>
-                      <input
-                        type="text"
-                        value={siteLat}
-                        onChange={(e) => setSiteLat(e.target.value)}
-                        className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 font-mono text-slate-300"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-slate-300 font-bold mb-1">خط الطول Lng:</label>
-                      <input
-                        type="text"
-                        value={siteLng}
-                        onChange={(e) => setSiteLng(e.target.value)}
-                        className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 font-mono text-slate-300"
-                      />
-                    </div>
                   </div>
                 </>
               )}

@@ -1,6 +1,6 @@
 export type ConditionGrade = 'A' | 'B' | 'C' | 'D';
 
-export type UnitType = 'building' | 'caravan' | 'warehouse' | 'equipment' | 'safety_system' | 'storage_tank';
+export type UnitType = 'building' | 'caravan' | 'warehouse' | 'equipment' | 'safety_system' | 'storage_tank' | (string & {});
 
 export type MaintenancePriority = 'critical' | 'normal' | 'low';
 
@@ -63,8 +63,9 @@ export interface UnitAsset {
   fixedAssetCode?: string; // رمز الأصل في سجلات أصول الشركة (0123456789 للأبنية / 123.1234.123 للكرفانات)
   name: string; // Local name, e.g. "إدارة حقل الأحدب الرئيسي"
   type: UnitType;
-  siteId: string;
-  siteName: string; // e.g. "Al-Ahdab HQ" / "المحطة المركزية CPF"
+  unitTypeCode?: string; // رمز نوع المنشأة المرجعي من إعدادات النظام (BLD, CRV, WHS, LAB, CTRL...)
+  siteId?: string;
+  siteName?: string;
   field: string; // e.g. "Ahdab", "East Baghdad", "Badra", "Maysan", "Naft Khana", "Rumaila"
   governorate: string; // e.g. "Wasit", "Baghdad", "Diyala", "Basra"
   conditionGrade: ConditionGrade;
@@ -77,10 +78,13 @@ export interface UnitAsset {
   };
   sectorAddress: string;
   totalAreaSqM: number;
+  landAreaSqM?: number;
   lengthM?: number;
   widthM?: number;
   heightM?: number;
   buildingShape?: string;
+  roofType?: string;
+  structureType?: string;
   floorsCount: number;
   rooms: Room[];
   equipment: EquipmentItem[];
@@ -233,18 +237,6 @@ export interface OilfieldRef {
   status: 'active' | 'disabled';
 }
 
-export interface SiteRef {
-  id: string;
-  fieldId: string;
-  nameAr: string;
-  nameEn?: string;
-  code: string;
-  coordinates: { lat: number; lng: number };
-  totalUnits?: number;
-  description?: string;
-  status: 'active' | 'disabled';
-}
-
 export interface RoomTypeRef {
   id: string;
   code: string;
@@ -389,7 +381,7 @@ export interface DatabaseBackupCounts {
   orgEntities: number;
   governorates: number;
   oilfields: number;
-  sites: number;
+  sites?: number;
   unitTypes: number;
   roomTypes: number;
   equipmentTypes: number;
@@ -417,7 +409,7 @@ export interface DatabaseBackupPayload {
     branding: SystemBranding;
     governorates: GovernorateRef[];
     oilfields: OilfieldRef[];
-    sites: SiteRef[];
+    sites?: any[];
     unitTypes: ReferenceUnitType[];
     roomTypes: RoomTypeRef[];
     equipmentTypes: EquipmentTypeRef[];

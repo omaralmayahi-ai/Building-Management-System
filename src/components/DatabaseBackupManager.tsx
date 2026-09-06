@@ -40,7 +40,6 @@ import {
   ReferenceUnitType,
   GovernorateRef,
   OilfieldRef,
-  SiteRef,
   RoomTypeRef,
   EquipmentTypeRef,
   MaintenanceDepartmentRef,
@@ -75,7 +74,6 @@ interface DatabaseBackupManagerProps {
   unitTypes: ReferenceUnitType[];
   governorates: GovernorateRef[];
   oilfields: OilfieldRef[];
-  sites: SiteRef[];
   roomTypes: RoomTypeRef[];
   equipmentTypes: EquipmentTypeRef[];
   maintenanceDepartments: MaintenanceDepartmentRef[];
@@ -118,7 +116,6 @@ export const DatabaseBackupManager: React.FC<DatabaseBackupManagerProps> = ({
   unitTypes,
   governorates,
   oilfields,
-  sites,
   roomTypes,
   equipmentTypes,
   maintenanceDepartments,
@@ -201,7 +198,6 @@ export const DatabaseBackupManager: React.FC<DatabaseBackupManagerProps> = ({
     orgEntities: orgEntities.length,
     governorates: governorates.length,
     oilfields: oilfields.length,
-    sites: sites.length,
     unitTypes: unitTypes.length,
     roomTypes: roomTypes.length,
     equipmentTypes: equipmentTypes.length,
@@ -216,7 +212,6 @@ export const DatabaseBackupManager: React.FC<DatabaseBackupManagerProps> = ({
       orgEntities.length +
       governorates.length +
       oilfields.length +
-      sites.length +
       unitTypes.length +
       roomTypes.length +
       equipmentTypes.length +
@@ -239,7 +234,6 @@ export const DatabaseBackupManager: React.FC<DatabaseBackupManagerProps> = ({
       branding,
       governorates,
       oilfields,
-      sites,
       unitTypes,
       roomTypes,
       equipmentTypes,
@@ -707,12 +701,11 @@ export const DatabaseBackupManager: React.FC<DatabaseBackupManagerProps> = ({
                   <Database className="w-4 h-4" />
                 </div>
                 <div>
-                  <span className={`text-[11px] block ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>الجداول المرجعية (حقول، مواقع..)</span>
+                  <span className={`text-[11px] block ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>الجداول المرجعية (محافظات، حقول..)</span>
                   <span className={`font-bold text-xs font-mono ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
                     {toArabicDigits(
                       governorates.length +
                         oilfields.length +
-                        sites.length +
                         unitTypes.length +
                         roomTypes.length +
                         equipmentTypes.length +

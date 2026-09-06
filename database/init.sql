@@ -29,12 +29,14 @@ CREATE INDEX IF NOT EXISTS idx_org_entities_code ON org_entities(code);
 CREATE TABLE IF NOT EXISTS units (
     id VARCHAR(64) UNIQUE NOT NULL,
     code VARCHAR(64) PRIMARY KEY,
+    fixed_asset_code VARCHAR(128),
     name VARCHAR(255) NOT NULL,
     type VARCHAR(64) NOT NULL CHECK (type IN ('building', 'caravan', 'warehouse', 'equipment', 'safety_system', 'storage_tank')),
-    site_id VARCHAR(64) NOT NULL,
-    site_name VARCHAR(255) NOT NULL,
+    unit_type_code VARCHAR(64),
     field VARCHAR(128) NOT NULL,
     governorate VARCHAR(128) NOT NULL,
+    site_id VARCHAR(64),
+    site_name VARCHAR(255),
     condition_grade CHAR(1) NOT NULL DEFAULT 'B' CHECK (condition_grade IN ('A', 'B', 'C', 'D')),
     construction_year INTEGER NOT NULL,
     department VARCHAR(255) NOT NULL,
@@ -43,10 +45,13 @@ CREATE TABLE IF NOT EXISTS units (
     lng NUMERIC(10, 6) NOT NULL,
     sector_address TEXT NOT NULL,
     total_area_sq_m NUMERIC(12, 2) NOT NULL,
+    land_area_sq_m NUMERIC(12, 2),
     length_m NUMERIC(10, 2),
     width_m NUMERIC(10, 2),
     height_m NUMERIC(10, 2),
     building_shape VARCHAR(64) DEFAULT 'rectangular',
+    roof_type VARCHAR(128),
+    structure_type VARCHAR(128),
     floors_count INTEGER NOT NULL DEFAULT 1,
     rooms JSONB NOT NULL DEFAULT '[]'::jsonb,
     equipment JSONB NOT NULL DEFAULT '[]'::jsonb,
@@ -62,9 +67,10 @@ CREATE TABLE IF NOT EXISTS units (
 
 CREATE INDEX IF NOT EXISTS idx_units_field ON units(field);
 CREATE INDEX IF NOT EXISTS idx_units_governorate ON units(governorate);
+CREATE INDEX IF NOT EXISTS idx_units_unit_type_code ON units(unit_type_code);
+CREATE INDEX IF NOT EXISTS idx_units_fixed_asset_code ON units(fixed_asset_code);
 CREATE INDEX IF NOT EXISTS idx_units_condition ON units(condition_grade);
 CREATE INDEX IF NOT EXISTS idx_units_status ON units(status);
-CREATE INDEX IF NOT EXISTS idx_units_site_id ON units(site_id);
 CREATE INDEX IF NOT EXISTS idx_units_type ON units(type);
 
 -- 4. Maintenance Requests (طلبات وأوامر الصيانة)
@@ -184,17 +190,16 @@ CREATE TABLE IF NOT EXISTS oilfields_ref (
     status VARCHAR(32) NOT NULL DEFAULT 'active'
 );
 
-CREATE TABLE IF NOT EXISTS sites_ref (
-    id VARCHAR(64) PRIMARY KEY,
-    field_id VARCHAR(64) REFERENCES oilfields_ref(id) ON DELETE CASCADE,
-    code VARCHAR(64) UNIQUE NOT NULL,
-    name_ar VARCHAR(255) NOT NULL,
-    name_en VARCHAR(255),
-    lat NUMERIC(10, 6) NOT NULL,
-    lng NUMERIC(10, 6) NOT NULL,
-    total_units INTEGER DEFAULT 0,
-    description TEXT,
-    status VARCHAR(32) NOT NULL DEFAULT 'active'
+-- Note: sites_ref table removed as requested to simplify settings and rely strictly on governorates and oilfields.
+DROP TABLE IF EXISTS sites_ref CASCADE;
+
+CREATE TABLE IF NOT EXISTS unit_types_ref (
+    code VARCHAR(64) PRIMARY KEY,
+    name_ar VARCHAR(128) NOT NULL,
+    name_en VARCHAR(128),
+    multi_story BOOLEAN NOT NULL DEFAULT false,
+    default_roof VARCHAR(128),
+    status VARCHAR(32) NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'disabled'))
 );
 
 CREATE TABLE IF NOT EXISTS room_types_ref (
@@ -215,6 +220,16 @@ CREATE TABLE IF NOT EXISTS equipment_types_ref (
     render_geometry VARCHAR(64) NOT NULL DEFAULT 'box',
     default_capacity VARCHAR(64),
     status VARCHAR(32) NOT NULL DEFAULT 'active'
+);
+
+CREATE TABLE IF NOT EXISTS maintenance_departments_ref (
+    id VARCHAR(64) PRIMARY KEY,
+    code VARCHAR(64) UNIQUE NOT NULL,
+    name_ar VARCHAR(128) NOT NULL,
+    name_en VARCHAR(128),
+    icon_name VARCHAR(64) NOT NULL DEFAULT 'Wrench',
+    specialty VARCHAR(128) NOT NULL DEFAULT 'general',
+    status VARCHAR(32) NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'disabled'))
 );
 
 CREATE TABLE IF NOT EXISTS system_users (

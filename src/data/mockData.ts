@@ -51,15 +51,6 @@ export const INITIAL_OILFIELDS = [
   { id: 'FLD-MAYSAN', governorateId: 'GOV-MAYSAN', nameAr: 'حقول شركة نفط ميسان الموحدة', nameEn: 'Maysan Oilfields', code: 'MYS', status: 'active' as const },
 ];
 
-export const INITIAL_SITES = [
-  { id: 'WST-AHD-CPF-001', fieldId: 'FLD-AHDAB', nameAr: 'المحطة المركزية (CPF)', nameEn: 'Central Processing Facility', code: 'CPF-01', coordinates: { lat: 32.6189, lng: 45.7531 }, totalUnits: 1248, description: 'المعالج الرئيسي للنفط الخام المستخرج من حقل الأحدب.', status: 'active' as const },
-  { id: 'WST-AHD-PAD-01', fieldId: 'FLD-AHDAB', nameAr: 'محطة ضخ الآبار (Well Pads)', nameEn: 'Well Pads Station', code: 'PAD-01', coordinates: { lat: 32.6250, lng: 45.7610 }, totalUnits: 84, description: 'منظومة ضخ الآبار الشمالية والشرقية.', status: 'active' as const },
-  { id: 'WST-AHD-RES-01', fieldId: 'FLD-AHDAB', nameAr: 'المجمع السكني للموظفين', nameEn: 'Staff Housing Complex', code: 'RES-01', coordinates: { lat: 32.6100, lng: 45.7480 }, totalUnits: 320, description: 'مجمع السكن العائلي والفردي لكوادر الشركة.', status: 'active' as const },
-  { id: 'BDR-GATE-01', fieldId: 'FLD-BADRA', nameAr: 'موقع بدرة الميداني والبوابة', nameEn: 'Badra Field Site', code: 'GATE-01', coordinates: { lat: 33.1121, lng: 45.9810 }, totalUnits: 290, description: 'محطة العزل والتكرير الأولى في بدرة.', status: 'active' as const },
-  { id: 'EBD-SITE-01', fieldId: 'FLD-EAST-BAGHDAD', nameAr: 'المقر الرئيسي والمورش الفنية', nameEn: 'Main HQ & Technical Workshops', code: 'HQ-01', coordinates: { lat: 33.3152, lng: 44.3661 }, totalUnits: 420, description: 'مجمع الورش والتجهيز الفني والمكاتب الإدارية.', status: 'active' as const },
-  { id: 'NK-SITE-01', fieldId: 'FLD-NAFT-KHANA', nameAr: 'محطة تجميع نفت خانة', nameEn: 'Naft Khana Gathering Station', code: 'GS-01', coordinates: { lat: 34.0120, lng: 45.4210 }, totalUnits: 220, description: 'محطة الضخ والتجميع التاريخية.', status: 'active' as const },
-];
-
 export const INITIAL_ROOM_TYPES = [
   { id: 'RT-01', code: 'office', nameAr: 'مكتب إداري', colorHex: '#38bdf8', iconName: 'Briefcase', status: 'active' as const },
   { id: 'RT-02', code: 'storage', nameAr: 'مخزن ومستودع', colorHex: '#f59e0b', iconName: 'Archive', status: 'active' as const },

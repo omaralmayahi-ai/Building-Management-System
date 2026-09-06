@@ -12,9 +12,10 @@ import {
   OrgEntity,
   GovernorateRef,
   OilfieldRef,
-  SiteRef,
   RoomTypeRef,
   EquipmentTypeRef,
+  ReferenceUnitType,
+  MaintenanceDepartmentRef,
   SystemUser,
   SystemBranding,
 } from '../types';
@@ -25,8 +26,9 @@ export interface DbUnitRow {
   fixed_asset_code?: string;
   name: string;
   type: string;
-  site_id: string;
-  site_name: string;
+  unit_type_code?: string;
+  site_id?: string;
+  site_name?: string;
   field: string;
   governorate: string;
   condition_grade: string;
@@ -37,10 +39,13 @@ export interface DbUnitRow {
   lng: number;
   sector_address: string;
   total_area_sq_m: number;
+  land_area_sq_m?: number;
   length_m?: number;
   width_m?: number;
   height_m?: number;
   building_shape?: string;
+  roof_type?: string;
+  structure_type?: string;
   floors_count: number;
   rooms: any;
   equipment: any;
@@ -140,6 +145,25 @@ export interface DbOrgEntityRow {
   status: 'active' | 'disabled';
 }
 
+export interface DbUnitTypeRefRow {
+  code: string;
+  name_ar: string;
+  name_en?: string;
+  multi_story: boolean;
+  default_roof?: string;
+  status: 'active' | 'disabled';
+}
+
+export interface DbMaintenanceDepartmentRefRow {
+  id: string;
+  code: string;
+  name_ar: string;
+  name_en?: string;
+  icon_name: string;
+  specialty: string;
+  status: 'active' | 'disabled';
+}
+
 // Convert DB Row to UnitAsset Frontend Model
 export function mapUnitRowToModel(row: DbUnitRow): UnitAsset {
   return {
@@ -148,6 +172,7 @@ export function mapUnitRowToModel(row: DbUnitRow): UnitAsset {
     fixedAssetCode: row.fixed_asset_code,
     name: row.name,
     type: row.type as any,
+    unitTypeCode: row.unit_type_code,
     siteId: row.site_id,
     siteName: row.site_name,
     field: row.field,
@@ -162,10 +187,13 @@ export function mapUnitRowToModel(row: DbUnitRow): UnitAsset {
     },
     sectorAddress: row.sector_address,
     totalAreaSqM: Number(row.total_area_sq_m),
+    landAreaSqM: row.land_area_sq_m ? Number(row.land_area_sq_m) : undefined,
     lengthM: row.length_m ? Number(row.length_m) : undefined,
     widthM: row.width_m ? Number(row.width_m) : undefined,
     heightM: row.height_m ? Number(row.height_m) : undefined,
     buildingShape: row.building_shape,
+    roofType: row.roof_type,
+    structureType: row.structure_type,
     floorsCount: Number(row.floors_count) || 1,
     rooms: typeof row.rooms === 'string' ? JSON.parse(row.rooms || '[]') : (row.rooms || []),
     equipment: typeof row.equipment === 'string' ? JSON.parse(row.equipment || '[]') : (row.equipment || []),
@@ -187,6 +215,7 @@ export function mapModelToUnitRow(model: UnitAsset): DbUnitRow {
     fixed_asset_code: model.fixedAssetCode,
     name: model.name,
     type: model.type,
+    unit_type_code: model.unitTypeCode,
     site_id: model.siteId,
     site_name: model.siteName,
     field: model.field,
@@ -199,10 +228,13 @@ export function mapModelToUnitRow(model: UnitAsset): DbUnitRow {
     lng: model.coordinates?.lng || 45.7531,
     sector_address: model.sectorAddress || '',
     total_area_sq_m: model.totalAreaSqM || 0,
+    land_area_sq_m: model.landAreaSqM,
     length_m: model.lengthM,
     width_m: model.widthM,
     height_m: model.heightM,
     building_shape: model.buildingShape,
+    roof_type: model.roofType,
+    structure_type: model.structureType,
     floors_count: model.floorsCount || 1,
     rooms: model.rooms || [],
     equipment: model.equipment || [],

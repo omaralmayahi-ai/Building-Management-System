@@ -43,7 +43,6 @@ import {
   INITIAL_REFERENCE_UNIT_TYPES,
   INITIAL_GOVERNORATES,
   INITIAL_OILFIELDS,
-  INITIAL_SITES,
   INITIAL_ROOM_TYPES,
   INITIAL_EQUIPMENT_TYPES,
   INITIAL_BRANDING,
@@ -62,7 +61,6 @@ import {
   ReferenceUnitType,
   GovernorateRef,
   OilfieldRef,
-  SiteRef,
   RoomTypeRef,
   EquipmentTypeRef,
   MaintenanceDepartmentRef,
@@ -537,10 +535,6 @@ export function App() {
     safeParse('app_ref_oilfields', INITIAL_OILFIELDS)
   );
 
-  const [sites, setSites] = useState<SiteRef[]>(() =>
-    safeParse('app_ref_sites', INITIAL_SITES)
-  );
-
   const [roomTypes, setRoomTypes] = useState<RoomTypeRef[]>(() =>
     safeParse('app_ref_room_types', INITIAL_ROOM_TYPES)
   );
@@ -593,12 +587,11 @@ export function App() {
     safeSetItem('app_ref_unit_types', unitTypes);
     safeSetItem('app_ref_governorates', governorates);
     safeSetItem('app_ref_oilfields', oilfields);
-    safeSetItem('app_ref_sites', sites);
     safeSetItem('app_ref_room_types', roomTypes);
     safeSetItem('app_ref_equipment_types', equipmentTypes);
     safeSetItem('app_ref_maintenance_depts', maintenanceDepartments);
     safeSetItem('app_ref_org_entities', orgEntities);
-  }, [unitTypes, governorates, oilfields, sites, roomTypes, equipmentTypes, maintenanceDepartments, orgEntities]);
+  }, [unitTypes, governorates, oilfields, roomTypes, equipmentTypes, maintenanceDepartments, orgEntities]);
 
   // Background Automated Backup Scheduler (الجدولة التلقائية للنسخ الاحتياطي في الخلفية)
   useEffect(() => {
@@ -655,7 +648,6 @@ export function App() {
               orgEntities: orgEntities.length,
               governorates: governorates.length,
               oilfields: oilfields.length,
-              sites: sites.length,
               unitTypes: unitTypes.length,
               roomTypes: roomTypes.length,
               equipmentTypes: equipmentTypes.length,
@@ -670,7 +662,6 @@ export function App() {
                 orgEntities.length +
                 governorates.length +
                 oilfields.length +
-                sites.length +
                 unitTypes.length +
                 roomTypes.length +
                 equipmentTypes.length +
@@ -687,7 +678,6 @@ export function App() {
               branding,
               governorates,
               oilfields,
-              sites,
               unitTypes,
               roomTypes,
               equipmentTypes,
@@ -753,7 +743,6 @@ export function App() {
     orgEntities,
     governorates,
     oilfields,
-    sites,
     unitTypes,
     roomTypes,
     equipmentTypes,
@@ -1246,10 +1235,6 @@ export function App() {
   const handleDeleteOilfield = (id: string) =>
     setOilfields((prev) => prev.filter((f) => f.id !== id));
 
-  const handleUpdateSite = (updatedSite: SiteRef) =>
-    setSites((prev) => prev.map((s) => (s.id === updatedSite.id ? updatedSite : s)));
-  const handleDeleteSite = (id: string) => setSites((prev) => prev.filter((s) => s.id !== id));
-
   const handleUpdateUnitType = (updatedType: ReferenceUnitType) =>
     setUnitTypes((prev) => prev.map((u) => (u.code === updatedType.code ? updatedType : u)));
   const handleDeleteUnitType = (code: string) =>
@@ -1302,15 +1287,6 @@ export function App() {
   const handleResetGovernoratesToDefault = () => {
     setGovernorates(INITIAL_GOVERNORATES);
     safeSetItem('app_ref_governorates', INITIAL_GOVERNORATES);
-  };
-
-  const handleClearSites = () => {
-    setSites([]);
-    safeSetItem('app_ref_sites', []);
-  };
-  const handleResetSitesToDefault = () => {
-    setSites(INITIAL_SITES);
-    safeSetItem('app_ref_sites', INITIAL_SITES);
   };
 
   const handleClearUsers = () => {
@@ -1438,7 +1414,6 @@ export function App() {
     setUnitTypes(INITIAL_REFERENCE_UNIT_TYPES);
     setGovernorates(INITIAL_GOVERNORATES);
     setOilfields(INITIAL_OILFIELDS);
-    setSites(INITIAL_SITES);
     setRoomTypes(INITIAL_ROOM_TYPES);
     setEquipmentTypes(INITIAL_EQUIPMENT_TYPES);
     setMaintenanceRequests([]);
@@ -1460,7 +1435,6 @@ export function App() {
     safeSetItem('app_ref_unit_types', INITIAL_REFERENCE_UNIT_TYPES);
     safeSetItem('app_ref_governorates', INITIAL_GOVERNORATES);
     safeSetItem('app_ref_oilfields', INITIAL_OILFIELDS);
-    safeSetItem('app_ref_sites', INITIAL_SITES);
     safeSetItem('app_ref_room_types', INITIAL_ROOM_TYPES);
     safeSetItem('app_ref_equipment_types', INITIAL_EQUIPMENT_TYPES);
 
@@ -1523,10 +1497,6 @@ export function App() {
         if (data.oilfields && Array.isArray(data.oilfields)) {
           setOilfields(data.oilfields);
           safeSetItem('app_ref_oilfields', data.oilfields);
-        }
-        if (data.sites && Array.isArray(data.sites)) {
-          setSites(data.sites);
-          safeSetItem('app_ref_sites', data.sites);
         }
         if (data.unitTypes && Array.isArray(data.unitTypes)) {
           setUnitTypes(data.unitTypes);
@@ -1633,15 +1603,6 @@ export function App() {
             const additions = data.oilfields.filter((nf) => !existingIds.has(nf.id));
             const merged = [...prev, ...additions];
             safeSetItem('app_ref_oilfields', merged);
-            return merged;
-          });
-        }
-        if (data.sites && Array.isArray(data.sites)) {
-          setSites((prev) => {
-            const existingIds = new Set(prev.map((s) => s.id));
-            const additions = data.sites.filter((ns) => !existingIds.has(ns.id));
-            const merged = [...prev, ...additions];
-            safeSetItem('app_ref_sites', merged);
             return merged;
           });
         }
@@ -1893,10 +1854,6 @@ export function App() {
     } else if (category === 'oilfield') {
       setOilfields((prev) =>
         prev.map((f) => (f.id === idOrCode ? { ...f, status: f.status === 'active' ? 'disabled' : 'active' } : f))
-      );
-    } else if (category === 'site') {
-      setSites((prev) =>
-        prev.map((s) => (s.id === idOrCode ? { ...s, status: s.status === 'active' ? 'disabled' : 'active' } : s))
       );
     } else if (category === 'roomType') {
       setRoomTypes((prev) =>
@@ -2400,7 +2357,6 @@ export function App() {
             <NewUnitWizard
               governorates={governorates}
               oilfields={oilfields}
-              sites={sites}
               unitTypes={unitTypes}
               equipmentTypes={equipmentTypes}
               orgEntities={orgEntities}
@@ -2477,7 +2433,6 @@ export function App() {
               unitTypes={unitTypes}
               governorates={governorates}
               oilfields={oilfields}
-              sites={sites}
               roomTypes={roomTypes}
               equipmentTypes={equipmentTypes}
               maintenanceDepartments={maintenanceDepartments}
@@ -2511,9 +2466,6 @@ export function App() {
               onAddOilfield={(f) => setOilfields((prev) => [...prev, f])}
               onUpdateOilfield={handleUpdateOilfield}
               onDeleteOilfield={handleDeleteOilfield}
-              onAddSite={(s) => setSites((prev) => [...prev, s])}
-              onUpdateSite={handleUpdateSite}
-              onDeleteSite={handleDeleteSite}
               onAddRoomType={(r) => setRoomTypes((prev) => [...prev, r])}
               onUpdateRoomType={handleUpdateRoomType}
               onDeleteRoomType={handleDeleteRoomType}
@@ -2530,8 +2482,6 @@ export function App() {
               onResetUnitTypesToDefault={handleResetUnitTypesToDefault}
               onClearGovernorates={handleClearGovernorates}
               onResetGovernoratesToDefault={handleResetGovernoratesToDefault}
-              onClearSites={handleClearSites}
-              onResetSitesToDefault={handleResetSitesToDefault}
               onClearUsers={handleClearUsers}
               onResetUsersToDefault={handleResetUsersToDefault}
               onClearRoomTypes={handleClearRoomTypes}

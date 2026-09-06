@@ -93,9 +93,29 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
   const [selectedRoomForQr, setSelectedRoomForQr] = useState<Room | null>(null);
 
   // Editable Form State initialized from unit
+  const initialType = useMemo<UnitType>(() => {
+    if (unit.unitTypeCode) {
+      if (unit.unitTypeCode === 'CRV') return 'caravan';
+      if (unit.unitTypeCode === 'BLD') return 'building';
+      if (unit.unitTypeCode === 'WHS') return 'warehouse';
+      return unit.unitTypeCode;
+    }
+    if (unit.code) {
+      const parts = unit.code.split('-');
+      if (parts.length >= 4) {
+        const c = parts[2].toUpperCase();
+        if (c === 'CRV') return 'caravan';
+        if (c === 'BLD') return 'building';
+        if (c === 'WHS') return 'warehouse';
+        return c;
+      }
+    }
+    return unit.type || 'building';
+  }, [unit]);
+
   const [name, setName] = useState<string>(unit.name);
   const [fixedAssetCode, setFixedAssetCode] = useState<string>(unit.fixedAssetCode || '');
-  const [type, setType] = useState<UnitType>(unit.type);
+  const [type, setType] = useState<UnitType>(initialType);
   const [field, setField] = useState<string>(unit.field);
   const [governorate, setGovernorate] = useState<string>(unit.governorate);
   const [conditionGrade, setConditionGrade] = useState<ConditionGrade>(unit.conditionGrade);
@@ -544,6 +564,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
       name: name.trim() || unit.name,
       fixedAssetCode: fixedAssetCode.trim() || undefined,
       type,
+      unitTypeCode: type === 'caravan' ? 'CRV' : type === 'building' ? 'BLD' : type === 'warehouse' ? 'WHS' : type,
       field,
       governorate,
       conditionGrade,
@@ -727,7 +748,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                   >
                     {unitTypes.length > 0 ? (
                       unitTypes.map((ut) => {
-                        const val: UnitType = ut.code === 'CRV' ? 'caravan' : ut.code === 'WHS' ? 'warehouse' : ut.code === 'EQP' ? 'equipment' : ut.code === 'SFT' ? 'safety_system' : ut.code === 'TNK' ? 'storage_tank' : 'building';
+                        const val: UnitType = ut.code === 'CRV' ? 'caravan' : ut.code === 'BLD' ? 'building' : ut.code === 'WHS' ? 'warehouse' : ut.code === 'EQP' ? 'equipment' : ut.code === 'SFT' ? 'safety_system' : ut.code === 'TNK' ? 'storage_tank' : ut.code;
                         return (
                           <option key={ut.code} value={val}>
                             {ut.nameAr} ({ut.code})

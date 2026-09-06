@@ -78,7 +78,15 @@ export const OrgEntityPickerModal: React.FC<OrgEntityPickerModalProps> = ({
   const filteredList = useMemo(() => {
     let list = activeEntities;
     if (selectedLevelFilter !== 'all') {
-      list = list.filter((e) => e.level === selectedLevelFilter);
+      list = list.filter((e) => {
+        if (selectedLevelFilter === 'deputy_director') {
+          return e.level === 'deputy_director' || e.nameAr?.includes('معاون');
+        }
+        if (selectedLevelFilter === 'central_dept') {
+          return e.level === 'central_dept' || (e.level === 'department' && e.nameAr?.includes('مركزي'));
+        }
+        return e.level === selectedLevelFilter;
+      });
     }
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase().trim();
@@ -364,6 +372,19 @@ export const OrgEntityPickerModal: React.FC<OrgEntityPickerModalProps> = ({
               </button>
               <button
                 type="button"
+                onClick={() => setSelectedLevelFilter('deputy_director')}
+                className={`px-2.5 py-1 rounded-lg border font-bold transition ${
+                  selectedLevelFilter === 'deputy_director'
+                    ? 'bg-amber-500 text-slate-950 border-amber-400'
+                    : isLight
+                    ? 'bg-white border-slate-300 text-slate-700 hover:bg-slate-100'
+                    : 'bg-slate-900 border-slate-800 text-slate-300 hover:bg-slate-800'
+                }`}
+              >
+                المعاونين
+              </button>
+              <button
+                type="button"
                 onClick={() => setSelectedLevelFilter('commission')}
                 className={`px-2.5 py-1 rounded-lg border font-bold transition ${
                   selectedLevelFilter === 'commission'
@@ -374,6 +395,19 @@ export const OrgEntityPickerModal: React.FC<OrgEntityPickerModalProps> = ({
                 }`}
               >
                 الهيئات
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelectedLevelFilter('central_dept')}
+                className={`px-2.5 py-1 rounded-lg border font-bold transition ${
+                  selectedLevelFilter === 'central_dept'
+                    ? 'bg-amber-500 text-slate-950 border-amber-400'
+                    : isLight
+                    ? 'bg-white border-slate-300 text-slate-700 hover:bg-slate-100'
+                    : 'bg-slate-900 border-slate-800 text-slate-300 hover:bg-slate-800'
+                }`}
+              >
+                الأقسام المركزية
               </button>
               <button
                 type="button"
@@ -399,7 +433,7 @@ export const OrgEntityPickerModal: React.FC<OrgEntityPickerModalProps> = ({
                     : 'bg-slate-900 border-slate-800 text-slate-300 hover:bg-slate-800'
                 }`}
               >
-                الشُعب
+                الشعب
               </button>
               <button
                 type="button"
@@ -412,7 +446,7 @@ export const OrgEntityPickerModal: React.FC<OrgEntityPickerModalProps> = ({
                     : 'bg-slate-900 border-slate-800 text-slate-300 hover:bg-slate-800'
                 }`}
               >
-                الوحدات الإدارية
+                الوحدات
               </button>
             </div>
 
