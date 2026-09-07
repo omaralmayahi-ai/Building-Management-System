@@ -61,7 +61,6 @@ export const RoomQrCardModal: React.FC<RoomQrCardModalProps> = ({
   // Flexible size and placement states
   const [cardSize, setCardSize] = useState<CardPrintSize>('compact');
   const [placement, setPlacement] = useState<CardPlacement>('top-right');
-  const [displayMode, setDisplayMode] = useState<'card' | 'sheet'>('card');
 
   // Dynamic branding
   const currentBranding: SystemBranding =
@@ -512,131 +511,6 @@ export const RoomQrCardModal: React.FC<RoomQrCardModalProps> = ({
     );
   };
 
-  // Render Simulated A4 Page with exact card location
-  const renderSimulatedA4Sheet = () => {
-    return (
-      <div className="flex flex-col items-center space-y-2">
-        <div
-          className={`w-[290px] h-[410px] sm:w-[320px] sm:h-[452px] border-2 rounded-lg shadow-2xl p-2.5 flex flex-col justify-between relative transition-all ${
-            isLight ? 'bg-white border-slate-300' : 'bg-slate-900 border-slate-700'
-          }`}
-          style={{ aspectRatio: '1 / 1.414' }}
-        >
-          {/* Paper Header watermark */}
-          <div className="absolute top-1 left-2 text-[8px] font-mono text-slate-400 select-none">
-            ورقة A4 (210×297 مم)
-          </div>
-
-          {cardSize === 'compact' ? (
-            /* 4 Quadrants layout */
-            <div className="grid grid-cols-2 grid-rows-2 gap-1.5 h-full w-full pt-3">
-              {/* Top-Right */}
-              <div
-                className={`border rounded-lg p-1 flex items-center justify-center transition-all ${
-                  placement === 'top-right' || placement === 'four-copies'
-                    ? 'border-amber-500 bg-amber-50/30 dark:bg-amber-950/20 ring-1 ring-amber-400'
-                    : 'border-dashed border-slate-200 dark:border-slate-800 opacity-40'
-                }`}
-              >
-                {placement === 'top-right' || placement === 'four-copies' ? (
-                  renderCardElement(true)
-                ) : (
-                  <span className="text-[9px] text-slate-400 font-bold">فارغ (أعلى اليمين)</span>
-                )}
-              </div>
-
-              {/* Top-Left */}
-              <div
-                className={`border rounded-lg p-1 flex items-center justify-center transition-all ${
-                  placement === 'top-left' || placement === 'four-copies'
-                    ? 'border-amber-500 bg-amber-50/30 dark:bg-amber-950/20 ring-1 ring-amber-400'
-                    : 'border-dashed border-slate-200 dark:border-slate-800 opacity-40'
-                }`}
-              >
-                {placement === 'top-left' || placement === 'four-copies' ? (
-                  renderCardElement(true)
-                ) : (
-                  <span className="text-[9px] text-slate-400 font-bold">فارغ (أعلى اليسار)</span>
-                )}
-              </div>
-
-              {/* Bottom-Right */}
-              <div
-                className={`border rounded-lg p-1 flex items-center justify-center transition-all ${
-                  placement === 'bottom-right' || placement === 'four-copies'
-                    ? 'border-amber-500 bg-amber-50/30 dark:bg-amber-950/20 ring-1 ring-amber-400'
-                    : 'border-dashed border-slate-200 dark:border-slate-800 opacity-40'
-                }`}
-              >
-                {placement === 'bottom-right' || placement === 'four-copies' ? (
-                  renderCardElement(true)
-                ) : (
-                  <span className="text-[9px] text-slate-400 font-bold">فارغ (أسفل اليمين)</span>
-                )}
-              </div>
-
-              {/* Bottom-Left */}
-              <div
-                className={`border rounded-lg p-1 flex items-center justify-center transition-all ${
-                  placement === 'bottom-left' || placement === 'four-copies'
-                    ? 'border-amber-500 bg-amber-50/30 dark:bg-amber-950/20 ring-1 ring-amber-400'
-                    : 'border-dashed border-slate-200 dark:border-slate-800 opacity-40'
-                }`}
-              >
-                {placement === 'bottom-left' || placement === 'four-copies' ? (
-                  renderCardElement(true)
-                ) : (
-                  <span className="text-[9px] text-slate-400 font-bold">فارغ (أسفل اليسار)</span>
-                )}
-              </div>
-            </div>
-          ) : cardSize === 'medium' ? (
-            /* 2 Halves layout */
-            <div className="grid grid-rows-2 gap-2 h-full w-full pt-3">
-              <div
-                className={`border rounded-lg p-1.5 flex items-center justify-center ${
-                  placement === 'top' || placement === 'two-copies'
-                    ? 'border-amber-500 bg-amber-50/30 dark:bg-amber-950/20 ring-1 ring-amber-400'
-                    : 'border-dashed border-slate-200 dark:border-slate-800 opacity-40'
-                }`}
-              >
-                {placement === 'top' || placement === 'two-copies' ? (
-                  renderCardElement(true)
-                ) : (
-                  <span className="text-[10px] text-slate-400 font-bold">فارغ (النصف العلوي)</span>
-                )}
-              </div>
-
-              <div
-                className={`border rounded-lg p-1.5 flex items-center justify-center ${
-                  placement === 'bottom' || placement === 'two-copies'
-                    ? 'border-amber-500 bg-amber-50/30 dark:bg-amber-950/20 ring-1 ring-amber-400'
-                    : 'border-dashed border-slate-200 dark:border-slate-800 opacity-40'
-                }`}
-              >
-                {placement === 'bottom' || placement === 'two-copies' ? (
-                  renderCardElement(true)
-                ) : (
-                  <span className="text-[10px] text-slate-400 font-bold">فارغ (النصف السفلي)</span>
-                )}
-              </div>
-            </div>
-          ) : (
-            /* Full layout */
-            <div className="h-full w-full flex items-center justify-center p-2">
-              <div className="scale-90">{renderCardElement(true)}</div>
-            </div>
-          )}
-        </div>
-
-        <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium text-center">
-          هكذا ستظهر الورقة عند إرسالها للطابعة • لن يتم طباعة أي محتوى في الأركان الفارغة مما يحفظ
-          ورقك للاستخدام اللاحق
-        </p>
-      </div>
-    );
-  };
-
   return (
     <div
       id="modal-room-qr-card"
@@ -734,16 +608,15 @@ export const RoomQrCardModal: React.FC<RoomQrCardModalProps> = ({
             setSize={setCardSize}
             placement={placement}
             setPlacement={setPlacement}
-            displayMode={displayMode}
-            setDisplayMode={setDisplayMode}
+            hideSheetPreviewToggle={true}
             theme={theme}
             isRoomCard={true}
             totalRoomsCount={allRooms.length}
           />
 
-          {/* Interactive Card / Sheet Preview Section */}
+          {/* Interactive Card Preview Section */}
           <div className="pt-1">
-            {displayMode === 'sheet' ? renderSimulatedA4Sheet() : renderCardElement(false)}
+            {renderCardElement(false)}
           </div>
         </div>
 

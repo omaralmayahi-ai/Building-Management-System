@@ -46,6 +46,42 @@ export interface UnitAttachment {
   notes?: string;
 }
 
+export type CustomSiteElementType =
+  | 'helipad'
+  | 'fountain'
+  | 'street'
+  | 'parking_open'
+  | 'parking_covered'
+  | 'garden'
+  | 'door_glass'
+  | 'door_wood'
+  | 'door_metal'
+  | 'window'
+  | 'light_pole'
+  | 'concrete_column'
+  | 'fire_escape'
+  | 'solar_panel';
+
+export interface CustomSiteElement {
+  id: string;
+  type: CustomSiteElementType;
+  name: string;
+  position: { x: number; y: number; z: number };
+  rotationY: number; // in degrees 0-360
+  scale: { x: number; y: number; z: number };
+  mountTarget?: 'ground' | 'roof' | 'wall';
+  customColor?: string;
+  meta?: {
+    doorType?: 'glass' | 'wood' | 'metal';
+    parkingSpots?: number;
+    roofPlacement?: boolean;
+    treeDensity?: number;
+    hasWaterJet?: boolean;
+    roadLanes?: number;
+    [key: string]: any;
+  };
+}
+
 export interface UnitDesignFinishing {
   archStyle?: 'modern' | 'classic' | 'industrial' | 'minimalist';
   roofType?: 'flat' | 'flat_parapet' | 'gabled' | 'pitched_tile' | 'garden' | 'pitched';
@@ -55,6 +91,7 @@ export interface UnitDesignFinishing {
   showTrees?: boolean;
   interiorLightIntensity?: number;
   exteriorLightIntensity?: number;
+  customElements?: CustomSiteElement[];
 }
 
 export interface UnitAsset {

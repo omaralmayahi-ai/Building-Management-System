@@ -18,11 +18,12 @@ interface A4PrintPlacementSelectorProps {
   setSize: (size: CardPrintSize) => void;
   placement: CardPlacement;
   setPlacement: (placement: CardPlacement) => void;
-  displayMode: 'card' | 'sheet';
-  setDisplayMode: (mode: 'card' | 'sheet') => void;
+  displayMode?: 'card' | 'sheet';
+  setDisplayMode?: (mode: 'card' | 'sheet') => void;
   theme?: 'dark' | 'light';
   isRoomCard?: boolean;
   totalRoomsCount?: number;
+  hideSheetPreviewToggle?: boolean;
 }
 
 export const A4PrintPlacementSelector: React.FC<A4PrintPlacementSelectorProps> = ({
@@ -30,11 +31,12 @@ export const A4PrintPlacementSelector: React.FC<A4PrintPlacementSelectorProps> =
   setSize,
   placement,
   setPlacement,
-  displayMode,
+  displayMode = 'card',
   setDisplayMode,
   theme = 'dark',
   isRoomCard = false,
   totalRoomsCount,
+  hideSheetPreviewToggle = false,
 }) => {
   const isLight = theme === 'light';
 
@@ -78,33 +80,35 @@ export const A4PrintPlacementSelector: React.FC<A4PrintPlacementSelectorProps> =
         </div>
 
         {/* View mode toggle (Card vs Simulated Sheet) */}
-        <div className="flex items-center gap-1 bg-slate-200/80 dark:bg-slate-950 p-1 rounded-xl text-[11px] font-bold">
-          <button
-            type="button"
-            onClick={() => setDisplayMode('card')}
-            className={`px-2.5 py-1 rounded-lg transition flex items-center gap-1 cursor-pointer ${
-              displayMode === 'card'
-                ? 'bg-white dark:bg-slate-800 text-amber-600 dark:text-amber-400 shadow-xs'
-                : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
-            }`}
-          >
-            <LayoutTemplate className="w-3.5 h-3.5" />
-            <span>عرض البطاقة فقط</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setDisplayMode('sheet')}
-            className={`px-2.5 py-1 rounded-lg transition flex items-center gap-1 cursor-pointer ${
-              displayMode === 'sheet'
-                ? 'bg-white dark:bg-slate-800 text-amber-600 dark:text-amber-400 shadow-xs'
-                : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
-            }`}
-            title="معاينة شكل ورقة A4 الكاملة وموضع البطاقة داخلها"
-          >
-            <Eye className="w-3.5 h-3.5" />
-            <span>معاينة الورقة A4 والموضع</span>
-          </button>
-        </div>
+        {!hideSheetPreviewToggle && setDisplayMode && (
+          <div className="flex items-center gap-1 bg-slate-200/80 dark:bg-slate-950 p-1 rounded-xl text-[11px] font-bold">
+            <button
+              type="button"
+              onClick={() => setDisplayMode('card')}
+              className={`px-2.5 py-1 rounded-lg transition flex items-center gap-1 cursor-pointer ${
+                displayMode === 'card'
+                  ? 'bg-white dark:bg-slate-800 text-amber-600 dark:text-amber-400 shadow-xs'
+                  : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+              }`}
+            >
+              <LayoutTemplate className="w-3.5 h-3.5" />
+              <span>عرض البطاقة فقط</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setDisplayMode('sheet')}
+              className={`px-2.5 py-1 rounded-lg transition flex items-center gap-1 cursor-pointer ${
+                displayMode === 'sheet'
+                  ? 'bg-white dark:bg-slate-800 text-amber-600 dark:text-amber-400 shadow-xs'
+                  : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+              }`}
+              title="معاينة شكل ورقة A4 الكاملة وموضع البطاقة داخلها"
+            >
+              <Eye className="w-3.5 h-3.5" />
+              <span>معاينة الورقة A4 والموضع</span>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Row 1: Size Selector Pills */}

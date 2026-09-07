@@ -16,11 +16,35 @@ import {
   Palette,
   AlertTriangle,
   RotateCcw,
+  Camera,
+  Video,
+  Plus,
+  Compass,
+  Plane,
+  Waves,
+  Maximize2,
+  Minimize2,
 } from 'lucide-react';
-import { EquipmentItem, Room, UnitDesignFinishing } from '../types';
+import { EquipmentItem, Room, UnitDesignFinishing, CustomSiteElement, CustomSiteElementType } from '../types';
 import { Lightbulb, LightbulbOff } from 'lucide-react';
 import { toArabicDigits } from '../utils/arabicUtils';
 import { safeSetItem } from '../utils/storageUtils';
+import { DroneHudOverlay, DroneFlightMode } from './DroneHudOverlay';
+import { SiteElementsManagerModal } from './SiteElementsManagerModal';
+import { ElementTransformToolbar } from './ElementTransformToolbar';
+import { InteractiveEngineeringEditor } from './InteractiveEngineeringEditor';
+import { updateUnit } from '../services/apiClient';
+import { buildCustomSiteElementMesh, SITE_ELEMENT_DEFINITIONS } from '../utils/customSiteElements3D';
+import {
+  getBuildingFootprintPolygon,
+  createThreeShapeFromPolygon,
+  isPointInBuildingFootprint,
+  getBuildingWings,
+  computeRoomSlotsForFloor,
+  getBuildingExteriorWallSegments,
+  getMainEntranceDoorPosition,
+  getInsideEquipmentPosition,
+} from '../utils/buildingGeometryUtils';
 
 interface ThreeBuildingCanvasProps {
   unitCode: string;
@@ -87,6 +111,86 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
   const [showSettingsPanel, setShowSettingsPanel] = useState<boolean>(false);
   const [activePerspective, setActivePerspective] = useState<'isometric' | 'top' | 'front'>('isometric');
 
+  // Custom Site Elements State (Helipad, Fountain, Street, Parking, Garden, Doors, Windows, Light Poles, Columns, Fire Escape)
+  const [customElements, setCustomElements] = useState<CustomSiteElement[]>([]);
+  const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
+  const [showSiteElementsModal, setShowSiteElementsModal] = useState<boolean>(false);
+  const customElementsGroupRef = useRef<THREE.Group | null>(null);
+  const elementHighlightRef = useRef<THREE.BoxHelper | null>(null);
+  const customElementsRef = useRef<CustomSiteElement[]>([]);
+  customElementsRef.current = customElements;
+  const selectedElementIdRef = useRef<string | null>(null);
+  selectedElementIdRef.current = selectedElementId;
+  const isDraggingRef = useRef<boolean>(false);
+  const draggedIdRef = useRef<string | null>(null);
+
+  // Cinematic Drone Camera State
+  const [isDroneMode, setIsDroneMode] = useState<boolean>(false);
+  const [droneFlightMode, setDroneFlightMode] = useState<DroneFlightMode>('orbit_360');
+  const [droneSpeed, setDroneSpeed] = useState<number>(1.0);
+  const [droneAltitude, setDroneAltitude] = useState<number>(14.0);
+  const [droneSpeedKmH, setDroneSpeedKmH] = useState<number>(18.0);
+  const [droneGimbalPitch, setDroneGimbalPitch] = useState<number>(-18);
+  const [isRecording, setIsRecording] = useState<boolean>(false);
+  const [recordSeconds, setRecordSeconds] = useState<number>(0);
+  const [showDroneGrid, setShowDroneGrid] = useState<boolean>(true);
+  const [showCinematicBars, setShowCinematicBars] = useState<boolean>(true);
+  const droneTimeRef = useRef<number>(0);
+  const isDroneModeRef = useRef<boolean>(false);
+  isDroneModeRef.current = isDroneMode;
+  const droneFlightModeRef = useRef<DroneFlightMode>(droneFlightMode);
+  droneFlightModeRef.current = droneFlightMode;
+  const droneSpeedRef = useRef<number>(droneSpeed);
+  droneSpeedRef.current = droneSpeed;
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const recordedChunksRef = useRef<Blob[]>([]);
+  const recordTimerRef = useRef<any>(null);
+
+  // Fullscreen and Interactive Engineering Editor States
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
+  const [showEngineeringEditor, setShowEngineeringEditor] = useState<boolean>(false);
+  const [isSavingDb, setIsSavingDb] = useState<boolean>(false);
+  const [lastSavedTime, setLastSavedTime] = useState<string>('');
+
+  const toggleFullscreen = () => {
+    if (!isFullscreen) {
+      if (containerRef.current?.requestFullscreen) {
+        containerRef.current.requestFullscreen().catch(() => {
+          setIsFullscreen(true);
+        });
+      } else {
+        setIsFullscreen(true);
+      }
+    } else {
+      if (document.fullscreenElement && document.exitFullscreen) {
+        document.exitFullscreen().catch(() => {
+          setIsFullscreen(false);
+        });
+      } else {
+        setIsFullscreen(false);
+      }
+    }
+  };
+
+  useEffect(() => {
+    const handleFsChange = () => {
+      const isFs = !!document.fullscreenElement;
+      setIsFullscreen(isFs);
+      setTimeout(() => {
+        if (rendererRef.current && cameraRef.current && mountRef.current) {
+          const w = mountRef.current.clientWidth || window.innerWidth;
+          const h = mountRef.current.clientHeight || window.innerHeight;
+          cameraRef.current.aspect = w / h;
+          cameraRef.current.updateProjectionMatrix();
+          rendererRef.current.setSize(w, h);
+        }
+      }, 120);
+    };
+    document.addEventListener('fullscreenchange', handleFsChange);
+    return () => document.removeEventListener('fullscreenchange', handleFsChange);
+  }, []);
+
   // Load and sync persisted unit finishes per unitCode
   useEffect(() => {
     const savedStr = localStorage.getItem(`unit_finishing_${unitCode}`);
@@ -105,6 +209,9 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
       setShowTrees(typeof initial.showTrees === 'boolean' ? initial.showTrees : true);
       setInteriorLightIntensity(typeof initial.interiorLightIntensity === 'number' ? initial.interiorLightIntensity : 3.5);
       setExteriorLightIntensity(typeof initial.exteriorLightIntensity === 'number' ? initial.exteriorLightIntensity : 3.5);
+      if (initial.customElements && Array.isArray(initial.customElements)) {
+        setCustomElements(initial.customElements);
+      }
     } else {
       // Revert to unit default features if no custom finishing exists for this specific unit
       setArchStyle('modern');
@@ -126,6 +233,7 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
       showTrees,
       interiorLightIntensity,
       exteriorLightIntensity,
+      customElements,
       ...updated,
     };
     safeSetItem(`unit_finishing_${unitCode}`, current);
@@ -179,6 +287,419 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
   const width = lengthM ? Math.min(30, Math.max(4, lengthM * 0.5)) : Math.min(18, Math.max(6.0, 7.5 * baseScale));
   const depth = widthM ? Math.min(25, Math.max(3, widthM * 0.5)) : Math.min(14, Math.max(4.5, 5.5 * baseScale));
   const storyHeight = heightM ? heightM : (isCaravan ? 2.6 : 3.2);
+
+  // Initialize default starter site elements if none exist for this unit
+  useEffect(() => {
+    const savedCustom = localStorage.getItem(`unit_elements_${unitCode}`);
+    if (savedCustom) {
+      try {
+        const parsed = JSON.parse(savedCustom);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setCustomElements(parsed);
+          return;
+        }
+      } catch (e) {}
+    }
+
+    if (designFinishing?.customElements && designFinishing.customElements.length > 0) {
+      setCustomElements(designFinishing.customElements);
+      return;
+    }
+
+    // Default daytime starter elements tailored to building proportions
+    const starterSet: CustomSiteElement[] = [
+      {
+        id: 'starter_helipad_' + unitCode,
+        type: 'helipad',
+        name: 'مهبط طائرات عامودية فوق السطح',
+        position: { x: 0, y: floorsCount * storyHeight, z: 0 },
+        rotationY: 0,
+        scale: { x: 1, y: 1, z: 1 },
+        mountTarget: 'roof',
+      },
+      {
+        id: 'starter_fountain_' + unitCode,
+        type: 'fountain',
+        name: 'نافورة الساحة الخارجية',
+        position: { x: 0, y: 0, z: depth / 2 + 5.5 },
+        rotationY: 0,
+        scale: { x: 1, y: 1, z: 1 },
+        mountTarget: 'ground',
+      },
+      {
+        id: 'starter_garden_' + unitCode,
+        type: 'garden',
+        name: 'حديقة خضراء واستراحة',
+        position: { x: width / 2 + 6.5, y: 0, z: depth / 2 + 2 },
+        rotationY: 0,
+        scale: { x: 1, y: 1, z: 1 },
+        mountTarget: 'ground',
+      },
+      {
+        id: 'starter_street_' + unitCode,
+        type: 'street',
+        name: 'طريق وصول أسفلتي للموقع',
+        position: { x: 0, y: 0, z: depth / 2 + 11.5 },
+        rotationY: 90,
+        scale: { x: 1, y: 1, z: 1 },
+        mountTarget: 'ground',
+      },
+      {
+        id: 'starter_light_' + unitCode,
+        type: 'light_pole',
+        name: 'عمود إنارة الساحة الخارجية',
+        position: { x: width / 2 + 2.5, y: 0, z: depth / 2 + 6 },
+        rotationY: 45,
+        scale: { x: 1, y: 1, z: 1 },
+        mountTarget: 'ground',
+      },
+    ];
+    setCustomElements(starterSet);
+    safeSetItem(`unit_elements_${unitCode}`, starterSet);
+  }, [unitCode]);
+
+  const handleAddSiteElement = (type: CustomSiteElementType, options?: { mountTarget?: 'ground' | 'roof' | 'wall'; position?: { x: number; y: number; z: number } }) => {
+    const def = SITE_ELEMENT_DEFINITIONS.find((d) => d.type === type);
+    const mount = options?.mountTarget || def?.defaultMount || 'ground';
+    const roofTopY = floorsCount * storyHeight;
+
+    let posX = 0;
+    let posY = 0;
+    let posZ = 0;
+
+    if (type === 'helipad') {
+      if (mount === 'roof') {
+        posX = 0;
+        posY = roofTopY;
+        posZ = 0;
+      } else {
+        posX = width / 2 + 7;
+        posY = 0;
+        posZ = 0;
+      }
+    } else if (type === 'solar_panel') {
+      if (mount === 'roof') {
+        posX = 0;
+        posY = roofTopY;
+        posZ = 0;
+      } else {
+        posX = width / 2 + 6;
+        posY = 0;
+        posZ = 0;
+      }
+    } else if (type === 'fountain') {
+      posX = 0;
+      posY = 0;
+      posZ = depth / 2 + 5.5;
+    } else if (type === 'street') {
+      posX = 0;
+      posY = 0;
+      posZ = depth / 2 + 11;
+    } else if (type === 'parking_open') {
+      posX = width / 2 + 7.5;
+      posY = 0;
+      posZ = 0;
+    } else if (type === 'parking_covered') {
+      posX = -width / 2 - 7.5;
+      posY = 0;
+      posZ = 0;
+    } else if (type === 'garden') {
+      posX = width / 2 + 6.5;
+      posY = 0;
+      posZ = depth / 2 + 3;
+    } else if (type === 'door_glass' || type === 'door_wood' || type === 'door_metal') {
+      posX = 0;
+      posY = 0;
+      posZ = depth / 2;
+    } else if (type === 'window') {
+      posX = width * 0.25;
+      posY = storyHeight * 0.5;
+      posZ = depth / 2;
+    } else if (type === 'light_pole') {
+      posX = width / 2 + 3;
+      posY = 0;
+      posZ = depth / 2 + 5;
+    } else if (type === 'concrete_column') {
+      posX = -2.5;
+      posY = 0;
+      posZ = depth / 2 + 0.4;
+    } else if (type === 'fire_escape') {
+      posX = width / 2 + 0.2;
+      posY = 0;
+      posZ = 0;
+    }
+
+    // Override with custom dropped coordinates if specified
+    if (options?.position) {
+      posX = options.position.x;
+      posY = options.position.y;
+      posZ = options.position.z;
+    }
+
+    const newElement: CustomSiteElement = {
+      id: 'el_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+      type,
+      name: def?.nameAr || type,
+      position: { x: posX, y: posY, z: posZ },
+      rotationY: type === 'fire_escape' ? 90 : type === 'street' ? 90 : 0,
+      scale: { x: 1, y: 1, z: 1 },
+      mountTarget: mount,
+    };
+
+    const updated = [...customElements, newElement];
+    setCustomElements(updated);
+    setSelectedElementId(newElement.id);
+    selectedElementIdRef.current = newElement.id;
+    safeSetItem(`unit_elements_${unitCode}`, updated);
+    saveFinishingSettings({ customElements: updated });
+  };
+
+  const handleUpdateElement = (updated: CustomSiteElement) => {
+    const list = customElements.map((e) => (e.id === updated.id ? updated : e));
+    setCustomElements(list);
+    safeSetItem(`unit_elements_${unitCode}`, list);
+    saveFinishingSettings({ customElements: list });
+  };
+
+  const handleDeleteElement = (id: string) => {
+    const list = customElements.filter((e) => e.id !== id);
+    setCustomElements(list);
+    if (selectedElementId === id) {
+      setSelectedElementId(null);
+      selectedElementIdRef.current = null;
+    }
+    safeSetItem(`unit_elements_${unitCode}`, list);
+    saveFinishingSettings({ customElements: list });
+  };
+
+  const handleDuplicateElement = (target: CustomSiteElement | string) => {
+    const element = typeof target === 'string' ? customElements.find((e) => e.id === target) : target;
+    if (!element) return;
+    const dupe: CustomSiteElement = {
+      ...element,
+      id: 'el_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+      name: element.name + ' (نسخة)',
+      position: {
+        ...element.position,
+        x: element.position.x + 1.5,
+        z: element.position.z + 1.5,
+      },
+    };
+    const list = [...customElements, dupe];
+    setCustomElements(list);
+    setSelectedElementId(dupe.id);
+    selectedElementIdRef.current = dupe.id;
+    safeSetItem(`unit_elements_${unitCode}`, list);
+    saveFinishingSettings({ customElements: list });
+  };
+
+  const handleSaveToDatabase = async () => {
+    setIsSavingDb(true);
+    try {
+      saveFinishingSettings({ customElements });
+      const unitsStr = localStorage.getItem('app_units');
+      if (unitsStr) {
+        const units = JSON.parse(unitsStr);
+        const idx = units.findIndex((u: any) => u.code === unitCode);
+        if (idx !== -1) {
+          const updatedUnit = {
+            ...units[idx],
+            designFinishing: {
+              ...(units[idx].designFinishing || {}),
+              customElements,
+            },
+          };
+          units[idx] = updatedUnit;
+          localStorage.setItem('app_units', JSON.stringify(units));
+          if (onUpdateDesignFinishing) {
+            onUpdateDesignFinishing(updatedUnit.designFinishing);
+          }
+          await updateUnit(updatedUnit);
+        }
+      }
+    } catch (err) {
+      console.warn('Error saving site elements to database:', err);
+    } finally {
+      setIsSavingDb(false);
+      setLastSavedTime(new Date().toLocaleTimeString('ar-IQ'));
+    }
+  };
+
+  const handleDropOnCanvas = (e: React.DragEvent) => {
+    e.preventDefault();
+    const type = (e.dataTransfer.getData('application/site-element-type') || e.dataTransfer.getData('text/plain')) as CustomSiteElementType;
+    if (!type) return;
+
+    const def = SITE_ELEMENT_DEFINITIONS.find((d) => d.type === type);
+    const defaultMount = def?.defaultMount || 'ground';
+    const roofTopY = floorsCount * storyHeight;
+
+    if (!rendererRef.current || !cameraRef.current) {
+      handleAddSiteElement(type, { mountTarget: defaultMount });
+      return;
+    }
+
+    const rect = rendererRef.current.domElement.getBoundingClientRect();
+    const mouseX = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+    const mouseY = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+
+    const raycaster = new THREE.Raycaster();
+    raycaster.setFromCamera(new THREE.Vector2(mouseX, mouseY), cameraRef.current);
+
+    let dropPos = { x: 0, y: defaultMount === 'roof' ? roofTopY : 0, z: 0 };
+
+    if (defaultMount === 'roof') {
+      const roofPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -roofTopY);
+      const hit = new THREE.Vector3();
+      if (raycaster.ray.intersectPlane(roofPlane, hit)) {
+        dropPos = {
+          x: Math.round(hit.x * 10) / 10,
+          y: roofTopY,
+          z: Math.round(hit.z * 10) / 10,
+        };
+      }
+    } else {
+      const groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+      const hit = new THREE.Vector3();
+      if (raycaster.ray.intersectPlane(groundPlane, hit)) {
+        dropPos = {
+          x: Math.round(hit.x * 10) / 10,
+          y: 0,
+          z: Math.round(hit.z * 10) / 10,
+        };
+      }
+    }
+
+    handleAddSiteElement(type, { mountTarget: defaultMount, position: dropPos });
+  };
+
+  const handleLiveMoveElement = (id: string, newX: number, newZ: number) => {
+    setCustomElements((prev) =>
+      prev.map((e) => (e.id === id ? { ...e, position: { ...e.position, x: newX, z: newZ } } : e))
+    );
+  };
+
+  const handleCaptureDronePhoto = () => {
+    if (!rendererRef.current || !sceneRef.current || !cameraRef.current) return;
+    rendererRef.current.render(sceneRef.current, cameraRef.current);
+    const dataURL = rendererRef.current.domElement.toDataURL('image/png', 1.0);
+    const link = document.createElement('a');
+    link.download = `drone_shot_${unitCode}_${Date.now()}.png`;
+    link.href = dataURL;
+    link.click();
+  };
+
+  const handleToggleDroneRecording = () => {
+    if (isRecording) {
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+        mediaRecorderRef.current.stop();
+      }
+      clearInterval(recordTimerRef.current);
+      setIsRecording(false);
+      setRecordSeconds(0);
+    } else {
+      if (!rendererRef.current) return;
+      const canvas = rendererRef.current.domElement;
+      try {
+        const stream = (canvas as any).captureStream ? (canvas as any).captureStream(30) : null;
+        if (!stream) return;
+        const options: MediaRecorderOptions = {
+          mimeType: MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
+            ? 'video/webm;codecs=vp9'
+            : 'video/webm',
+        };
+        const recorder = new MediaRecorder(stream, options);
+        recordedChunksRef.current = [];
+
+        recorder.ondataavailable = (e) => {
+          if (e.data && e.data.size > 0) {
+            recordedChunksRef.current.push(e.data);
+          }
+        };
+
+        recorder.onstop = () => {
+          const blob = new Blob(recordedChunksRef.current, { type: 'video/webm' });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.download = `drone_cinematic_${unitCode}_${Date.now()}.webm`;
+          link.href = url;
+          link.click();
+          URL.revokeObjectURL(url);
+        };
+
+        recorder.start(250);
+        mediaRecorderRef.current = recorder;
+        setIsRecording(true);
+        setRecordSeconds(0);
+        recordTimerRef.current = setInterval(() => {
+          setRecordSeconds((s) => s + 1);
+        }, 1000);
+      } catch (err) {
+        console.error('Video recording not supported in this environment:', err);
+      }
+    }
+  };
+
+  const handleDroneManualMove = (
+    action: 'forward' | 'backward' | 'left' | 'right' | 'up' | 'down' | 'yawLeft' | 'yawRight'
+  ) => {
+    if (!cameraRef.current) return;
+    const cam = cameraRef.current;
+    const forward = new THREE.Vector3();
+    cam.getWorldDirection(forward);
+    forward.y = 0;
+    forward.normalize();
+    const right = new THREE.Vector3().crossVectors(forward, new THREE.Vector3(0, 1, 0)).normalize();
+
+    const step = 2.0;
+    if (action === 'forward') {
+      cam.position.addScaledVector(forward, step);
+    } else if (action === 'backward') {
+      cam.position.addScaledVector(forward, -step);
+    } else if (action === 'left') {
+      cam.position.addScaledVector(right, -step);
+    } else if (action === 'right') {
+      cam.position.addScaledVector(right, step);
+    } else if (action === 'up') {
+      cam.position.y += step;
+    } else if (action === 'down') {
+      cam.position.y = Math.max(1.5, cam.position.y - step);
+    }
+    setDroneAltitude(cam.position.y);
+  };
+
+  // Update 3D meshes of custom elements when list, selection, or lighting changes
+  useEffect(() => {
+    const group = customElementsGroupRef.current;
+    if (!group) return;
+
+    while (group.children.length > 0) {
+      const child = group.children[0];
+      group.remove(child);
+    }
+
+    customElements.forEach((el) => {
+      const meshGroup = buildCustomSiteElementMesh(el, isNightMode, isNightLightsOn);
+      group.add(meshGroup);
+    });
+
+    if (sceneRef.current) {
+      if (elementHighlightRef.current) {
+        sceneRef.current.remove(elementHighlightRef.current);
+        elementHighlightRef.current.dispose();
+        elementHighlightRef.current = null;
+      }
+
+      if (selectedElementId) {
+        const selectedMesh = group.children.find((c) => c.userData?.elementId === selectedElementId);
+        if (selectedMesh) {
+          const boxHelper = new THREE.BoxHelper(selectedMesh, 0xf59e0b);
+          elementHighlightRef.current = boxHelper;
+          sceneRef.current.add(boxHelper);
+        }
+      }
+    }
+  }, [customElements, selectedElementId, isNightMode, isNightLightsOn]);
 
   // Main Three.js Scene Initialization & Re-render
   useEffect(() => {
@@ -398,31 +919,44 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
         storyMesh.receiveShadow = true;
         floorGroup.add(storyMesh);
 
-        // Glass Curtain Front Facade Panels
-        const glassFrontGeo = new THREE.BoxGeometry(width - 1.2, storyHeight - 0.8, 0.1);
-        const frontGlass = new THREE.Mesh(glassFrontGeo, glassMat);
-        frontGlass.position.set(0, storyHeight / 2, depth / 2 + 0.02);
-        frontGlass.userData = { isWindow: true, isGlassMaterial: true };
-        frontGlass.visible = showWindows;
-        floorGroup.add(frontGlass);
+        // Architectural Windows along real wall segments (Never spanning open courtyards!)
+        renderBuildingWindows(
+          floorGroup,
+          buildingShape,
+          width,
+          depth,
+          storyHeight,
+          glassMat,
+          showWindows
+        );
 
-        const backGlass = frontGlass.clone();
-        backGlass.position.z = -depth / 2 - 0.02;
-        backGlass.userData = { isWindow: true, isGlassMaterial: true };
-        backGlass.visible = showWindows;
-        floorGroup.add(backGlass);
-
-        // Entrance Door on Ground Floor
+        // Entrance Door on Ground Floor placed on guaranteed solid wall
         if (f === 0) {
+          const doorPos = getMainEntranceDoorPosition(buildingShape, width, depth);
           const doorGeo = new THREE.BoxGeometry(1.4, 2.2, 0.15);
           const doorMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, metalness: 0.8 });
           const mainDoor = new THREE.Mesh(doorGeo, doorMat);
-          mainDoor.position.set(0, 1.1, depth / 2 + 0.06);
+          mainDoor.position.set(doorPos.x, 1.1, doorPos.z);
+          mainDoor.rotation.y = doorPos.rotationY;
           floorGroup.add(mainDoor);
         }
 
-        // Render Interior Rooms & Furniture
-        renderInteriorRooms(floorGroup, rooms, f, width, depth, storyHeight, showFurniture, isNightMode, isNightLightsOn, roomMeshesRef.current, interiorLightIntensity);
+        // Render Interior Rooms & Furniture strictly inside building envelope
+        renderInteriorRooms(
+          floorGroup,
+          rooms,
+          f,
+          width,
+          depth,
+          storyHeight,
+          showFurniture,
+          isNightMode,
+          isNightLightsOn,
+          roomMeshesRef.current,
+          interiorLightIntensity,
+          true,
+          buildingShape
+        );
 
         floorGroupsRef.current.push(floorGroup);
         buildingGroup.add(floorGroup);
@@ -434,13 +968,35 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
     }
 
     // Equipment Models
-    renderEquipmentMeshes(buildingGroup, equipment, width, depth, floorsCount * storyHeight, roomMeshesRef.current);
+    renderEquipmentMeshes(buildingGroup, equipment, width, depth, floorsCount * storyHeight, roomMeshesRef.current, buildingShape);
 
     // Apply Explode Separation
     applyExplodeOffset(floorGroupsRef.current, explodePercent);
 
-    // 8. Raycaster Pointer Event Handler for Room Selection
-    const handlePointerDown = (event: MouseEvent) => {
+    // 7.5 Render Custom Site Elements Group (Helipads, Fountains, Streets, Garages, Gardens, Doors, Windows, Columns, Fire Escapes)
+    const customElementsGroup = new THREE.Group();
+    customElementsGroup.name = 'CustomElementsGroup';
+    customElementsGroupRef.current = customElementsGroup;
+    scene.add(customElementsGroup);
+
+    customElementsRef.current.forEach((el) => {
+      const meshGroup = buildCustomSiteElementMesh(el, isNightMode, isNightLightsOn);
+      customElementsGroup.add(meshGroup);
+    });
+
+    if (selectedElementIdRef.current) {
+      const selMesh = customElementsGroup.children.find(
+        (c) => c.userData?.elementId === selectedElementIdRef.current
+      );
+      if (selMesh) {
+        const boxHelper = new THREE.BoxHelper(selMesh, 0xf59e0b);
+        elementHighlightRef.current = boxHelper;
+        scene.add(boxHelper);
+      }
+    }
+
+    // 8. Raycaster Pointer Event Handlers for Element Dragging & Selection
+    const handlePointerDown = (event: PointerEvent) => {
       if (!rendererRef.current || !cameraRef.current) return;
       const rect = rendererRef.current.domElement.getBoundingClientRect();
       const mouseX = ((event.clientX - rect.left) / rect.width) * 2 - 1;
@@ -449,8 +1005,32 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
       const raycaster = new THREE.Raycaster();
       raycaster.setFromCamera(new THREE.Vector2(mouseX, mouseY), cameraRef.current);
 
-      const intersects = raycaster.intersectObjects(roomMeshesRef.current, true);
+      // Check custom site elements first!
+      if (customElementsGroupRef.current && customElementsGroupRef.current.children.length > 0) {
+        const siteIntersects = raycaster.intersectObjects(customElementsGroupRef.current.children, true);
+        if (siteIntersects.length > 0) {
+          let hitRoot: THREE.Object3D | null = siteIntersects[0].object;
+          while (hitRoot && !hitRoot.userData?.isCustomElement && hitRoot.parent) {
+            hitRoot = hitRoot.parent;
+          }
+          if (hitRoot && hitRoot.userData?.isCustomElement) {
+            const elId = hitRoot.userData.elementId;
+            setSelectedElementId(elId);
+            selectedElementIdRef.current = elId;
 
+            // Start direct manipulation dragging
+            isDraggingRef.current = true;
+            draggedIdRef.current = elId;
+            if (controlsRef.current) {
+              controlsRef.current.enabled = false;
+            }
+            return;
+          }
+        }
+      }
+
+      // Check interior rooms
+      const intersects = raycaster.intersectObjects(roomMeshesRef.current, true);
       if (intersects.length > 0) {
         const hitRoom = intersects[0].object as THREE.Mesh;
         if (hitRoom.userData && hitRoom.userData.isRoom) {
@@ -460,8 +1040,53 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
       }
     };
 
+    const handlePointerMove = (event: PointerEvent) => {
+      if (!isDraggingRef.current || !draggedIdRef.current || !rendererRef.current || !cameraRef.current) return;
+      const rect = rendererRef.current.domElement.getBoundingClientRect();
+      const mouseX = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      const mouseY = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+      const raycaster = new THREE.Raycaster();
+      raycaster.setFromCamera(new THREE.Vector2(mouseX, mouseY), cameraRef.current);
+
+      const el = customElementsRef.current.find((e) => e.id === draggedIdRef.current);
+      const elY = el?.position.y ?? 0;
+      const groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -elY);
+      const hitPoint = new THREE.Vector3();
+
+      if (raycaster.ray.intersectPlane(groundPlane, hitPoint)) {
+        const targetX = Math.round(hitPoint.x * 2) / 2;
+        const targetZ = Math.round(hitPoint.z * 2) / 2;
+
+        const mesh = customElementsGroupRef.current?.children.find(
+          (c) => c.userData?.elementId === draggedIdRef.current
+        );
+        if (mesh) {
+          mesh.position.x = targetX;
+          mesh.position.z = targetZ;
+          if (elementHighlightRef.current) {
+            elementHighlightRef.current.update();
+          }
+        }
+
+        handleLiveMoveElement(draggedIdRef.current, targetX, targetZ);
+      }
+    };
+
+    const handlePointerUp = () => {
+      if (isDraggingRef.current) {
+        isDraggingRef.current = false;
+        draggedIdRef.current = null;
+        if (controlsRef.current) {
+          controlsRef.current.enabled = true;
+        }
+      }
+    };
+
     const canvasElem = renderer.domElement;
     canvasElem.addEventListener('pointerdown', handlePointerDown);
+    window.addEventListener('pointermove', handlePointerMove);
+    window.addEventListener('pointerup', handlePointerUp);
 
     // 9. ResizeObserver for responsive layout & initial mount auto-resize
     const handleResize = () => {
@@ -490,8 +1115,64 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
     const animate = () => {
       animationFrameId = requestAnimationFrame(animate);
 
-      if (controlsRef.current) {
+      if (isDroneModeRef.current) {
+        droneTimeRef.current += 0.014 * (droneSpeedRef.current || 1.0);
+        const t = droneTimeRef.current;
+        const totalBuildingH = floorsCount * storyHeight;
+        const centerTarget = new THREE.Vector3(0, totalBuildingH * 0.45, 0);
+
+        const mode = droneFlightModeRef.current;
+        if (mode === 'orbit_360') {
+          const orbitRadius = Math.max(width, depth) * 1.5 + 16;
+          const camX = Math.sin(t * 0.35) * orbitRadius;
+          const camZ = Math.cos(t * 0.35) * orbitRadius;
+          const camY = Math.max(8, totalBuildingH + 9 + Math.sin(t * 0.25) * 3.5);
+          camera.position.set(camX, camY, camZ);
+          camera.lookAt(centerTarget);
+
+          setDroneAltitude(camY);
+          setDroneSpeedKmH(16.0 + Math.sin(t) * 3.0);
+          setDroneGimbalPitch(-18 - Math.sin(t * 0.3) * 6);
+        } else if (mode === 'spiral_ascend') {
+          const loopT = (t * 0.6) % 24;
+          const spiralRadius = Math.max(width, depth) * 1.4 + 10 - loopT * 0.2;
+          const camX = Math.sin(loopT * 0.5) * spiralRadius;
+          const camZ = Math.cos(loopT * 0.5) * spiralRadius;
+          const camY = 3.5 + loopT * 1.4;
+          camera.position.set(camX, camY, camZ);
+          camera.lookAt(centerTarget);
+
+          setDroneAltitude(camY);
+          setDroneSpeedKmH(14.5 + Math.cos(t) * 2.0);
+          setDroneGimbalPitch(-22);
+        } else if (mode === 'flyby') {
+          const passL = Math.max(width, depth) + 32;
+          const zPos = ((t * 7) % (passL * 2)) - passL;
+          const camX = width / 2 + 18;
+          const camY = totalBuildingH + 6 + Math.sin(t * 0.4) * 2;
+          camera.position.set(camX, camY, zPos);
+          camera.lookAt(0, totalBuildingH * 0.4, zPos + 8);
+
+          setDroneAltitude(camY);
+          setDroneSpeedKmH(24.0);
+          setDroneGimbalPitch(-14);
+        } else if (mode === 'topdown_dive') {
+          const diveT = (Math.sin(t * 0.4) + 1) / 2;
+          const altY = totalBuildingH + 34 - diveT * 22;
+          const forwardZ = depth / 2 + 22 - diveT * 15;
+          camera.position.set(Math.sin(t * 0.2) * 6, altY, forwardZ);
+          camera.lookAt(0, totalBuildingH * 0.2, 0);
+
+          setDroneAltitude(altY);
+          setDroneSpeedKmH(18.0 + diveT * 8.0);
+          setDroneGimbalPitch(-45 - diveT * 30);
+        }
+      } else if (controlsRef.current) {
         controlsRef.current.update();
+      }
+
+      if (elementHighlightRef.current) {
+        elementHighlightRef.current.update();
       }
 
       renderer.render(scene, camera);
@@ -523,6 +1204,8 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
       resizeObserver.disconnect();
       cancelAnimationFrame(animationFrameId);
       canvasElem.removeEventListener('pointerdown', handlePointerDown);
+      window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('pointerup', handlePointerUp);
       if (container && renderer.domElement && container.contains(renderer.domElement)) {
         container.removeChild(renderer.domElement);
       }
@@ -634,8 +1317,18 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
       controls.target.set(0, 0, 0);
     } else if (viewMode === 'walkthrough') {
       setExplodePercent(0);
-      camera.position.set(camPos.x, 1.6, camPos.z);
-      controls.target.set(camPos.x - Math.sin(camPos.rotY) * 5, 1.6, camPos.z - Math.cos(camPos.rotY) * 5);
+      let posX = camPos.x;
+      let posZ = camPos.z;
+      if (!isPointInBuildingFootprint(posX, posZ, buildingShape, width, depth, 0.35)) {
+        const wings = getBuildingWings(buildingShape, width, depth);
+        if (wings.length > 0) {
+          posX = (wings[0].minX + wings[0].maxX) / 2;
+          posZ = (wings[0].minZ + wings[0].maxZ) / 2;
+          setCamPos((prev) => ({ ...prev, x: posX, z: posZ }));
+        }
+      }
+      camera.position.set(posX, 1.6, posZ);
+      controls.target.set(posX - Math.sin(camPos.rotY) * 5, 1.6, posZ - Math.cos(camPos.rotY) * 5);
     } else {
       // Exterior
       setExplodePercent(0);
@@ -677,17 +1370,22 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
 
       if (dir === 'turnLeft') rotY += rotStep;
       if (dir === 'turnRight') rotY -= rotStep;
+      let nextX = x;
+      let nextZ = z;
       if (dir === 'forward') {
-        x -= Math.sin(rotY) * step;
-        z -= Math.cos(rotY) * step;
+        nextX -= Math.sin(rotY) * step;
+        nextZ -= Math.cos(rotY) * step;
       }
       if (dir === 'backward') {
-        x += Math.sin(rotY) * step;
-        z += Math.cos(rotY) * step;
+        nextX += Math.sin(rotY) * step;
+        nextZ += Math.cos(rotY) * step;
       }
 
-      x = Math.max(-width / 2 + 0.8, Math.min(width / 2 - 0.8, x));
-      z = Math.max(-depth / 2 + 0.8, Math.min(depth / 2 - 0.8, z));
+      // Check if candidate position is strictly inside building massing
+      if (isPointInBuildingFootprint(nextX, nextZ, buildingShape, width, depth, 0.35)) {
+        x = nextX;
+        z = nextZ;
+      }
 
       if (cameraRef.current && controlsRef.current && viewMode === 'walkthrough') {
         cameraRef.current.position.set(x, 1.6, z);
@@ -942,6 +1640,56 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
               )}
             </div>
           )}
+
+          {/* Site Elements Manager Modal Trigger */}
+          <button
+            onClick={() => setShowSiteElementsModal(true)}
+            className={`px-3 py-1.5 rounded-xl border font-bold transition flex items-center gap-1.5 cursor-pointer ${
+              showSiteElementsModal || customElements.length > 0
+                ? 'bg-amber-500/20 text-amber-400 border-amber-500/40 hover:bg-amber-500/30'
+                : isNightMode
+                ? 'bg-slate-800 text-slate-300 border-slate-700 hover:text-white'
+                : 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200'
+            }`}
+            title="إضافة وتعديل معالم ومرافق الموقع الخارجي (مهبط، نافورة، شارع، كراج، حدائق، أبواب، نوافذ، أعمدة، أدراج طوارئ)"
+          >
+            <Plus className="w-3.5 h-3.5 text-amber-500" />
+            <span>معالم الموقع الخارجي</span>
+            {customElements.length > 0 && (
+              <span className="px-1.5 py-0.2 rounded-full bg-amber-500 text-slate-950 text-[10px] font-mono font-black">
+                {toArabicDigits(customElements.length)}
+              </span>
+            )}
+          </button>
+
+          {/* Cinematic Drone Mode Button */}
+          <button
+            onClick={() => {
+              const next = !isDroneMode;
+              setIsDroneMode(next);
+              if (next) {
+                // Disable orbit controls while drone is active
+                if (controlsRef.current) {
+                  controlsRef.current.enabled = false;
+                }
+              } else {
+                if (controlsRef.current) {
+                  controlsRef.current.enabled = true;
+                }
+              }
+            }}
+            className={`px-3 py-1.5 rounded-xl border font-bold transition flex items-center gap-1.5 cursor-pointer ${
+              isDroneMode
+                ? 'bg-amber-500 text-slate-950 border-amber-400 shadow animate-pulse'
+                : isNightMode
+                ? 'bg-slate-800 text-slate-300 border-slate-700 hover:text-white'
+                : 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200'
+            }`}
+            title="تفعيل وضع التصوير السينمائي الجوي بالدرون (Drone Mode)"
+          >
+            <Camera className="w-3.5 h-3.5 text-amber-500" />
+            <span>تصوير درون سينمائي</span>
+          </button>
 
           <button
             onClick={() => setShowSettingsPanel(!showSettingsPanel)}
@@ -1208,6 +1956,79 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
           )}
         </div>
       )}
+
+      {/* Floating Element Transform Toolbar (Move, Rotate, Scale, Duplicate, Delete) */}
+      {selectedElementId && !isDroneMode && (
+        (() => {
+          const selectedEl = customElements.find((e) => e.id === selectedElementId);
+          if (!selectedEl) return null;
+          return (
+            <ElementTransformToolbar
+              element={selectedEl}
+              onUpdate={handleUpdateElement}
+              onUpdateElement={handleUpdateElement}
+              onDelete={handleDeleteElement}
+              onDeleteElement={handleDeleteElement}
+              onDuplicate={handleDuplicateElement}
+              onDuplicateElement={handleDuplicateElement}
+              onClose={() => {
+                setSelectedElementId(null);
+                selectedElementIdRef.current = null;
+              }}
+              onDeselect={() => {
+                setSelectedElementId(null);
+                selectedElementIdRef.current = null;
+              }}
+              roofHeight={floorsCount * storyHeight}
+              isNightMode={isNightMode}
+            />
+          );
+        })()
+      )}
+
+      {/* Cinematic Drone HUD Overlay */}
+      {isDroneMode && (
+        <DroneHudOverlay
+          flightMode={droneFlightMode}
+          onFlightModeChange={setDroneFlightMode}
+          speed={droneSpeed}
+          onSpeedChange={setDroneSpeed}
+          altitude={droneAltitude}
+          speedKmH={droneSpeedKmH}
+          gimbalPitch={droneGimbalPitch}
+          isRecording={isRecording}
+          onToggleRecording={handleToggleDroneRecording}
+          onCapturePhoto={handleCaptureDronePhoto}
+          onExit={() => {
+            setIsDroneMode(false);
+            if (controlsRef.current) {
+              controlsRef.current.enabled = true;
+            }
+          }}
+          showGrid={showDroneGrid}
+          onToggleGrid={() => setShowDroneGrid(!showDroneGrid)}
+          showCinematicBars={showCinematicBars}
+          onToggleCinematicBars={() => setShowCinematicBars(!showCinematicBars)}
+          onManualMove={handleDroneManualMove}
+        />
+      )}
+
+      {/* Site Elements Manager & Catalog Modal */}
+      <SiteElementsManagerModal
+        isOpen={showSiteElementsModal}
+        onClose={() => setShowSiteElementsModal(false)}
+        onAddElement={handleAddSiteElement}
+        existingElements={customElements}
+        onSelectElement={(id) => {
+          setSelectedElementId(id);
+          selectedElementIdRef.current = id;
+          setShowSiteElementsModal(false);
+        }}
+        onDeleteElement={handleDeleteElement}
+        selectedElementId={selectedElementId}
+        isNightMode={isNightMode}
+        buildingHeight={floorsCount * storyHeight}
+      />
       </div>
     </div>
   );
@@ -1399,6 +2220,41 @@ function createTreeMesh(): THREE.Group {
   return group;
 }
 
+// --- HELPER FUNCTION: RENDER ARCHITECTURAL WINDOWS STRICTLY ON REAL WALLS ---
+function renderBuildingWindows(
+  floorGroup: THREE.Group,
+  buildingShape: string,
+  width: number,
+  depth: number,
+  storyHeight: number,
+  glassMat: THREE.Material,
+  showWindows: boolean
+) {
+  const segments = getBuildingExteriorWallSegments(buildingShape, width, depth);
+  const winHeight = storyHeight - 0.75;
+  const winThickness = 0.08;
+
+  segments.forEach((seg, idx) => {
+    // Only place glass panels on wall segments long enough for a window
+    if (seg.length < 1.4) return;
+
+    // Leave a 0.35m structural column at each corner
+    const panelLen = Math.max(0.8, seg.length - 0.7);
+    const geom = getCachedBoxGeometry(panelLen, winHeight, winThickness);
+    const winMesh = new THREE.Mesh(geom, glassMat);
+
+    const midX = (seg.x1 + seg.x2) / 2;
+    const midZ = (seg.z1 + seg.z2) / 2;
+
+    winMesh.position.set(midX, storyHeight / 2, midZ);
+    winMesh.rotation.y = seg.angle;
+    winMesh.userData = { isWindow: true, isGlassMaterial: true, segmentIndex: idx };
+    winMesh.visible = showWindows;
+
+    floorGroup.add(winMesh);
+  });
+}
+
 // --- HELPER FUNCTION: INTERIOR ROOMS & FURNITURE RENDERING ---
 function renderInteriorRooms(
   floorGroup: THREE.Group,
@@ -1412,7 +2268,8 @@ function renderInteriorRooms(
   isNightLightsOn: boolean,
   roomMeshesStore: THREE.Mesh[],
   interiorIntensity: number = 3.5,
-  isFloorActive: boolean = true
+  isFloorActive: boolean = true,
+  buildingShape: string = 'مستطيل'
 ) {
   if (!rooms || rooms.length === 0) {
     return; // Strict rule: No fake default rooms if no rooms exist in database/unit state
@@ -1447,25 +2304,19 @@ function renderInteriorRooms(
 
   if (activeRooms.length === 0) return;
 
-  const count = activeRooms.length;
-  const cols = count > 4 ? 3 : count > 1 ? 2 : 1;
-  const rows = Math.ceil(count / cols);
-  const cellW = (width - 0.8) / cols;
-  const cellD = (depth - 0.8) / rows;
+  // Compute strictly-contained room slots inside the real building footprint
+  const roomSlots = computeRoomSlotsForFloor(buildingShape, width, depth, activeRooms.length);
+  if (roomSlots.length === 0) return;
 
   const wallH = storyHeight - 0.6;
   const wallMat = getCachedStandardMaterial(0xcbd5e1, 0, 0.8);
-  const pWallGeo = getCachedBoxGeometry(0.08, wallH, cellD * 0.9);
 
-  // Determine dominant light color for the floor to avoid multiple point lights
+  // Determine dominant light color for the floor
   let floorDominantColor = 0xffffff;
 
   activeRooms.forEach((rm, i) => {
-    const col = i % cols;
-    const row = Math.floor(i / cols);
-
-    const x = -width / 2 + 0.4 + col * cellW + cellW / 2;
-    const z = -depth / 2 + 0.4 + row * cellD + cellD / 2;
+    const slot = roomSlots[i] || roomSlots[roomSlots.length - 1];
+    const { x, z, width: roomW, depth: roomD, wingName } = slot;
 
     const typeStr = (rm.type || rm.name || '').toLowerCase();
     const isStopped = rm.status === 'Stopped' || rm.status === 'متوقفة';
@@ -1487,8 +2338,8 @@ function renderInteriorRooms(
       floorDominantColor = colorHex;
     }
 
-    // Room Floor Pad Mesh (Raycaster Target)
-    const padGeo = getCachedBoxGeometry(cellW * 0.92, 0.06, cellD * 0.92);
+    // Room Floor Pad Mesh (Guaranteed strictly within building perimeter)
+    const padGeo = getCachedBoxGeometry(roomW, 0.06, roomD);
     const padMat = getCachedStandardMaterial(colorHex, 0, 0.4, true, 0.85);
     const padMesh = new THREE.Mesh(padGeo, padMat);
     padMesh.position.set(x, 0.18, z);
@@ -1497,13 +2348,14 @@ function renderInteriorRooms(
       isRoom: true,
       id: rm.id || `rm-${i}`,
       name: rm.name || `غرفة ${i + 1}`,
-      floorName: rm.floor || (floorIndex === 0 ? 'الطابق الأرضي' : `الطابق ${floorIndex + 1}`),
-      dimensions: `${(cellW * 0.92).toFixed(1)}م × ${(cellD * 0.92).toFixed(1)}م`,
-      area: `${rm.areaSqM || Math.round((cellW * cellD) * 10) / 10} م²`,
+      floorName: `${rm.floor || (floorIndex === 0 ? 'الطابق الأرضي' : `الطابق ${floorIndex + 1}`)} (${wingName})`,
+      dimensions: `${roomW.toFixed(1)}م × ${roomD.toFixed(1)}م`,
+      area: `${rm.areaSqM || Math.round((roomW * roomD) * 10) / 10} م²`,
       type: rm.type || 'غرفة مسجلة',
       occupiedBy: rm.occupiedBy || '',
       contents: [
         isStopped ? 'الحالة: متوقفة 🔴' : 'الحالة: فعالة 🟢',
+        `الموقع المعماري: ${wingName}`,
         isStopped && rm.notes ? `سبب التوقف: ${rm.notes}` : null,
         rm.occupiedBy ? `الجهة الشاغلة: ${rm.occupiedBy}` : null,
       ].filter(Boolean),
@@ -1512,37 +2364,69 @@ function renderInteriorRooms(
     floorGroup.add(padMesh);
     roomMeshesStore.push(padMesh);
 
-    // Partition Divider Walls (Optimized Geometry & Material Reuse)
-    if (col < cols - 1) {
-      const pWall = new THREE.Mesh(pWallGeo, wallMat);
-      pWall.position.set(x + cellW / 2, wallH / 2 + 0.2, z);
-      floorGroup.add(pWall);
+    // Partition Divider Walls: Only place divider walls between rooms within the SAME wing
+    if (i < activeRooms.length - 1 && roomSlots[i + 1]?.wingName === wingName) {
+      const nextSlot = roomSlots[i + 1];
+      const midX = (x + nextSlot.x) / 2;
+      const midZ = (z + nextSlot.z) / 2;
+
+      if (Math.abs(x - nextSlot.x) > Math.abs(z - nextSlot.z)) {
+        // Divider along Z
+        const pWallGeo = getCachedBoxGeometry(0.08, wallH, Math.min(roomD, nextSlot.depth));
+        const pWall = new THREE.Mesh(pWallGeo, wallMat);
+        pWall.position.set(midX, wallH / 2 + 0.2, midZ);
+        floorGroup.add(pWall);
+      } else {
+        // Divider along X
+        const pWallGeo = getCachedBoxGeometry(Math.min(roomW, nextSlot.width), wallH, 0.08);
+        const pWall = new THREE.Mesh(pWallGeo, wallMat);
+        pWall.position.set(midX, wallH / 2 + 0.2, midZ);
+        floorGroup.add(pWall);
+      }
     }
 
-    // Interior Furniture Models (Rendered with shared geometries and materials)
-    renderFurnitureInRoom(floorGroup, rm.type || rm.name || '', x, 0.25, z, showFurniture);
+    // Interior Furniture Models strictly scaled and enclosed inside room boundaries
+    renderFurnitureInRoom(floorGroup, rm.type || rm.name || '', x, 0.25, z, showFurniture, roomW, roomD);
   });
 
-  // Consolidated Floor Light Source: Single optimized PointLight per active floor
+  // Consolidated Floor Light Source: placed at center of first active room or wing
   const pIntensity = (isNightMode ? 2.2 : 1.2) * (interiorIntensity / 2.5);
+  const firstSlot = roomSlots[0];
+  const lightX = firstSlot ? firstSlot.x : 0;
+  const lightZ = firstSlot ? firstSlot.z : 0;
   const floorLight = new THREE.PointLight(
     floorDominantColor,
     isNightMode && !isNightLightsOn ? 0 : pIntensity,
     Math.max(width, depth) * 1.8
   );
-  floorLight.position.set(0, storyHeight - 0.4, 0);
+  floorLight.position.set(lightX, storyHeight - 0.4, lightZ);
   floorLight.userData = { isInteriorLight: true, baseColor: floorDominantColor };
   floorGroup.add(floorLight);
 }
 
-function renderFurnitureInRoom(parentGroup: THREE.Group, type: string, x: number, y: number, z: number, showFurniture: boolean = true) {
+function renderFurnitureInRoom(
+  parentGroup: THREE.Group,
+  type: string,
+  x: number,
+  y: number,
+  z: number,
+  showFurniture: boolean = true,
+  roomW: number = 3.0,
+  roomD: number = 3.0
+) {
   const group = new THREE.Group();
   group.position.set(x, y, z);
   group.userData = { isFurniture: true };
   group.visible = showFurniture;
 
+  // Auto-scale furniture to stay strictly inside room boundaries with comfortable clearance
+  const scale = Math.max(0.45, Math.min(1.0, Math.min(roomW / 3.0, roomD / 3.0)));
+  group.scale.set(scale, 1.0, scale);
+
   if (type.includes('اجتماعات') || type.includes('قاعة')) {
-    const tableGeo = getCachedBoxGeometry(2.2, 0.65, 1.1);
+    const tableW = Math.min(2.2, roomW * 0.7);
+    const tableD = Math.min(1.1, roomD * 0.45);
+    const tableGeo = getCachedBoxGeometry(tableW, 0.65, tableD);
     const tableMat = getCachedStandardMaterial(0x334155, 0, 0.3);
     const table = new THREE.Mesh(tableGeo, tableMat);
     table.position.y = 0.32;
@@ -1550,48 +2434,61 @@ function renderFurnitureInRoom(parentGroup: THREE.Group, type: string, x: number
 
     const chairGeo = getCachedBoxGeometry(0.35, 0.5, 0.35);
     const chairMat = getCachedStandardMaterial(0x0284c7);
-    [-0.8, 0, 0.8].forEach((cx) => {
+    const chairDistX = Math.min(0.8, tableW * 0.38);
+    const chairDistZ = Math.min(0.7, (roomD * 0.38) / scale);
+
+    [-chairDistX, 0, chairDistX].forEach((cx) => {
       const chair1 = new THREE.Mesh(chairGeo, chairMat);
-      chair1.position.set(cx, 0.25, 0.7);
+      chair1.position.set(cx, 0.25, chairDistZ);
       group.add(chair1);
 
       const chair2 = new THREE.Mesh(chairGeo, chairMat);
-      chair2.position.set(cx, 0.25, -0.7);
+      chair2.position.set(cx, 0.25, -chairDistZ);
       group.add(chair2);
     });
   } else if (type.includes('استقبال') || type.includes('راحة')) {
-    const sofaGeo = getCachedBoxGeometry(2.0, 0.55, 0.8);
+    const sofaW = Math.min(2.0, roomW * 0.65);
+    const sofaGeo = getCachedBoxGeometry(sofaW, 0.55, 0.7);
     const sofaMat = getCachedStandardMaterial(0x0284c7);
     const sofa = new THREE.Mesh(sofaGeo, sofaMat);
-    sofa.position.set(0, 0.28, -0.6);
+    sofa.position.set(0, 0.28, -Math.min(0.6, roomD * 0.25));
     group.add(sofa);
 
-    const cTableGeo = getCachedBoxGeometry(1.2, 0.35, 0.6);
+    const cTableGeo = getCachedBoxGeometry(Math.min(1.2, sofaW * 0.7), 0.35, 0.5);
     const cTableMat = getCachedStandardMaterial(0x94a3b8);
     const cTable = new THREE.Mesh(cTableGeo, cTableMat);
-    cTable.position.set(0, 0.18, 0.1);
+    cTable.position.set(0, 0.18, Math.min(0.2, roomD * 0.1));
     group.add(cTable);
-  } else if (type.includes('سيرفر')) {
-    const rackGeo = getCachedBoxGeometry(0.7, 1.6, 0.7);
+  } else if (type.includes('سيرفر') || type.includes('مختبر') || type.includes('خوادم')) {
+    const rackGeo = getCachedBoxGeometry(0.65, 1.6, 0.65);
     const rackMat = getCachedStandardMaterial(0x0f172a, 0.9, 0.2);
+    const rackOffset = Math.min(0.55, roomW * 0.25);
     const rack1 = new THREE.Mesh(rackGeo, rackMat);
-    rack1.position.set(-0.6, 0.8, 0);
+    rack1.position.set(-rackOffset, 0.8, 0);
     group.add(rack1);
 
     const rack2 = new THREE.Mesh(rackGeo, rackMat);
-    rack2.position.set(0.6, 0.8, 0);
+    rack2.position.set(rackOffset, 0.8, 0);
     group.add(rack2);
   } else {
     // Standard Desks
-    const deskGeo = getCachedBoxGeometry(1.2, 0.6, 0.6);
+    const deskW = Math.min(1.1, roomW * 0.45);
+    const deskD = Math.min(0.6, roomD * 0.35);
+    const deskGeo = getCachedBoxGeometry(deskW, 0.6, deskD);
     const deskMat = getCachedStandardMaterial(0x64748b);
+
+    const offsetX = Math.min(0.55, roomW * 0.25);
+    const offsetZ = Math.min(0.35, roomD * 0.2);
+
     const desk1 = new THREE.Mesh(deskGeo, deskMat);
-    desk1.position.set(-0.6, 0.3, -0.4);
+    desk1.position.set(-offsetX, 0.3, -offsetZ);
     group.add(desk1);
 
-    const desk2 = new THREE.Mesh(deskGeo, deskMat);
-    desk2.position.set(0.6, 0.3, 0.4);
-    group.add(desk2);
+    if (roomW >= 2.0) {
+      const desk2 = new THREE.Mesh(deskGeo, deskMat);
+      desk2.position.set(offsetX, 0.3, offsetZ);
+      group.add(desk2);
+    }
   }
 
   parentGroup.add(group);
@@ -1714,17 +2611,18 @@ function createRoofStructure(
 
   } else if (roofType === 'flat_parapet') {
     // --- 2. FLAT ROOF WITH PARAPET FENCE (سطح مسطح مع سياج السطح) ---
-    const parapetShape = createBuildingShape(buildingShape, width, depth);
-    const innerHoleShape = createBuildingShape(buildingShape, Math.max(1, width - 0.35), Math.max(1, depth - 0.35));
-    const holePath = new THREE.Path(innerHoleShape.getPoints());
-    parapetShape.holes = [holePath];
-
-    const parapetGeo = new THREE.ExtrudeGeometry(parapetShape, { steps: 1, depth: 0.42, bevelEnabled: false });
-    parapetGeo.rotateX(-Math.PI / 2);
     const parapetMat = new THREE.MeshStandardMaterial({ color: accentColorHex, roughness: 0.5 });
-    const parapetMesh = new THREE.Mesh(parapetGeo, parapetMat);
-    parapetMesh.position.set(0, baseRoofY + 0.22, 0);
-    roofGroup.add(parapetMesh);
+    const segments = getBuildingExteriorWallSegments(buildingShape, width, depth);
+    segments.forEach((seg) => {
+      if (seg.length < 0.3) return;
+      const curbGeo = getCachedBoxGeometry(seg.length, 0.42, 0.18);
+      const curbMesh = new THREE.Mesh(curbGeo, parapetMat);
+      const midX = (seg.x1 + seg.x2) / 2;
+      const midZ = (seg.z1 + seg.z2) / 2;
+      curbMesh.position.set(midX, baseRoofY + 0.22 + 0.21, midZ);
+      curbMesh.rotation.y = seg.angle;
+      roofGroup.add(curbMesh);
+    });
 
   } else if (roofType === 'garden') {
     // --- ROOF GARDEN (حديقة سقف خضراء) ---
@@ -1737,24 +2635,35 @@ function createRoofStructure(
     garden.receiveShadow = true;
     roofGroup.add(garden);
 
-    const parapetShape = createBuildingShape(buildingShape, width, depth);
-    const innerHoleShape = createBuildingShape(buildingShape, Math.max(1, width - 0.35), Math.max(1, depth - 0.35));
-    const holePath = new THREE.Path(innerHoleShape.getPoints());
-    parapetShape.holes = [holePath];
-
-    const parapetGeo = new THREE.ExtrudeGeometry(parapetShape, { steps: 1, depth: 0.40, bevelEnabled: false });
-    parapetGeo.rotateX(-Math.PI / 2);
     const parapetMat = new THREE.MeshStandardMaterial({ color: accentColorHex, roughness: 0.5 });
-    const parapetMesh = new THREE.Mesh(parapetGeo, parapetMat);
-    parapetMesh.position.set(0, baseRoofY + 0.22, 0);
-    roofGroup.add(parapetMesh);
+    const segments = getBuildingExteriorWallSegments(buildingShape, width, depth);
+    segments.forEach((seg) => {
+      if (seg.length < 0.3) return;
+      const curbGeo = getCachedBoxGeometry(seg.length, 0.40, 0.18);
+      const curbMesh = new THREE.Mesh(curbGeo, parapetMat);
+      const midX = (seg.x1 + seg.x2) / 2;
+      const midZ = (seg.z1 + seg.z2) / 2;
+      curbMesh.position.set(midX, baseRoofY + 0.22 + 0.20, midZ);
+      curbMesh.rotation.y = seg.angle;
+      roofGroup.add(curbMesh);
+    });
 
-    const pWidth = Math.min(width * 0.35, 3.5);
-    const pDepth = Math.min(depth * 0.35, 2.5);
+    let pergolaX = 0;
+    let pergolaZ = 0;
+    if (!isPointInBuildingFootprint(0, 0, buildingShape, width, depth, 0.8)) {
+      const wings = getBuildingWings(buildingShape, width, depth);
+      if (wings.length > 0) {
+        pergolaX = (wings[0].minX + wings[0].maxX) / 2;
+        pergolaZ = (wings[0].minZ + wings[0].maxZ) / 2;
+      }
+    }
+
+    const pWidth = Math.min(width * 0.35, 3.2);
+    const pDepth = Math.min(depth * 0.35, 2.2);
     const pergolaGeo = new THREE.BoxGeometry(pWidth, 0.08, pDepth);
     const pergolaMat = new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.6 });
     const pergola = new THREE.Mesh(pergolaGeo, pergolaMat);
-    pergola.position.set(0, baseRoofY + 1.9, 0);
+    pergola.position.set(pergolaX, baseRoofY + 1.9, pergolaZ);
     roofGroup.add(pergola);
 
     const postGeo = new THREE.CylinderGeometry(0.06, 0.06, 1.6, 8);
@@ -1766,7 +2675,7 @@ function createRoofStructure(
       [pWidth / 2 - 0.1, pDepth / 2 - 0.1],
     ].forEach(([px, pz]) => {
       const post = new THREE.Mesh(postGeo, postMat);
-      post.position.set(px, baseRoofY + 0.31 + 0.8, pz);
+      post.position.set(pergolaX + px, baseRoofY + 0.31 + 0.8, pergolaZ + pz);
       roofGroup.add(post);
     });
 
@@ -1780,7 +2689,16 @@ function createRoofStructure(
   const beaconGeo = new THREE.CylinderGeometry(0.14, 0.14, 0.4, 16);
   const beaconMat = new THREE.MeshStandardMaterial({ color: gradeHex, emissive: gradeHex, emissiveIntensity: 1.0 });
   const beacon = new THREE.Mesh(beaconGeo, beaconMat);
-  beacon.position.set(width * 0.35, beaconY, depth * 0.35);
+  let beaconX = width * 0.35;
+  let beaconZ = depth * 0.35;
+  if (!isPointInBuildingFootprint(beaconX, beaconZ, buildingShape, width, depth, 0.4)) {
+    const wings = getBuildingWings(buildingShape, width, depth);
+    if (wings.length > 0) {
+      beaconX = wings[0].maxX - 0.5;
+      beaconZ = wings[0].maxZ - 0.5;
+    }
+  }
+  beacon.position.set(beaconX, beaconY, beaconZ);
   roofGroup.add(beacon);
 
   if (floorGroups.length > 0) {
@@ -1797,7 +2715,8 @@ function renderEquipmentMeshes(
   width: number,
   depth: number,
   totalHeight: number,
-  roomMeshesStore?: THREE.Mesh[]
+  roomMeshesStore?: THREE.Mesh[],
+  buildingShape: string = 'مستطيل'
 ) {
   if (!items || items.length === 0) {
     return; // Strict rule: No fake default equipment rendered if no equipment is registered
@@ -1825,19 +2744,11 @@ function renderEquipmentMeshes(
     }
   });
 
-  // 1. Render Roof Equipment
+  // 1. Render Roof Equipment (Strictly on roof massing)
   roofItems.forEach((eq, idx) => {
-    const cols = Math.max(1, Math.ceil(Math.sqrt(roofItems.length)));
-    const row = Math.floor(idx / cols);
-    const col = idx % cols;
-
-    const spanX = Math.max(1, width - 2.5);
-    const spanZ = Math.max(1, depth - 2.5);
-    const stepX = spanX / (cols || 1);
-    const stepZ = spanZ / (Math.ceil(roofItems.length / cols) || 1);
-
-    const x = -spanX / 2 + stepX / 2 + col * stepX;
-    const z = -spanZ / 2 + stepZ / 2 + row * stepZ;
+    const pos = getInsideEquipmentPosition(buildingShape, width, depth, idx, roofItems.length);
+    const x = pos.x;
+    const z = pos.z;
     const y = totalHeight + 0.45;
 
     const group = createEquipmentMesh3D(eq);
@@ -1853,13 +2764,13 @@ function renderEquipmentMeshes(
       isRoom: true,
       id: eq.id || `eq-roof-${idx}`,
       name: eq.name || 'معدة سقف الوحدة',
-      floorName: 'موقع التثبيت: سقف الوحدة (Roof Top)',
+      floorName: 'موقع التثبيت: سقف الوحدة (Roof Deck)',
       dimensions: `السعة/النوع: ${eq.capacity || eq.type || 'سقف'}`,
       area: `الحالة: ${eq.status || 'Active'}`,
       type: 'معدة',
       contents: [
         `اسم المعدة: ${eq.name}`,
-        `الموقع الهيكلي: سقف الوحدة`,
+        `الموقع الهيكلي: سقف الوحدة (${pos.wingName})`,
         `السعة والقدرة: ${eq.capacity || 'قياسي'}`,
         `الحالة التشغيلية: ${eq.status || 'عملية مستقرة'}`,
       ],
@@ -1902,10 +2813,11 @@ function renderEquipmentMeshes(
     if (roomMeshesStore) roomMeshesStore.push(boundBox);
   });
 
-  // 3. Render Inside Unit Equipment
+  // 3. Render Inside Unit Equipment (Strictly inside building footprint)
   insideItems.forEach((eq, idx) => {
-    const x = (idx % 2 === 0 ? -1 : 1) * (width / 4);
-    const z = (Math.floor(idx / 2) - 0.5) * (depth / 3);
+    const pos = getInsideEquipmentPosition(buildingShape, width, depth, idx, insideItems.length);
+    const x = pos.x;
+    const z = pos.z;
     const y = 0.45;
 
     const group = createEquipmentMesh3D(eq);
@@ -1926,7 +2838,7 @@ function renderEquipmentMeshes(
       type: 'معدة',
       contents: [
         `اسم المعدة: ${eq.name}`,
-        `الموقع الهيكلي: داخل الوحدة`,
+        `الموقع الهيكلي: داخل الوحدة (${pos.wingName})`,
         `السعة والقدرة: ${eq.capacity || 'قياسي'}`,
         `الحالة التشغيلية: ${eq.status || 'عملية مستقرة'}`,
       ],
@@ -2075,122 +2987,6 @@ function highlightRoomMesh(
 
 // --- HELPER FUNCTION: CREATE 2D BUILDING SHAPE FOR THREE.JS EXTRUSION ---
 function createBuildingShape(shapeType: string, width: number, depth: number): THREE.Shape {
-  const shape = new THREE.Shape();
-  const hw = width / 2;
-  const hd = depth / 2;
-
-  switch (shapeType) {
-    case 'مربع':
-    case 'مستطيل':
-    default:
-      shape.moveTo(-hw, -hd);
-      shape.lineTo(hw, -hd);
-      shape.lineTo(hw, hd);
-      shape.lineTo(-hw, hd);
-      shape.closePath();
-      break;
-
-    case 'دائري':
-      shape.absarc(0, 0, Math.min(hw, hd), 0, Math.PI * 2, false);
-      break;
-
-    case 'مثلث':
-      shape.moveTo(-hw, -hd);
-      shape.lineTo(hw, -hd);
-      shape.lineTo(0, hd);
-      shape.closePath();
-      break;
-
-    case 'L-Shape':
-      shape.moveTo(-hw, -hd);
-      shape.lineTo(hw, -hd);
-      shape.lineTo(hw, 0);
-      shape.lineTo(0, 0);
-      shape.lineTo(0, hd);
-      shape.lineTo(-hw, hd);
-      shape.closePath();
-      break;
-
-    case 'U-Shape':
-      shape.moveTo(-hw, -hd);
-      shape.lineTo(hw, -hd);
-      shape.lineTo(hw, hd);
-      shape.lineTo(hw * 0.4, hd);
-      shape.lineTo(hw * 0.4, -hd * 0.2);
-      shape.lineTo(-hw * 0.4, -hd * 0.2);
-      shape.lineTo(-hw * 0.4, hd);
-      shape.lineTo(-hw, hd);
-      shape.closePath();
-      break;
-
-    case 'T-Shape':
-      shape.moveTo(-hw, -hd);
-      shape.lineTo(hw, -hd);
-      shape.lineTo(hw, -hd * 0.2);
-      shape.lineTo(hw * 0.35, -hd * 0.2);
-      shape.lineTo(hw * 0.35, hd);
-      shape.lineTo(-hw * 0.35, hd);
-      shape.lineTo(-hw * 0.35, -hd * 0.2);
-      shape.lineTo(-hw, -hd * 0.2);
-      shape.closePath();
-      break;
-
-    case 'H-Shape':
-      shape.moveTo(-hw, -hd);
-      shape.lineTo(-hw * 0.35, -hd);
-      shape.lineTo(-hw * 0.35, -hd * 0.2);
-      shape.lineTo(hw * 0.35, -hd * 0.2);
-      shape.lineTo(hw * 0.35, -hd);
-      shape.lineTo(hw, -hd);
-      shape.lineTo(hw, hd);
-      shape.lineTo(hw * 0.35, hd);
-      shape.lineTo(hw * 0.35, hd * 0.2);
-      shape.lineTo(-hw * 0.35, hd * 0.2);
-      shape.lineTo(-hw * 0.35, hd);
-      shape.lineTo(-hw, hd);
-      shape.closePath();
-      break;
-
-    case 'C-Shape':
-      shape.moveTo(-hw, -hd);
-      shape.lineTo(hw, -hd);
-      shape.lineTo(hw, -hd * 0.3);
-      shape.lineTo(-hw * 0.3, -hd * 0.3);
-      shape.lineTo(-hw * 0.3, hd * 0.3);
-      shape.lineTo(hw, hd * 0.3);
-      shape.lineTo(hw, hd);
-      shape.lineTo(-hw, hd);
-      shape.closePath();
-      break;
-
-    case 'Courtyard':
-      shape.moveTo(-hw, -hd);
-      shape.lineTo(hw, -hd);
-      shape.lineTo(hw, hd);
-      shape.lineTo(-hw, hd);
-      shape.closePath();
-
-      const hole = new THREE.Path();
-      hole.moveTo(-hw * 0.4, -hd * 0.4);
-      hole.lineTo(-hw * 0.4, hd * 0.4);
-      hole.lineTo(hw * 0.4, hd * 0.4);
-      hole.lineTo(hw * 0.4, -hd * 0.4);
-      hole.closePath();
-      shape.holes.push(hole);
-      break;
-
-    case 'Octagonal':
-      const r = Math.min(hw, hd);
-      for (let i = 0; i < 8; i++) {
-        const angle = (i * Math.PI) / 4 - Math.PI / 8;
-        const px = r * Math.cos(angle);
-        const py = r * Math.sin(angle);
-        if (i === 0) shape.moveTo(px, py);
-        else shape.lineTo(px, py);
-      }
-      shape.closePath();
-      break;
-  }
-
-  return shape;
+  const poly = getBuildingFootprintPolygon(shapeType, width, depth);
+  return createThreeShapeFromPolygon(poly);
 }
