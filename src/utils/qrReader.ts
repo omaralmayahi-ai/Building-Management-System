@@ -98,6 +98,7 @@ export interface ScannedQrPayload {
   rawText: string;
   unitCode: string;
   isRoom: boolean;
+  roomId?: string;
   roomCode?: string;
   roomName?: string;
   floor?: string;
@@ -115,6 +116,7 @@ export function parseScannedQrPayload(rawText: string): ScannedQrPayload {
   const trimmed = rawText.trim();
   let isRoom = false;
   let unitCode = '';
+  let roomId = '';
   let roomCode = '';
   let roomName = '';
   let floor = '';
@@ -136,7 +138,8 @@ export function parseScannedQrPayload(rawText: string): ScannedQrPayload {
         isRoom = true;
       }
       unitCode = url.searchParams.get('unit') || url.searchParams.get('code') || url.searchParams.get('id') || '';
-      roomCode = url.searchParams.get('room') || url.searchParams.get('roomCode') || url.searchParams.get('roomId') || '';
+      roomId = url.searchParams.get('roomId') || '';
+      roomCode = url.searchParams.get('room') || url.searchParams.get('roomCode') || '';
       roomName = url.searchParams.get('roomName') || '';
       floor = url.searchParams.get('floor') || '';
       occupiedBy = url.searchParams.get('occupiedBy') || url.searchParams.get('dept') || '';
@@ -153,7 +156,8 @@ export function parseScannedQrPayload(rawText: string): ScannedQrPayload {
         isRoom = true;
       }
       unitCode = String(parsed.unitCode || parsed.code || parsed.unit || parsed.id || '').trim();
-      roomCode = String(parsed.roomCode || parsed.room || parsed.roomId || '').trim();
+      roomId = String(parsed.roomId || '').trim();
+      roomCode = String(parsed.roomCode || parsed.room || '').trim();
       roomName = String(parsed.roomName || '').trim();
       floor = String(parsed.floor || '').trim();
       occupiedBy = String(parsed.occupiedBy || parsed.dept || '').trim();
@@ -185,6 +189,7 @@ export function parseScannedQrPayload(rawText: string): ScannedQrPayload {
     rawText: trimmed,
     unitCode: resolvedUnitCode,
     isRoom,
+    roomId: roomId || undefined,
     roomCode: roomCode || undefined,
     roomName: roomName || undefined,
     floor: floor || undefined,

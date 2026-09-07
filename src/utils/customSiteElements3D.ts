@@ -1,10 +1,38 @@
 import * as THREE from 'three';
 import { CustomSiteElement, CustomSiteElementType } from '../types';
+import {
+  buildSidewalkConcrete,
+  buildSidewalkInterlock,
+  buildSidewalkKerbstone,
+  buildCoveredWalkway,
+  buildAccessibleRamp,
+  buildFlagpoleSingle,
+  buildFlagpoleTriple,
+  buildFlagpoleWall,
+  buildSignMonument,
+  buildSignWayfinding,
+  buildSignSafetyHSE,
+  buildSignDigitalLED,
+  buildSignAssemblyPoint,
+  buildGeneratorDiesel,
+  buildFuelTank,
+  buildTransformerSubstation,
+  buildHvacChiller,
+  buildWaterTankRoof,
+  buildWaterReservoirGround,
+  buildTelecomTower,
+  buildSatelliteDish,
+  buildCctvPole,
+  buildSecurityBarrierJersey,
+  buildSecurityBoomGate,
+  buildFirePumpStation,
+  buildFloodlightTower,
+} from './customSiteElements3DExtended';
 
 export interface SiteElementDefinition {
   type: CustomSiteElementType;
   nameAr: string;
-  category: 'site' | 'openings' | 'structure' | 'safety';
+  category: 'site' | 'openings' | 'structure' | 'safety' | 'sidewalks' | 'signage_flags' | 'equipment';
   defaultSize: { x: number; y: number; z: number };
   iconName: string;
   description: string;
@@ -12,6 +40,249 @@ export interface SiteElementDefinition {
 }
 
 export const SITE_ELEMENT_DEFINITIONS: SiteElementDefinition[] = [
+  // --- أرصفة وممرات ---
+  {
+    type: 'sidewalk_concrete',
+    nameAr: 'رصيف جانبي خرساني قياسي',
+    category: 'sidewalks',
+    defaultSize: { x: 2.5, y: 0.25, z: 8 },
+    iconName: 'Square',
+    description: 'رصيف خرساني قياسي مع حافة كربستون وخطوط فواصل تمدد مخصص لحركة المشاة بمحيط المنشأة',
+    defaultMount: 'ground',
+  },
+  {
+    type: 'sidewalk_interlock',
+    nameAr: 'رصيف مشاة إنترلوك ملون',
+    category: 'sidewalks',
+    defaultSize: { x: 3.0, y: 0.25, z: 8 },
+    iconName: 'Layers',
+    description: 'رصيف مشاة متطور مرصوف ببلاط إنترلوك ملون بأنماط متداخلة مع حواف إسمنتية جانبية',
+    defaultMount: 'ground',
+  },
+  {
+    type: 'sidewalk_kerbstone',
+    nameAr: 'رصيف محيطي بكربستون أصفر وأسود',
+    category: 'sidewalks',
+    defaultSize: { x: 2.5, y: 0.3, z: 8 },
+    iconName: 'Columns',
+    description: 'رصيف أمان محيطي بحواف كربستون ملونة بالأصفر والأسود التحذيري لمحيط المباني والشوارع',
+    defaultMount: 'ground',
+  },
+  {
+    type: 'walkway_covered',
+    nameAr: 'ممر مشاة مظلل للمداخل والممرات',
+    category: 'sidewalks',
+    defaultSize: { x: 3.2, y: 3.2, z: 9 },
+    iconName: 'Shield',
+    description: 'ممر مشاة مظلل حديث بهيكل فولاذي وسقف قوسي عازل مع إضاءة مدمجة للمداخل',
+    defaultMount: 'ground',
+  },
+  {
+    type: 'ramp_accessible',
+    nameAr: 'منحدر وصول لذوي الاحتياجات الخاصة',
+    category: 'sidewalks',
+    defaultSize: { x: 2.0, y: 0.9, z: 6.0 },
+    iconName: 'Move',
+    description: 'منحدر وصول هندسي آمن بميول قياسية مع درابزين مزدوج من الستانلس ستيل وخطوط تحذير',
+    defaultMount: 'ground',
+  },
+
+  // --- سواري الأعلام ---
+  {
+    type: 'flagpole_single',
+    nameAr: 'سارية العلم الوطني بقاعدة رخامية',
+    category: 'signage_flags',
+    defaultSize: { x: 1.6, y: 10.0, z: 1.6 },
+    iconName: 'Flag',
+    description: 'سارية علم وطني رسمية شاهقة بارتفاع 10م مع قاعدة رخامية فاخرة وكرة ذهبية وعلم وطني يرفرف',
+    defaultMount: 'ground',
+  },
+  {
+    type: 'flagpole_triple',
+    nameAr: 'سواري مراسم ثلاثية رسمية',
+    category: 'signage_flags',
+    defaultSize: { x: 4.5, y: 10.5, z: 1.8 },
+    iconName: 'Flag',
+    description: 'منصة مراسم رسمية متدرجة تضم ثلاث سواري متوازية للأعلام الوطنية والمؤسسية',
+    defaultMount: 'ground',
+  },
+  {
+    type: 'flagpole_wall',
+    nameAr: 'سارية علم جدارية مائلة 45°',
+    category: 'signage_flags',
+    defaultSize: { x: 0.8, y: 3.0, z: 2.2 },
+    iconName: 'Flag',
+    description: 'سارية علم معدنية أنيقة تثبت على الجدار الخارجي لمداخل المباني والواجهات بزاوية 45 درجة',
+    defaultMount: 'wall',
+  },
+
+  // --- اللافتات واللوحات الإرشادية ---
+  {
+    type: 'sign_monument',
+    nameAr: 'لافتة مدخل التشكيل والمبنى (غرانيت/برونز)',
+    category: 'signage_flags',
+    defaultSize: { x: 3.6, y: 2.2, z: 0.9 },
+    iconName: 'Building2',
+    description: 'لوحة صرحية فاخرة عند مدخل المقر تحمل اسم التشكيل والوزارة مع كشافات أرضية ليلية',
+    defaultMount: 'ground',
+  },
+  {
+    type: 'sign_wayfinding',
+    nameAr: 'لافتة توجيه اتجاهات ومسارات الموقع',
+    category: 'signage_flags',
+    defaultSize: { x: 1.4, y: 3.2, z: 0.4 },
+    iconName: 'Compass',
+    description: 'عمود إرشادي متين بأسهم توجيه متعددة للمباني والورش والمهبط والعيادة ومسارات الطوارئ',
+    defaultMount: 'ground',
+  },
+  {
+    type: 'sign_safety_hse',
+    nameAr: 'لوحة إرشادات السلامة المهنية HSE',
+    category: 'signage_flags',
+    defaultSize: { x: 2.4, y: 2.6, z: 0.3 },
+    iconName: 'ShieldAlert',
+    description: 'لوحة تحذيرية صفراء بمواصفات السلامة والصحة المهنية ومعدات الوقاية الإلزامية PPE',
+    defaultMount: 'ground',
+  },
+  {
+    type: 'sign_digital_led',
+    nameAr: 'شاشة إلكترونية رقمية LED للموقع',
+    category: 'signage_flags',
+    defaultSize: { x: 3.8, y: 3.6, z: 0.6 },
+    iconName: 'Sliders',
+    description: 'شاشة معلومات إلكترونية LED ذكية لعرض التنبيهات والأخبار وإحصائيات السلامة اليومية',
+    defaultMount: 'ground',
+  },
+  {
+    type: 'sign_assembly_point',
+    nameAr: 'لافتة نقطة التجمع في حالات الطوارئ',
+    category: 'signage_flags',
+    defaultSize: { x: 1.0, y: 3.0, z: 0.2 },
+    iconName: 'CheckCircle2',
+    description: 'شاخصة خضراء قياسية معتمدة عالمياً لتحديد نقاط تجمع الإخلاء في الحالات الطارئة',
+    defaultMount: 'ground',
+  },
+
+  // --- المعدات والمنظومات التشغيلية الميدانية ---
+  {
+    type: 'generator_diesel',
+    nameAr: 'مولد كهربائي ديزل كاتم للصوت',
+    category: 'equipment',
+    defaultSize: { x: 3.4, y: 2.2, z: 1.8 },
+    iconName: 'Zap',
+    description: 'مولد طاقة كهربائية ديزل ثقيل بغرفة عازلة للصوت وعادم silencer وشاشة تحكم رقمية',
+    defaultMount: 'ground',
+  },
+  {
+    type: 'fuel_tank',
+    nameAr: 'خزان وقود ديزل أرضي مع مضخة',
+    category: 'equipment',
+    defaultSize: { x: 4.2, y: 2.4, z: 2.0 },
+    iconName: 'Database',
+    description: 'خزان وقود أسطواني فولاذي بسعة 5000 لتر مع قواعد خرسانية ومحبس تفريغ ومقياس منسوب',
+    defaultMount: 'ground',
+  },
+  {
+    type: 'transformer_substation',
+    nameAr: 'محولة كهرباء ضغط عالي مع سياج حماية',
+    category: 'equipment',
+    defaultSize: { x: 3.6, y: 2.8, z: 3.0 },
+    iconName: 'Zap',
+    description: 'محطة تحويل كهربائي مع زعانف تبريد وعوازل خزفية وسياج شبكي أمني لمنع الاقتراب',
+    defaultMount: 'ground',
+  },
+  {
+    type: 'hvac_chiller',
+    nameAr: 'منظومة تكييف مركزي / تشيلر سطحي',
+    category: 'equipment',
+    defaultSize: { x: 3.8, y: 2.0, z: 2.4 },
+    iconName: 'Wind',
+    description: 'وحدة تبريد وتكييف مركزي صناعية مزودة بمراوح تبريد علوية وقنوات تهوية وتوزيع',
+    defaultMount: 'roof',
+  },
+  {
+    type: 'water_tank_roof',
+    nameAr: 'خزان مياه علوي سطحي أسطواني',
+    category: 'equipment',
+    defaultSize: { x: 2.4, y: 2.8, z: 2.4 },
+    iconName: 'Droplet',
+    description: 'خزان مياه ستانلس ستيل معزول على قواعد حديدية مع سلم صيانة وأنبوب تفريغ',
+    defaultMount: 'roof',
+  },
+  {
+    type: 'water_reservoir_ground',
+    nameAr: 'خزان مياه أرضي خرساني للطوارئ',
+    category: 'equipment',
+    defaultSize: { x: 5.0, y: 1.8, z: 5.0 },
+    iconName: 'Database',
+    description: 'خزان خرساني أرضي لمياه الإطفاء والتغذية مع فتحة معاينة وتجهيزات سحب وتوصيل',
+    defaultMount: 'ground',
+  },
+  {
+    type: 'telecom_tower',
+    nameAr: 'برج اتصالات وهوائي لاسلكي شبكي',
+    category: 'equipment',
+    defaultSize: { x: 2.2, y: 14.0, z: 2.2 },
+    iconName: 'Radio',
+    description: 'برج اتصالات لاسلكي فولاذي شبكي بارتفاع 14م مع طبق ميكروويف وهوائيات وإضاءة تحذير طيران',
+    defaultMount: 'ground',
+  },
+  {
+    type: 'satellite_dish',
+    nameAr: 'طبق وهوائي اتصالات أقمار صناعية VSAT',
+    category: 'equipment',
+    defaultSize: { x: 2.4, y: 2.8, z: 2.0 },
+    iconName: 'Radio',
+    description: 'طبق استقبال واتصال بالأقمار الصناعية عالي الدقة مع قاعدة توجيه كهروميكانيكية',
+    defaultMount: 'roof',
+  },
+  {
+    type: 'cctv_pole',
+    nameAr: 'عمود مراقبة أمني بكاميرات PTZ 360°',
+    category: 'equipment',
+    defaultSize: { x: 1.2, y: 6.2, z: 1.2 },
+    iconName: 'Camera',
+    description: 'عمود كاميرات مراقبة أمنية متكامل مع كابينة تغذية وكاميراتين ذكيتين 4K ورؤية ليلية',
+    defaultMount: 'ground',
+  },
+  {
+    type: 'security_barrier_jersey',
+    nameAr: 'حواجز خرسانية أمنية (نيوجيرسي)',
+    category: 'safety',
+    defaultSize: { x: 1.2, y: 1.1, z: 6.0 },
+    iconName: 'Shield',
+    description: 'صف حواجز نيوجيرسي خرسانية مسلحة للحماية الأمنية ومصدات صدمات مع عاكسات',
+    defaultMount: 'ground',
+  },
+  {
+    type: 'security_boom_gate',
+    nameAr: 'بوابة أمنية بذراع هيدروليكي إلكتروني',
+    category: 'safety',
+    defaultSize: { x: 1.2, y: 1.4, z: 4.6 },
+    iconName: 'Lock',
+    description: 'بوابة تحكم مروري بذراع إلكتروني مخطط بالأبيض والأحمر وحساسات سيارات',
+    defaultMount: 'ground',
+  },
+  {
+    type: 'fire_pump_station',
+    nameAr: 'محطة مضخات مكافحة الحريق وصمام مائي',
+    category: 'equipment',
+    defaultSize: { x: 2.8, y: 1.8, z: 2.2 },
+    iconName: 'Flame',
+    description: 'مضخة إطفاء حريق ديزل مع أنابيب ضغط حمراء ومقاييس ضغط وصنبور مائي خارجي',
+    defaultMount: 'ground',
+  },
+  {
+    type: 'floodlight_tower',
+    nameAr: 'عمود كشافات إنارة ليلية غامرة للموقع',
+    category: 'equipment',
+    defaultSize: { x: 1.6, y: 9.0, z: 1.6 },
+    iconName: 'Lightbulb',
+    description: 'برج كشافات LED غامرة بقدرة عالية لإضاءة الساحات والمخازن ومواقف السيارات ليلاً',
+    defaultMount: 'ground',
+  },
+
+  // --- عناصر الموقع والساحات القائمة ---
   {
     type: 'helipad',
     nameAr: 'مهبط مروحيات (سطح / أرضي)',
@@ -227,6 +498,92 @@ export function buildCustomSiteElementMesh(
 
     case 'solar_panel':
       buildSolarPanels(root, sx, sy, sz, isNightMode, isNightLightsOn);
+      break;
+
+    // --- الأرصفة والممرات ---
+    case 'sidewalk_concrete':
+      buildSidewalkConcrete(root, sx, sy, sz);
+      break;
+    case 'sidewalk_interlock':
+      buildSidewalkInterlock(root, sx, sy, sz);
+      break;
+    case 'sidewalk_kerbstone':
+      buildSidewalkKerbstone(root, sx, sy, sz);
+      break;
+    case 'walkway_covered':
+      buildCoveredWalkway(root, sx, sy, sz, isNightMode, isNightLightsOn);
+      break;
+    case 'ramp_accessible':
+      buildAccessibleRamp(root, sx, sy, sz);
+      break;
+
+    // --- سواري الأعلام ---
+    case 'flagpole_single':
+      buildFlagpoleSingle(root, sx, sy, sz, isNightMode, isNightLightsOn);
+      break;
+    case 'flagpole_triple':
+      buildFlagpoleTriple(root, sx, sy, sz, isNightMode, isNightLightsOn);
+      break;
+    case 'flagpole_wall':
+      buildFlagpoleWall(root, sx, sy, sz);
+      break;
+
+    // --- اللافتات واللوحات ---
+    case 'sign_monument':
+      buildSignMonument(root, sx, sy, sz, isNightMode, isNightLightsOn);
+      break;
+    case 'sign_wayfinding':
+      buildSignWayfinding(root, sx, sy, sz);
+      break;
+    case 'sign_safety_hse':
+      buildSignSafetyHSE(root, sx, sy, sz);
+      break;
+    case 'sign_digital_led':
+      buildSignDigitalLED(root, sx, sy, sz, isNightMode, isNightLightsOn);
+      break;
+    case 'sign_assembly_point':
+      buildSignAssemblyPoint(root, sx, sy, sz);
+      break;
+
+    // --- المعدات والمنظومات ---
+    case 'generator_diesel':
+      buildGeneratorDiesel(root, sx, sy, sz, isNightMode, isNightLightsOn);
+      break;
+    case 'fuel_tank':
+      buildFuelTank(root, sx, sy, sz);
+      break;
+    case 'transformer_substation':
+      buildTransformerSubstation(root, sx, sy, sz, isNightMode, isNightLightsOn);
+      break;
+    case 'hvac_chiller':
+      buildHvacChiller(root, sx, sy, sz);
+      break;
+    case 'water_tank_roof':
+      buildWaterTankRoof(root, sx, sy, sz);
+      break;
+    case 'water_reservoir_ground':
+      buildWaterReservoirGround(root, sx, sy, sz);
+      break;
+    case 'telecom_tower':
+      buildTelecomTower(root, sx, sy, sz, isNightMode, isNightLightsOn);
+      break;
+    case 'satellite_dish':
+      buildSatelliteDish(root, sx, sy, sz);
+      break;
+    case 'cctv_pole':
+      buildCctvPole(root, sx, sy, sz, isNightMode, isNightLightsOn);
+      break;
+    case 'security_barrier_jersey':
+      buildSecurityBarrierJersey(root, sx, sy, sz);
+      break;
+    case 'security_boom_gate':
+      buildSecurityBoomGate(root, sx, sy, sz, isNightMode, isNightLightsOn);
+      break;
+    case 'fire_pump_station':
+      buildFirePumpStation(root, sx, sy, sz);
+      break;
+    case 'floodlight_tower':
+      buildFloodlightTower(root, sx, sy, sz, isNightMode, isNightLightsOn);
       break;
 
     default:

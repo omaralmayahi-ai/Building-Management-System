@@ -370,17 +370,13 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
     });
   };
 
-  // Form State - Equipment Selection & Location
-  const [selectedEquipmentIds, setSelectedEquipmentIds] = useState<string[]>([]);
-  const [equipmentLocationsMap, setEquipmentLocationsMap] = useState<{ [eqId: string]: 'roof' | 'perimeter' | 'inside' }>({});
-
   // Form State - Evaluation & Condition
   const [conditionGrade, setConditionGrade] = useState<ConditionGrade | ''>('');
 
   // Form State - Official Attachments
   const [attachments, setAttachments] = useState<AttachedFileItem[]>([]);
 
-  // Modal Dialog States for Adding New Governorate / Oilfield / Unit Type / Equipment
+  // Modal Dialog States for Adding New Governorate / Oilfield / Unit Type
   const [showAddGovModal, setShowAddGovModal] = useState(false);
   const [newGovNameAr, setNewGovNameAr] = useState('');
   const [newGovCode, setNewGovCode] = useState('');
@@ -395,18 +391,11 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
   const [newUtMultiStory, setNewUtMultiStory] = useState(false);
   const [newUtDefaultRoof, setNewUtDefaultRoof] = useState<'샌드위치 판넬' | '콘크리트' | '철골 شينكو'>('샌드위치 판넬');
 
-  const [showAddEquipmentModal, setShowAddEquipmentModal] = useState(false);
-  const [newEqNameAr, setNewEqNameAr] = useState('');
-  const [newEqCode, setNewEqCode] = useState('');
-  const [newEqCapacity, setNewEqCapacity] = useState('قياسي');
-  const [newEqGeometry, setNewEqGeometry] = useState<'box' | 'cylinder' | 'wall_panel' | 'camera' | 'pump'>('box');
-
   // Active section scroll refs
   const section1Ref = useRef<HTMLDivElement>(null);
   const section2Ref = useRef<HTMLDivElement>(null);
   const section3Ref = useRef<HTMLDivElement>(null);
   const section4Ref = useRef<HTMLDivElement>(null);
-  const section5Ref = useRef<HTMLDivElement>(null);
 
   const scrollToSection = (ref: React.RefObject<HTMLDivElement | null>) => {
     ref.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -428,12 +417,6 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
     const generated = generateUnitCode(govPrefix, fieldPrefix, typePrefix, existingUnits);
     setCode(generated);
     return generated;
-  };
-
-  const toggleEquipment = (eqId: string) => {
-    setSelectedEquipmentIds((prev) =>
-      prev.includes(eqId) ? prev.filter((id) => id !== eqId) : [...prev, eqId]
-    );
   };
 
   // Handle Adding New Governorate
@@ -512,35 +495,6 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
     setShowAddUnitTypeModal(false);
     setNewUtNameAr('');
     setNewUtCode('');
-  };
-
-  const handleSaveNewEquipment = (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    if (!newEqNameAr) return;
-
-    const generatedCode = (newEqCode || `EQ_${Date.now().toString().slice(-4)}`).toUpperCase();
-    const generatedId = `EQT-${Date.now()}`;
-    const newEquipmentItem: EquipmentTypeRef = {
-      id: generatedId,
-      code: generatedCode,
-      nameAr: newEqNameAr,
-      iconName: 'Zap',
-      renderGeometry: newEqGeometry,
-      defaultCapacity: newEqCapacity || 'قياسي',
-      status: 'active',
-    };
-
-    if (onAddEquipmentType) {
-      onAddEquipmentType(newEquipmentItem);
-    }
-
-    // Automatically check and add this equipment to the current unit creation
-    setSelectedEquipmentIds((prev) => [...prev, generatedId]);
-
-    setShowAddEquipmentModal(false);
-    setNewEqNameAr('');
-    setNewEqCode('');
-    setNewEqCapacity('قياسي');
   };
 
   const [previewAttachment, setPreviewAttachment] = useState<AttachedFileItem | null>(null);
@@ -680,26 +634,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
     const selectedGov = governorates.find((g) => g.id === governorateId);
     const selectedFld = oilfields.find((f) => f.id === fieldId);
 
-    // Convert selected EquipmentRef IDs to UnitEquipmentItem with precise chosen locations
-    const selectedEquipmentList = equipmentTypes
-      .filter((eq) => selectedEquipmentIds.includes(eq.id))
-      .map((eq, idx) => {
-        const locKey = equipmentLocationsMap[eq.id] || (eq.code.includes('TNK') || eq.nameAr.includes('تكييف') || eq.nameAr.includes('خزان') ? 'roof' : eq.nameAr.includes('مولد') || eq.nameAr.includes('ضخ') ? 'perimeter' : 'inside');
-        const locLabel =
-          locKey === 'roof'
-            ? 'سقف الوحدة'
-            : locKey === 'perimeter'
-            ? 'المحيط الخارجي للوحدة'
-            : 'داخل الوحدة';
-        return {
-          id: `EQ-${idx + 101}`,
-          name: eq.nameAr,
-          type: eq.code,
-          status: 'Active' as const,
-          location: locLabel,
-          capacity: eq.defaultCapacity,
-        };
-      });
+    const selectedEquipmentList: any[] = [];
 
     // Aggregate rooms from all floors and normalize room sequences and standard room codes
     const rawRoomsList = Object.values(detailedRoomsMap)
@@ -769,7 +704,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
         roofType,
         showFurniture: true,
         showWindows: true,
-        showTrees: true,
+        showTrees: false,
       },
       floorsCount: Number(floorsCount),
       rooms: aggregatedRoomsList,
@@ -993,7 +928,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
             استمارة إدخال وحدة / مبنى / كرفان جديد
           </h2>
           <p className="text-slate-400 text-xs mt-1">
-            نافذة تسجيل موحدة تضم كافة البيانات التعريفية والموقع الجغرافي الخياري والمعدات الهندسية والتقييم
+            نافذة تسجيل موحدة تضم كافة البيانات التعريفية والموقع الجغرافي والمواصفات الإنشائية والتقييم
           </p>
         </div>
       </div>
@@ -1941,122 +1876,11 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
         </div>
 
         {/* ==================== SECTION 4 ==================== */}
-        <div ref={section4Ref} className="bg-slate-950 border border-slate-800 rounded-3xl p-6 space-y-5 scroll-mt-24">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800/80 pb-3">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-xl bg-amber-500 text-slate-950 font-black flex items-center justify-center text-sm shadow">
-                {toArabicDigits(4)}
-              </div>
-              <div>
-                <h3 className="text-base font-bold text-slate-100">المعدات والملحقات المرفقة</h3>
-                <p className="text-xs text-slate-400">تحديد المولدات، التكييف، سلامة الحريق والمعدات الميدانية</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setShowAddEquipmentModal(true)}
-                className="text-amber-400 hover:text-amber-300 font-bold text-xs flex items-center gap-1.5 cursor-pointer bg-amber-500/10 hover:bg-amber-500/20 px-3.5 py-1.5 rounded-xl border border-amber-500/30 transition shadow-xs"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                <span>إضافة معدة/ملحق جديد</span>
-              </button>
-              <span className="text-[11px] text-amber-400 font-mono bg-amber-500/10 border border-amber-500/20 px-3 py-1.5 rounded-xl font-bold">
-                محددة: {selectedEquipmentIds.length} معدات
-              </span>
-            </div>
-          </div>
-
-          <div className="space-y-3 text-xs">
-            <p className="text-slate-400">
-              اختر المنظومات الملحقة بالأصل ليتم عرضها ومحاكاتها تلقائياً على نموذج الـ 3D التفاعلي:
-            </p>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {equipmentTypes
-                .filter((eq) => eq.status === 'active')
-                .map((eq) => {
-                  const isSelected = selectedEquipmentIds.includes(eq.id);
-                  const currentLoc =
-                    equipmentLocationsMap[eq.id] ||
-                    (eq.code.includes('TNK') || eq.nameAr.includes('تكييف') || eq.nameAr.includes('خزان')
-                      ? 'roof'
-                      : eq.nameAr.includes('مولد') || eq.nameAr.includes('ضخ')
-                      ? 'perimeter'
-                      : 'inside');
-
-                  return (
-                    <div
-                      key={eq.id}
-                      className={`p-3.5 rounded-2xl border transition flex flex-col justify-between gap-2.5 ${
-                        isSelected
-                          ? 'bg-amber-500/15 border-amber-500 text-slate-100 shadow-md'
-                          : 'bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-700'
-                      }`}
-                    >
-                      <div
-                        onClick={() => toggleEquipment(eq.id)}
-                        className="flex items-center justify-between cursor-pointer"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div
-                            className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
-                              isSelected ? 'bg-amber-500 text-slate-950' : 'bg-slate-800 text-slate-500'
-                            }`}
-                          >
-                            <Zap className="w-4 h-4" />
-                          </div>
-                          <div>
-                            <p className="font-bold text-slate-200">{eq.nameAr}</p>
-                            <p className="text-[10px] text-slate-500 font-mono mt-0.5">
-                              {eq.defaultCapacity || eq.renderGeometry}
-                            </p>
-                          </div>
-                        </div>
-
-                        <div
-                          className={`w-5 h-5 rounded-md border flex items-center justify-center transition ${
-                            isSelected ? 'bg-amber-500 border-amber-400 text-slate-950' : 'border-slate-700 bg-slate-950'
-                          }`}
-                        >
-                          {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
-                        </div>
-                      </div>
-
-                      {/* Attachment Location Selector */}
-                      {isSelected && (
-                        <div className="pt-2 border-t border-amber-500/30 flex flex-col gap-1 text-[11px]" onClick={(e) => e.stopPropagation()}>
-                          <span className="font-bold text-amber-400">تحديد موقع التثبيت في الـ 3D:</span>
-                          <select
-                            value={currentLoc}
-                            onChange={(e) =>
-                              setEquipmentLocationsMap((prev) => ({
-                                ...prev,
-                                [eq.id]: e.target.value as 'roof' | 'perimeter' | 'inside',
-                              }))
-                            }
-                            className="bg-slate-950 border border-slate-800 text-slate-200 rounded-lg p-1.5 font-bold outline-none focus:border-amber-500 cursor-pointer"
-                          >
-                            <option value="roof">🏢 سقف الوحدة (Unit Roof)</option>
-                            <option value="perimeter">🌳 المحيط الخارجي للوحدة (Outer Perimeter)</option>
-                            <option value="inside">🚪 داخل الوحدة (Inside Unit)</option>
-                          </select>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-            </div>
-          </div>
-        </div>
-
-        {/* ==================== SECTION 5 ==================== */}
-        <div ref={section5Ref} className="bg-slate-950 border border-slate-800 rounded-3xl p-6 space-y-6 scroll-mt-24">
+        <div ref={section4Ref} className="bg-slate-950 border border-slate-800 rounded-3xl p-6 space-y-6 scroll-mt-24">
           <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-xl bg-amber-500 text-slate-950 font-black flex items-center justify-center text-sm shadow">
-                {toArabicDigits(5)}
+                {toArabicDigits(4)}
               </div>
               <div>
                 <h3 className="text-base font-bold text-slate-100">التقييم الهندسي المبدئي والمرفقات الرسمية</h3>
@@ -2521,95 +2345,6 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                   className="bg-amber-500 hover:bg-amber-400 text-slate-950 px-5 py-2 rounded-xl font-bold cursor-pointer shadow"
                 >
                   حفظ واختيار الفئة
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ==================== MODAL: Add New Equipment / Accessory ==================== */}
-      {showAddEquipmentModal && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 w-full max-w-md space-y-4 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <h3 className="font-bold text-slate-100 flex items-center gap-2 text-sm">
-                <Zap className="w-4 h-4 text-amber-400" />
-                <span>إضافة معدة / ملحق جديد للسهام الميدانية</span>
-              </h3>
-              <button
-                type="button"
-                onClick={() => setShowAddEquipmentModal(false)}
-                className="text-slate-400 hover:text-slate-100 cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="space-y-4 text-xs">
-              <div>
-                <label className="block text-slate-300 font-bold mb-1">اسم المعدة / الملحق (بالعربية):</label>
-                <input
-                  type="text"
-                  required
-                  value={newEqNameAr}
-                  onChange={(e) => setNewEqNameAr(e.target.value)}
-                  placeholder="مثال: مولدة كتم صوت إضافية"
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-slate-100 focus:border-amber-500 outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-slate-300 font-bold mb-1">الرمز الموحد (Code):</label>
-                <input
-                  type="text"
-                  value={newEqCode}
-                  onChange={(e) => setNewEqCode(e.target.value.toUpperCase())}
-                  placeholder="مثال: EQT-GEN-X"
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-amber-400 font-mono font-bold focus:border-amber-500 outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-slate-300 font-bold mb-1">السعة / المواصفة الافتراضية:</label>
-                <input
-                  type="text"
-                  value={newEqCapacity}
-                  onChange={(e) => setNewEqCapacity(e.target.value)}
-                  placeholder="مثال: 500 KVA - Perkins"
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-slate-100 focus:border-amber-500 outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-slate-300 font-bold mb-1">الشكل الهندسي للمحاكاة ثلاثية الأبعاد (3D Geometry):</label>
-                <select
-                  value={newEqGeometry}
-                  onChange={(e) => setNewEqGeometry(e.target.value as any)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-slate-100 focus:border-amber-500 outline-none font-bold"
-                >
-                  <option value="box">مكعب / خزانة (Box Geometry)</option>
-                  <option value="cylinder">أسطوانة / خزان (Cylinder Geometry)</option>
-                  <option value="wall_panel">لوحة جدارية (Wall Panel)</option>
-                  <option value="camera">كاميرا / مجس (Sensor / Camera)</option>
-                  <option value="pump">مضخة / محرك (Pump / Engine)</option>
-                </select>
-              </div>
-
-              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
-                <button
-                  type="button"
-                  onClick={() => setShowAddEquipmentModal(false)}
-                  className="bg-slate-800 text-slate-300 px-4 py-2 rounded-xl font-bold cursor-pointer"
-                >
-                  إلغاء
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleSaveNewEquipment()}
-                  className="bg-amber-500 hover:bg-amber-400 text-slate-950 px-5 py-2 rounded-xl font-bold cursor-pointer shadow"
-                >
-                  حفظ واختيار المعدة
                 </button>
               </div>
             </div>

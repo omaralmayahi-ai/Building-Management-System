@@ -60,7 +60,37 @@ export type CustomSiteElementType =
   | 'light_pole'
   | 'concrete_column'
   | 'fire_escape'
-  | 'solar_panel';
+  | 'solar_panel'
+  // الأرصفة والممرات
+  | 'sidewalk_concrete'
+  | 'sidewalk_interlock'
+  | 'sidewalk_kerbstone'
+  | 'walkway_covered'
+  | 'ramp_accessible'
+  // سواري الأعلام
+  | 'flagpole_single'
+  | 'flagpole_triple'
+  | 'flagpole_wall'
+  // اللافتات واللوحات الإرشادية
+  | 'sign_monument'
+  | 'sign_wayfinding'
+  | 'sign_safety_hse'
+  | 'sign_digital_led'
+  | 'sign_assembly_point'
+  // المعدات والمنظومات التشغيلية
+  | 'generator_diesel'
+  | 'fuel_tank'
+  | 'transformer_substation'
+  | 'hvac_chiller'
+  | 'water_tank_roof'
+  | 'water_reservoir_ground'
+  | 'telecom_tower'
+  | 'satellite_dish'
+  | 'cctv_pole'
+  | 'security_barrier_jersey'
+  | 'security_boom_gate'
+  | 'fire_pump_station'
+  | 'floodlight_tower';
 
 export interface CustomSiteElement {
   id: string;

@@ -24,6 +24,8 @@ import {
   Users,
   QrCode,
   Network,
+  AlertTriangle,
+  RefreshCw,
 } from 'lucide-react';
 import { UnitAsset, ConditionGrade, UnitType, Room, EquipmentItem, ReferenceUnitType, UnitAttachment, OrgEntity } from '../types';
 import { BUILDING_SHAPE_OPTIONS, getShapeFactor, calculateUnitArea } from './NewUnitWizard';
@@ -66,7 +68,7 @@ interface EditUnitModalProps {
   orgEntities?: OrgEntity[];
   onAddOrgEntity?: (newEntity: OrgEntity) => void;
   theme?: 'dark' | 'light';
-  initialTab?: 'basic' | 'shape3d' | 'location' | 'rooms' | 'equipment' | 'docs';
+  initialTab?: 'basic' | 'shape3d' | 'location' | 'rooms' | 'docs';
 }
 
 export const EditUnitModal: React.FC<EditUnitModalProps> = ({
@@ -85,7 +87,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
   const isLight = theme === 'light';
 
   // Active edit step tab
-  const [activeTab, setActiveTab] = useState<'basic' | 'shape3d' | 'location' | 'rooms' | 'equipment' | 'docs'>(
+  const [activeTab, setActiveTab] = useState<'basic' | 'shape3d' | 'location' | 'rooms' | 'docs'>(
     initialTab || 'basic'
   );
   const [showQuickAddOrgModal, setShowQuickAddOrgModal] = useState(false);
@@ -189,7 +191,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
     unit.designFinishing?.showWindows ?? true
   );
   const [showTrees, setShowTrees] = useState<boolean>(
-    unit.designFinishing?.showTrees ?? true
+    unit.designFinishing?.showTrees ?? false
   );
   const [interiorLightIntensity, setInteriorLightIntensity] = useState<number>(
     unit.designFinishing?.interiorLightIntensity ?? 3.5
@@ -218,8 +220,22 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
   const [lat, setLat] = useState<number>(unit.coordinates.lat);
   const [lng, setLng] = useState<number>(unit.coordinates.lng);
   const [sectorAddress, setSectorAddress] = useState<string>(unit.sectorAddress || '');
-  const [rooms, setRooms] = useState<Room[]>(unit.rooms || []);
-  const [equipment, setEquipment] = useState<EquipmentItem[]>(unit.equipment || []);
+  const [rooms, setRooms] = useState<Room[]>(() => {
+    if (!unit.rooms || unit.rooms.length === 0) return [];
+    return unit.rooms.map((r, idx) => {
+      const floorNum = extractFloorNumber(r.floor);
+      const seq = r.sequenceNumber || calculateRoomSequenceNumber(floorNum, idx + 1);
+      const typeCode = r.roomTypeCode || getRoomTypeCode(r.type);
+      const code = (r.code && r.code.trim()) ? r.code.trim() : generateRoomCode(unit.code, floorNum, typeCode, seq, true);
+      return {
+        ...r,
+        sequenceNumber: seq,
+        roomTypeCode: typeCode,
+        code,
+      };
+    });
+  });
+  const [roomCodeChangeWarning, setRoomCodeChangeWarning] = useState<string | null>(null);
   const [attachments, setAttachments] = useState<UnitAttachment[]>(
     unit.attachments && Array.isArray(unit.attachments) ? unit.attachments : []
   );
@@ -455,18 +471,79 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
             updated.status = isReactivating ? 'Active' : value;
             updated.notes = isReactivating ? '' : rm.notes;
           }
-          if (key === 'type' || key === 'floor') {
-            const floorNum = parseInt(String(key === 'floor' ? value : rm.floor || '').replace(/\D/g, ''), 10) || 1;
+          if (key === 'floor' || key === 'type') {
+            const oldFloorNum = extractFloorNumber(rm.floor);
+            const newFloorNum = parseInt(String(key === 'floor' ? value : rm.floor || '').replace(/\D/g, ''), 10) || 1;
             const roomType = key === 'type' ? value : rm.type;
             const typeCode = getRoomTypeCode(roomType);
             updated.roomTypeCode = typeCode;
-            updated.code = generateRoomCode(unit.code, floorNum, roomType, rm.sequenceNumber || 101, true);
+
+            // When moving to a new floor, recalculate sequence number correctly for that floor
+            if (key === 'floor' && newFloorNum !== oldFloorNum) {
+              const sameFloorRooms = prev.filter(
+                (r) => r.id !== roomId && extractFloorNumber(r.floor) === newFloorNum
+              );
+              const newSeqInFloor = sameFloorRooms.length + 1;
+              const newFullSeq = calculateRoomSequenceNumber(newFloorNum, newSeqInFloor);
+              updated.sequenceNumber = newFullSeq;
+              updated.code = generateRoomCode(unit.code, newFloorNum, typeCode, newFullSeq, true);
+              setRoomCodeChangeWarning(
+                `تنبيه: تم تغيير طابق الغرفة "${rm.name}" من (${rm.floor}) إلى (${value}). تم تحديث الرمز القياسي للغرفة تلقائياً إلى [${updated.code}]. يرجى طباعة بطاقة QR جديدة ولصقها على باب الغرفة.`
+              );
+            } else if (key === 'type') {
+              const currentFloorNum = extractFloorNumber(rm.floor);
+              const fullSeq =
+                rm.sequenceNumber &&
+                rm.sequenceNumber >= currentFloorNum * 100 &&
+                rm.sequenceNumber < (currentFloorNum + 1) * 100
+                  ? rm.sequenceNumber
+                  : calculateRoomSequenceNumber(currentFloorNum, 1);
+              updated.sequenceNumber = fullSeq;
+              updated.code = generateRoomCode(unit.code, currentFloorNum, typeCode, fullSeq, true);
+            }
           }
           return updated;
         }
         return rm;
       })
     );
+  };
+
+  const handleRegenerateSingleRoomCode = (roomId: string) => {
+    const targetRoom = rooms.find((r) => r.id === roomId);
+    if (!targetRoom) return;
+    const floorNum = extractFloorNumber(targetRoom.floor);
+    const sameFloorRooms = rooms.filter(
+      (r) => r.id !== roomId && extractFloorNumber(r.floor) === floorNum
+    );
+    const newSeqInFloor = sameFloorRooms.length + 1;
+    const newFullSeq = calculateRoomSequenceNumber(floorNum, newSeqInFloor);
+    const typeCode = getRoomTypeCode(targetRoom.type);
+    const newCode = generateRoomCode(unit.code, floorNum, typeCode, newFullSeq, true);
+    setRooms((prev) =>
+      prev.map((rm) =>
+        rm.id === roomId
+          ? { ...rm, sequenceNumber: newFullSeq, roomTypeCode: typeCode, code: newCode }
+          : rm
+      )
+    );
+    setRoomCodeChangeWarning(
+      `تمت إعادة توليد الرمز القياسي للغرفة "${targetRoom.name}" إلى [${newCode}]. تذكير: يرجى طباعة بطاقة QR جديدة ولصقها على الباب.`
+    );
+  };
+
+  const handleRegenerateAllRoomCodes = () => {
+    if (
+      window.confirm(
+        'هل أنت متأكد من إعادة توليد وترقيم جميع رموز الغرف؟\n\nتنبيه مهم: سيؤدي هذا الإجراء إلى تغيير الرموز القياسية للغرف ويتطلب طباعة ولصق بطاقات QR جديدة لجميع الغرف على أبوابها.'
+      )
+    ) {
+      const updated = normalizeUnitRoomsSequence(unit.code, rooms);
+      setRooms(updated);
+      setRoomCodeChangeWarning(
+        'تمت إعادة ترقيم وتوليد جميع رموز الغرف بنجاح. تذكير: يرجى طباعة بطاقات QR الجديدة ولصقها على أبواب الغرف لضمان تطابق الرموز.'
+      );
+    }
   };
 
   const handleDeleteRoom = (roomId: string) => {
@@ -497,31 +574,6 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
       occupantsCount: 1,
     };
     setRooms((prev) => [...prev, newRm]);
-  };
-
-  // Equipment Handlers
-  const handleUpdateEquipment = (eqId: string, key: keyof EquipmentItem, value: any) => {
-    setEquipment((prev) =>
-      prev.map((eq) => (eq.id === eqId ? { ...eq, [key]: value } : eq))
-    );
-  };
-
-  const handleDeleteEquipment = (eqId: string) => {
-    setEquipment((prev) => prev.filter((eq) => eq.id !== eqId));
-  };
-
-  const handleAddEquipment = () => {
-    const nextNum = equipment.length + 1;
-    const newEq: EquipmentItem = {
-      id: `EQ-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-      name: `منظومة تشغيلية جديدة ${nextNum}`,
-      type: 'generator',
-      capacity: '250 kVA',
-      location: 'سقف الوحدة',
-      status: 'Active',
-      lastServiceDate: new Date().toISOString().split('T')[0],
-    };
-    setEquipment((prev) => [...prev, newEq]);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -580,7 +632,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
       buildingShape,
       floorsCount: Number(floorsCount) || unit.floorsCount,
       rooms: normalizedRooms,
-      equipment,
+      equipment: unit.equipment || [],
       attachments,
       attachmentsCount: attachments.length,
       designFinishing: updatedFinishing,
@@ -693,19 +745,6 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
 
           <button
             type="button"
-            onClick={() => setActiveTab('equipment')}
-            className={`px-3.5 py-1.5 rounded-xl transition flex items-center gap-1.5 cursor-pointer whitespace-nowrap ${
-              activeTab === 'equipment'
-                ? 'bg-amber-500 text-slate-950 shadow'
-                : 'text-slate-400 hover:text-white hover:bg-slate-800'
-            }`}
-          >
-            <Wrench className="w-4 h-4" />
-            <span>5. المنظومات والمعدات ({toArabicDigits(equipment.length)})</span>
-          </button>
-
-          <button
-            type="button"
             onClick={() => setActiveTab('docs')}
             className={`px-3.5 py-1.5 rounded-xl transition flex items-center gap-1.5 cursor-pointer whitespace-nowrap ${
               activeTab === 'docs'
@@ -714,7 +753,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
             }`}
           >
             <Paperclip className="w-4 h-4" />
-            <span>6. المرفقات والأرشيف</span>
+            <span>5. المرفقات والأرشيف</span>
           </button>
         </div>
 
@@ -1522,15 +1561,42 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                   <span>تفاصيل وحصر غرف وقاعات المبنى ({toArabicDigits(rooms.length)})</span>
                 </h4>
 
-                <button
-                  type="button"
-                  onClick={handleAddRoom}
-                  className="bg-amber-500 hover:bg-amber-400 text-slate-950 px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition cursor-pointer"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  <span>إضافة غرفة جديدة</span>
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleRegenerateAllRoomCodes}
+                    className="bg-slate-800/80 hover:bg-slate-700 text-slate-300 border border-slate-700 px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition cursor-pointer"
+                    title="إعادة توليد وترقيم كافة الرموز القياسية للغرف دفعة واحدة"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5" />
+                    <span>إعادة ترقيم جميع الرموز</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleAddRoom}
+                    className="bg-amber-500 hover:bg-amber-400 text-slate-950 px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition cursor-pointer"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>إضافة غرفة جديدة</span>
+                  </button>
+                </div>
               </div>
+
+              {roomCodeChangeWarning && (
+                <div className="p-3 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-700 dark:text-amber-300 flex items-start justify-between gap-2 text-xs font-bold animate-fadeIn">
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4 shrink-0 text-amber-500" />
+                    <span>{roomCodeChangeWarning}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setRoomCodeChangeWarning(null)}
+                    className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-0.5"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
 
               {rooms.length === 0 ? (
                 <div
@@ -1568,7 +1634,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                     <tbody className={`divide-y ${isLight ? 'divide-slate-200' : 'divide-slate-800/60'}`}>
                       {rooms.map((rm) => {
                         const isStopped = rm.status === 'Stopped' || rm.status === 'متوقفة';
-                        const roomComputedCode = getStandardRoomCode(unit.code, rm, rooms);
+                        const roomComputedCode = (rm.code && rm.code.trim()) ? rm.code.trim() : getStandardRoomCode(unit.code, rm, rooms);
                         const isNonOcc = isNonOccupancyRoom(rm.type);
                         const isCap = isCapacityBasedRoom(rm.type);
                         const isVacant = isRoomVacant(rm.occupiedBy);
@@ -1597,6 +1663,14 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                                   title="استعراض وطباعة بطاقة QR للغرفة"
                                 >
                                   <QrCode className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleRegenerateSingleRoomCode(rm.id)}
+                                  className="p-1 rounded-lg bg-slate-500/10 hover:bg-slate-700 text-slate-400 hover:text-white transition cursor-pointer"
+                                  title="إعادة توليد الرمز القياسي لهذه الغرفة"
+                                >
+                                  <RefreshCw className="w-3.5 h-3.5" />
                                 </button>
                               </div>
                             </td>
@@ -1756,146 +1830,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
             </div>
           )}
 
-          {/* TAB 5: Equipment */}
-          {activeTab === 'equipment' && (
-            <div
-              className={`p-5 rounded-2xl border space-y-4 ${
-                isLight ? 'bg-slate-50/70 border-slate-200' : 'bg-slate-900/60 border-slate-800'
-              }`}
-            >
-              <div className="flex items-center justify-between">
-                <h4 className="text-xs font-bold text-amber-500 flex items-center gap-2">
-                  <Wrench className="w-4 h-4" />
-                  <span>المنظومات والمعدات التشغيلية الملحقة ({toArabicDigits(equipment.length)})</span>
-                </h4>
-
-                <button
-                  type="button"
-                  onClick={handleAddEquipment}
-                  className="bg-amber-500 hover:bg-amber-400 text-slate-950 px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition cursor-pointer"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  <span>إضافة معدة جديدة</span>
-                </button>
-              </div>
-
-              {equipment.length === 0 ? (
-                <div
-                  className={`p-6 text-center text-xs border border-dashed rounded-xl ${
-                    isLight ? 'border-slate-300 text-slate-500' : 'border-slate-800 text-slate-500'
-                  }`}
-                >
-                  لا توجد معدات مسجلة ملحقة بهذا المبنى. اضغط "إضافة معدة جديدة" للبدء.
-                </div>
-              ) : (
-                <div
-                  className={`overflow-x-auto border rounded-xl ${
-                    isLight ? 'border-slate-200 bg-white' : 'border-slate-800 bg-slate-950'
-                  }`}
-                >
-                  <table className="w-full text-right text-xs">
-                    <thead
-                      className={`font-bold border-b ${
-                        isLight ? 'bg-slate-100 text-slate-700 border-slate-200' : 'bg-slate-900 text-slate-400 border-slate-800'
-                      }`}
-                    >
-                      <tr>
-                        <th className="p-2.5">اسم المعدة / المنظومة</th>
-                        <th className="p-2.5">النوع</th>
-                        <th className="p-2.5">السعة / القدرة</th>
-                        <th className="p-2.5">الموقع</th>
-                        <th className="p-2.5">الحالة التشغيلية</th>
-                        <th className="p-2.5 text-center">حذف</th>
-                      </tr>
-                    </thead>
-                    <tbody className={`divide-y ${isLight ? 'divide-slate-200' : 'divide-slate-800/60'}`}>
-                      {equipment.map((eq) => (
-                        <tr key={eq.id}>
-                          <td className="p-2">
-                            <input
-                              type="text"
-                              value={eq.name}
-                              onChange={(e) => handleUpdateEquipment(eq.id, 'name', e.target.value)}
-                              className={`w-full border rounded-lg px-2.5 py-1 text-xs outline-none font-bold ${
-                                isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-slate-900 border-slate-800 text-slate-100'
-                              }`}
-                            />
-                          </td>
-                          <td className="p-2 w-32">
-                            <select
-                              value={eq.type}
-                              onChange={(e) => handleUpdateEquipment(eq.id, 'type', e.target.value)}
-                              className={`w-full border rounded-lg px-2 py-1 text-xs outline-none cursor-pointer ${
-                                isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-slate-900 border-slate-800 text-slate-100'
-                              }`}
-                            >
-                              <option value="generator">مولدة ديزل</option>
-                              <option value="ac_unit">منظومة تكييف</option>
-                              <option value="water_tank">خزان مياه</option>
-                              <option value="fire_extinguisher">منظومة إطفاء</option>
-                              <option value="it_rack">كابينة شبكة IT</option>
-                            </select>
-                          </td>
-                          <td className="p-2 w-28">
-                            <input
-                              type="text"
-                              value={eq.capacity || ''}
-                              onChange={(e) => handleUpdateEquipment(eq.id, 'capacity', e.target.value)}
-                              className={`w-full border rounded-lg px-2 py-1 text-xs font-bold outline-none ${
-                                isLight ? 'bg-slate-50 border-slate-300' : 'bg-slate-900 border-slate-800'
-                              }`}
-                            />
-                          </td>
-                          <td className="p-2 w-36">
-                            <select
-                              value={eq.location || 'سقف الوحدة'}
-                              onChange={(e) => handleUpdateEquipment(eq.id, 'location', e.target.value)}
-                              className={`w-full border rounded-lg px-2 py-1 text-xs outline-none cursor-pointer font-bold ${
-                                isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-slate-900 border-slate-800 text-slate-100'
-                              }`}
-                            >
-                              <option value="سقف الوحدة">🏢 سقف الوحدة</option>
-                              <option value="المحيط الخارجي للوحدة">🌳 المحيط الخارجي للوحدة</option>
-                              <option value="داخل الوحدة">🚪 داخل الوحدة</option>
-                            </select>
-                          </td>
-                          <td className="p-2 w-28">
-                            <select
-                              value={eq.status}
-                              onChange={(e) => handleUpdateEquipment(eq.id, 'status', e.target.value as any)}
-                              className={`w-full border rounded-lg px-2 py-1 text-xs outline-none cursor-pointer font-bold ${
-                                eq.status === 'Active'
-                                  ? 'text-emerald-400 bg-emerald-500/10'
-                                  : eq.status === 'Maintenance'
-                                  ? 'text-amber-400 bg-amber-500/10'
-                                  : 'text-red-400 bg-red-500/10'
-                              }`}
-                            >
-                              <option value="Active">شغال (Active)</option>
-                              <option value="Maintenance">صيانة (Maintenance)</option>
-                              <option value="Critical">حرج (Critical)</option>
-                            </select>
-                          </td>
-                          <td className="p-2 text-center w-12">
-                            <button
-                              type="button"
-                              onClick={() => handleDeleteEquipment(eq.id)}
-                              className="p-1 text-red-500 hover:bg-red-500/10 rounded transition cursor-pointer"
-                              title="حذف المعدة"
-                            >
-                              <Trash2 className="w-3.5 h-3.5 mx-auto" />
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* TAB 6: Attachments & Archives */}
+          {/* TAB 5: Attachments & Archives */}
           {activeTab === 'docs' && (
             <div
               className={`p-5 rounded-2xl border space-y-4 ${

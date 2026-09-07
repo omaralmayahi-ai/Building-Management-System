@@ -83,7 +83,7 @@ import {
   getServerTimestamp,
 } from './utils/arabicUtils';
 import { safeParse, safeSetItem } from './utils/storageUtils';
-import { normalizeUnitRoomsSequence } from './utils/unitAndRoomCodeUtils';
+import { normalizeUnitRoomsSequence, findMatchingRoom } from './utils/unitAndRoomCodeUtils';
 import { syncBrowserBranding } from './utils/brandingDomSync';
 import * as api from './services/apiClient';
 
@@ -135,6 +135,7 @@ export function App() {
     field?: string;
     src?: string;
     isRoom?: boolean;
+    roomId?: string;
     roomCode?: string;
     roomName?: string;
     floor?: string;
@@ -147,7 +148,8 @@ export function App() {
         params.get('type') === 'room' ||
         params.get('src') === 'room_qr' ||
         Boolean(params.get('room')) ||
-        Boolean(params.get('roomCode'));
+        Boolean(params.get('roomCode')) ||
+        Boolean(params.get('roomId'));
       const view = params.get('view') || (isRoom ? 'choice' : (params.get('src') === 'external_qr' ? 'map' : 'inspect'));
       const unit = params.get('unit') || params.get('code') || params.get('id') || '';
       const lat = params.get('lat') ? parseFloat(params.get('lat')!) : undefined;
@@ -156,12 +158,13 @@ export function App() {
       const gov = params.get('gov') || undefined;
       const field = params.get('field') || undefined;
       const src = params.get('src') || undefined;
+      const roomId = params.get('roomId') || undefined;
       const roomCode = params.get('room') || params.get('roomCode') || undefined;
       const roomName = params.get('roomName') || undefined;
       const floor = params.get('floor') || undefined;
       const occupiedBy = params.get('occupiedBy') || params.get('dept') || undefined;
-      if (unit || roomCode) {
-        return { view, unit, lat, lng, name, gov, field, src, isRoom, roomCode, roomName, floor, occupiedBy };
+      if (unit || roomCode || roomId) {
+        return { view, unit, lat, lng, name, gov, field, src, isRoom, roomId, roomCode, roomName, floor, occupiedBy };
       }
     } catch (e) {
       console.warn('Error reading deep link query parameters:', e);
@@ -199,27 +202,24 @@ export function App() {
   const handleLogin = (user: SystemUser) => {
     setCurrentUser(user);
     if (pendingDeepLink) {
-      const isRoom = Boolean(pendingDeepLink.isRoom || pendingDeepLink.roomCode);
+      const isRoom = Boolean(pendingDeepLink.isRoom || pendingDeepLink.roomCode || pendingDeepLink.roomId);
       const matched = units.find(
         (u) =>
           (pendingDeepLink.unit && (u.code.toLowerCase() === pendingDeepLink.unit.toLowerCase() || u.id.toLowerCase() === pendingDeepLink.unit.toLowerCase())) ||
+          (pendingDeepLink.roomId && u.rooms?.some((r) => r.id === pendingDeepLink.roomId)) ||
           (pendingDeepLink.roomCode && u.rooms?.some((r) => r.code?.toUpperCase() === pendingDeepLink.roomCode?.toUpperCase() || r.id === pendingDeepLink.roomCode))
       );
 
       if (matched) {
         setSelectedUnitCode(matched.code);
         if (isRoom) {
-          const matchedRoom = matched.rooms?.find(
-            (r) =>
-              r.code?.toUpperCase() === pendingDeepLink.roomCode?.toUpperCase() ||
-              r.id === pendingDeepLink.roomCode ||
-              r.name === pendingDeepLink.roomName
-          );
+          const matchedRoom = findMatchingRoom(matched, pendingDeepLink);
           setScannedUnitForChoice(matched);
           setScannedQrPayloadForChoice({
             rawText: window.location.href,
             unitCode: matched.code,
             isRoom: true,
+            roomId: pendingDeepLink.roomId || matchedRoom?.id,
             roomCode: pendingDeepLink.roomCode || matchedRoom?.code,
             roomName: pendingDeepLink.roomName || matchedRoom?.name,
             floor: pendingDeepLink.floor || matchedRoom?.floor,
@@ -285,27 +285,24 @@ export function App() {
   // Handle Pending Deep Link Navigation after authentication
   useEffect(() => {
     if (currentUser && pendingDeepLink) {
-      const isRoom = Boolean(pendingDeepLink.isRoom || pendingDeepLink.roomCode);
+      const isRoom = Boolean(pendingDeepLink.isRoom || pendingDeepLink.roomCode || pendingDeepLink.roomId);
       const matched = units.find(
         (u) =>
           (pendingDeepLink.unit && (u.code.toLowerCase() === pendingDeepLink.unit.toLowerCase() || u.id.toLowerCase() === pendingDeepLink.unit.toLowerCase())) ||
+          (pendingDeepLink.roomId && u.rooms?.some((r) => r.id === pendingDeepLink.roomId)) ||
           (pendingDeepLink.roomCode && u.rooms?.some((r) => r.code?.toUpperCase() === pendingDeepLink.roomCode?.toUpperCase() || r.id === pendingDeepLink.roomCode))
       );
 
       if (matched) {
         setSelectedUnitCode(matched.code);
         if (isRoom) {
-          const matchedRoom = matched.rooms?.find(
-            (r) =>
-              r.code?.toUpperCase() === pendingDeepLink.roomCode?.toUpperCase() ||
-              r.id === pendingDeepLink.roomCode ||
-              r.name === pendingDeepLink.roomName
-          );
+          const matchedRoom = findMatchingRoom(matched, pendingDeepLink);
           setScannedUnitForChoice(matched);
           setScannedQrPayloadForChoice({
             rawText: window.location.href,
             unitCode: matched.code,
             isRoom: true,
+            roomId: pendingDeepLink.roomId || matchedRoom?.id,
             roomCode: pendingDeepLink.roomCode || matchedRoom?.code,
             roomName: pendingDeepLink.roomName || matchedRoom?.name,
             floor: pendingDeepLink.floor || matchedRoom?.floor,
@@ -2580,12 +2577,7 @@ export function App() {
             setScannedUnitForChoice(matched);
             setScannedQrPayloadForChoice(payload || null);
             if (payload?.isRoom) {
-              const r = matched.rooms?.find(
-                (rm) =>
-                  rm.code?.toUpperCase() === payload.roomCode?.toUpperCase() ||
-                  rm.id === payload.roomCode ||
-                  rm.name === payload.roomName
-              );
+              const r = findMatchingRoom(matched, payload);
               setScannedRoomForChoice(r || null);
             } else {
               setScannedRoomForChoice(null);

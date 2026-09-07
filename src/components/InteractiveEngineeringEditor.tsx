@@ -34,6 +34,15 @@ import {
   Building2,
   CheckCircle2,
   Cloud,
+  Flag,
+  Radio,
+  Camera,
+  Wind,
+  Droplet,
+  Zap,
+  ShieldAlert,
+  Search,
+  Sparkles,
 } from 'lucide-react';
 import { CustomSiteElement, CustomSiteElementType } from '../types';
 import { SITE_ELEMENT_DEFINITIONS, SiteElementDefinition } from '../utils/customSiteElements3D';
@@ -74,6 +83,19 @@ const ICON_MAP: Record<string, React.FC<{ className?: string }>> = {
   Columns,
   Flame,
   SunMedium,
+  Flag,
+  Radio,
+  Camera,
+  Wind,
+  Droplet,
+  Zap,
+  Building2,
+  CheckCircle2,
+  ShieldAlert,
+  Database,
+  Sliders,
+  Layers,
+  Move,
 };
 
 export const InteractiveEngineeringEditor: React.FC<InteractiveEngineeringEditorProps> = ({
@@ -95,26 +117,42 @@ export const InteractiveEngineeringEditor: React.FC<InteractiveEngineeringEditor
   isNightMode = false,
   theme = 'dark',
 }) => {
-  const [activeCategory, setActiveCategory] = useState<'all' | 'roof' | 'openings' | 'site' | 'structure'>('all');
+  const [activeCategory, setActiveCategory] = useState<string>('all');
   const [activeTab, setActiveTab] = useState<'palette' | 'inspector' | 'list'>('palette');
+  const [searchQuery, setSearchQuery] = useState<string>('');
   const [isSyncSuccess, setIsSyncSuccess] = useState(false);
 
   const selectedElement = elements.find((e) => e.id === selectedElementId) || null;
 
   const categories = [
-    { id: 'all', label: 'الكل' },
-    { id: 'roof', label: 'السطح والمبنى' },
+    { id: 'all', label: `الكل (${toArabicDigits(SITE_ELEMENT_DEFINITIONS.length)})` },
+    { id: 'sidewalks', label: 'الأرصفة والممرات' },
+    { id: 'signage_flags', label: 'اللافتات والأعلام' },
+    { id: 'equipment', label: 'المعدات والمولدات' },
+    { id: 'safety', label: 'الأمان والمرافق' },
     { id: 'openings', label: 'أبواب ونوافذ' },
-    { id: 'site', label: 'المحيط والساحات' },
-    { id: 'structure', label: 'الإنارة والهياكل' },
+    { id: 'roof', label: 'السطح والخزانات' },
+    { id: 'structure', label: 'الهياكل والإنارة' },
+    { id: 'site', label: 'الساحات والبيئة' },
   ];
 
   const filteredDefs = SITE_ELEMENT_DEFINITIONS.filter((def) => {
+    if (searchQuery.trim()) {
+      const q = searchQuery.trim().toLowerCase();
+      const matchName = def.nameAr.toLowerCase().includes(q);
+      const matchDesc = def.description.toLowerCase().includes(q);
+      if (!matchName && !matchDesc) return false;
+    }
+
     if (activeCategory === 'all') return true;
-    if (activeCategory === 'roof') return def.type === 'solar_panel' || def.type === 'helipad';
+    if (activeCategory === 'sidewalks') return def.category === 'sidewalks';
+    if (activeCategory === 'signage_flags') return def.category === 'signage_flags';
+    if (activeCategory === 'equipment') return def.category === 'equipment';
+    if (activeCategory === 'safety') return def.category === 'safety';
     if (activeCategory === 'openings') return def.category === 'openings';
-    if (activeCategory === 'site') return def.type === 'fountain' || def.type === 'street' || def.type === 'parking_open' || def.type === 'parking_covered' || def.type === 'garden';
-    if (activeCategory === 'structure') return def.type === 'light_pole' || def.type === 'concrete_column' || def.type === 'fire_escape';
+    if (activeCategory === 'roof') return def.defaultMount === 'roof' || def.type === 'solar_panel' || def.type === 'helipad' || def.type === 'water_tank_roof' || def.type === 'hvac_chiller' || def.type === 'satellite_dish';
+    if (activeCategory === 'structure') return def.category === 'structure';
+    if (activeCategory === 'site') return def.category === 'site';
     return true;
   });
 
@@ -132,25 +170,7 @@ export const InteractiveEngineeringEditor: React.FC<InteractiveEngineeringEditor
   };
 
   if (!isOpen) {
-    return (
-      <button
-        onClick={onToggleOpen}
-        className={`absolute top-4 right-4 z-20 flex items-center gap-2 px-3.5 py-2 rounded-2xl font-bold text-xs shadow-xl backdrop-blur-md border transition-all cursor-pointer hover:scale-105 active:scale-95 ${
-          isNightMode
-            ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-amber-500/20 hover:bg-amber-400'
-            : 'bg-amber-500 text-slate-950 border-amber-400 shadow-amber-500/30 hover:bg-amber-400'
-        }`}
-        title="فتح المحرر الهندسي التفاعلي لسحب وإفلات العناصر"
-      >
-        <Sliders className="w-4 h-4" />
-        <span>المحرر الهندسي التفاعلي</span>
-        {elements.length > 0 && (
-          <span className="px-1.5 py-0.2 bg-slate-950 text-amber-400 rounded-full text-[10px] font-mono">
-            {toArabicDigits(elements.length)}
-          </span>
-        )}
-      </button>
-    );
+    return null;
   }
 
   return (
@@ -253,7 +273,32 @@ export const InteractiveEngineeringEditor: React.FC<InteractiveEngineeringEditor
         {/* TAB 1: PALETTE (قائمة العناصر الملحقة القابلة للسحب والإفلات) */}
         {/* ================================================================= */}
         {activeTab === 'palette' && (
-          <div className="space-y-3">
+          <div className="space-y-2.5">
+            {/* Search Input Bar */}
+            <div className="relative">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="بحث في العناصر الهندسية والمعدات..."
+                className={`w-full py-1.5 pr-8 pl-8 rounded-xl text-xs border outline-none transition ${
+                  isNightMode
+                    ? 'bg-slate-800/80 border-slate-700 text-slate-100 placeholder:text-slate-500 focus:border-amber-500'
+                    : 'bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400 focus:border-amber-500'
+                }`}
+              />
+              <Search className="w-3.5 h-3.5 absolute right-2.5 top-2.5 text-slate-400 pointer-events-none" />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  className="absolute left-2.5 top-2 text-slate-400 hover:text-slate-200 cursor-pointer p-0.5"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+
             {/* Category Filter Pills */}
             <div className="flex items-center gap-1 overflow-x-auto pb-1 no-scrollbar">
               {categories.map((cat) => (

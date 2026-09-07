@@ -1,10 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Camera,
   Video,
   X,
-  Play,
-  Pause,
   RotateCw,
   Compass,
   ArrowUp,
@@ -19,6 +17,8 @@ import {
   Sliders,
   Sparkles,
   Zap,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import { toArabicDigits } from '../utils/arabicUtils';
 
@@ -49,6 +49,7 @@ interface DroneHudOverlayProps {
   isFullscreen?: boolean;
   onToggleFullscreen?: () => void;
   unitCode?: string;
+  isNightMode?: boolean;
 }
 
 export const DroneHudOverlay: React.FC<DroneHudOverlayProps> = ({
@@ -60,9 +61,6 @@ export const DroneHudOverlay: React.FC<DroneHudOverlayProps> = ({
   droneSpeed: propDroneSpeed,
   speed,
   onSpeedChange,
-  altitude = 12,
-  speedKmH = 18,
-  gimbalPitch = -20,
   onManualMove,
   onCapturePhoto,
   onRecordVideoToggle,
@@ -76,17 +74,16 @@ export const DroneHudOverlay: React.FC<DroneHudOverlayProps> = ({
   isFullscreen = false,
   onToggleFullscreen,
   unitCode = 'DRONE-4K',
+  isNightMode = false,
 }) => {
   const [shutterFlash, setShutterFlash] = useState(false);
+  const [isControlsCollapsed, setIsControlsCollapsed] = useState(false);
 
   if (isOpen === false) return null;
 
   const handleExit = onExit || onClose || (() => {});
   const handleToggleRecord = onToggleRecording || onRecordVideoToggle || (() => {});
   const effectiveSpeed = typeof propDroneSpeed === 'number' ? propDroneSpeed : typeof speed === 'number' ? speed : 1.0;
-  const safeAlt = typeof altitude === 'number' && !isNaN(altitude) ? altitude : 12;
-  const safeSpeed = typeof speedKmH === 'number' && !isNaN(speedKmH) ? speedKmH : 18;
-  const safePitch = typeof gimbalPitch === 'number' && !isNaN(gimbalPitch) ? gimbalPitch : -20;
   const safeSeconds = typeof recordSeconds === 'number' && !isNaN(recordSeconds) ? recordSeconds : 0;
 
   const handlePhotoClick = () => {
@@ -103,323 +100,421 @@ export const DroneHudOverlay: React.FC<DroneHudOverlayProps> = ({
   };
 
   return (
-    <div className="absolute inset-0 pointer-events-none z-30 flex flex-col justify-between overflow-hidden select-none font-mono">
+    <div className="absolute inset-0 pointer-events-none z-30 overflow-hidden select-none">
       {/* Camera Shutter Flash Effect */}
       {shutterFlash && (
         <div className="absolute inset-0 bg-white z-50 animate-out fade-out duration-300 pointer-events-none" />
       )}
 
-      {/* Cinematic 2.39:1 Letterbox Bars */}
+      {/* Cinematic 2.39:1 Letterbox Bars - strictly at extreme top and bottom edges */}
       {showCinematicBars && (
         <>
-          <div className="w-full h-12 bg-black/90 pointer-events-none transition-all duration-300 z-10" />
-          <div className="w-full h-12 bg-black/90 pointer-events-none transition-all duration-300 z-10" />
+          <div className="absolute top-0 inset-x-0 h-8 sm:h-12 bg-black/95 pointer-events-none transition-all duration-300 z-10" />
+          <div className="absolute bottom-0 inset-x-0 h-8 sm:h-12 bg-black/95 pointer-events-none transition-all duration-300 z-10" />
         </>
       )}
 
-      {/* Photographic Rule-of-Thirds Grid */}
+      {/* Photographic Rule-of-Thirds Grid - Subtle neutral lines with no yellow/amber coloring */}
       {showGrid && (
-        <div className="absolute inset-0 pointer-events-none grid grid-cols-3 grid-rows-3 opacity-35 z-10">
-          <div className="border-r border-b border-amber-400/40" />
-          <div className="border-r border-b border-amber-400/40" />
-          <div className="border-b border-amber-400/40" />
-          <div className="border-r border-b border-amber-400/40" />
-          <div className="border-r border-b border-amber-400/40" />
-          <div className="border-b border-amber-400/40" />
-          <div className="border-r border-amber-400/40" />
-          <div className="border-r border-amber-400/40" />
+        <div className="absolute inset-0 pointer-events-none grid grid-cols-3 grid-rows-3 opacity-20 z-10">
+          <div className="border-r border-b border-white/20 dark:border-white/20" />
+          <div className="border-r border-b border-white/20 dark:border-white/20" />
+          <div className="border-b border-white/20 dark:border-white/20" />
+          <div className="border-r border-b border-white/20 dark:border-white/20" />
+          <div className="border-r border-b border-white/20 dark:border-white/20" />
+          <div className="border-b border-white/20 dark:border-white/20" />
+          <div className="border-r border-b border-white/20 dark:border-white/20" />
+          <div className="border-r border-b border-white/20 dark:border-white/20" />
           <div />
         </div>
       )}
 
-      {/* Center Reticle / Crosshair */}
-      <div className="absolute inset-0 pointer-events-none flex items-center justify-center z-10">
-        <div className="relative w-14 h-14 border border-amber-400/50 rounded-full flex items-center justify-center">
-          <div className="w-1.5 h-1.5 bg-amber-400 rounded-full" />
-          <div className="absolute top-0 w-px h-2.5 bg-amber-400/80" />
-          <div className="absolute bottom-0 w-px h-2.5 bg-amber-400/80" />
-          <div className="absolute left-0 h-px w-2.5 bg-amber-400/80" />
-          <div className="absolute right-0 h-px w-2.5 bg-amber-400/80" />
-        </div>
-      </div>
-
-      {/* TOP STATUS BAR: Telemetry, Battery, Satellite, Recording status */}
-      <div className="p-3 sm:p-4 flex items-center justify-between pointer-events-auto bg-gradient-to-b from-black/80 to-transparent text-white text-xs z-20">
-        {/* Left Telemetry Cluster */}
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-red-600/30 border border-red-500/50 text-red-400 font-bold">
-            <Radio className="w-3.5 h-3.5 animate-pulse text-red-400" />
-            <span>DRONE 4K PRO</span>
-          </div>
-
-          <div className="hidden sm:flex items-center gap-2 text-slate-300 text-[11px]">
-            <span className="flex items-center gap-1 text-emerald-400">
-              <Zap className="w-3 h-3 fill-emerald-400" /> 98%
-            </span>
-            <span>•</span>
-            <span className="text-sky-400">GPS: 18 SATS</span>
-            <span>•</span>
-            <span className="text-amber-400 font-bold">{unitCode}</span>
-          </div>
-        </div>
-
-        {/* Live Recording Indicator */}
-        {isRecording && (
-          <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-red-600/80 text-white font-bold animate-pulse">
-            <div className="w-2.5 h-2.5 rounded-full bg-white" />
-            <span>REC [{formatTimecode(safeSeconds)}]</span>
-          </div>
-        )}
-
-        {/* Right Action Bar (Grid, Letterbox, Close) */}
-        <div className="flex items-center gap-1.5">
+      {/* MINI FLOATING PILL (When Controls are Collapsed) */}
+      {isControlsCollapsed && (
+        <div className="absolute top-2 left-1/2 -translate-x-1/2 z-20 pointer-events-auto flex items-center gap-1.5 animate-in fade-in slide-in-from-top-2 duration-200">
           <button
-            onClick={onToggleGrid}
-            className={`p-1.5 rounded-lg border transition cursor-pointer ${
-              showGrid
-                ? 'bg-amber-500/30 text-amber-300 border-amber-500/60'
-                : 'bg-black/40 text-slate-400 border-white/20 hover:text-white'
+            onClick={() => setIsControlsCollapsed(false)}
+            className={`px-3 py-1.5 rounded-full backdrop-blur-md border text-xs font-bold shadow-lg flex items-center gap-1.5 transition cursor-pointer active:scale-95 ${
+              isNightMode
+                ? 'bg-slate-900/90 hover:bg-slate-800 text-amber-400 border-slate-700'
+                : 'bg-white/95 hover:bg-slate-50 text-slate-800 border-slate-300 shadow-slate-200'
             }`}
-            title="إظهار / إخفاء شبكة التثليث الفوتوغرافية"
+            title="إظهار أدوات وعناصر التحكم بالدرون"
           >
-            <Grid className="w-4 h-4" />
+            <Sliders className="w-3.5 h-3.5 text-amber-500" />
+            <span>خيارات العرض</span>
+            <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
           </button>
 
           <button
-            onClick={onToggleCinematicBars}
-            className={`p-1.5 rounded-lg border transition cursor-pointer ${
-              showCinematicBars
-                ? 'bg-amber-500/30 text-amber-300 border-amber-500/60'
-                : 'bg-black/40 text-slate-400 border-white/20 hover:text-white'
-            }`}
-            title="تفعيل / إلغاء الأشرطة السينمائية (2.39:1 Cinema Bars)"
+            onClick={handlePhotoClick}
+            className="p-1.5 rounded-full bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-lg transition cursor-pointer active:scale-95"
+            title="التقاط 4K"
           >
-            <Film className="w-4 h-4" />
+            <Camera className="w-4 h-4" />
           </button>
-
-          {onToggleFullscreen && (
-            <button
-              onClick={onToggleFullscreen}
-              className={`p-1.5 rounded-lg border transition cursor-pointer flex items-center gap-1 text-[11px] font-bold ${
-                isFullscreen
-                  ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-lg'
-                  : 'bg-black/50 text-white border-white/20 hover:bg-white/20'
-              }`}
-              title={isFullscreen ? 'الخروج من وضع ملء الشاشة' : 'ملء الشاشة بالكامل لعرض المجسم ثلاثي الأبعاد بالدرون'}
-            >
-              {isFullscreen ? <Minimize2 className="w-4 h-4 text-slate-950" /> : <Maximize2 className="w-4 h-4 text-amber-400" />}
-              <span className="hidden sm:inline">{isFullscreen ? 'تصغير' : 'ملء الشاشة'}</span>
-            </button>
-          )}
 
           <button
             onClick={handleExit}
-            className="p-1.5 rounded-lg bg-rose-600/80 hover:bg-rose-600 text-white border border-rose-500/60 transition cursor-pointer flex items-center gap-1 text-[11px] font-bold"
-            title="إنهاء وضع الدرون السينمائي والعودة للعرض الافتراضي"
+            className="p-1.5 rounded-full bg-rose-600 hover:bg-rose-500 text-white shadow-lg transition cursor-pointer active:scale-95"
+            title="إنهاء وضع الدرون"
           >
             <X className="w-4 h-4" />
-            <span className="hidden sm:inline">إنهاء الدرون</span>
           </button>
         </div>
-      </div>
+      )}
 
-      {/* FLIGHT CONTROLS & TELEMETRY GAUGES */}
-      <div className="px-3 sm:px-4 py-2 flex items-center justify-between pointer-events-none z-20">
-        {/* Left Telemetry Readouts (Altitude, Speed, Pitch) */}
-        <div className="p-2.5 rounded-xl bg-black/60 backdrop-blur-md border border-white/10 text-white space-y-1 text-[11px] pointer-events-auto">
-          <div className="flex items-center justify-between gap-3">
-            <span className="text-slate-400">الارتفاع:</span>
-            <span className="font-bold text-amber-400">{toArabicDigits(safeAlt.toFixed(1))} م</span>
-          </div>
-          <div className="flex items-center justify-between gap-3">
-            <span className="text-slate-400">السرعة:</span>
-            <span className="font-bold text-emerald-400">{toArabicDigits(safeSpeed.toFixed(1))} كم/س</span>
-          </div>
-          <div className="flex items-center justify-between gap-3">
-            <span className="text-slate-400">زاوية الكاميرا:</span>
-            <span className="font-bold text-sky-400">{toArabicDigits(safePitch.toFixed(0))}°</span>
-          </div>
-        </div>
-
-        {/* Manual FPV D-Pad (only in manual_fpv mode) */}
-        {flightMode === 'manual_fpv' && onManualMove && (
-          <div className="p-2 rounded-2xl bg-black/70 backdrop-blur-md border border-amber-500/40 pointer-events-auto flex flex-col items-center gap-1 shadow-2xl">
-            <div className="text-[10px] text-amber-400 font-bold mb-0.5">تحكم يدوي بالطيران</div>
-            <div className="flex items-center gap-1">
-              <button
-                onClick={() => onManualMove('forward')}
-                className="w-8 h-8 rounded-lg bg-slate-800 hover:bg-amber-500 hover:text-black text-white flex items-center justify-center transition cursor-pointer border border-slate-700"
-                title="للأمام (W)"
+      {/* TOP STATUS BAR: Compact, Daylight Compatible & Collapsible */}
+      {!isControlsCollapsed && (
+        <div className="absolute top-2 inset-x-2 sm:inset-x-4 z-20 pointer-events-auto animate-in fade-in slide-in-from-top-2 duration-200">
+          <div
+            className={`px-3 py-1.5 sm:py-2 rounded-2xl backdrop-blur-md border shadow-lg flex items-center justify-between gap-2 text-xs transition-colors ${
+              isNightMode
+                ? 'bg-slate-900/90 border-slate-800 text-white'
+                : 'bg-white/95 border-slate-200/90 text-slate-800 shadow-slate-200/60'
+            }`}
+          >
+            {/* Left Telemetry Badges */}
+            <div className="flex items-center gap-2">
+              <div
+                className={`flex items-center gap-1.5 px-2 py-0.5 rounded-lg font-black text-[11px] border ${
+                  isNightMode
+                    ? 'bg-red-950/60 border-red-800/80 text-red-400'
+                    : 'bg-red-50 border-red-200 text-red-700'
+                }`}
               >
-                <ArrowUp className="w-4 h-4" />
+                <Radio className="w-3 h-3 animate-pulse text-red-500" />
+                <span>DRONE 4K</span>
+              </div>
+
+              <div
+                className={`hidden md:flex items-center gap-2 text-[11px] px-2 py-0.5 rounded-lg border ${
+                  isNightMode
+                    ? 'bg-slate-950/50 border-slate-800 text-slate-300'
+                    : 'bg-slate-50 border-slate-200 text-slate-600'
+                }`}
+              >
+                <span className="flex items-center gap-1 text-emerald-600 font-bold">
+                  <Zap className="w-3 h-3 fill-emerald-500" /> 98%
+                </span>
+                <span>•</span>
+                <span className="font-semibold">{unitCode}</span>
+              </div>
+            </div>
+
+            {/* Live Recording Indicator */}
+            {isRecording && (
+              <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-red-600 text-white text-[11px] font-bold animate-pulse shadow">
+                <div className="w-2 h-2 rounded-full bg-white" />
+                <span>REC [{formatTimecode(safeSeconds)}]</span>
+              </div>
+            )}
+
+            {/* Right Action Buttons */}
+            <div className="flex items-center gap-1 sm:gap-1.5">
+              <button
+                onClick={onToggleGrid}
+                className={`p-1.5 rounded-xl border transition cursor-pointer ${
+                  showGrid
+                    ? 'bg-amber-500 text-slate-950 border-amber-400 font-bold shadow-sm'
+                    : isNightMode
+                    ? 'bg-slate-800/80 text-slate-300 border-slate-700 hover:text-white'
+                    : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200'
+                }`}
+                title="إظهار / إخفاء شبكة التثليث الفوتوغرافية"
+              >
+                <Grid className="w-3.5 h-3.5" />
+              </button>
+
+              <button
+                onClick={onToggleCinematicBars}
+                className={`p-1.5 rounded-xl border transition cursor-pointer ${
+                  showCinematicBars
+                    ? 'bg-amber-500 text-slate-950 border-amber-400 font-bold shadow-sm'
+                    : isNightMode
+                    ? 'bg-slate-800/80 text-slate-300 border-slate-700 hover:text-white'
+                    : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200'
+                }`}
+                title="تفعيل / إلغاء الأشرطة السينمائية (Cinema Bars)"
+              >
+                <Film className="w-3.5 h-3.5" />
+              </button>
+
+              {/* Collapse Controls Button */}
+              <button
+                onClick={() => setIsControlsCollapsed(true)}
+                className={`px-2 py-1.5 rounded-xl border transition cursor-pointer flex items-center gap-1 text-[11px] font-bold ${
+                  isNightMode
+                    ? 'bg-slate-800/80 text-slate-300 border-slate-700 hover:text-white'
+                    : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200'
+                }`}
+                title="طي خيارات التحكم لعرض سينمائي نقي بدون تشويش"
+              >
+                <ChevronUp className="w-3.5 h-3.5 text-amber-500" />
+                <span className="hidden sm:inline">طي الأدوات</span>
+              </button>
+
+              {onToggleFullscreen && (
+                <button
+                  onClick={onToggleFullscreen}
+                  className={`px-2.5 py-1.5 rounded-xl border transition cursor-pointer flex items-center gap-1 text-[11px] font-bold ${
+                    isFullscreen
+                      ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-md'
+                      : isNightMode
+                      ? 'bg-slate-800 text-slate-200 border-slate-700 hover:bg-slate-700'
+                      : 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200'
+                  }`}
+                  title={isFullscreen ? 'الخروج من وضع ملء الشاشة للمجسم' : 'ملء الشاشة للمجسم ثلاثي الأبعاد'}
+                >
+                  {isFullscreen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5 text-amber-500" />}
+                  <span className="hidden sm:inline">{isFullscreen ? 'تصغير' : 'ملء الشاشة'}</span>
+                </button>
+              )}
+
+              <button
+                onClick={handleExit}
+                className="px-2.5 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold transition cursor-pointer flex items-center gap-1 text-[11px] shadow"
+                title="إنهاء وضع الدرون السينمائي"
+              >
+                <X className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">إنهاء الدرون</span>
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Manual FPV D-Pad (only in manual_fpv mode) */}
+      {flightMode === 'manual_fpv' && onManualMove && !isControlsCollapsed && (
+        <div className="absolute right-3 sm:right-6 bottom-20 z-20 pointer-events-auto">
+          <div
+            className={`p-2 rounded-2xl backdrop-blur-md border shadow-2xl flex flex-col items-center gap-1 text-xs ${
+              isNightMode
+                ? 'bg-slate-900/90 border-slate-800 text-white'
+                : 'bg-white/95 border-slate-200 text-slate-800'
+            }`}
+          >
+            <div className="text-[10px] text-amber-600 font-bold mb-0.5">تحكم يدوي</div>
+            <button
+              onClick={() => onManualMove('forward')}
+              className={`w-7 h-7 rounded-lg flex items-center justify-center transition cursor-pointer border ${
+                isNightMode ? 'bg-slate-800 hover:bg-amber-500 hover:text-black border-slate-700 text-white' : 'bg-slate-100 hover:bg-amber-500 hover:text-black border-slate-200 text-slate-800'
+              }`}
+              title="للأمام (W)"
+            >
+              <ArrowUp className="w-3.5 h-3.5" />
+            </button>
             <div className="flex items-center gap-1">
               <button
                 onClick={() => onManualMove('left')}
-                className="w-8 h-8 rounded-lg bg-slate-800 hover:bg-amber-500 hover:text-black text-white flex items-center justify-center transition cursor-pointer border border-slate-700"
+                className={`w-7 h-7 rounded-lg flex items-center justify-center transition cursor-pointer border ${
+                  isNightMode ? 'bg-slate-800 hover:bg-amber-500 hover:text-black border-slate-700 text-white' : 'bg-slate-100 hover:bg-amber-500 hover:text-black border-slate-200 text-slate-800'
+                }`}
                 title="انزلاق لليسار (A)"
               >
-                <ArrowLeft className="w-4 h-4" />
+                <ArrowLeft className="w-3.5 h-3.5" />
               </button>
               <button
                 onClick={() => onManualMove('backward')}
-                className="w-8 h-8 rounded-lg bg-slate-800 hover:bg-amber-500 hover:text-black text-white flex items-center justify-center transition cursor-pointer border border-slate-700"
+                className={`w-7 h-7 rounded-lg flex items-center justify-center transition cursor-pointer border ${
+                  isNightMode ? 'bg-slate-800 hover:bg-amber-500 hover:text-black border-slate-700 text-white' : 'bg-slate-100 hover:bg-amber-500 hover:text-black border-slate-200 text-slate-800'
+                }`}
                 title="للخلف (S)"
               >
-                <ArrowDown className="w-4 h-4" />
+                <ArrowDown className="w-3.5 h-3.5" />
               </button>
               <button
                 onClick={() => onManualMove('right')}
-                className="w-8 h-8 rounded-lg bg-slate-800 hover:bg-amber-500 hover:text-black text-white flex items-center justify-center transition cursor-pointer border border-slate-700"
+                className={`w-7 h-7 rounded-lg flex items-center justify-center transition cursor-pointer border ${
+                  isNightMode ? 'bg-slate-800 hover:bg-amber-500 hover:text-black border-slate-700 text-white' : 'bg-slate-100 hover:bg-amber-500 hover:text-black border-slate-200 text-slate-800'
+                }`}
                 title="انزلاق لليمين (D)"
               >
-                <ArrowRight className="w-4 h-4" />
+                <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>
-            <div className="flex items-center gap-2 pt-1 border-t border-slate-800 w-full justify-center">
+            <div className="flex items-center gap-1.5 pt-1 border-t w-full justify-center border-slate-200 dark:border-slate-800">
               <button
                 onClick={() => onManualMove('up')}
-                className="px-2 py-1 rounded bg-slate-800 hover:bg-emerald-500 hover:text-black text-emerald-400 text-[10px] font-bold border border-slate-700 cursor-pointer"
-                title="صعود للأعلى (E)"
+                className="px-2 py-0.5 rounded bg-emerald-500/20 hover:bg-emerald-500 hover:text-white text-emerald-600 text-[10px] font-bold border border-emerald-500/40 cursor-pointer"
+                title="صعود للأعلى"
               >
                 صعود ↑
               </button>
               <button
                 onClick={() => onManualMove('down')}
-                className="px-2 py-1 rounded bg-slate-800 hover:bg-rose-500 hover:text-black text-rose-400 text-[10px] font-bold border border-slate-700 cursor-pointer"
-                title="هبوط للأسفل (Q)"
+                className="px-2 py-0.5 rounded bg-rose-500/20 hover:bg-rose-500 hover:text-white text-rose-600 text-[10px] font-bold border border-rose-500/40 cursor-pointer"
+                title="هبوط للأسفل"
               >
                 هبوط ↓
               </button>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
-      {/* BOTTOM CONTROL DOCK: Flight Modes, Speed slider, Capture 4K Photo, Record Video */}
-      <div className="p-3 sm:p-4 bg-gradient-to-t from-black/90 via-black/70 to-transparent pointer-events-auto text-white z-20 space-y-2.5">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          {/* Flight Mode Tabs */}
-          <div className="flex flex-wrap items-center gap-1.5 p-1 rounded-xl bg-black/60 backdrop-blur-md border border-white/15 text-xs">
-            <button
-              onClick={() => onFlightModeChange('orbit_360')}
-              className={`px-3 py-1.5 rounded-lg font-bold transition cursor-pointer flex items-center gap-1.5 ${
-                flightMode === 'orbit_360'
-                  ? 'bg-amber-500 text-black shadow'
-                  : 'text-slate-300 hover:text-white hover:bg-white/10'
+      {/* BOTTOM CONTROL DOCK: Compact, Daylight Compatible & Collapsible */}
+      {!isControlsCollapsed && (
+        <div className="absolute bottom-2 inset-x-2 sm:inset-x-4 z-20 pointer-events-auto animate-in fade-in slide-in-from-bottom-2 duration-200">
+          <div
+            className={`p-2 sm:p-2.5 rounded-2xl backdrop-blur-md border shadow-xl flex flex-wrap items-center justify-between gap-2 text-xs transition-colors ${
+              isNightMode
+                ? 'bg-slate-900/90 border-slate-800 text-white'
+                : 'bg-white/95 border-slate-200/90 text-slate-800 shadow-slate-200/60'
+            }`}
+          >
+            {/* Flight Mode Tabs */}
+            <div
+              className={`flex flex-wrap items-center gap-1 p-1 rounded-xl border ${
+                isNightMode ? 'bg-slate-950/60 border-slate-800' : 'bg-slate-100/90 border-slate-200'
               }`}
             >
-              <RotateCw className="w-3.5 h-3.5" />
-              <span>مدار سينمائي 360°</span>
-            </button>
-
-            <button
-              onClick={() => onFlightModeChange('spiral_ascend')}
-              className={`px-3 py-1.5 rounded-lg font-bold transition cursor-pointer flex items-center gap-1.5 ${
-                flightMode === 'spiral_ascend'
-                  ? 'bg-amber-500 text-black shadow'
-                  : 'text-slate-300 hover:text-white hover:bg-white/10'
-              }`}
-            >
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>صعود حلزوني</span>
-            </button>
-
-            <button
-              onClick={() => onFlightModeChange('flyby')}
-              className={`px-3 py-1.5 rounded-lg font-bold transition cursor-pointer flex items-center gap-1.5 ${
-                flightMode === 'flyby'
-                  ? 'bg-amber-500 text-black shadow'
-                  : 'text-slate-300 hover:text-white hover:bg-white/10'
-              }`}
-            >
-              <Compass className="w-3.5 h-3.5" />
-              <span>مسح جانبي</span>
-            </button>
-
-            <button
-              onClick={() => onFlightModeChange('topdown_dive')}
-              className={`px-3 py-1.5 rounded-lg font-bold transition cursor-pointer flex items-center gap-1.5 ${
-                flightMode === 'topdown_dive'
-                  ? 'bg-amber-500 text-black shadow'
-                  : 'text-slate-300 hover:text-white hover:bg-white/10'
-              }`}
-            >
-              <ArrowDown className="w-3.5 h-3.5" />
-              <span>غوص درامي</span>
-            </button>
-
-            <button
-              onClick={() => onFlightModeChange('manual_fpv')}
-              className={`px-3 py-1.5 rounded-lg font-bold transition cursor-pointer flex items-center gap-1.5 ${
-                flightMode === 'manual_fpv'
-                  ? 'bg-amber-500 text-black shadow'
-                  : 'text-slate-300 hover:text-white hover:bg-white/10'
-              }`}
-            >
-              <Sliders className="w-3.5 h-3.5" />
-              <span>تحكم يدوي</span>
-            </button>
-          </div>
-
-          {/* Speed Presets & Shutter Buttons */}
-          <div className="flex items-center gap-2">
-            {/* Speed Presets */}
-            <div className="flex items-center gap-1 px-2 py-1 rounded-xl bg-black/60 border border-white/15 text-[11px]">
-              <span className="text-slate-400 font-bold ml-1">السرعة:</span>
               <button
-                onClick={() => onSpeedChange(0.5)}
-                className={`px-2 py-0.5 rounded font-bold transition cursor-pointer ${
-                  effectiveSpeed === 0.5 ? 'bg-amber-500 text-black' : 'text-slate-300 hover:text-white'
+                onClick={() => onFlightModeChange('orbit_360')}
+                className={`px-2.5 py-1 rounded-lg font-bold transition cursor-pointer flex items-center gap-1 text-[11px] sm:text-xs ${
+                  flightMode === 'orbit_360'
+                    ? 'bg-amber-500 text-slate-950 shadow-sm'
+                    : isNightMode
+                    ? 'text-slate-300 hover:text-white hover:bg-slate-800'
+                    : 'text-slate-700 hover:text-slate-950 hover:bg-white'
                 }`}
               >
-                بطيء
+                <RotateCw className="w-3 h-3" />
+                <span>مدار سينمائي 360°</span>
               </button>
+
               <button
-                onClick={() => onSpeedChange(1.0)}
-                className={`px-2 py-0.5 rounded font-bold transition cursor-pointer ${
-                  effectiveSpeed === 1.0 ? 'bg-amber-500 text-black' : 'text-slate-300 hover:text-white'
+                onClick={() => onFlightModeChange('spiral_ascend')}
+                className={`px-2.5 py-1 rounded-lg font-bold transition cursor-pointer flex items-center gap-1 text-[11px] sm:text-xs ${
+                  flightMode === 'spiral_ascend'
+                    ? 'bg-amber-500 text-slate-950 shadow-sm'
+                    : isNightMode
+                    ? 'text-slate-300 hover:text-white hover:bg-slate-800'
+                    : 'text-slate-700 hover:text-slate-950 hover:bg-white'
                 }`}
               >
-                طبيعي
+                <Sparkles className="w-3 h-3" />
+                <span>صعود حلزوني</span>
               </button>
+
               <button
-                onClick={() => onSpeedChange(2.0)}
-                className={`px-2 py-0.5 rounded font-bold transition cursor-pointer ${
-                  effectiveSpeed === 2.0 ? 'bg-amber-500 text-black' : 'text-slate-300 hover:text-white'
+                onClick={() => onFlightModeChange('flyby')}
+                className={`px-2.5 py-1 rounded-lg font-bold transition cursor-pointer flex items-center gap-1 text-[11px] sm:text-xs ${
+                  flightMode === 'flyby'
+                    ? 'bg-amber-500 text-slate-950 shadow-sm'
+                    : isNightMode
+                    ? 'text-slate-300 hover:text-white hover:bg-slate-800'
+                    : 'text-slate-700 hover:text-slate-950 hover:bg-white'
                 }`}
               >
-                سريع
+                <Compass className="w-3 h-3" />
+                <span>مسح جانبي</span>
+              </button>
+
+              <button
+                onClick={() => onFlightModeChange('topdown_dive')}
+                className={`px-2.5 py-1 rounded-lg font-bold transition cursor-pointer flex items-center gap-1 text-[11px] sm:text-xs ${
+                  flightMode === 'topdown_dive'
+                    ? 'bg-amber-500 text-slate-950 shadow-sm'
+                    : isNightMode
+                    ? 'text-slate-300 hover:text-white hover:bg-slate-800'
+                    : 'text-slate-700 hover:text-slate-950 hover:bg-white'
+                }`}
+              >
+                <ArrowDown className="w-3 h-3" />
+                <span>غوص درامي</span>
+              </button>
+
+              <button
+                onClick={() => onFlightModeChange('manual_fpv')}
+                className={`px-2.5 py-1 rounded-lg font-bold transition cursor-pointer flex items-center gap-1 text-[11px] sm:text-xs ${
+                  flightMode === 'manual_fpv'
+                    ? 'bg-amber-500 text-slate-950 shadow-sm'
+                    : isNightMode
+                    ? 'text-slate-300 hover:text-white hover:bg-slate-800'
+                    : 'text-slate-700 hover:text-slate-950 hover:bg-white'
+                }`}
+              >
+                <Sliders className="w-3 h-3" />
+                <span>تحكم يدوي</span>
               </button>
             </div>
 
-            {/* Photo Capture 4K */}
-            <button
-              onClick={handlePhotoClick}
-              className="px-3.5 py-2 rounded-xl bg-white hover:bg-amber-400 text-slate-950 font-black text-xs flex items-center gap-2 transition shadow-lg cursor-pointer active:scale-95"
-              title="التقاط لقطة درون سينمائية عالية الدقة 4K وتنزيلها كصورة"
-            >
-              <Camera className="w-4 h-4 text-amber-600" />
-              <span>التقاط 4K</span>
-            </button>
+            {/* Speed Presets & Shutter Buttons */}
+            <div className="flex items-center gap-2">
+              {/* Speed Presets */}
+              <div
+                className={`flex items-center gap-1 px-2 py-1 rounded-xl border text-[11px] ${
+                  isNightMode ? 'bg-slate-950/60 border-slate-800' : 'bg-slate-100/90 border-slate-200'
+                }`}
+              >
+                <span className="font-bold ml-1 opacity-75">السرعة:</span>
+                <button
+                  onClick={() => onSpeedChange(0.5)}
+                  className={`px-2 py-0.5 rounded-lg font-bold transition cursor-pointer ${
+                    effectiveSpeed === 0.5
+                      ? 'bg-amber-500 text-slate-950 shadow-xs'
+                      : isNightMode
+                      ? 'text-slate-400 hover:text-white'
+                      : 'text-slate-600 hover:text-slate-950'
+                  }`}
+                >
+                  بطيء
+                </button>
+                <button
+                  onClick={() => onSpeedChange(1.0)}
+                  className={`px-2 py-0.5 rounded-lg font-bold transition cursor-pointer ${
+                    effectiveSpeed === 1.0
+                      ? 'bg-amber-500 text-slate-950 shadow-xs'
+                      : isNightMode
+                      ? 'text-slate-400 hover:text-white'
+                      : 'text-slate-600 hover:text-slate-950'
+                  }`}
+                >
+                  طبيعي
+                </button>
+                <button
+                  onClick={() => onSpeedChange(2.0)}
+                  className={`px-2 py-0.5 rounded-lg font-bold transition cursor-pointer ${
+                    effectiveSpeed === 2.0
+                      ? 'bg-amber-500 text-slate-950 shadow-xs'
+                      : isNightMode
+                      ? 'text-slate-400 hover:text-white'
+                      : 'text-slate-600 hover:text-slate-950'
+                  }`}
+                >
+                  سريع
+                </button>
+              </div>
 
-            {/* Video Record Toggle */}
-            <button
-              onClick={handleToggleRecord}
-              className={`px-3.5 py-2 rounded-xl font-black text-xs flex items-center gap-2 transition shadow-lg cursor-pointer active:scale-95 ${
-                isRecording
-                  ? 'bg-red-600 hover:bg-red-500 text-white animate-pulse'
-                  : 'bg-red-600/80 hover:bg-red-600 text-white'
-              }`}
-              title={isRecording ? 'إيقاف التسجيل وحفظ مقطع الفيديو' : 'بدء تسجيل فيديو درون سينمائي بدقة عالية'}
-            >
-              <Video className="w-4 h-4" />
-              <span>{isRecording ? 'إيقاف وحفظ' : 'تسجيل فيديو'}</span>
-            </button>
+              {/* Photo Capture 4K */}
+              <button
+                onClick={handlePhotoClick}
+                className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs flex items-center gap-1.5 transition shadow cursor-pointer active:scale-95"
+                title="التقاط صورة 4K بدقة عالية"
+              >
+                <Camera className="w-3.5 h-3.5 text-slate-950" />
+                <span>التقاط 4K</span>
+              </button>
+
+              {/* Video Record Toggle */}
+              <button
+                onClick={handleToggleRecord}
+                className={`px-3 py-1.5 rounded-xl font-black text-xs flex items-center gap-1.5 transition shadow cursor-pointer active:scale-95 ${
+                  isRecording
+                    ? 'bg-red-600 hover:bg-red-500 text-white animate-pulse'
+                    : 'bg-rose-600 hover:bg-rose-500 text-white'
+                }`}
+                title={isRecording ? 'إيقاف التسجيل وحفظ مقطع الفيديو' : 'بدء تسجيل فيديو سينمائي'}
+              >
+                <Video className="w-3.5 h-3.5" />
+                <span>{isRecording ? 'إيقاف وحفظ' : 'تسجيل فيديو'}</span>
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
+

@@ -105,7 +105,7 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
   const [roofType, setRoofType] = useState<'flat' | 'flat_parapet' | 'gabled' | 'pitched_tile' | 'garden' | 'pitched'>('flat_parapet');
   const [showFurniture, setShowFurniture] = useState<boolean>(true);
   const [showWindows, setShowWindows] = useState<boolean>(true);
-  const [showTrees, setShowTrees] = useState<boolean>(true);
+  const [showTrees, setShowTrees] = useState<boolean>(false);
   const [interiorLightIntensity, setInteriorLightIntensity] = useState<number>(3.5);
   const [exteriorLightIntensity, setExteriorLightIntensity] = useState<number>(3.5);
   const [showSettingsPanel, setShowSettingsPanel] = useState<boolean>(false);
@@ -133,7 +133,7 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
   const [droneGimbalPitch, setDroneGimbalPitch] = useState<number>(-18);
   const [isRecording, setIsRecording] = useState<boolean>(false);
   const [recordSeconds, setRecordSeconds] = useState<number>(0);
-  const [showDroneGrid, setShowDroneGrid] = useState<boolean>(true);
+  const [showDroneGrid, setShowDroneGrid] = useState<boolean>(false);
   const [showCinematicBars, setShowCinematicBars] = useState<boolean>(true);
   const droneTimeRef = useRef<number>(0);
   const isDroneModeRef = useRef<boolean>(false);
@@ -150,33 +150,22 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
   const [showEngineeringEditor, setShowEngineeringEditor] = useState<boolean>(false);
+  const [showAxesHelper, setShowAxesHelper] = useState<boolean>(false);
   const [isSavingDb, setIsSavingDb] = useState<boolean>(false);
   const [lastSavedTime, setLastSavedTime] = useState<string>('');
 
-  const toggleFullscreen = () => {
-    if (!isFullscreen) {
-      if (containerRef.current?.requestFullscreen) {
-        containerRef.current.requestFullscreen().catch(() => {
-          setIsFullscreen(true);
-        });
-      } else {
-        setIsFullscreen(true);
-      }
-    } else {
-      if (document.fullscreenElement && document.exitFullscreen) {
-        document.exitFullscreen().catch(() => {
-          setIsFullscreen(false);
-        });
-      } else {
-        setIsFullscreen(false);
+  useEffect(() => {
+    if (sceneRef.current) {
+      const helper = sceneRef.current.getObjectByName('geometricAxesHelper');
+      if (helper) {
+        helper.visible = showAxesHelper;
       }
     }
-  };
+  }, [showAxesHelper]);
 
-  useEffect(() => {
-    const handleFsChange = () => {
-      const isFs = !!document.fullscreenElement;
-      setIsFullscreen(isFs);
+  const toggleFullscreen = () => {
+    setIsFullscreen((prev) => {
+      const next = !prev;
       setTimeout(() => {
         if (rendererRef.current && cameraRef.current && mountRef.current) {
           const w = mountRef.current.clientWidth || window.innerWidth;
@@ -185,11 +174,34 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
           cameraRef.current.updateProjectionMatrix();
           rendererRef.current.setSize(w, h);
         }
-      }, 120);
+        window.dispatchEvent(new Event('resize'));
+      }, 100);
+      return next;
+    });
+  };
+
+  // Keyboard shortcut (Escape) to exit 3D model fullscreen independently without touching browser/system fullscreen
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isFullscreen) {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsFullscreen(false);
+        setTimeout(() => {
+          if (rendererRef.current && cameraRef.current && mountRef.current) {
+            const w = mountRef.current.clientWidth || window.innerWidth;
+            const h = mountRef.current.clientHeight || window.innerHeight;
+            cameraRef.current.aspect = w / h;
+            cameraRef.current.updateProjectionMatrix();
+            rendererRef.current.setSize(w, h);
+          }
+          window.dispatchEvent(new Event('resize'));
+        }, 100);
+      }
     };
-    document.addEventListener('fullscreenchange', handleFsChange);
-    return () => document.removeEventListener('fullscreenchange', handleFsChange);
-  }, []);
+    window.addEventListener('keydown', handleKeyDown, true);
+    return () => window.removeEventListener('keydown', handleKeyDown, true);
+  }, [isFullscreen]);
 
   // Load and sync persisted unit finishes per unitCode
   useEffect(() => {
@@ -206,11 +218,16 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
       setRoofType(initial.roofType || 'flat');
       setShowFurniture(typeof initial.showFurniture === 'boolean' ? initial.showFurniture : true);
       setShowWindows(typeof initial.showWindows === 'boolean' ? initial.showWindows : true);
-      setShowTrees(typeof initial.showTrees === 'boolean' ? initial.showTrees : true);
+      setShowTrees(typeof initial.showTrees === 'boolean' ? initial.showTrees : false);
       setInteriorLightIntensity(typeof initial.interiorLightIntensity === 'number' ? initial.interiorLightIntensity : 3.5);
       setExteriorLightIntensity(typeof initial.exteriorLightIntensity === 'number' ? initial.exteriorLightIntensity : 3.5);
       if (initial.customElements && Array.isArray(initial.customElements)) {
-        setCustomElements(initial.customElements);
+        const cleaned = initial.customElements.filter(
+          (elem: CustomSiteElement) =>
+            !elem.id.startsWith('starter_light_') &&
+            !elem.id.startsWith('starter_garden_')
+        );
+        setCustomElements(cleaned);
       }
     } else {
       // Revert to unit default features if no custom finishing exists for this specific unit
@@ -218,7 +235,7 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
       setRoofType('flat');
       setShowFurniture(true);
       setShowWindows(true);
-      setShowTrees(true);
+      setShowTrees(false);
       setInteriorLightIntensity(3.5);
       setExteriorLightIntensity(3.5);
     }
@@ -288,75 +305,41 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
   const depth = widthM ? Math.min(25, Math.max(3, widthM * 0.5)) : Math.min(14, Math.max(4.5, 5.5 * baseScale));
   const storyHeight = heightM ? heightM : (isCaravan ? 2.6 : 3.2);
 
-  // Initialize default starter site elements if none exist for this unit
+  // Initialize site elements without automatically injecting starter light poles or trees
   useEffect(() => {
     const savedCustom = localStorage.getItem(`unit_elements_${unitCode}`);
     if (savedCustom) {
       try {
         const parsed = JSON.parse(savedCustom);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setCustomElements(parsed);
+        if (Array.isArray(parsed)) {
+          // Remove any automatic starter light poles or trees/gardens that were saved previously
+          const cleaned = parsed.filter(
+            (elem: CustomSiteElement) =>
+              !elem.id.startsWith('starter_light_') &&
+              !elem.id.startsWith('starter_garden_')
+          );
+          setCustomElements(cleaned);
+          if (cleaned.length !== parsed.length) {
+            safeSetItem(`unit_elements_${unitCode}`, cleaned);
+          }
           return;
         }
       } catch (e) {}
     }
 
-    if (designFinishing?.customElements && designFinishing.customElements.length > 0) {
-      setCustomElements(designFinishing.customElements);
+    if (designFinishing?.customElements && Array.isArray(designFinishing.customElements)) {
+      const cleaned = designFinishing.customElements.filter(
+        (elem: CustomSiteElement) =>
+          !elem.id.startsWith('starter_light_') &&
+          !elem.id.startsWith('starter_garden_')
+      );
+      setCustomElements(cleaned);
       return;
     }
 
-    // Default daytime starter elements tailored to building proportions
-    const starterSet: CustomSiteElement[] = [
-      {
-        id: 'starter_helipad_' + unitCode,
-        type: 'helipad',
-        name: 'مهبط طائرات عامودية فوق السطح',
-        position: { x: 0, y: floorsCount * storyHeight, z: 0 },
-        rotationY: 0,
-        scale: { x: 1, y: 1, z: 1 },
-        mountTarget: 'roof',
-      },
-      {
-        id: 'starter_fountain_' + unitCode,
-        type: 'fountain',
-        name: 'نافورة الساحة الخارجية',
-        position: { x: 0, y: 0, z: depth / 2 + 5.5 },
-        rotationY: 0,
-        scale: { x: 1, y: 1, z: 1 },
-        mountTarget: 'ground',
-      },
-      {
-        id: 'starter_garden_' + unitCode,
-        type: 'garden',
-        name: 'حديقة خضراء واستراحة',
-        position: { x: width / 2 + 6.5, y: 0, z: depth / 2 + 2 },
-        rotationY: 0,
-        scale: { x: 1, y: 1, z: 1 },
-        mountTarget: 'ground',
-      },
-      {
-        id: 'starter_street_' + unitCode,
-        type: 'street',
-        name: 'طريق وصول أسفلتي للموقع',
-        position: { x: 0, y: 0, z: depth / 2 + 11.5 },
-        rotationY: 90,
-        scale: { x: 1, y: 1, z: 1 },
-        mountTarget: 'ground',
-      },
-      {
-        id: 'starter_light_' + unitCode,
-        type: 'light_pole',
-        name: 'عمود إنارة الساحة الخارجية',
-        position: { x: width / 2 + 2.5, y: 0, z: depth / 2 + 6 },
-        rotationY: 45,
-        scale: { x: 1, y: 1, z: 1 },
-        mountTarget: 'ground',
-      },
-    ];
-    setCustomElements(starterSet);
-    safeSetItem(`unit_elements_${unitCode}`, starterSet);
-  }, [unitCode]);
+    // Do not automatically inject elements to units
+    setCustomElements([]);
+  }, [unitCode, designFinishing]);
 
   const handleAddSiteElement = (type: CustomSiteElementType, options?: { mountTarget?: 'ground' | 'roof' | 'wall'; position?: { x: number; y: number; z: number } }) => {
     const def = SITE_ELEMENT_DEFINITIONS.find((d) => d.type === type);
@@ -427,6 +410,102 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
       posX = width / 2 + 0.2;
       posY = 0;
       posZ = 0;
+    } else if (type === 'sidewalk_concrete' || type === 'sidewalk_interlock' || type === 'sidewalk_kerbstone') {
+      posX = 0;
+      posY = 0;
+      posZ = depth / 2 + 3.0;
+    } else if (type === 'walkway_covered') {
+      posX = 0;
+      posY = 0;
+      posZ = depth / 2 + 4.5;
+    } else if (type === 'ramp_accessible') {
+      posX = 2.5;
+      posY = 0;
+      posZ = depth / 2 + 1.2;
+    } else if (type === 'flagpole_single') {
+      posX = -3.5;
+      posY = 0;
+      posZ = depth / 2 + 4.5;
+    } else if (type === 'flagpole_triple') {
+      posX = 0;
+      posY = 0;
+      posZ = depth / 2 + 5.5;
+    } else if (type === 'flagpole_wall') {
+      posX = -1.5;
+      posY = storyHeight * 0.8;
+      posZ = depth / 2;
+    } else if (type === 'sign_monument') {
+      posX = 4.5;
+      posY = 0;
+      posZ = depth / 2 + 5.5;
+    } else if (type === 'sign_wayfinding') {
+      posX = width / 2 + 2;
+      posY = 0;
+      posZ = depth / 2 + 3;
+    } else if (type === 'sign_safety_hse') {
+      posX = -width / 2 - 2;
+      posY = 0;
+      posZ = depth / 2 + 3;
+    } else if (type === 'sign_digital_led') {
+      posX = width / 2 + 3.5;
+      posY = 0;
+      posZ = depth / 2 + 7.5;
+    } else if (type === 'sign_assembly_point') {
+      posX = -width / 2 - 5.5;
+      posY = 0;
+      posZ = depth / 2 + 6.5;
+    } else if (type === 'generator_diesel') {
+      posX = -width / 2 - 5.5;
+      posY = 0;
+      posZ = -depth / 2 - 2;
+    } else if (type === 'fuel_tank') {
+      posX = -width / 2 - 8.5;
+      posY = 0;
+      posZ = -depth / 2 - 4;
+    } else if (type === 'transformer_substation') {
+      posX = width / 2 + 5.5;
+      posY = 0;
+      posZ = -depth / 2 - 2;
+    } else if (type === 'hvac_chiller') {
+      posX = -2.5;
+      posY = roofTopY;
+      posZ = -2.0;
+    } else if (type === 'water_tank_roof') {
+      posX = 2.5;
+      posY = roofTopY;
+      posZ = -2.0;
+    } else if (type === 'water_reservoir_ground') {
+      posX = -width / 2 - 5.5;
+      posY = 0;
+      posZ = 3.0;
+    } else if (type === 'telecom_tower') {
+      posX = width / 2 + 8.5;
+      posY = 0;
+      posZ = -depth / 2 - 5.0;
+    } else if (type === 'satellite_dish') {
+      posX = 0;
+      posY = mount === 'roof' ? roofTopY : 0;
+      posZ = mount === 'roof' ? 2.5 : depth / 2 + 7.5;
+    } else if (type === 'cctv_pole') {
+      posX = width / 2 + 3.0;
+      posY = 0;
+      posZ = depth / 2 + 4.0;
+    } else if (type === 'security_barrier_jersey') {
+      posX = 0;
+      posY = 0;
+      posZ = depth / 2 + 8.5;
+    } else if (type === 'security_boom_gate') {
+      posX = 3.0;
+      posY = 0;
+      posZ = depth / 2 + 8.5;
+    } else if (type === 'fire_pump_station') {
+      posX = width / 2 + 6.0;
+      posY = 0;
+      posZ = 2.5;
+    } else if (type === 'floodlight_tower') {
+      posX = -width / 2 - 7.0;
+      posY = 0;
+      posZ = depth / 2 + 8.5;
     }
 
     // Override with custom dropped coordinates if specified
@@ -757,8 +836,8 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
     // 5. Dynamic Lighting System
     setupLights(scene, isNightMode, theme, exteriorLightIntensity);
 
-    // 6. Ground Pad, Grid, and Peripheral Environment (with night floodlights if enabled)
-    setupEnvironment(scene, width, depth, showTrees, isNightMode, isNightLightsOn, theme, exteriorLightIntensity);
+    // 6. Ground Pad, Grid, and Peripheral Environment (with night floodlights and geometric axes if enabled)
+    setupEnvironment(scene, width, depth, showTrees, isNightMode, isNightLightsOn, theme, exteriorLightIntensity, showAxesHelper);
 
     // 7. Main Building Architecture Group
     const buildingGroup = new THREE.Group();
@@ -1409,11 +1488,19 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
   };
 
   return (
-    <div className="space-y-3">
-      {/* 3D Control Bar - Positioned outside above the 3D canvas */}
-      <div className={`p-3 rounded-2xl border shadow-lg flex flex-wrap items-center justify-between gap-3 text-xs transition-colors ${
-        isNightMode ? 'bg-slate-900 border-slate-800 text-slate-300' : 'bg-white border-slate-200 text-slate-800'
-      }`}>
+    <div
+      ref={containerRef}
+      className={`transition-all duration-300 ${
+        isFullscreen
+          ? `fixed inset-0 z-50 w-screen h-screen ${isNightMode ? 'bg-slate-950' : 'bg-slate-100'} flex flex-col p-2 space-y-2 overflow-hidden`
+          : 'space-y-3'
+      }`}
+    >
+      {/* 3D Control Bar - Positioned outside above the 3D canvas (hidden in drone mode to keep 3D view clean and unobstructed) */}
+      {!isDroneMode && (
+        <div className={`p-3 rounded-2xl border shadow-lg flex flex-wrap items-center justify-between gap-3 text-xs transition-colors ${
+          isNightMode ? 'bg-slate-900 border-slate-800 text-slate-300' : 'bg-white border-slate-200 text-slate-800'
+        }`}>
         {/* Camera Views Perspective Shortcuts */}
         <div className={`flex items-center gap-1 p-1 rounded-xl border transition-colors ${
           isNightMode ? 'bg-slate-950 border-slate-800' : 'bg-slate-100 border-slate-200'
@@ -1641,25 +1728,45 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
             </div>
           )}
 
-          {/* Site Elements Manager Modal Trigger */}
+          {/* Interactive Engineering Editor Trigger */}
           <button
-            onClick={() => setShowSiteElementsModal(true)}
-            className={`px-3 py-1.5 rounded-xl border font-bold transition flex items-center gap-1.5 cursor-pointer ${
-              showSiteElementsModal || customElements.length > 0
+            onClick={() => setShowEngineeringEditor(!showEngineeringEditor)}
+            className={`px-3 py-1.5 rounded-xl border font-bold transition flex items-center gap-1.5 cursor-pointer shadow-sm ${
+              showEngineeringEditor
+                ? 'bg-amber-500 text-slate-950 border-amber-400 font-extrabold ring-2 ring-amber-500/30'
+                : customElements.length > 0
                 ? 'bg-amber-500/20 text-amber-400 border-amber-500/40 hover:bg-amber-500/30'
                 : isNightMode
                 ? 'bg-slate-800 text-slate-300 border-slate-700 hover:text-white'
                 : 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200'
             }`}
-            title="إضافة وتعديل معالم ومرافق الموقع الخارجي (مهبط، نافورة، شارع، كراج، حدائق، أبواب، نوافذ، أعمدة، أدراج طوارئ)"
+            title="فتح لوحة المحرر الهندسي التفاعلي للموقع، المعدات، الأرصفة، الأعلام واللافتات"
           >
-            <Plus className="w-3.5 h-3.5 text-amber-500" />
-            <span>معالم الموقع الخارجي</span>
+            <Sliders className="w-3.5 h-3.5 text-amber-500" />
+            <span>المحرر الهندسي والمعدات</span>
             {customElements.length > 0 && (
-              <span className="px-1.5 py-0.2 rounded-full bg-amber-500 text-slate-950 text-[10px] font-mono font-black">
+              <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono font-black ${
+                showEngineeringEditor ? 'bg-slate-950 text-amber-400' : 'bg-amber-500 text-slate-950'
+              }`}>
                 {toArabicDigits(customElements.length)}
               </span>
             )}
+          </button>
+
+          {/* Site Elements Manager Modal Trigger */}
+          <button
+            onClick={() => setShowSiteElementsModal(true)}
+            className={`px-2.5 py-1.5 rounded-xl border font-bold transition flex items-center gap-1.5 cursor-pointer ${
+              showSiteElementsModal
+                ? 'bg-amber-500/20 text-amber-400 border-amber-500/40 hover:bg-amber-500/30'
+                : isNightMode
+                ? 'bg-slate-800 text-slate-300 border-slate-700 hover:text-white'
+                : 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200'
+            }`}
+            title="دليل وكتالوج معالم ومرافق الموقع والمعدات"
+          >
+            <Plus className="w-3.5 h-3.5 text-amber-500" />
+            <span className="hidden sm:inline">كتالوج المعالم</span>
           </button>
 
           {/* Cinematic Drone Mode Button */}
@@ -1691,6 +1798,38 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
             <span>تصوير درون سينمائي</span>
           </button>
 
+          {/* 3D Geometric Coordinate Axes (XYZ) Helper Toggle - Positioned in top bar above canvas */}
+          <button
+            onClick={() => setShowAxesHelper(!showAxesHelper)}
+            className={`px-3 py-1.5 rounded-xl border font-bold transition flex items-center gap-1.5 cursor-pointer ${
+              showAxesHelper
+                ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-md ring-2 ring-amber-400/40'
+                : isNightMode
+                ? 'bg-slate-800 text-slate-300 border-slate-700 hover:text-white'
+                : 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200'
+            }`}
+            title="إظهار / إخفاء المحور الهندسي ثلاثي الأبعاد (XYZ Axes)"
+          >
+            <Compass className="w-3.5 h-3.5 text-amber-500" />
+            <span>المحور الهندسي</span>
+          </button>
+
+          {/* Fullscreen Toggle Button */}
+          <button
+            onClick={toggleFullscreen}
+            className={`px-3 py-1.5 rounded-xl border font-bold transition flex items-center gap-1.5 cursor-pointer ${
+              isFullscreen
+                ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-md'
+                : isNightMode
+                ? 'bg-slate-800 text-slate-300 border-slate-700 hover:text-white'
+                : 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200'
+            }`}
+            title={isFullscreen ? 'الخروج من وضع ملء الشاشة' : 'ملء الشاشة بالكامل لعرض المجسم ثلاثي الأبعاد'}
+          >
+            {isFullscreen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5 text-amber-500" />}
+            <span>{isFullscreen ? 'تصغير' : 'ملء الشاشة'}</span>
+          </button>
+
           <button
             onClick={() => setShowSettingsPanel(!showSettingsPanel)}
             className={`px-3 py-1.5 rounded-xl border font-bold transition flex items-center gap-1.5 cursor-pointer ${
@@ -1707,12 +1846,20 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
           </button>
         </div>
       </div>
+      )}
 
       {/* 3D WebGL Canvas Viewport */}
       <div
-        className={`relative w-full h-[520px] rounded-2xl overflow-hidden border shadow-2xl flex flex-col select-none transition-colors ${
+        className={`relative w-full ${
+          isFullscreen ? 'flex-1 h-full rounded-none border-0' : 'h-[540px] rounded-2xl border'
+        } overflow-hidden shadow-2xl flex flex-col select-none transition-all duration-300 ${
           isNightMode ? 'bg-slate-950 border-slate-800' : 'bg-slate-100 border-slate-300'
         }`}
+        onDragOver={(e) => {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'copy';
+        }}
+        onDrop={handleDropOnCanvas}
       >
         {/* 3D WebGL Canvas Host Container - Single Ref & Full Mouse Interaction */}
         <div
@@ -2009,9 +2156,37 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
           onToggleGrid={() => setShowDroneGrid(!showDroneGrid)}
           showCinematicBars={showCinematicBars}
           onToggleCinematicBars={() => setShowCinematicBars(!showCinematicBars)}
+          isFullscreen={isFullscreen}
+          onToggleFullscreen={toggleFullscreen}
+          unitCode={unitCode}
           onManualMove={handleDroneManualMove}
+          isNightMode={isNightMode}
         />
       )}
+
+      {/* Interactive Engineering Editor - Draggable & Configurable Site Elements */}
+      <InteractiveEngineeringEditor
+        isOpen={showEngineeringEditor}
+        onToggleOpen={() => setShowEngineeringEditor(!showEngineeringEditor)}
+        elements={customElements}
+        selectedElementId={selectedElementId}
+        onSelectElement={(id) => {
+          setSelectedElementId(id);
+          selectedElementIdRef.current = id;
+        }}
+        onAddElement={handleAddSiteElement}
+        onUpdateElement={handleUpdateElement}
+        onDeleteElement={handleDeleteElement}
+        onDuplicateElement={handleDuplicateElement}
+        onSaveToDatabase={handleSaveToDatabase}
+        isSavingDatabase={isSavingDb}
+        lastSavedTime={lastSavedTime}
+        roofHeight={floorsCount * storyHeight}
+        buildingWidth={width}
+        buildingDepth={depth}
+        isNightMode={isNightMode}
+        theme={theme}
+      />
 
       {/* Site Elements Manager & Catalog Modal */}
       <SiteElementsManagerModal
@@ -2063,7 +2238,7 @@ function setupLights(scene: THREE.Scene, isNightMode: boolean, theme: string, ex
   scene.add(fillLight);
 }
 
-// --- HELPER FUNCTION: SETUP ENVIRONMENT (Grid, Pavement, Trees, Floodlights) ---
+// --- HELPER FUNCTION: SETUP ENVIRONMENT (Grid, Pavement, Trees, Floodlights, Geometric Axes) ---
 function setupEnvironment(
   scene: THREE.Scene,
   width: number,
@@ -2072,11 +2247,19 @@ function setupEnvironment(
   isNightMode: boolean,
   isNightLightsOn: boolean,
   theme: string,
-  exteriorIntensity: number = 3.5
+  exteriorIntensity: number = 3.5,
+  showAxes: boolean = false
 ) {
   const gridHelper = new THREE.GridHelper(100, 40, 0x3b82f6, 0x334155);
   gridHelper.position.y = -0.01;
   scene.add(gridHelper);
+
+  // Geometric Coordinate Axes (XYZ Axes Helper)
+  const axesHelper = new THREE.AxesHelper(14);
+  axesHelper.name = 'geometricAxesHelper';
+  axesHelper.position.set(-width / 2 - 1.5, 0.05, -depth / 2 - 1.5);
+  axesHelper.visible = showAxes;
+  scene.add(axesHelper);
 
   const padW = width + 10;
   const padD = depth + 10;
@@ -2090,59 +2273,6 @@ function setupEnvironment(
   padMesh.receiveShadow = true;
   padMesh.userData = { isGroundPad: true };
   scene.add(padMesh);
-
-  const treePositions = [
-    [-padW / 2 - 3, -padD / 2 - 3],
-    [padW / 2 + 3, -padD / 2 - 3],
-    [-padW / 2 - 3, padD / 2 + 3],
-    [padW / 2 + 3, padD / 2 + 3],
-  ];
-
-  treePositions.forEach(([x, z]) => {
-    const tree = createTreeMesh();
-    tree.position.set(x, 0, z);
-    tree.userData = { isTree: true };
-    tree.visible = showTrees;
-    scene.add(tree);
-  });
-
-  // Outdoor Perimeter Floodlights for Night Lighting Mode or boosted exterior
-  const postPositions = [
-    [-padW / 2 + 1.2, -padD / 2 + 1.2],
-    [padW / 2 - 1.2, -padD / 2 + 1.2],
-    [-padW / 2 + 1.2, padD / 2 - 1.2],
-    [padW / 2 - 1.2, padD / 2 - 1.2],
-  ];
-
-  const lightPower = 2.8 * (exteriorIntensity / 2.5);
-
-  postPositions.forEach(([x, z]) => {
-    // Lamp Post Pole
-    const poleGeo = new THREE.CylinderGeometry(0.08, 0.12, 4.2, 12);
-    const poleMat = new THREE.MeshStandardMaterial({ color: 0x334155, metalness: 0.8 });
-    const pole = new THREE.Mesh(poleGeo, poleMat);
-    pole.position.set(x, 2.1, z);
-    scene.add(pole);
-
-    // Lamp Head Fixture
-    const headGeo = new THREE.BoxGeometry(0.6, 0.2, 0.6);
-    const headMat = new THREE.MeshStandardMaterial({
-      color: 0xfef08a,
-      emissive: 0xfef08a,
-      emissiveIntensity: Math.min(4.0, 1.2 * (exteriorIntensity / 2.5)),
-    });
-    const head = new THREE.Mesh(headGeo, headMat);
-    head.position.set(x, 4.2, z);
-    scene.add(head);
-
-    // Floodlight Source Illuminating Ground & Building Outer Perimeter
-    const lampLight = new THREE.PointLight(0xfffbeb, lightPower, 30);
-    lampLight.position.set(x, 4.1, z);
-    lampLight.castShadow = true;
-    lampLight.userData = { isPerimeterFloodlight: true };
-    lampLight.visible = isNightMode && isNightLightsOn;
-    scene.add(lampLight);
-  });
 }
 
 // --- REUSABLE CACHES FOR GEOMETRY & MATERIAL EFFICIENCY ---

@@ -4,7 +4,6 @@ import {
   Download,
   ZoomIn,
   ZoomOut,
-  RotateCw,
   Search,
   Building2,
   Network,
@@ -12,11 +11,33 @@ import {
   Maximize2,
   Loader2,
   Check,
+  FileText,
+  Sparkles,
+  ChevronUp,
+  ChevronDown,
 } from 'lucide-react';
 import html2canvas from 'html2canvas-pro';
 import { OrgEntity, SystemBranding, UnitAsset } from '../types';
 import { toArabicDigits } from '../utils/arabicUtils';
 import { ORG_LEVEL_LABELS } from '../utils/orgExcelUtils';
+
+export type PaperFormat = 'A4_landscape' | 'A4_portrait' | 'A3_landscape' | 'A3_portrait';
+
+interface PaperFormatConfig {
+  id: PaperFormat;
+  label: string;
+  size: 'A4' | 'A3';
+  orientation: 'landscape' | 'portrait';
+  orientationLabel: string;
+  desc: string;
+}
+
+const PAPER_FORMAT_OPTIONS: PaperFormatConfig[] = [
+  { id: 'A4_landscape', label: 'A4 أفقي', size: 'A4', orientation: 'landscape', orientationLabel: 'أفقي', desc: 'مناسب للطباعة السريعة بمقاس A4 أفقي' },
+  { id: 'A4_portrait', label: 'A4 عمودي', size: 'A4', orientation: 'portrait', orientationLabel: 'عمودي', desc: 'تنسيق عمودي مدمج لمقاس A4 القياسي' },
+  { id: 'A3_landscape', label: 'A3 أفقي', size: 'A3', orientation: 'landscape', orientationLabel: 'أفقي', desc: 'التنسيق الهندسي الشامل - عرض متكامل للهيئات' },
+  { id: 'A3_portrait', label: 'A3 عمودي', size: 'A3', orientation: 'portrait', orientationLabel: 'عمودي', desc: 'تنسيق لوحي عمودي رحب لمقاس A3' },
+];
 
 interface OrgChartModalProps {
   isOpen: boolean;
@@ -41,12 +62,14 @@ export const OrgChartModal: React.FC<OrgChartModalProps> = ({
   onSaveSelection,
 }) => {
   const [zoomLevel, setZoomLevel] = useState<number>(0.85);
-  const [rotationAngle, setRotationAngle] = useState<number>(0);
+  const [paperFormat, setPaperFormat] = useState<PaperFormat>('A3_landscape');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [isExporting, setIsExporting] = useState<boolean>(false);
   const [exportToast, setExportToast] = useState<string | null>(null);
   const [selectedEntity, setSelectedEntity] = useState<OrgEntity | null>(null);
   const [selectedOccupantNames, setSelectedOccupantNames] = useState<string[]>(initialSelectedEntities || []);
+  const [isToolbarOpen, setIsToolbarOpen] = useState<boolean>(true);
+  const [chartContentHeight, setChartContentHeight] = useState<number>(2200);
 
   const chartRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -263,46 +286,107 @@ export const OrgChartModal: React.FC<OrgChartModalProps> = ({
     };
   }, [orgEntities]);
 
-  // Dynamic canvas width calculation:
-  // Automatically scales based on the number of commissions to prevent horizontal overflow or clipping
-  const chartContentWidth = useMemo(() => {
-    const count = commissions.length;
-    if (count <= 0) return 1400;
-    const perCol = count > 9 ? 165 : 185;
-    return Math.max(1400, count * perCol + 100);
-  }, [commissions.length]);
+  // Dynamic paper layout and width calculation based on selected Paper Format
+  const { chartPaperWidth, commissionGridCols, isSingleRowLandscape } = useMemo(() => {
+    switch (paperFormat) {
+      case 'A3_landscape': {
+        const count = commissions.length;
+        const perCol = count > 9 ? 165 : 185;
+        const w = Math.max(1680, count * perCol + 120);
+        return {
+          chartPaperWidth: w,
+          commissionGridCols: Math.max(count, 1),
+          isSingleRowLandscape: true,
+        };
+      }
+      case 'A3_portrait':
+        return {
+          chartPaperWidth: 1280,
+          commissionGridCols: 4,
+          isSingleRowLandscape: false,
+        };
+      case 'A4_landscape':
+        return {
+          chartPaperWidth: 1440,
+          commissionGridCols: 5,
+          isSingleRowLandscape: false,
+        };
+      case 'A4_portrait':
+        return {
+          chartPaperWidth: 1020,
+          commissionGridCols: 3,
+          isSingleRowLandscape: false,
+        };
+      default:
+        return {
+          chartPaperWidth: 1680,
+          commissionGridCols: commissions.length,
+          isSingleRowLandscape: true,
+        };
+    }
+  }, [paperFormat, commissions.length]);
 
-  // Auto-fit zoom calculation so the entire chart comfortably fits inside the viewport without cut-offs
+  const currentPaperConfig = useMemo(() => {
+    return PAPER_FORMAT_OPTIONS.find((p) => p.id === paperFormat) || PAPER_FORMAT_OPTIONS[2];
+  }, [paperFormat]);
+
+  const isLandscape = currentPaperConfig.orientation === 'landscape';
+
+  // Track chart content height for natural scrolling on pure white canvas
+  useEffect(() => {
+    if (!chartRef.current) return;
+    const updateHeight = () => {
+      if (chartRef.current) {
+        setChartContentHeight(chartRef.current.offsetHeight);
+      }
+    };
+    updateHeight();
+    const observer = new ResizeObserver(updateHeight);
+    observer.observe(chartRef.current);
+    return () => observer.disconnect();
+  }, [chartPaperWidth, paperFormat, orgEntities]);
+
+  // Auto-fit zoom calculation so the entire chart comfortably fits inside the viewport without horizontal cut-offs
   const calculateAutoFitZoom = useCallback(() => {
     if (!containerRef.current) return 0.8;
-    const containerWidth = containerRef.current.clientWidth - 48;
+    const containerWidth = containerRef.current.clientWidth;
     if (containerWidth <= 0) return 0.8;
-    const fit = containerWidth / chartContentWidth;
-    return Math.min(1.0, Math.max(0.3, parseFloat(fit.toFixed(2))));
-  }, [chartContentWidth]);
+    const availableWidth = Math.max(280, containerWidth - 32);
+    const fit = parseFloat((availableWidth / chartPaperWidth).toFixed(3));
+    return Math.max(0.15, Math.min(1.4, fit));
+  }, [chartPaperWidth]);
 
-  // Auto-fit zoom when modal opens or entity count changes
+  const handleAutoFit = useCallback(() => {
+    const fit = calculateAutoFitZoom();
+    setZoomLevel(fit);
+  }, [calculateAutoFitZoom]);
+
+  // Auto-fit zoom when modal opens or paper width/format changes
   useEffect(() => {
     if (isOpen) {
-      const timer = setTimeout(() => {
-        const fit = calculateAutoFitZoom();
-        setZoomLevel(fit);
-      }, 120);
-      return () => clearTimeout(timer);
+      const t1 = setTimeout(() => {
+        handleAutoFit();
+      }, 50);
+      const t2 = setTimeout(() => {
+        handleAutoFit();
+      }, 250);
+      return () => {
+        clearTimeout(t1);
+        clearTimeout(t2);
+      };
     }
-  }, [isOpen, chartContentWidth, calculateAutoFitZoom]);
+  }, [isOpen, chartPaperWidth, paperFormat, handleAutoFit]);
 
   // Handle window resize for dynamic fitting
   useEffect(() => {
     const handleResize = () => {
       if (isOpen && containerRef.current) {
-        const fit = calculateAutoFitZoom();
-        setZoomLevel((prev) => (prev <= fit ? fit : prev));
+        handleAutoFit();
       }
     };
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, [isOpen, calculateAutoFitZoom]);
+  }, [isOpen, handleAutoFit]);
 
   // Filter matched IDs for search highlighting
   const matchingIds = useMemo(() => {
@@ -311,9 +395,9 @@ export const OrgChartModal: React.FC<OrgChartModalProps> = ({
     const ids = new Set<string>();
     orgEntities.forEach((e) => {
       if (
-        e.nameAr.toLowerCase().includes(query) ||
+        (e.nameAr && e.nameAr.toLowerCase().includes(query)) ||
         (e.nameEn && e.nameEn.toLowerCase().includes(query)) ||
-        e.code.toLowerCase().includes(query)
+        (e.code && e.code.toLowerCase().includes(query))
       ) {
         ids.add(e.id);
       }
@@ -321,17 +405,36 @@ export const OrgChartModal: React.FC<OrgChartModalProps> = ({
     return ids;
   }, [orgEntities, searchQuery]);
 
+  // Auto-scroll to first matching entity when search query changes
+  useEffect(() => {
+    if (searchQuery.trim() && matchingIds.size > 0) {
+      const timer = setTimeout(() => {
+        const highlightedEl = document.querySelector('.entity-search-pulsing-glow');
+        if (highlightedEl) {
+          highlightedEl.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+        }
+      }, 150);
+      return () => clearTimeout(timer);
+    }
+  }, [searchQuery, matchingIds]);
+
   // Unit count helper
   const getEntityUnitCount = (entityId: string) => {
     return units.filter((u) => u.orgEntityId === entityId).length;
   };
 
-  // Zoom & Rotation handlers
+  // Zoom handlers
   const handleZoomIn = () => setZoomLevel((prev) => Math.min(parseFloat((prev + 0.1).toFixed(2)), 1.8));
-  const handleZoomOut = () => setZoomLevel((prev) => Math.max(parseFloat((prev - 0.1).toFixed(2)), 0.3));
+  const handleZoomOut = () => setZoomLevel((prev) => Math.max(parseFloat((prev - 0.1).toFixed(2)), 0.2));
   const handleResetZoom = () => setZoomLevel(1.0);
-  const handleAutoFit = () => setZoomLevel(calculateAutoFitZoom());
-  const handleRotate = () => setRotationAngle((prev) => (prev + 90) % 360);
+
+  // Format & orientation change handler with automatic screen fitting
+  const handleFormatChange = (newFormat: PaperFormat) => {
+    setPaperFormat(newFormat);
+    setTimeout(() => {
+      handleAutoFit();
+    }, 50);
+  };
 
   // Export to Image (PNG) using html2canvas-pro with unified Arabic font rendering
   const handleExportImage = async () => {
@@ -344,10 +447,16 @@ export const OrgChartModal: React.FC<OrgChartModalProps> = ({
       const el = chartRef.current;
       const origTransform = el.style.transform;
       const origTransition = el.style.transition;
+      const origPosition = el.style.position;
+      const origLeft = el.style.left;
+      const origMarginLeft = el.style.marginLeft;
 
       // Reset transform temporarily for sharp 1:1 canvas capture
       el.style.transform = 'none';
       el.style.transition = 'none';
+      el.style.position = 'static';
+      el.style.left = 'auto';
+      el.style.marginLeft = '0';
 
       await new Promise((resolve) => setTimeout(resolve, 60));
 
@@ -363,6 +472,9 @@ export const OrgChartModal: React.FC<OrgChartModalProps> = ({
             clonedEl.style.transform = 'none';
             clonedEl.style.transition = 'none';
             clonedEl.style.boxShadow = 'none';
+            clonedEl.style.position = 'static';
+            clonedEl.style.left = 'auto';
+            clonedEl.style.marginLeft = '0';
             if (clonedEl.parentElement) {
               clonedEl.parentElement.style.width = 'auto';
               clonedEl.parentElement.style.minWidth = '0';
@@ -389,6 +501,9 @@ export const OrgChartModal: React.FC<OrgChartModalProps> = ({
       // Restore zoom & rotation immediately
       el.style.transform = origTransform;
       el.style.transition = origTransition;
+      el.style.position = origPosition;
+      el.style.left = origLeft;
+      el.style.marginLeft = origMarginLeft;
 
       // Download using Blob with fallback
       const timestamp = new Date().toISOString().slice(0, 10);
@@ -434,7 +549,10 @@ export const OrgChartModal: React.FC<OrgChartModalProps> = ({
     } catch (err) {
       console.error('Export image error:', err);
       if (chartRef.current) {
-        chartRef.current.style.transform = `scale(${zoomLevel}) rotate(${rotationAngle}deg)`;
+        chartRef.current.style.transform = `scale(${zoomLevel})`;
+        chartRef.current.style.position = 'absolute';
+        chartRef.current.style.left = '50%';
+        chartRef.current.style.marginLeft = `-${chartPaperWidth / 2}px`;
       }
       setExportToast('حدث خطأ أثناء تصدير الصورة، يرجى المحاولة لاحقاً');
       setTimeout(() => setExportToast(null), 4000);
@@ -455,12 +573,12 @@ export const OrgChartModal: React.FC<OrgChartModalProps> = ({
       className="fixed inset-0 z-50 flex flex-col bg-slate-950/80 backdrop-blur-md animate-fade-in print:p-0 print:m-0 print:bg-white print:fixed-none"
       dir="rtl"
     >
-      {/* Printable CSS Injection */}
+      {/* Printable CSS Injection & Search Pulse Glow Animation */}
       <style>{`
         @media print {
           @page {
-            size: A3 landscape;
-            margin: 6mm;
+            size: ${paperFormat === 'A4_landscape' ? 'A4 landscape' : paperFormat === 'A4_portrait' ? 'A4 portrait' : paperFormat === 'A3_portrait' ? 'A3 portrait' : 'A3 landscape'};
+            margin: ${paperFormat.startsWith('A4') ? '5mm' : '7mm'};
           }
           html, body {
             background: #ffffff !important;
@@ -495,181 +613,246 @@ export const OrgChartModal: React.FC<OrgChartModalProps> = ({
             position: static !important;
             width: 100% !important;
             min-width: 0 !important;
+            max-width: 100% !important;
             transform: none !important;
             box-shadow: none !important;
             border: none !important;
             background: #ffffff !important;
             color: #000000 !important;
             margin: 0 auto !important;
-            padding: 0 !important;
+            padding: 2mm !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
           }
         }
+
+        @keyframes pulseGlowSearch {
+          0%, 100% {
+            box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.85), 0 0 22px rgba(245, 158, 11, 0.7);
+            border-color: #d97706 !important;
+            background-color: #fef08a !important;
+            transform: scale(1.05);
+          }
+          50% {
+            box-shadow: 0 0 0 10px rgba(245, 158, 11, 0), 0 0 38px rgba(245, 158, 11, 1);
+            border-color: #b45309 !important;
+            background-color: #fde047 !important;
+            transform: scale(1.09);
+          }
+        }
+        .entity-search-pulsing-glow {
+          animation: pulseGlowSearch 1.3s cubic-bezier(0.4, 0, 0.6, 1) infinite !important;
+          color: #0f172a !important;
+          z-index: 40 !important;
+          position: relative !important;
+          border-width: 2px !important;
+        }
       `}</style>
 
       {/* Top Modal Controls Header (Hidden during Print) */}
-      <div className="non-printable px-6 py-3.5 bg-slate-900 border-b border-slate-800 text-slate-100 flex items-center justify-between gap-4 shrink-0 shadow-lg">
-        {/* Right Section: Title & Ordered Controls */}
-        <div className="flex items-center gap-3.5 flex-wrap">
-          {/* Title & Sync Status */}
-          <div className="flex items-center gap-2.5 pl-2 border-l border-slate-800">
-            <div className="p-2 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20">
-              <Network className="w-5 h-5" />
+      <div className="non-printable bg-slate-900 border-b border-slate-800 text-slate-100 shrink-0 shadow-md">
+        {/* Row 1: Main Header (Title + Collapsible Toolbar Toggle + Exit Button on Top-Left Corner) */}
+        <div className="px-4 py-2 flex items-center justify-between gap-3">
+          {/* Right Section (in RTL): Icon, Title, Selection count, Toolbar Toggle */}
+          <div className="flex items-center gap-2.5">
+            <div className="p-1.5 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20">
+              <Network className="w-4 h-4" />
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-base font-black text-white">
-                  {selectionMode ? 'الهيكل التنظيمي - اختيار الجهات الشاغلة' : 'الهيكل التنظيمي المعتمد'}
-                </h2>
-                {selectionMode ? (
-                  <span className="flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                    <span>تم تحديد ({toArabicDigits(selectedOccupantNames.length)}) تشكيل</span>
-                  </span>
-                ) : (
-                  <span className="flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                    <span>محدث تلقائياً ({toArabicDigits(totalEntities)} تشكيل)</span>
-                  </span>
+            <h2 className="text-sm font-black text-white">
+              {selectionMode ? 'الهيكل التنظيمي - اختيار الجهات الشاغلة' : 'الهيكل التنظيمي المعتمد'}
+            </h2>
+
+            {selectionMode && (
+              <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                <span>تم تحديد ({toArabicDigits(selectedOccupantNames.length)}) تشكيل</span>
+              </span>
+            )}
+
+            {/* زر طي / فتح شريط أزرار التحكم */}
+            <button
+              type="button"
+              onClick={() => setIsToolbarOpen((prev) => !prev)}
+              className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-750 text-slate-200 border border-slate-700 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs ml-1"
+              title={isToolbarOpen ? 'طي شريط أزرار التحكم' : 'فتح شريط أزرار التحكم'}
+            >
+              {isToolbarOpen ? (
+                <>
+                  <ChevronUp className="w-3.5 h-3.5 text-amber-400" />
+                  <span>طي أزرار التحكم</span>
+                </>
+              ) : (
+                <>
+                  <ChevronDown className="w-3.5 h-3.5 text-amber-400" />
+                  <span>فتح أزرار التحكم</span>
+                </>
+              )}
+            </button>
+          </div>
+
+          {/* Left Section (in RTL -> Top-Left Corner): Close / Exit Button */}
+          <div className="flex items-center">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-rose-600 text-slate-300 hover:text-white transition cursor-pointer border border-slate-700 shadow-xs flex items-center gap-1.5 text-xs font-bold"
+              title="خروج من الهيكل التنظيمي (Esc)"
+            >
+              <X className="w-4 h-4" />
+              <span>خروج</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Row 2: Collapsible Controls Toolbar */}
+        {isToolbarOpen && (
+          <div className="px-4 py-1.5 bg-slate-950/70 border-t border-slate-800/80 flex items-center justify-between gap-2 flex-wrap text-xs">
+            {/* Search, Formats/Orientations, and Action Buttons */}
+            <div className="flex items-center gap-2 flex-wrap">
+              {/* Search Field */}
+              <div className="relative w-44 sm:w-56">
+                <Search className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-1.5 pointer-events-none" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="بحث عن هيئة، قسم، أو شعبة..."
+                  className="w-full pl-6 pr-8 py-1 rounded-lg bg-slate-800 border border-slate-700 text-[11px] text-slate-200 placeholder-slate-400 focus:outline-none focus:border-amber-500 transition"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="absolute left-2 top-1 text-slate-400 hover:text-slate-200 text-[10px] cursor-pointer"
+                    title="مسح البحث"
+                  >
+                    ✕
+                  </button>
                 )}
               </div>
-            </div>
-          </div>
 
-          {/* 1. حقل البحث (Search Field) */}
-          <div className="relative min-w-[220px]">
-            <Search className="w-4 h-4 text-slate-400 absolute right-3 top-2.5 pointer-events-none" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="بحث عن هيئة، قسم، أو شعبة..."
-              className="w-full pl-3 pr-9 py-1.5 rounded-xl bg-slate-800 border border-slate-700 text-xs text-slate-200 placeholder-slate-400 focus:outline-none focus:border-amber-500 transition"
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery('')}
-                className="absolute left-2.5 top-2 text-slate-400 hover:text-slate-200 text-xs"
-              >
-                ✕
-              </button>
-            )}
-          </div>
+              {/* Search Result Counter */}
+              {searchQuery.trim() && (
+                <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-bold flex items-center gap-1 shrink-0 animate-pulse">
+                  <Sparkles className="w-3 h-3 text-amber-400" />
+                  <span>
+                    {matchingIds.size > 0
+                      ? `(${toArabicDigits(matchingIds.size)}) نتيجة`
+                      : 'لا توجد نتائج'}
+                  </span>
+                </span>
+              )}
 
-          {/* Action Buttons: If selectionMode, hide export and show Save/Deselect */}
-          {selectionMode ? (
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => {
-                  if (onSaveSelection) {
-                    onSaveSelection(selectedOccupantNames);
-                  }
-                  onClose();
-                }}
-                className="px-4 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs transition flex items-center gap-1.5 cursor-pointer shadow-md shadow-emerald-950/40"
-                title="حفظ التشكيلات المحددة وتعيينها كجهات شاغلة للمنشأة"
-              >
-                <Check className="w-4 h-4 text-emerald-100" />
-                <span>حفظ التشكيلات المحددة ({toArabicDigits(selectedOccupantNames.length)})</span>
-              </button>
+              {/* خيارات مقاسات واتجاهات العرض (A4 أفقي - A4 عمودي - A3 أفقي - A3 عمودي) */}
+              <div className="flex items-center bg-slate-800 rounded-lg border border-slate-700 p-0.5" title="خيارات أبعاد واتجاهات العرض">
+                {PAPER_FORMAT_OPTIONS.map((opt) => {
+                  const isSelected = paperFormat === opt.id;
+                  return (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => handleFormatChange(opt.id)}
+                      className={`px-2 py-0.5 rounded text-[10px] font-bold transition cursor-pointer flex items-center gap-1 ${
+                        isSelected
+                          ? 'bg-amber-500 text-slate-950 shadow-xs font-black'
+                          : 'text-slate-300 hover:text-white hover:bg-slate-700'
+                      }`}
+                      title={opt.desc}
+                    >
+                      <FileText className="w-3 h-3" />
+                      <span>{opt.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
 
-              {selectedOccupantNames.length > 0 && (
+              {/* Selection Mode: Save & Cancel Buttons */}
+              {selectionMode ? (
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (onSaveSelection) {
+                        onSaveSelection(selectedOccupantNames);
+                      }
+                      onClose();
+                    }}
+                    className="px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-black text-[11px] transition flex items-center gap-1 cursor-pointer shadow-xs"
+                    title="حفظ التشكيلات المحددة وتعيينها كجهات شاغلة للمنشأة"
+                  >
+                    <Check className="w-3.5 h-3.5 text-emerald-100" />
+                    <span>حفظ التحديد ({toArabicDigits(selectedOccupantNames.length)})</span>
+                  </button>
+
+                  {selectedOccupantNames.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setSelectedOccupantNames([])}
+                      className="px-2 py-1 rounded-lg bg-slate-800 hover:bg-rose-500/20 text-slate-300 hover:text-rose-300 border border-slate-700 font-bold text-[10px] transition cursor-pointer"
+                      title="إلغاء تحديد كافة التشكيلات"
+                    >
+                      إلغاء التحديد
+                    </button>
+                  )}
+                </div>
+              ) : (
+                /* زر تصدير صورة (PNG) */
                 <button
                   type="button"
-                  onClick={() => setSelectedOccupantNames([])}
-                  className="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-rose-500/20 text-slate-300 hover:text-rose-300 border border-slate-700 font-bold text-xs transition cursor-pointer"
-                  title="إلغاء تحديد كافة التشكيلات"
+                  onClick={handleExportImage}
+                  disabled={isExporting}
+                  className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-750 disabled:opacity-50 text-slate-200 border border-slate-700 hover:border-slate-600 font-bold text-[11px] transition flex items-center gap-1 cursor-pointer shadow-xs"
+                  title="تصدير الهيكل التنظيمي كاملاً كصورة عالية الدقة PNG"
                 >
-                  إلغاء التحديد
+                  {isExporting ? (
+                    <Loader2 className="w-3.5 h-3.5 text-emerald-400 animate-spin" />
+                  ) : (
+                    <Download className="w-3.5 h-3.5 text-emerald-400" />
+                  )}
+                  <span>{isExporting ? 'جاري التصدير...' : 'تصدير صورة (PNG)'}</span>
                 </button>
               )}
             </div>
-          ) : (
-            /* زر تصدير صورة (PNG) */
-            <button
-              type="button"
-              onClick={handleExportImage}
-              disabled={isExporting}
-              className="px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-750 disabled:opacity-50 text-slate-200 border border-slate-700 hover:border-slate-600 font-bold text-xs transition flex items-center gap-2 cursor-pointer shadow-xs"
-              title="تصدير الهيكل التنظيمي كاملاً كصورة عالية الدقة PNG"
-            >
-              {isExporting ? (
-                <Loader2 className="w-4 h-4 text-emerald-400 animate-spin" />
-              ) : (
-                <Download className="w-4 h-4 text-emerald-400" />
-              )}
-              <span>{isExporting ? 'جاري التصدير...' : 'تصدير صورة (PNG)'}</span>
-            </button>
-          )}
 
-          {/* أزرار التحكم بالمقياس والتدوير (Zoom / احتواء الشاشة / التدوير 90 درجة / 100%) */}
-          <div className="flex items-center bg-slate-800 rounded-xl border border-slate-700 p-0.5">
-            <button
-              type="button"
-              onClick={handleZoomOut}
-              className="p-1.5 text-slate-300 hover:text-white transition cursor-pointer"
-              title="تصغير (-)"
-            >
-              <ZoomOut className="w-4 h-4" />
-            </button>
-            <span className="text-[11px] font-mono px-2 text-slate-300 min-w-[44px] text-center font-bold">
-              {Math.round(zoomLevel * 100)}%
-            </span>
-            <button
-              type="button"
-              onClick={handleZoomIn}
-              className="p-1.5 text-slate-300 hover:text-white transition cursor-pointer"
-              title="تكبير (+)"
-            >
-              <ZoomIn className="w-4 h-4" />
-            </button>
-            <button
-              type="button"
-              onClick={handleAutoFit}
-              className="px-2.5 py-1 text-slate-300 hover:text-amber-400 text-[11px] font-bold transition cursor-pointer flex items-center gap-1.5 border-r border-slate-700"
-              title="احتواء الهيكل التنظيمي تلقائياً ليلائم عرض الشاشة دون تجاوز"
-            >
-              <Maximize2 className="w-3.5 h-3.5 text-amber-400" />
-              <span className="hidden sm:inline">احتواء الشاشة</span>
-            </button>
-            {/* زر التدوير الفعلي بمقدار 90 درجة في كل نقرة */}
-            <button
-              type="button"
-              onClick={handleRotate}
-              className={`px-2.5 py-1 text-[11px] font-bold transition cursor-pointer flex items-center gap-1.5 border-r border-slate-700 ${
-                rotationAngle > 0
-                  ? 'bg-amber-500/20 text-amber-400'
-                  : 'text-slate-300 hover:text-amber-400'
-              }`}
-              title={`تدوير الهيكل التنظيمي 90 درجة مع عقارب الساعة (الزاوية الحالية: ${rotationAngle}°)`}
-            >
-              <RotateCw className="w-3.5 h-3.5 text-amber-400" />
-              <span>{rotationAngle > 0 ? `${rotationAngle}°` : 'تدوير'}</span>
-            </button>
-            {/* زر إعادة تعيين المقياس إلى 100% */}
-            <button
-              type="button"
-              onClick={handleResetZoom}
-              className="px-2 py-1 text-slate-400 hover:text-white transition cursor-pointer border-r border-slate-700 text-[11px] font-bold"
-              title="إعادة تعيين المقياس إلى 100%"
-            >
-              100%
-            </button>
+            {/* Scale Controls: Zoom Out, Zoom Display, Zoom In, Auto-fit, 100% */}
+            <div className="flex items-center bg-slate-800 rounded-lg border border-slate-700 p-0.5">
+              <button
+                type="button"
+                onClick={handleZoomOut}
+                className="p-1 text-slate-300 hover:text-white transition cursor-pointer"
+                title="تصغير (-)"
+              >
+                <ZoomOut className="w-3.5 h-3.5" />
+              </button>
+              <span className="text-[10px] font-mono px-1.5 text-slate-300 min-w-[40px] text-center font-bold">
+                {Math.round(zoomLevel * 100)}%
+              </span>
+              <button
+                type="button"
+                onClick={handleZoomIn}
+                className="p-1 text-slate-300 hover:text-white transition cursor-pointer"
+                title="تكبير (+)"
+              >
+                <ZoomIn className="w-3.5 h-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={handleAutoFit}
+                className="px-2 py-0.5 text-slate-300 hover:text-amber-400 text-[10px] font-bold transition cursor-pointer flex items-center gap-1 border-r border-slate-700"
+                title="احتواء الهيكل التنظيمي ليلائم عرض الشاشة بالكامل"
+              >
+                <Maximize2 className="w-3 h-3 text-amber-400" />
+                <span>احتواء الشاشة</span>
+              </button>
+              <button
+                type="button"
+                onClick={handleResetZoom}
+                className="px-1.5 py-0.5 text-slate-400 hover:text-white transition cursor-pointer border-r border-slate-700 text-[10px] font-bold"
+                title="إعادة تعيين المقياس إلى 100%"
+              >
+                100%
+              </button>
+            </div>
           </div>
-        </div>
-
-        {/* Left Section: Close / Exit Button at top-left corner */}
-        <div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="p-2 rounded-xl bg-slate-800 hover:bg-rose-500/20 text-slate-300 hover:text-rose-400 transition cursor-pointer border border-slate-700 shadow-xs"
-            title="إغلاق النافذة (Esc)"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
+        )}
       </div>
 
       {/* Selection Mode Ribbon Bar: Displays instructions and selected entities order */}
@@ -739,37 +922,42 @@ export const OrgChartModal: React.FC<OrgChartModalProps> = ({
         </div>
       )}
 
-      {/* Scrollable Viewport (Daylight / Light Neutral Grid Canvas) */}
+      {/* Scrollable Viewport (Pure White Canvas - No surrounding gray workspace) */}
       <div
         ref={containerRef}
-        className="flex-1 overflow-auto p-4 sm:p-6 print:p-0 print:m-0 print:overflow-visible"
+        className="flex-1 overflow-auto bg-white p-4 sm:p-6 print:p-0 print:m-0 print:overflow-visible relative"
         style={{
-          backgroundColor: '#f1f5f9',
-          backgroundImage: 'radial-gradient(#cbd5e1 1.2px, transparent 1.2px)',
-          backgroundSize: '24px 24px',
+          backgroundColor: '#ffffff',
         }}
       >
-        {/* Scaling & Centering Container: Prevents right/left cutoff and auto-centers the scaled board */}
+        {/* Scaling Container: dynamically sized to allow natural horizontal and vertical scrolling/expansion */}
         <div
-          className="mx-auto flex justify-center items-start min-h-full py-4 print:p-0 print:m-0 print:w-full print:block"
+          className="mx-auto flex justify-center items-start print:p-0 print:m-0 print:w-full print:block"
           style={{
-            width: `${Math.ceil(chartContentWidth * zoomLevel) + 32}px`,
-            minWidth: '100%',
+            width: `${Math.ceil(chartPaperWidth * zoomLevel)}px`,
+            minWidth: `${Math.ceil(chartPaperWidth * zoomLevel)}px`,
+            height: chartContentHeight ? `${Math.ceil(chartContentHeight * zoomLevel) + 60}px` : 'auto',
+            minHeight: chartContentHeight ? `${Math.ceil(chartContentHeight * zoomLevel) + 60}px` : 'auto',
+            position: 'relative',
           }}
         >
-          {/* The Printable / Renderable Chart Board (Clean Official Paper Mode) */}
+          {/* The Chart Board */}
           <div
             ref={chartRef}
             id="printable-org-chart"
             style={{
-              width: `${chartContentWidth}px`,
-              minWidth: `${chartContentWidth}px`,
-              transform: `scale(${zoomLevel}) rotate(${rotationAngle}deg)`,
+              width: `${chartPaperWidth}px`,
+              minWidth: `${chartPaperWidth}px`,
+              transform: `scale(${zoomLevel})`,
               transformOrigin: 'top center',
-              transition: 'transform 0.15s ease-out',
+              position: 'absolute',
+              left: '50%',
+              marginLeft: `-${chartPaperWidth / 2}px`,
+              top: 0,
+              transition: 'transform 0.15s ease-out, width 0.2s ease-out',
               fontFamily: "'Cairo', system-ui, -apple-system, BlinkMacSystemFont, sans-serif",
             }}
-            className="p-8 sm:p-10 rounded-3xl border border-slate-300 shadow-xl shadow-slate-300/40 bg-white text-slate-900 shrink-0 font-['Cairo']"
+            className="p-6 sm:p-8 bg-white text-slate-900 shrink-0 font-['Cairo'] relative"
           >
           {/* 1. Official Header Ribbon */}
           <div className="border-b-2 border-amber-500/40 pb-6 mb-8">
@@ -825,7 +1013,7 @@ export const OrgChartModal: React.FC<OrgChartModalProps> = ({
                       ? 'ring-4 ring-amber-500 bg-amber-100 border-amber-600 shadow-amber-500/30'
                       : 'ring-4 ring-emerald-500 bg-emerald-50 border-emerald-600 shadow-emerald-500/30'
                     : dgEntity && matchingIds.has(dgEntity.id)
-                    ? 'ring-4 ring-amber-400 bg-amber-100'
+                    ? 'entity-search-pulsing-glow ring-4 ring-amber-400 bg-amber-200 border-amber-600'
                     : 'bg-amber-50 border-amber-600 text-slate-950 hover:bg-amber-100 shadow-amber-900/10'
                 }`}
                 style={{ minWidth: '260px' }}
@@ -862,7 +1050,7 @@ export const OrgChartModal: React.FC<OrgChartModalProps> = ({
                             ? 'ring-4 ring-amber-500 bg-amber-100 border-amber-600 shadow-amber-500/30'
                             : 'ring-4 ring-emerald-500 bg-emerald-50 border-emerald-600 shadow-emerald-500/30'
                           : isHighlighted
-                          ? 'ring-2 ring-amber-400 bg-amber-200'
+                          ? 'entity-search-pulsing-glow ring-4 ring-amber-400 bg-amber-200 border-amber-600'
                           : 'bg-slate-50 border-slate-300 text-slate-800 hover:bg-slate-100'
                       }`}
                       style={{ minWidth: '170px' }}
@@ -894,7 +1082,7 @@ export const OrgChartModal: React.FC<OrgChartModalProps> = ({
                               ? 'ring-4 ring-amber-500 bg-amber-100 border-amber-600 shadow-amber-500/30'
                               : 'ring-4 ring-emerald-500 bg-emerald-50 border-emerald-600 shadow-emerald-500/30'
                             : isHighlighted
-                            ? 'ring-2 ring-amber-400 bg-amber-200'
+                            ? 'entity-search-pulsing-glow ring-4 ring-amber-400 bg-amber-200 border-amber-600'
                             : 'bg-amber-50/80 border-amber-500 text-amber-950 hover:bg-amber-100'
                         }`}
                         style={{ minWidth: '260px' }}
@@ -947,7 +1135,7 @@ export const OrgChartModal: React.FC<OrgChartModalProps> = ({
                             ? 'ring-4 ring-amber-500 bg-amber-100 border-amber-600 shadow-amber-500/30'
                             : 'ring-4 ring-emerald-500 bg-emerald-50 border-emerald-600 shadow-emerald-500/30'
                           : isHighlighted
-                          ? 'ring-2 ring-amber-400 bg-amber-100'
+                          ? 'entity-search-pulsing-glow ring-4 ring-amber-400 bg-amber-200 border-amber-600'
                           : 'bg-slate-50 hover:bg-slate-100 border-slate-300 text-slate-900'
                       }`}
                     >
@@ -992,7 +1180,7 @@ export const OrgChartModal: React.FC<OrgChartModalProps> = ({
                             ? 'ring-4 ring-amber-500 bg-amber-100 border-amber-600 shadow-amber-500/30'
                             : 'ring-4 ring-emerald-500 bg-emerald-50 border-emerald-600 shadow-emerald-500/30'
                           : isHighlighted
-                          ? 'ring-2 ring-amber-400 bg-amber-100'
+                          ? 'entity-search-pulsing-glow ring-4 ring-amber-400 bg-amber-200 border-amber-600'
                           : 'bg-slate-50 hover:bg-slate-100 border-slate-300 text-slate-900'
                       }`}
                     >
@@ -1024,20 +1212,31 @@ export const OrgChartModal: React.FC<OrgChartModalProps> = ({
 
           {/* 4. Bottom Tier: The Commissions & Their Child Sections / Departments */}
           <div className="relative pt-6 border-t-2 border-dashed border-amber-500/40">
-            {/* Horizontal Distribution Beam Line: starts at center of first column and ends at center of last column */}
-            <div
-              className="absolute top-0 h-1 rounded-full bg-amber-600"
-              style={{
-                left: `${commissions.length > 1 ? (50 / commissions.length).toFixed(2) : 50}%`,
-                right: `${commissions.length > 1 ? (50 / commissions.length).toFixed(2) : 50}%`,
-              }}
-            ></div>
+            {/* Horizontal Distribution Beam Line: displayed in single-row landscape */}
+            {isSingleRowLandscape && (
+              <div
+                className="absolute top-0 h-1 rounded-full bg-amber-600"
+                style={{
+                  left: `${commissions.length > 1 ? (50 / commissions.length).toFixed(2) : 50}%`,
+                  right: `${commissions.length > 1 ? (50 / commissions.length).toFixed(2) : 50}%`,
+                }}
+              ></div>
+            )}
 
-            {/* Commissions Grid: Columns dynamically distributed based on count */}
+            {/* In portrait or multi-row format: display organized section title badge */}
+            {!isSingleRowLandscape && (
+              <div className="text-center mb-6">
+                <span className="inline-block px-5 py-1.5 rounded-full text-xs font-black border bg-amber-50 border-amber-300 text-amber-950 shadow-xs">
+                  الهيئات والتشكيلات التابعة ({toArabicDigits(commissions.length)} هيئة رئيسية)
+                </span>
+              </div>
+            )}
+
+            {/* Commissions Grid: Columns dynamically distributed based on count & paper format (A4/A3) */}
             <div
-              className="grid gap-3 pt-6"
+              className="grid gap-3.5 pt-2"
               style={{
-                gridTemplateColumns: `repeat(${Math.max(commissions.length, 1)}, minmax(0, 1fr))`,
+                gridTemplateColumns: `repeat(${commissionGridCols}, minmax(0, 1fr))`,
               }}
             >
               {commissions.map((commission, idx) => {
@@ -1050,9 +1249,11 @@ export const OrgChartModal: React.FC<OrgChartModalProps> = ({
                   children.reduce((acc, c) => acc + (c.employeeCount || 0), 0);
 
                 return (
-                  <div key={commission.id} className="flex flex-col items-center relative">
+                  <div key={commission.id} className="flex flex-col items-center relative mb-3">
                     {/* Dropping Connector Line from Trunk to Commission Header */}
-                    <div className="w-0.5 h-6 -mt-6 mb-2 bg-amber-600"></div>
+                    {isSingleRowLandscape && (
+                      <div className="w-0.5 h-6 -mt-6 mb-2 bg-amber-600"></div>
+                    )}
 
                     {/* Commission Top Card (Pill shape) */}
                     <div
@@ -1063,7 +1264,7 @@ export const OrgChartModal: React.FC<OrgChartModalProps> = ({
                             ? 'ring-4 ring-amber-500 bg-amber-100 border-amber-600 shadow-amber-500/30'
                             : 'ring-4 ring-emerald-500 bg-emerald-50 border-emerald-600 shadow-emerald-500/30'
                           : isHighlighted
-                          ? 'ring-2 ring-amber-400 bg-amber-200'
+                          ? 'entity-search-pulsing-glow ring-4 ring-amber-400 bg-amber-200 border-amber-600'
                           : 'bg-amber-100/80 border-amber-600 text-slate-950 hover:bg-amber-200'
                       }`}
                     >
@@ -1109,7 +1310,7 @@ export const OrgChartModal: React.FC<OrgChartModalProps> = ({
                                   ? 'ring-4 ring-amber-500 bg-amber-100 border-amber-600 shadow-amber-500/30'
                                   : 'ring-4 ring-emerald-500 bg-emerald-50 border-emerald-600 shadow-emerald-500/30'
                                 : isChildHighlighted
-                                ? 'ring-2 ring-amber-400 bg-amber-100'
+                                ? 'entity-search-pulsing-glow ring-4 ring-amber-400 bg-amber-200 border-amber-600'
                                 : isDept
                                 ? 'bg-sky-50/80 border-sky-300 hover:bg-sky-100 text-slate-900'
                                 : isUnit

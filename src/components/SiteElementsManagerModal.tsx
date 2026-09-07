@@ -22,6 +22,17 @@ import {
   MapPin,
   Move,
   SunMedium,
+  Flag,
+  Radio,
+  Camera,
+  Wind,
+  Droplet,
+  Zap,
+  Building2,
+  CheckCircle2,
+  ShieldAlert,
+  Database,
+  Sliders,
 } from 'lucide-react';
 import { CustomSiteElement, CustomSiteElementType } from '../types';
 import { SITE_ELEMENT_DEFINITIONS, SiteElementDefinition } from '../utils/customSiteElements3D';
@@ -55,6 +66,19 @@ const ICON_MAP: Record<string, React.FC<{ className?: string }>> = {
   Columns,
   Flame,
   SunMedium,
+  Flag,
+  Radio,
+  Camera,
+  Wind,
+  Droplet,
+  Zap,
+  Building2,
+  CheckCircle2,
+  ShieldAlert,
+  Database,
+  Sliders,
+  Move,
+  Layers,
 };
 
 export const SiteElementsManagerModal: React.FC<SiteElementsManagerModalProps> = ({
@@ -70,17 +94,20 @@ export const SiteElementsManagerModal: React.FC<SiteElementsManagerModalProps> =
   buildingHeight = 6,
 }) => {
   const existingElements = propExistingElements || currentElements || [];
-  const [activeCategory, setActiveCategory] = useState<'all' | 'site' | 'openings' | 'structure' | 'safety'>('all');
+  const [activeCategory, setActiveCategory] = useState<string>('all');
   const [helipadPlacement, setHelipadPlacement] = useState<'roof' | 'ground'>('roof');
 
   if (!isOpen) return null;
 
   const categories = [
-    { id: 'all', label: 'كافة العناصر (١١)' },
-    { id: 'site', label: 'المحيط والموقع الخارجي' },
+    { id: 'all', label: `كافة العناصر (${toArabicDigits(SITE_ELEMENT_DEFINITIONS.length)})` },
+    { id: 'sidewalks', label: 'الأرصفة والممرات' },
+    { id: 'signage_flags', label: 'اللافتات والأعلام' },
+    { id: 'equipment', label: 'المعدات والمنظومات' },
+    { id: 'safety', label: 'السلامة والأمان' },
     { id: 'openings', label: 'الأبواب والنوافذ' },
-    { id: 'structure', label: 'الأعمدة والهياكل' },
-    { id: 'safety', label: 'السلامة والطوارئ' },
+    { id: 'structure', label: 'الهياكل والأعمدة' },
+    { id: 'site', label: 'الساحات والمحيط' },
   ];
 
   const filteredDefs = SITE_ELEMENT_DEFINITIONS.filter(

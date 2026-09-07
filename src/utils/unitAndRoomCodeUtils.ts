@@ -429,6 +429,98 @@ export function getStandardRoomCode(unitCode: string, room: Room, allRooms?: Roo
   return generateRoomCode(unitCode, floorNum, typeCode, fullSeq, true);
 }
 
+export interface RoomQueryPayload {
+  roomId?: string;
+  roomCode?: string;
+  roomName?: string;
+  floor?: string;
+  occupiedBy?: string;
+}
+
+/**
+ * Finds the matching room in a unit using a strict, multi-tiered matching hierarchy:
+ * 1. Direct ID Match: If query.roomId matches r.id (or if query.roomCode matches r.id) -> EXACT MATCH (highest priority).
+ * 2. Exact Stored Code Match: r.code matches query.roomCode (case-insensitive).
+ * 3. Exact Name + Floor Match: Both r.name matches query.roomName AND r.floor matches query.floor.
+ * 4. Exact Name Match: r.name matches query.roomName.
+ * 5. Strict Sequence Match on Same Floor: If query.roomCode contains an explicit floor (e.g. F1) and sequence (e.g. 101),
+ *    match a room strictly having that same floor number AND that same sequenceNumber.
+ * 
+ * Never returns a random or mismatched room as fallback if no valid match is found.
+ */
+export function findMatchingRoom(
+  unit: UnitAsset | undefined | null,
+  query: RoomQueryPayload | undefined | null
+): Room | null {
+  if (!unit || !unit.rooms || unit.rooms.length === 0 || !query) {
+    return null;
+  }
+
+  const { roomId, roomCode, roomName, floor } = query;
+
+  // Rule 1: Direct ID Match (Permanent unique identifier)
+  if (roomId && roomId.trim()) {
+    const cleanId = roomId.trim();
+    const byId = unit.rooms.find((r) => r.id === cleanId);
+    if (byId) return byId;
+  }
+  if (roomCode && roomCode.trim().startsWith('RM-')) {
+    const cleanId = roomCode.trim();
+    const byId = unit.rooms.find((r) => r.id === cleanId);
+    if (byId) return byId;
+  }
+
+  // Rule 2: Exact Stored Code Match
+  if (roomCode && roomCode.trim()) {
+    const cleanQueryCode = roomCode.trim().toUpperCase();
+    const byCode = unit.rooms.find((r) => r.code && r.code.trim().toUpperCase() === cleanQueryCode);
+    if (byCode) return byCode;
+  }
+
+  // Rule 3: Exact Name AND Floor Match
+  if (roomName && roomName.trim() && floor && floor.trim()) {
+    const cleanName = roomName.trim().toLowerCase();
+    const targetFloorNum = extractFloorNumber(floor);
+    const byNameAndFloor = unit.rooms.find(
+      (r) =>
+        r.name?.trim().toLowerCase() === cleanName &&
+        extractFloorNumber(r.floor) === targetFloorNum
+    );
+    if (byNameAndFloor) return byNameAndFloor;
+  }
+
+  // Rule 4: Exact Name Match
+  if (roomName && roomName.trim()) {
+    const cleanName = roomName.trim().toLowerCase();
+    const byName = unit.rooms.find((r) => r.name?.trim().toLowerCase() === cleanName);
+    if (byName) return byName;
+  }
+
+  // Rule 5: Strict Floor + Sequence Match from Code
+  if (roomCode && roomCode.trim()) {
+    const cleanQueryCode = roomCode.trim().toUpperCase();
+    // Match pattern like F1-OFF-101 or -F2-...-201
+    const floorMatch = cleanQueryCode.match(/-F(\d+)-/);
+    const seqMatch = cleanQueryCode.match(/-(\d{3,4})(?:$|[^\d])/);
+    if (floorMatch && seqMatch) {
+      const targetFloor = parseInt(floorMatch[1], 10);
+      const targetSeq = parseInt(seqMatch[1], 10);
+      const byFloorAndSeq = unit.rooms.find(
+        (r) =>
+          extractFloorNumber(r.floor) === targetFloor &&
+          r.sequenceNumber === targetSeq
+      );
+      if (byFloorAndSeq) return byFloorAndSeq;
+    } else if (seqMatch) {
+      const targetSeq = parseInt(seqMatch[1], 10);
+      const bySeq = unit.rooms.find((r) => r.sequenceNumber === targetSeq);
+      if (bySeq) return bySeq;
+    }
+  }
+
+  return null;
+}
+
 /**
  * Validates whether a unit code adheres strictly to the 4-segment convention
  * [Governorate]-[Field]-[Type]-[4-Letter Unique Alphabet]

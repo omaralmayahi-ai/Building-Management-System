@@ -217,7 +217,7 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
   }, [effectiveOrgEntities, units]);
 
   const [showOrgPickerModal, setShowOrgPickerModal] = useState<boolean>(false);
-  const [activeTab, setActiveTab] = useState<'rooms' | 'equipment' | 'history' | 'attachments'>('rooms');
+  const [activeTab, setActiveTab] = useState<'rooms' | 'attachments'>('rooms');
   const [view3DMode, setView3DMode] = useState<'exterior' | 'floor_cut' | 'walkthrough' | 'blueprint2d'>('exterior');
   const [selectedFloor, setSelectedFloor] = useState<string>('G');
   const [showEditModal, setShowEditModal] = useState<boolean>(false);
@@ -1686,7 +1686,7 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
         />
       </div>
 
-      {/* Bottom Tabs Area: Rooms, Equipment, History, Attachments */}
+      {/* Bottom Tabs Area: Rooms, Attachments */}
       <div className={`border rounded-2xl p-5 shadow-lg transition-colors ${
         isLight ? 'bg-white border-slate-200' : 'bg-slate-900 border-slate-800'
       }`}>
@@ -1705,18 +1705,6 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
             }`}
           >
             سجل الغرف والقاعات ({toArabicDigits(selectedUnit.rooms.length)})
-          </button>
-          <button
-            onClick={() => setActiveTab('equipment')}
-            className={`px-4 py-2 rounded-lg transition ${
-              activeTab === 'equipment'
-                ? 'bg-amber-500 text-slate-950 shadow font-bold'
-                : isLight
-                ? 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-                : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            المعدات والمنظومات ({toArabicDigits(selectedUnit.equipment.length)})
           </button>
           <button
             onClick={() => setActiveTab('attachments')}
@@ -1753,7 +1741,7 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
                 {selectedUnit.rooms.map((rm) => {
                   const isStopped = rm.status === 'Stopped' || rm.status === 'متوقفة';
                   const roomComputedCode =
-                    getStandardRoomCode(selectedUnit.code, rm, selectedUnit.rooms);
+                    (rm.code && rm.code.trim()) ? rm.code.trim() : getStandardRoomCode(selectedUnit.code, rm, selectedUnit.rooms);
                   const occDisplay = formatRoomOccupancyDisplay(rm);
 
                   return (
@@ -1812,26 +1800,6 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
                 })}
               </tbody>
             </table>
-          </div>
-        )}
-
-        {/* Equipment Tab Content */}
-        {activeTab === 'equipment' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {selectedUnit.equipment.map((eq) => (
-              <div key={eq.id} className={`p-3.5 rounded-xl border text-xs space-y-1 ${
-                isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-950 border-slate-800'
-              }`}>
-                <div className="flex items-center justify-between">
-                  <span className="font-mono text-amber-600 dark:text-amber-400 font-bold">{eq.id}</span>
-                  <span className={`px-2 py-0.5 rounded font-bold ${isLight ? 'bg-blue-100 text-blue-800' : 'bg-blue-500/20 text-blue-400'}`}>{eq.status}</span>
-                </div>
-                <h4 className={`font-bold text-sm ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>{eq.name}</h4>
-                <p className={isLight ? 'text-slate-600' : 'text-slate-400'}>النوع: {eq.type}</p>
-                <p className={isLight ? 'text-slate-600' : 'text-slate-400'}>الموقع: {eq.location}</p>
-                {eq.capacity && <p className="text-amber-600 dark:text-amber-400/80 font-semibold">السعة: {eq.capacity}</p>}
-              </div>
-            ))}
           </div>
         )}
 

@@ -40,6 +40,7 @@ import { UnitScanChoiceModal } from './UnitScanChoiceModal';
 import { UnitLocationMapModal } from './UnitLocationMapModal';
 import { InAppQrScannerModal } from './InAppQrScannerModal';
 import { compressImageFile } from '../utils/imageCompressor';
+import { findMatchingRoom } from '../utils/unitAndRoomCodeUtils';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
 
@@ -794,12 +795,7 @@ export const FieldInspectionView: React.FC<FieldInspectionViewProps> = ({
             setScannedUnitForChoice(matched);
             setScannedQrPayloadForChoice(payload || null);
             if (payload?.isRoom) {
-              const r = matched.rooms?.find(
-                (rm) =>
-                  rm.code?.toUpperCase() === payload.roomCode?.toUpperCase() ||
-                  rm.id === payload.roomCode ||
-                  rm.name === payload.roomName
-              );
+              const r = findMatchingRoom(matched, payload);
               setScannedRoomForChoice(r || null);
             } else {
               setScannedRoomForChoice(null);

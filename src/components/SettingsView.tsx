@@ -267,7 +267,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     | 'oilfields'
     | 'unit_types'
     | 'rooms'
-    | 'equipment'
     | 'maintenance_depts'
     | 'backup_restore'
     | 'audit'
@@ -634,12 +633,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       setRtCode(item.code || '');
       setRtNameAr(item.nameAr || '');
       setRtColorHex(item.colorHex || '#38bdf8');
-    } else if (activeTab === 'equipment') {
-      setEqCode(item.code || '');
-      setEqNameAr(item.nameAr || '');
-      setEqNameEn(item.nameEn || '');
-      setEqGeometry(item.renderGeometry || 'box');
-      setEqCapacity(item.defaultCapacity || 'قياسي');
     } else if (activeTab === 'maintenance_depts') {
       setMdeptCode(item.code || '');
       setMdeptNameAr(item.nameAr || '');
@@ -734,31 +727,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           status: 'active',
         });
         triggerSaveToast('تم إضافة تصنيف الغرفة الجديد');
-      }
-    } else if (activeTab === 'equipment') {
-      if (!eqNameAr) return;
-      if (editingItem) {
-        onUpdateEquipmentType({
-          ...editingItem,
-          code: eqCode || editingItem.code,
-          nameAr: eqNameAr,
-          nameEn: eqNameEn || eqNameAr,
-          renderGeometry: eqGeometry,
-          defaultCapacity: eqCapacity,
-        });
-        triggerSaveToast('تم تحديث بيانات المعدة');
-      } else {
-        onAddEquipmentType({
-          id: `EQT-${Date.now()}`,
-          code: eqCode || `eq_${Date.now()}`,
-          nameAr: eqNameAr,
-          nameEn: eqNameEn || eqNameAr,
-          iconName: 'Zap',
-          renderGeometry: eqGeometry,
-          defaultCapacity: eqCapacity,
-          status: 'active',
-        });
-        triggerSaveToast('تم إضافة المعدة المرجعية الجديدة');
       }
     } else if (activeTab === 'maintenance_depts') {
       if (!mdeptNameAr) return;
@@ -1157,28 +1125,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               </span>
               <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold shrink-0 ${isLight ? 'bg-slate-200/70 text-slate-700' : 'bg-slate-950 text-slate-400'}`}>
                 {toArabicDigits(roomTypes.length)}
-              </span>
-            </button>
-
-            {/* 6. المعدات والملحقات */}
-            <button
-              onClick={() => setActiveTab('equipment')}
-              className={`p-2.5 rounded-xl font-bold transition flex items-center justify-between cursor-pointer border text-xs ${
-                activeTab === 'equipment'
-                  ? isLight
-                    ? 'bg-amber-100 text-amber-950 border-amber-300 shadow-xs'
-                    : 'bg-amber-500/20 text-amber-300 border-amber-500/40 shadow-xs'
-                  : isLight
-                  ? 'bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200'
-                  : 'bg-slate-800/60 text-slate-300 hover:bg-slate-800 border-slate-700/60'
-              }`}
-            >
-              <span className="flex items-center gap-1.5 truncate">
-                <Zap className={`w-4 h-4 shrink-0 ${isLight ? 'text-amber-600' : 'text-amber-400'}`} />
-                <span className="truncate">المعدات والملحقات</span>
-              </span>
-              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold shrink-0 ${isLight ? 'bg-slate-200/70 text-slate-700' : 'bg-slate-950 text-slate-400'}`}>
-                {toArabicDigits(equipmentTypes.length)}
               </span>
             </button>
 
@@ -2648,106 +2594,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             </div>
           )}
 
-          {/* TAB 7: Equipment Types Table */}
-          {activeTab === 'equipment' && (
-            <div className="space-y-3">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-800 gap-2">
-                <div>
-                  <h3 className="font-bold text-slate-100 text-sm">سجل المعدات والملحقات المتاحة بالمشهد 3D</h3>
-                  <span className="text-[11px] text-slate-400">إضافة أنواع معدات جديدة، تعديل الأشكال الهندسية، والحذف</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEditingItem(null);
-                    setEqCode(`EQ-${Date.now().toString().slice(-4)}`);
-                    setEqNameAr('');
-                    setEqNameEn('');
-                    setEqGeometry('box');
-                    setEqCapacity('قياسي');
-                    setShowModal(true);
-                  }}
-                  className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5 shadow self-start sm:self-auto"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>إضافة نوع معدة / ملحق 3D</span>
-                </button>
-              </div>
-
-              <div className="overflow-x-auto">
-                <table className="w-full text-right text-xs">
-                  <thead>
-                    <tr className="bg-slate-950 text-slate-400 border-b border-slate-800">
-                      <th className="p-3 font-semibold">رمز المعدة</th>
-                      <th className="p-3 font-semibold">نوع المعدة / الملحق الهندسي</th>
-                      <th className="p-3 font-semibold">الشكل الهندسي 3D</th>
-                      <th className="p-3 font-semibold">السعة الافتراضية</th>
-                      <th className="p-3 font-semibold text-center">الحالة</th>
-                      <th className="p-3 font-semibold text-center">إجراءات</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-800 text-slate-300">
-                    {equipmentTypes.map((eq) => (
-                      <tr key={eq.id} className="hover:bg-slate-800/40 transition">
-                        <td className="p-3 font-mono font-bold text-amber-400">{eq.code}</td>
-                        <td className="p-3 font-bold text-slate-100">{eq.nameAr}</td>
-                        <td className="p-3">
-                          <span className="bg-slate-950 px-2 py-1 rounded border border-slate-800 font-mono text-sky-400">
-                            {eq.renderGeometry}
-                          </span>
-                        </td>
-                        <td className="p-3 text-slate-400">{eq.defaultCapacity || '--'}</td>
-                        <td className="p-3 text-center">
-                          <span
-                            className={`px-2.5 py-0.5 rounded font-bold ${
-                              eq.status === 'active'
-                                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                                : 'bg-slate-800 text-slate-500'
-                            }`}
-                          >
-                            {eq.status === 'active' ? 'نشط' : 'معطل'}
-                          </span>
-                        </td>
-                        <td className="p-3 text-center">
-                          <div className="flex items-center justify-center gap-2">
-                            <button
-                              onClick={() => onToggleStatus('equipmentType', eq.id)}
-                              className="p-1 text-slate-400 hover:text-amber-400 transition cursor-pointer"
-                            >
-                              {eq.status === 'active' ? (
-                                <ToggleRight className="w-5 h-5 text-emerald-400" />
-                              ) : (
-                                <ToggleLeft className="w-5 h-5 text-slate-500" />
-                              )}
-                            </button>
-                            <button
-                              onClick={() => handleOpenEditModal(eq)}
-                              className="p-1 text-slate-400 hover:text-amber-400 transition cursor-pointer"
-                            >
-                              <Edit2 className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() =>
-                                setDeleteConfirm({
-                                  type: 'equipmentType',
-                                  id: eq.id,
-                                  name: eq.nameAr,
-                                })
-                              }
-                              className="p-1 text-slate-400 hover:text-red-400 transition cursor-pointer"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-
           {/* TAB 7.5: Maintenance Departments Table */}
           {activeTab === 'maintenance_depts' && (
             <div className="space-y-3">
@@ -3731,47 +3577,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                         className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 font-mono text-amber-400"
                       />
                     </div>
-                  </div>
-                </>
-              )}
-
-              {/* Equipment Type Inputs */}
-              {activeTab === 'equipment' && (
-                <>
-                  <div>
-                    <label className="block text-slate-300 font-bold mb-1">اسم الملحق / المعدة الهندسيّة:</label>
-                    <input
-                      type="text"
-                      required
-                      value={eqNameAr}
-                      onChange={(e) => setEqNameAr(e.target.value)}
-                      placeholder="لوحة توزيع كهربائية رئيسية"
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-slate-100"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-slate-300 font-bold mb-1">الشكل المجسّم بالمشهد 3D:</label>
-                    <select
-                      value={eqGeometry}
-                      onChange={(e) => setEqGeometry(e.target.value as any)}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-slate-100"
-                    >
-                      <option value="box">صندوق معدني (Box - مولدة/تكييف)</option>
-                      <option value="cylinder">أسطوانة (Cylinder - خزان/طفاية حريق)</option>
-                      <option value="wall_panel">لوحة جدارية (Wall Panel - لوحة كهرباء)</option>
-                      <option value="camera">كاميرا مراقبة (Camera - أجهزة أمنية)</option>
-                      <option value="pump">مضخة مياه / محرك (Booster Pump)</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-slate-300 font-bold mb-1">السعة / المواصفة الافتراضية:</label>
-                    <input
-                      type="text"
-                      value={eqCapacity}
-                      onChange={(e) => setEqCapacity(e.target.value)}
-                      placeholder="400V 3-Phase / 5000 Liters"
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 font-mono text-slate-300"
-                    />
                   </div>
                 </>
               )}

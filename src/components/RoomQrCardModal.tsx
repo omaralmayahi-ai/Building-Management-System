@@ -86,8 +86,8 @@ export const RoomQrCardModal: React.FC<RoomQrCardModalProps> = ({
       ? allRooms.find((r) => r.id === selectedRoomId || r.code === selectedRoomId)
       : null) || room;
 
-  // Unified Room Code using standard derivation
-  const finalRoomCode = getStandardRoomCode(unit.code, activeRoom, allRooms);
+  // Unified Room Code: prefer stored room.code if present, otherwise calculate standard code
+  const finalRoomCode = (activeRoom.code && activeRoom.code.trim()) ? activeRoom.code.trim() : getStandardRoomCode(unit.code, activeRoom, allRooms);
 
   // App Base URL for QR scan payload
   const appBaseUrl =
@@ -97,8 +97,8 @@ export const RoomQrCardModal: React.FC<RoomQrCardModalProps> = ({
       ? `${window.location.origin}${window.location.pathname.replace(/\/index\.html$/, '').replace(/\/+$/, '')}`
       : '');
 
-  // Room QR payload
-  const roomQrPayload = `${appBaseUrl}/?type=room&unit=${encodeURIComponent(unit.code)}&room=${encodeURIComponent(finalRoomCode)}&roomName=${encodeURIComponent(activeRoom.name)}&floor=${encodeURIComponent(activeRoom.floor)}&fixedAssetCode=${encodeURIComponent(unit.fixedAssetCode || '')}&src=room_qr`;
+  // Room QR payload - includes immutable roomId as primary identifier and room code
+  const roomQrPayload = `${appBaseUrl}/?type=room&unit=${encodeURIComponent(unit.code)}&room=${encodeURIComponent(finalRoomCode)}&roomId=${encodeURIComponent(activeRoom.id)}&roomName=${encodeURIComponent(activeRoom.name)}&floor=${encodeURIComponent(activeRoom.floor)}&fixedAssetCode=${encodeURIComponent(unit.fixedAssetCode || '')}&src=room_qr`;
 
   useEffect(() => {
     let isMounted = true;
@@ -180,9 +180,9 @@ export const RoomQrCardModal: React.FC<RoomQrCardModalProps> = ({
 
       for (let i = 0; i < allRooms.length; i++) {
         const r = allRooms[i];
-        const rCode = getStandardRoomCode(unit.code, r, allRooms);
+        const rCode = (r.code && r.code.trim()) ? r.code.trim() : getStandardRoomCode(unit.code, r, allRooms);
 
-        const rPayload = `${appBaseUrl}/?type=room&unit=${encodeURIComponent(unit.code)}&room=${encodeURIComponent(rCode)}&roomName=${encodeURIComponent(r.name)}&floor=${encodeURIComponent(r.floor)}&fixedAssetCode=${encodeURIComponent(unit.fixedAssetCode || '')}&src=room_qr`;
+        const rPayload = `${appBaseUrl}/?type=room&unit=${encodeURIComponent(unit.code)}&room=${encodeURIComponent(rCode)}&roomId=${encodeURIComponent(r.id)}&roomName=${encodeURIComponent(r.name)}&floor=${encodeURIComponent(r.floor)}&fixedAssetCode=${encodeURIComponent(unit.fixedAssetCode || '')}&src=room_qr`;
 
         const rQrDataUrl = await QRCode.toDataURL(rPayload, {
           width: 650,
