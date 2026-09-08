@@ -43,8 +43,9 @@ import {
   ShieldAlert,
   Search,
   Sparkles,
+  Volume2,
 } from 'lucide-react';
-import { CustomSiteElement, CustomSiteElementType } from '../types';
+import { CustomSiteElement, CustomSiteElementType, UnitDesignFinishing } from '../types';
 import { SITE_ELEMENT_DEFINITIONS, SiteElementDefinition } from '../utils/customSiteElements3D';
 import { toArabicDigits } from '../utils/arabicUtils';
 
@@ -58,7 +59,7 @@ interface InteractiveEngineeringEditorProps {
   onUpdateElement: (updated: CustomSiteElement) => void;
   onDeleteElement: (id: string) => void;
   onDuplicateElement: (id: string) => void;
-  onSaveToDatabase: () => Promise<void> | void;
+  onSaveToDatabase?: () => Promise<void> | void;
   isSavingDatabase?: boolean;
   lastSavedTime?: string;
   roofHeight: number;
@@ -66,6 +67,15 @@ interface InteractiveEngineeringEditorProps {
   buildingDepth: number;
   isNightMode?: boolean;
   theme?: string;
+  // Merged architectural customization options
+  archStyle?: 'modern' | 'classic' | 'industrial' | 'minimalist';
+  roofType?: 'flat' | 'flat_parapet' | 'gabled' | 'pitched_tile' | 'garden';
+  showFurniture?: boolean;
+  showWindows?: boolean;
+  showTrees?: boolean;
+  interiorLightIntensity?: number;
+  exteriorLightIntensity?: number;
+  onUpdateFinishingSettings?: (updated: Partial<UnitDesignFinishing>) => void;
 }
 
 const ICON_MAP: Record<string, React.FC<{ className?: string }>> = {
@@ -96,6 +106,7 @@ const ICON_MAP: Record<string, React.FC<{ className?: string }>> = {
   Sliders,
   Layers,
   Move,
+  Volume2,
 };
 
 export const InteractiveEngineeringEditor: React.FC<InteractiveEngineeringEditorProps> = ({
@@ -116,20 +127,27 @@ export const InteractiveEngineeringEditor: React.FC<InteractiveEngineeringEditor
   buildingDepth = 10,
   isNightMode = false,
   theme = 'dark',
+  archStyle = 'modern',
+  roofType = 'flat',
+  showFurniture = true,
+  showWindows = true,
+  showTrees = false,
+  interiorLightIntensity = 3.5,
+  exteriorLightIntensity = 3.5,
+  onUpdateFinishingSettings,
 }) => {
   const [activeCategory, setActiveCategory] = useState<string>('all');
-  const [activeTab, setActiveTab] = useState<'palette' | 'inspector' | 'list'>('palette');
+  const [activeTab, setActiveTab] = useState<'palette' | 'inspector' | 'finishing' | 'list'>('palette');
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [isSyncSuccess, setIsSyncSuccess] = useState(false);
 
   const selectedElement = elements.find((e) => e.id === selectedElementId) || null;
 
   const categories = [
     { id: 'all', label: `الكل (${toArabicDigits(SITE_ELEMENT_DEFINITIONS.length)})` },
+    { id: 'safety', label: '🛡️ معدات السلامة والدفاع المدني' },
+    { id: 'equipment', label: 'المعدات والمولدات' },
     { id: 'sidewalks', label: 'الأرصفة والممرات' },
     { id: 'signage_flags', label: 'اللافتات والأعلام' },
-    { id: 'equipment', label: 'المعدات والمولدات' },
-    { id: 'safety', label: 'الأمان والمرافق' },
     { id: 'openings', label: 'أبواب ونوافذ' },
     { id: 'roof', label: 'السطح والخزانات' },
     { id: 'structure', label: 'الهياكل والإنارة' },
@@ -156,11 +174,7 @@ export const InteractiveEngineeringEditor: React.FC<InteractiveEngineeringEditor
     return true;
   });
 
-  const handleManualSave = async () => {
-    await onSaveToDatabase();
-    setIsSyncSuccess(true);
-    setTimeout(() => setIsSyncSuccess(false), 2500);
-  };
+
 
   // Drag start handler for HTML5 drag-and-drop onto 3D canvas
   const handleDragStart = (e: React.DragEvent, type: CustomSiteElementType) => {
@@ -216,44 +230,65 @@ export const InteractiveEngineeringEditor: React.FC<InteractiveEngineeringEditor
         </div>
       </div>
 
-      {/* TOP SUB-NAV TABS (Palette, Inspector, Elements List) */}
-      <div className={`px-3 pt-2 pb-1.5 border-b flex items-center gap-1 shrink-0 ${
+      {/* TOP SUB-NAV TABS (Palette, Inspector, Finishing, Elements List) */}
+      <div className={`px-2 pt-2 pb-1.5 border-b flex items-center gap-1 shrink-0 ${
         isNightMode ? 'border-slate-800 bg-slate-950/20' : 'border-slate-100 bg-slate-50/40'
       }`}>
         <button
+          type="button"
           onClick={() => setActiveTab('palette')}
-          className={`flex-1 py-1.5 px-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer ${
+          className={`flex-1 py-1 px-1 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer ${
             activeTab === 'palette'
               ? 'bg-amber-500 text-slate-950 shadow-sm'
               : isNightMode
               ? 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
               : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
           }`}
+          title="كتالوج إضافة العناصر والمعدات"
         >
           <Plus className="w-3.5 h-3.5" />
-          <span>إضافة عناصر</span>
+          <span>العناصر</span>
         </button>
 
         <button
+          type="button"
           onClick={() => setActiveTab('inspector')}
-          className={`flex-1 py-1.5 px-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer relative ${
+          className={`flex-1 py-1 px-1 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer relative ${
             activeTab === 'inspector'
               ? 'bg-amber-500 text-slate-950 shadow-sm'
               : isNightMode
               ? 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
               : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
           }`}
+          title="تعديل الأبعاد والإحداثيات"
         >
           <Move className="w-3.5 h-3.5" />
-          <span>الإحداثيات والأبعاد</span>
+          <span>الإحداثيات</span>
           {selectedElement && (
-            <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping absolute -top-0.5 -right-0.5" />
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping absolute -top-0.5 -right-0.5" />
           )}
         </button>
 
         <button
+          type="button"
+          onClick={() => setActiveTab('finishing')}
+          className={`flex-1 py-1 px-1 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer ${
+            activeTab === 'finishing'
+              ? 'bg-amber-500 text-slate-950 shadow-sm'
+              : isNightMode
+              ? 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+          }`}
+          title="تخصيص الهيكل، السطح، والإنارة"
+        >
+          <Building2 className="w-3.5 h-3.5" />
+          <span>الهيكل</span>
+        </button>
+
+        <button
+          type="button"
           onClick={() => setActiveTab('list')}
-          className={`py-1.5 px-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer ${
+          className={`py-1 px-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer ${
             activeTab === 'list'
               ? 'bg-amber-500 text-slate-950 shadow-sm'
               : isNightMode
@@ -334,6 +369,7 @@ export const InteractiveEngineeringEditor: React.FC<InteractiveEngineeringEditor
                 const IconComp = ICON_MAP[def.iconName] || Square;
                 const isSolar = def.type === 'solar_panel';
                 const isHelipad = def.type === 'helipad';
+                const isCivilDefense = def.type === 'fire_foam_monitor' || def.type === 'muster_first_aid_station' || def.type === 'emergency_siren_pole';
 
                 return (
                   <div
@@ -344,12 +380,14 @@ export const InteractiveEngineeringEditor: React.FC<InteractiveEngineeringEditor
                       isNightMode
                         ? 'bg-slate-800/50 border-slate-700/70 hover:border-amber-500/50 hover:bg-slate-800'
                         : 'bg-slate-50 border-slate-200/80 hover:border-amber-500/50 hover:bg-white shadow-sm'
-                    } ${isSolar ? 'border-amber-500/40 bg-amber-500/5' : ''}`}
+                    } ${isSolar ? 'border-amber-500/40 bg-amber-500/5' : ''} ${isCivilDefense ? 'border-rose-500/40 bg-rose-500/5' : ''}`}
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
                       <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border ${
                         isSolar
                           ? 'bg-amber-500 text-slate-950 border-amber-400 font-bold'
+                          : isCivilDefense
+                          ? 'bg-rose-500/20 text-rose-500 border-rose-500/40'
                           : isHelipad
                           ? 'bg-sky-500/20 text-sky-400 border-sky-500/40'
                           : isNightMode
@@ -364,6 +402,11 @@ export const InteractiveEngineeringEditor: React.FC<InteractiveEngineeringEditor
                           {isSolar && (
                             <span className="px-1.5 py-0.2 bg-amber-500 text-slate-950 rounded text-[9px] font-black">
                               جديد
+                            </span>
+                          )}
+                          {isCivilDefense && (
+                            <span className="px-1.5 py-0.2 bg-rose-500 text-white rounded text-[9px] font-black">
+                              دفاع مدني
                             </span>
                           )}
                         </div>
@@ -766,7 +809,176 @@ export const InteractiveEngineeringEditor: React.FC<InteractiveEngineeringEditor
         )}
 
         {/* ================================================================= */}
-        {/* TAB 3: PLACED ELEMENTS LIST (قائمة كافة العناصر المضافة على المبنى) */}
+        {/* TAB 3: FINISHING & STRUCTURE (تخصيص الهيكل، السطح، والإنارة) */}
+        {/* ================================================================= */}
+        {activeTab === 'finishing' && (
+          <div className="space-y-3.5">
+            <div className={`p-3 rounded-2xl border ${
+              isNightMode ? 'bg-slate-800/40 border-slate-700/60 text-slate-200' : 'bg-slate-50 border-slate-200 text-slate-800'
+            }`}>
+              <div className="flex items-center gap-1.5 font-bold text-xs text-amber-500 mb-2.5">
+                <Building2 className="w-4 h-4" />
+                <span>الهيكل المعماري والسطح</span>
+              </div>
+
+              <div className="space-y-3">
+                <div>
+                  <label className={`block font-bold mb-1 text-[11px] ${isNightMode ? 'text-slate-300' : 'text-slate-700'}`}>النمط المعماري:</label>
+                  <select
+                    value={archStyle}
+                    onChange={(e) => {
+                      const val = e.target.value as any;
+                      onUpdateFinishingSettings?.({ archStyle: val });
+                    }}
+                    className={`w-full border rounded-xl p-2 font-bold outline-none cursor-pointer transition-colors text-xs ${
+                      isNightMode
+                        ? 'bg-slate-950 border-slate-800 text-slate-200 focus:border-amber-500'
+                        : 'bg-white border-slate-300 text-slate-800 focus:border-amber-600'
+                    }`}
+                  >
+                    <option value="modern">حديث مع واجهات زجاجية (Modern Glass)</option>
+                    <option value="classic">كلاسيكي حجري (Classic Stone)</option>
+                    <option value="industrial">صناعي متطور (Industrial Frame)</option>
+                    <option value="minimalist">بسيط وأنيق (Minimalist White)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className={`block font-bold mb-1 text-[11px] ${isNightMode ? 'text-slate-300' : 'text-slate-700'}`}>نوع السطح والتصميم:</label>
+                  <select
+                    value={roofType}
+                    onChange={(e) => {
+                      const val = e.target.value as any;
+                      onUpdateFinishingSettings?.({ roofType: val });
+                    }}
+                    className={`w-full border rounded-xl p-2 font-bold outline-none cursor-pointer transition-colors text-xs ${
+                      isNightMode
+                        ? 'bg-slate-950 border-slate-800 text-slate-200 focus:border-amber-500'
+                        : 'bg-white border-slate-300 text-slate-800 focus:border-amber-600'
+                    }`}
+                  >
+                    <option value="flat">سطح مسطح (سطح مستوي)</option>
+                    <option value="flat_parapet">سطح مسطح مع سياج السطح</option>
+                    <option value="gabled">سطح مثلث مائل الشكل (مخصص للجملونات)</option>
+                    <option value="pitched_tile">سطح من القرميد مائل الشكل</option>
+                    <option value="garden">سطح حديقة خضراء (Roof Garden)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {/* Display and Environment Toggles */}
+            <div className={`p-3 rounded-2xl border space-y-2.5 ${
+              isNightMode ? 'bg-slate-800/40 border-slate-700/60 text-slate-200' : 'bg-slate-50 border-slate-200 text-slate-800'
+            }`}>
+              <div className="font-bold text-[11px] text-amber-500 flex items-center gap-1.5">
+                <Sliders className="w-3.5 h-3.5" />
+                <span>خيارات العرض والبيئة</span>
+              </div>
+
+              <label className={`flex items-center gap-2 cursor-pointer text-xs ${isNightMode ? 'text-slate-300' : 'text-slate-700'}`}>
+                <input
+                  type="checkbox"
+                  checked={showFurniture}
+                  onChange={(e) => {
+                    onUpdateFinishingSettings?.({ showFurniture: e.target.checked });
+                  }}
+                  className="rounded border-slate-400 accent-amber-500"
+                />
+                <span>إظهار الأثاث والمعدات الداخلية</span>
+              </label>
+
+              <label className={`flex items-center gap-2 cursor-pointer text-xs ${isNightMode ? 'text-slate-300' : 'text-slate-700'}`}>
+                <input
+                  type="checkbox"
+                  checked={showWindows}
+                  onChange={(e) => {
+                    onUpdateFinishingSettings?.({ showWindows: e.target.checked });
+                  }}
+                  className="rounded border-slate-400 accent-amber-500"
+                />
+                <span>نوافذ وواجهات زجاجية شفافة</span>
+              </label>
+
+              <label className={`flex items-center gap-2 cursor-pointer text-xs ${isNightMode ? 'text-slate-300' : 'text-slate-700'}`}>
+                <input
+                  type="checkbox"
+                  checked={showTrees}
+                  onChange={(e) => {
+                    onUpdateFinishingSettings?.({ showTrees: e.target.checked });
+                  }}
+                  className="rounded border-slate-400 accent-amber-500"
+                />
+                <span>إظهار المحيط والبيئة الميدانية (أشجار)</span>
+              </label>
+            </div>
+
+            {/* Lighting Intensity Controls */}
+            <div className={`p-3 rounded-2xl border space-y-3 ${
+              isNightMode ? 'bg-slate-800/40 border-slate-700/60 text-slate-200' : 'bg-slate-50 border-slate-200 text-slate-800'
+            }`}>
+              <div className="flex items-center justify-between font-bold text-[11px] text-amber-500">
+                <span className="flex items-center gap-1.5">
+                  <SunMedium className="w-3.5 h-3.5" />
+                  التحكم بشدة وسطوع الإنارة
+                </span>
+              </div>
+
+              {/* Interior Lighting */}
+              <div>
+                <div className="flex items-center justify-between mb-1 font-bold text-[11px]">
+                  <span className={`flex items-center gap-1.5 ${isNightMode ? 'text-slate-300' : 'text-slate-700'}`}>
+                    <Lightbulb className="w-3.5 h-3.5 text-amber-400" />
+                    الإنارة الداخلية:
+                  </span>
+                  <span className="font-mono bg-amber-500/10 text-amber-500 border border-amber-500/20 px-1.5 py-0.2 rounded text-[10px]">
+                    {toArabicDigits((interiorLightIntensity || 3.5).toFixed(1))}×
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min="0.5"
+                  max="8.0"
+                  step="0.5"
+                  value={interiorLightIntensity || 3.5}
+                  onChange={(e) => {
+                    const val = parseFloat(e.target.value);
+                    onUpdateFinishingSettings?.({ interiorLightIntensity: val });
+                  }}
+                  className="w-full accent-amber-500 cursor-pointer h-1.5 bg-slate-200 dark:bg-slate-800 rounded-lg"
+                />
+              </div>
+
+              {/* Exterior Lighting */}
+              <div>
+                <div className="flex items-center justify-between mb-1 font-bold text-[11px]">
+                  <span className={`flex items-center gap-1.5 ${isNightMode ? 'text-slate-300' : 'text-slate-700'}`}>
+                    <SunMedium className="w-3.5 h-3.5 text-sky-400" />
+                    الإنارة الخارجية:
+                  </span>
+                  <span className="font-mono bg-sky-500/10 text-sky-400 border border-sky-500/20 px-1.5 py-0.2 rounded text-[10px]">
+                    {toArabicDigits((exteriorLightIntensity || 3.5).toFixed(1))}×
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min="0.5"
+                  max="8.0"
+                  step="0.5"
+                  value={exteriorLightIntensity || 3.5}
+                  onChange={(e) => {
+                    const val = parseFloat(e.target.value);
+                    onUpdateFinishingSettings?.({ exteriorLightIntensity: val });
+                  }}
+                  className="w-full accent-sky-500 cursor-pointer h-1.5 bg-slate-200 dark:bg-slate-800 rounded-lg"
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ================================================================= */}
+        {/* TAB 4: PLACED ELEMENTS LIST (قائمة كافة العناصر المضافة على المبنى) */}
         {/* ================================================================= */}
         {activeTab === 'list' && (
           <div className="space-y-2">
@@ -870,54 +1082,33 @@ export const InteractiveEngineeringEditor: React.FC<InteractiveEngineeringEditor
         )}
       </div>
 
-      {/* FOOTER: Database Realtime Sync Indicator & Manual Save Button */}
-      <div className={`p-3 border-t flex flex-col gap-2 shrink-0 ${
+      {/* FOOTER: Database Realtime Automatic Sync Indicator (No Manual Button) */}
+      <div className={`p-2.5 border-t flex items-center justify-between gap-2 shrink-0 ${
         isNightMode ? 'border-slate-800 bg-slate-950/60' : 'border-slate-100 bg-slate-50/80'
       }`}>
-        <div className="flex items-center justify-between text-[10px]">
-          <span className="text-slate-400 flex items-center gap-1">
-            <Cloud className="w-3 h-3 text-sky-400" />
-            <span>حفظ الإحداثيات السحابي:</span>
-          </span>
-          <span className="text-emerald-400 font-bold flex items-center gap-1">
-            {isSyncSuccess ? (
-              <>
-                <CheckCircle2 className="w-3 h-3" />
-                <span>تم الحفظ في Firestore بنجاح!</span>
-              </>
-            ) : (
-              <span>مزامنة فورية نشطة</span>
-            )}
+        <div className="flex items-center gap-1.5 text-[11px]">
+          <Cloud className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+          <span className={`font-semibold ${isNightMode ? 'text-slate-300' : 'text-slate-700'}`}>
+            قاعدة البيانات (Firestore):
           </span>
         </div>
 
-        <button
-          type="button"
-          onClick={handleManualSave}
-          disabled={isSavingDatabase}
-          className={`w-full py-2 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition cursor-pointer shadow-md ${
-            isSyncSuccess
-              ? 'bg-emerald-600 text-white'
-              : 'bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black'
-          }`}
-        >
+        <div className="flex items-center gap-1.5 text-[11px]">
           {isSavingDatabase ? (
-            <>
-              <div className="w-3.5 h-3.5 border-2 border-slate-950 border-t-transparent rounded-full animate-spin" />
-              <span>جارٍ الحفظ في قاعدة البيانات المركزية...</span>
-            </>
-          ) : isSyncSuccess ? (
-            <>
-              <Check className="w-4 h-4" />
-              <span>تم تحديث قاعدة البيانات المركزية!</span>
-            </>
+            <span className="text-amber-400 font-bold flex items-center gap-1">
+              <div className="w-2.5 h-2.5 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />
+              <span>جارٍ الحفظ التلقائي...</span>
+            </span>
           ) : (
-            <>
-              <Database className="w-4 h-4" />
-              <span>تحديث وحفظ الإحداثيات في قاعدة البيانات</span>
-            </>
+            <span className="text-emerald-500 font-bold flex items-center gap-1">
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+              <span>محفوظ ومحدث تلقائياً</span>
+              {lastSavedTime && (
+                <span className="text-[10px] font-mono text-slate-400">({lastSavedTime})</span>
+              )}
+            </span>
           )}
-        </button>
+        </div>
       </div>
     </div>
   );

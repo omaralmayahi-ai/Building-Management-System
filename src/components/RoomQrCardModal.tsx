@@ -17,6 +17,7 @@ import { toArabicDigits, getServerDateDDMMYYYY } from '../utils/arabicUtils';
 import {
   generateRoomCode,
   getStandardRoomCode,
+  isRoomVacant,
 } from '../utils/unitAndRoomCodeUtils';
 import { INITIAL_BRANDING } from '../data/mockData';
 import {
@@ -98,7 +99,8 @@ export const RoomQrCardModal: React.FC<RoomQrCardModalProps> = ({
       : '');
 
   // Room QR payload - includes immutable roomId as primary identifier and room code
-  const roomQrPayload = `${appBaseUrl}/?type=room&unit=${encodeURIComponent(unit.code)}&room=${encodeURIComponent(finalRoomCode)}&roomId=${encodeURIComponent(activeRoom.id)}&roomName=${encodeURIComponent(activeRoom.name)}&floor=${encodeURIComponent(activeRoom.floor)}&fixedAssetCode=${encodeURIComponent(unit.fixedAssetCode || '')}&src=room_qr`;
+  const effectiveOccupiedBy = isRoomVacant(activeRoom.occupiedBy) ? 'شاغرة' : (activeRoom.occupiedBy || 'شاغرة');
+  const roomQrPayload = `${appBaseUrl}/?type=room&unit=${encodeURIComponent(unit.code)}&room=${encodeURIComponent(finalRoomCode)}&roomId=${encodeURIComponent(activeRoom.id)}&roomName=${encodeURIComponent(activeRoom.name)}&floor=${encodeURIComponent(activeRoom.floor)}&occupiedBy=${encodeURIComponent(effectiveOccupiedBy)}&fixedAssetCode=${encodeURIComponent(unit.fixedAssetCode || '')}&src=room_qr`;
 
   useEffect(() => {
     let isMounted = true;
@@ -181,8 +183,9 @@ export const RoomQrCardModal: React.FC<RoomQrCardModalProps> = ({
       for (let i = 0; i < allRooms.length; i++) {
         const r = allRooms[i];
         const rCode = (r.code && r.code.trim()) ? r.code.trim() : getStandardRoomCode(unit.code, r, allRooms);
+        const rOccupied = isRoomVacant(r.occupiedBy) ? 'شاغرة' : (r.occupiedBy || 'شاغرة');
 
-        const rPayload = `${appBaseUrl}/?type=room&unit=${encodeURIComponent(unit.code)}&room=${encodeURIComponent(rCode)}&roomId=${encodeURIComponent(r.id)}&roomName=${encodeURIComponent(r.name)}&floor=${encodeURIComponent(r.floor)}&fixedAssetCode=${encodeURIComponent(unit.fixedAssetCode || '')}&src=room_qr`;
+        const rPayload = `${appBaseUrl}/?type=room&unit=${encodeURIComponent(unit.code)}&room=${encodeURIComponent(rCode)}&roomId=${encodeURIComponent(r.id)}&roomName=${encodeURIComponent(r.name)}&floor=${encodeURIComponent(r.floor)}&occupiedBy=${encodeURIComponent(rOccupied)}&fixedAssetCode=${encodeURIComponent(unit.fixedAssetCode || '')}&src=room_qr`;
 
         const rQrDataUrl = await QRCode.toDataURL(rPayload, {
           width: 650,
@@ -232,8 +235,9 @@ export const RoomQrCardModal: React.FC<RoomQrCardModalProps> = ({
 
   // Render Card Preview Element in UI
   const renderCardElement = (isMini = false) => {
-    const occupant = activeRoom.occupiedBy || unit.department || 'شاغر / غير محدد';
-    const occupantList = extractOccupyingList(occupant);
+    const isVacant = isRoomVacant(activeRoom.occupiedBy);
+    const occupant = isVacant ? 'شاغرة' : (activeRoom.occupiedBy || 'شاغرة');
+    const occupantList = isVacant ? ['شاغرة'] : extractOccupyingList(activeRoom.occupiedBy);
 
     if (cardSize === 'compact' || isMini) {
       return (

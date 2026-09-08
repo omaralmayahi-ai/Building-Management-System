@@ -1,5 +1,6 @@
 import { UnitAsset, Room, SystemBranding } from '../types';
 import { getServerDateDDMMYYYY, toArabicDigits } from './arabicUtils';
+import { isRoomVacant } from './unitAndRoomCodeUtils';
 
 export type CardPrintSize = 'compact' | 'medium' | 'full';
 
@@ -112,7 +113,8 @@ export function generateCompactRoomCardHtml(
   common: CommonCardData,
   options?: { isStandalone?: boolean }
 ): string {
-  const occupantList = extractOccupyingList(room.occupiedBy || unit.department);
+  const isVacant = isRoomVacant(room.occupiedBy);
+  const occupantList = isVacant ? ['شاغرة'] : extractOccupyingList(room.occupiedBy);
   const floor = room.floor ?? '1';
 
   return `
@@ -244,7 +246,8 @@ export function generateMediumRoomCardHtml(
   roomCode: string,
   common: CommonCardData
 ): string {
-  const occupantList = extractOccupyingList(room.occupiedBy || unit.department);
+  const isVacant = isRoomVacant(room.occupiedBy);
+  const occupantList = isVacant ? ['شاغرة'] : extractOccupyingList(room.occupiedBy);
   const floor = room.floor ?? '1';
 
   return `
@@ -381,7 +384,8 @@ export function generateFullRoomCardHtml(
   roomCode: string,
   common: CommonCardData
 ): string {
-  const occupantList = extractOccupyingList(room.occupiedBy || unit.department);
+  const isVacant = isRoomVacant(room.occupiedBy);
+  const occupantList = isVacant ? ['شاغرة'] : extractOccupyingList(room.occupiedBy);
   const floor = room.floor ?? '1';
 
   return `

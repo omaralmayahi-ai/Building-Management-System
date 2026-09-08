@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { UnitAsset } from '../types';
 import { toArabicDigits } from '../utils/arabicUtils';
+import { isRoomVacant } from '../utils/unitAndRoomCodeUtils';
 import {
   parseScannedQrText,
   parseScannedQrPayload,
@@ -142,7 +143,13 @@ export const InAppQrScannerModal: React.FC<InAppQrScannerModalProps> = ({
             payload.roomCode = matchedRoom.code || payload.roomCode;
             payload.roomName = matchedRoom.name || payload.roomName;
             payload.floor = matchedRoom.floor || payload.floor;
-            payload.occupiedBy = matchedRoom.occupiedBy || payload.occupiedBy;
+            payload.occupiedBy = isRoomVacant(matchedRoom.occupiedBy)
+              ? 'شاغرة'
+              : (matchedRoom.occupiedBy || 'شاغرة');
+          } else {
+            payload.occupiedBy = isRoomVacant(payload.occupiedBy)
+              ? 'شاغرة'
+              : (payload.occupiedBy || 'شاغرة');
           }
         }
 

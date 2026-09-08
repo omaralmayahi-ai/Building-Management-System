@@ -33,6 +33,7 @@ import {
   ShieldAlert,
   Database,
   Sliders,
+  Volume2,
 } from 'lucide-react';
 import { CustomSiteElement, CustomSiteElementType } from '../types';
 import { SITE_ELEMENT_DEFINITIONS, SiteElementDefinition } from '../utils/customSiteElements3D';
@@ -79,6 +80,7 @@ const ICON_MAP: Record<string, React.FC<{ className?: string }>> = {
   Sliders,
   Move,
   Layers,
+  Volume2,
 };
 
 export const SiteElementsManagerModal: React.FC<SiteElementsManagerModalProps> = ({
@@ -101,10 +103,10 @@ export const SiteElementsManagerModal: React.FC<SiteElementsManagerModalProps> =
 
   const categories = [
     { id: 'all', label: `كافة العناصر (${toArabicDigits(SITE_ELEMENT_DEFINITIONS.length)})` },
+    { id: 'safety', label: '🛡️ السلامة والدفاع المدني' },
     { id: 'sidewalks', label: 'الأرصفة والممرات' },
     { id: 'signage_flags', label: 'اللافتات والأعلام' },
     { id: 'equipment', label: 'المعدات والمنظومات' },
-    { id: 'safety', label: 'السلامة والأمان' },
     { id: 'openings', label: 'الأبواب والنوافذ' },
     { id: 'structure', label: 'الهياكل والأعمدة' },
     { id: 'site', label: 'الساحات والمحيط' },

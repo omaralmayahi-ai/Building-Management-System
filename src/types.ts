@@ -90,7 +90,11 @@ export type CustomSiteElementType =
   | 'security_barrier_jersey'
   | 'security_boom_gate'
   | 'fire_pump_station'
-  | 'floodlight_tower';
+  | 'floodlight_tower'
+  // معدات سلامة ودفاع مدني ميدانية
+  | 'fire_foam_monitor'
+  | 'muster_first_aid_station'
+  | 'emergency_siren_pole';
 
 export interface CustomSiteElement {
   id: string;

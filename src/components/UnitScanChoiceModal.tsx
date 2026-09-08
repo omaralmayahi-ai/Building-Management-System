@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { UnitAsset, Room } from '../types';
 import { toArabicDigits } from '../utils/arabicUtils';
+import { isRoomVacant } from '../utils/unitAndRoomCodeUtils';
 
 interface UnitScanChoiceModalProps {
   unit: UnitAsset;
@@ -66,12 +67,13 @@ export const UnitScanChoiceModal: React.FC<UnitScanChoiceModalProps> = ({
           (scannedRoom.code && (r.code?.toUpperCase() === scannedRoom.code.toUpperCase() || r.id === scannedRoom.code)) ||
           (scannedRoom.name && r.name === scannedRoom.name)
       );
+      const rawOccupant = scannedRoom.occupiedBy || matched?.occupiedBy;
       return {
         ...scannedRoom,
         code: scannedRoom.code || matched?.code || '',
         name: scannedRoom.name || matched?.name || 'غرفة مخصصة',
         floor: scannedRoom.floor || matched?.floor || 'الطابق 1',
-        occupiedBy: scannedRoom.occupiedBy || matched?.occupiedBy || unit.department || '',
+        occupiedBy: isRoomVacant(rawOccupant) ? 'شاغرة' : (rawOccupant || 'شاغرة'),
       };
     }
     if (roomPayload?.roomCode || roomPayload?.roomName) {
@@ -80,13 +82,13 @@ export const UnitScanChoiceModal: React.FC<UnitScanChoiceModalProps> = ({
           (roomPayload.roomCode && (r.code?.toUpperCase() === roomPayload.roomCode.toUpperCase() || r.id === roomPayload.roomCode)) ||
           (roomPayload.roomName && r.name === roomPayload.roomName)
       );
-      if (found) return found;
+      const rawOccupant = roomPayload.occupiedBy || found?.occupiedBy;
       return {
-        id: roomPayload.roomCode || `room-${Date.now()}`,
-        code: roomPayload.roomCode || '',
-        name: roomPayload.roomName || 'غرفة مخصصة',
-        floor: roomPayload.floor || 'الطابق 1',
-        occupiedBy: roomPayload.occupiedBy || unit.department || '',
+        id: found?.id || roomPayload.roomCode || `room-${Date.now()}`,
+        code: roomPayload.roomCode || found?.code || '',
+        name: roomPayload.roomName || found?.name || 'غرفة مخصصة',
+        floor: roomPayload.floor || found?.floor || 'الطابق 1',
+        occupiedBy: isRoomVacant(rawOccupant) ? 'شاغرة' : (rawOccupant || 'شاغرة'),
       };
     }
     return null;
@@ -209,8 +211,15 @@ export const UnitScanChoiceModal: React.FC<UnitScanChoiceModalProps> = ({
                 </div>
                 <div className={`p-2.5 rounded-xl border ${isLight ? 'bg-white border-slate-200' : 'bg-slate-950/60 border-slate-800'}`}>
                   <span className={`block text-[10px] ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>الجهة الشاغلة للغرفة:</span>
-                  <span className="font-bold text-sky-500 text-xs truncate block" title={effectiveRoom?.occupiedBy || unit.department}>
-                    {effectiveRoom?.occupiedBy || unit.department || 'شاغر / غير محدد'}
+                  <span
+                    className={`font-bold text-xs truncate block ${
+                      isRoomVacant(effectiveRoom?.occupiedBy)
+                        ? 'text-amber-500 font-black'
+                        : 'text-sky-500'
+                    }`}
+                    title={effectiveRoom?.occupiedBy || 'شاغرة'}
+                  >
+                    {isRoomVacant(effectiveRoom?.occupiedBy) ? 'شاغرة' : (effectiveRoom?.occupiedBy || 'شاغرة')}
                   </span>
                 </div>
               </div>

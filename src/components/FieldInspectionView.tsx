@@ -40,7 +40,7 @@ import { UnitScanChoiceModal } from './UnitScanChoiceModal';
 import { UnitLocationMapModal } from './UnitLocationMapModal';
 import { InAppQrScannerModal } from './InAppQrScannerModal';
 import { compressImageFile } from '../utils/imageCompressor';
-import { findMatchingRoom } from '../utils/unitAndRoomCodeUtils';
+import { findMatchingRoom, isRoomVacant } from '../utils/unitAndRoomCodeUtils';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
 
@@ -909,11 +909,12 @@ export const FieldInspectionView: React.FC<FieldInspectionViewProps> = ({
               } else if (scannedRoomForChoice) {
                 selectedRoom = scannedRoomForChoice;
               } else if (scannedQrPayloadForChoice?.roomCode || scannedQrPayloadForChoice?.roomName) {
+                const rawRoomOccupied = scannedQrPayloadForChoice.occupiedBy;
                 selectedRoom = {
                   code: scannedQrPayloadForChoice.roomCode,
                   name: scannedQrPayloadForChoice.roomName || 'غرفة',
                   floor: scannedQrPayloadForChoice.floor,
-                  occupiedBy: scannedQrPayloadForChoice.occupiedBy || unit.department,
+                  occupiedBy: isRoomVacant(rawRoomOccupied) ? 'شاغرة' : (rawRoomOccupied || 'شاغرة'),
                 };
               }
             }

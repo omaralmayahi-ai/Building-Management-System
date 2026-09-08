@@ -73,6 +73,10 @@ export const INITIAL_EQUIPMENT_TYPES = [
   { id: 'EQT-CCTV', code: 'cctv_camera', nameAr: 'كاميرات مراقبة وحساسات أمنية', nameEn: 'CCTV Surveillance Camera', iconName: 'Camera', renderGeometry: 'camera' as const, defaultCapacity: 'Hikvision 4K IP', status: 'active' as const },
   { id: 'EQT-PUMP', code: 'water_pump', nameAr: 'مضخة مياه ضغط وتغذية', nameEn: 'Water Booster Pump', iconName: 'Activity', renderGeometry: 'pump' as const, defaultCapacity: '7.5 HP', status: 'active' as const },
   { id: 'EQT-FUEL', code: 'fuel_tank', nameAr: 'خزان وقود ديزل أرضي', nameEn: 'Diesel Fuel Tank', iconName: 'Database', renderGeometry: 'cylinder' as const, defaultCapacity: '5000 Liters', status: 'active' as const },
+  // معدات سلامة ودفاع مدني ميدانية
+  { id: 'EQT-FOAM-MONITOR', code: 'fire_foam_monitor', nameAr: 'خراطيم ورشاشات إطفاء رغوية للمواقع الحيوية (Foam Monitor)', nameEn: 'Hydraulic Foam Monitor System', iconName: 'Flame', renderGeometry: 'pump' as const, defaultCapacity: '3000 LPM Foam / 10 Bar', status: 'active' as const },
+  { id: 'EQT-MUSTER-POINT', code: 'muster_first_aid_station', nameAr: 'مظلات ومحطات إسعاف أولي ونقاط تجمع طوارئ (Muster Points)', nameEn: 'Emergency Muster Point & First Aid Station', iconName: 'ShieldAlert', renderGeometry: 'box' as const, defaultCapacity: '50 Persons / First Aid Kit', status: 'active' as const },
+  { id: 'EQT-SIREN-TOWER', code: 'emergency_siren_pole', nameAr: 'صفارات إنذار عامة مع أعمدة تحذير ومكبرات صوت', nameEn: 'Public Emergency Siren & Warning Loudspeakers', iconName: 'Volume2', renderGeometry: 'cylinder' as const, defaultCapacity: '130 dB / 360° Omni-Directional', status: 'active' as const },
 ];
 
 export const INITIAL_ORG_ENTITIES: OrgEntity[] = MIDLAND_OIL_COMPANY_ORG_ENTITIES.map((e, idx) => ({

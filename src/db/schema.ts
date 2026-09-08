@@ -164,6 +164,34 @@ export interface DbMaintenanceDepartmentRefRow {
   status: 'active' | 'disabled';
 }
 
+export interface DbSystemUserRow {
+  id: string;
+  name: string;
+  username: string;
+  password_hash?: string;
+  role: string;
+  maintenance_department?: string;
+  email?: string;
+  phone?: string;
+  governorate?: string;
+  field?: string;
+  status: 'active' | 'disabled';
+  last_active: string;
+  created_at: string;
+}
+
+export interface DbSystemBrandingRow {
+  id: string;
+  system_name: string;
+  company_name: string;
+  ministry_name: string;
+  country_name: string;
+  copyright_text: string;
+  logo_subtext?: string;
+  logo_url?: string;
+  updated_at: string;
+}
+
 // Convert DB Row to UnitAsset Frontend Model
 export function mapUnitRowToModel(row: DbUnitRow): UnitAsset {
   return {

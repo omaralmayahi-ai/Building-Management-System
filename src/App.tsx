@@ -83,7 +83,7 @@ import {
   getServerTimestamp,
 } from './utils/arabicUtils';
 import { safeParse, safeSetItem } from './utils/storageUtils';
-import { normalizeUnitRoomsSequence, findMatchingRoom } from './utils/unitAndRoomCodeUtils';
+import { normalizeUnitRoomsSequence, findMatchingRoom, isRoomVacant } from './utils/unitAndRoomCodeUtils';
 import { syncBrowserBranding } from './utils/brandingDomSync';
 import * as api from './services/apiClient';
 
@@ -214,6 +214,7 @@ export function App() {
         setSelectedUnitCode(matched.code);
         if (isRoom) {
           const matchedRoom = findMatchingRoom(matched, pendingDeepLink);
+          const rawOccupied = pendingDeepLink.occupiedBy || matchedRoom?.occupiedBy;
           setScannedUnitForChoice(matched);
           setScannedQrPayloadForChoice({
             rawText: window.location.href,
@@ -223,7 +224,7 @@ export function App() {
             roomCode: pendingDeepLink.roomCode || matchedRoom?.code,
             roomName: pendingDeepLink.roomName || matchedRoom?.name,
             floor: pendingDeepLink.floor || matchedRoom?.floor,
-            occupiedBy: pendingDeepLink.occupiedBy || matchedRoom?.occupiedBy,
+            occupiedBy: isRoomVacant(rawOccupied) ? 'شاغرة' : (rawOccupied || 'شاغرة'),
           });
           setScannedRoomForChoice(matchedRoom || null);
         } else if (pendingDeepLink.view === 'maintenance') {
@@ -297,6 +298,7 @@ export function App() {
         setSelectedUnitCode(matched.code);
         if (isRoom) {
           const matchedRoom = findMatchingRoom(matched, pendingDeepLink);
+          const rawOccupied = pendingDeepLink.occupiedBy || matchedRoom?.occupiedBy;
           setScannedUnitForChoice(matched);
           setScannedQrPayloadForChoice({
             rawText: window.location.href,
@@ -306,7 +308,7 @@ export function App() {
             roomCode: pendingDeepLink.roomCode || matchedRoom?.code,
             roomName: pendingDeepLink.roomName || matchedRoom?.name,
             floor: pendingDeepLink.floor || matchedRoom?.floor,
-            occupiedBy: pendingDeepLink.occupiedBy || matchedRoom?.occupiedBy,
+            occupiedBy: isRoomVacant(rawOccupied) ? 'شاغرة' : (rawOccupied || 'شاغرة'),
           });
           setScannedRoomForChoice(matchedRoom || null);
         } else if (pendingDeepLink.view === 'maintenance') {
@@ -536,9 +538,19 @@ export function App() {
     safeParse('app_ref_room_types', INITIAL_ROOM_TYPES)
   );
 
-  const [equipmentTypes, setEquipmentTypes] = useState<EquipmentTypeRef[]>(() =>
-    safeParse('app_ref_equipment_types', INITIAL_EQUIPMENT_TYPES)
-  );
+  const [equipmentTypes, setEquipmentTypes] = useState<EquipmentTypeRef[]>(() => {
+    const raw = safeParse('app_ref_equipment_types', INITIAL_EQUIPMENT_TYPES);
+    if (!raw || !Array.isArray(raw)) return INITIAL_EQUIPMENT_TYPES;
+    // Merge any missing initial equipment types (e.g. newly added HSE and civil defense items)
+    const existingCodes = new Set(raw.map((e: EquipmentTypeRef) => e.code));
+    const missing = INITIAL_EQUIPMENT_TYPES.filter((item) => !existingCodes.has(item.code));
+    if (missing.length > 0) {
+      const merged = [...raw, ...missing];
+      safeSetItem('app_ref_equipment_types', merged);
+      return merged;
+    }
+    return raw;
+  });
 
   const [maintenanceDepartments, setMaintenanceDepartments] = useState<MaintenanceDepartmentRef[]>(() =>
     safeParse('app_ref_maintenance_depts', INITIAL_MAINTENANCE_DEPARTMENTS)
@@ -2608,15 +2620,13 @@ export function App() {
             setScannedQrPayloadForChoice(null);
           }}
           onSelectLocation={(unit) => {
+            const rawRoomOccupied = scannedRoomForChoice?.occupiedBy || scannedQrPayloadForChoice?.occupiedBy;
             const roomDetails = scannedQrPayloadForChoice?.isRoom
               ? {
                   floor: scannedRoomForChoice?.floor || scannedQrPayloadForChoice.floor,
                   roomCode: scannedRoomForChoice?.code || scannedQrPayloadForChoice.roomCode,
                   roomName: scannedRoomForChoice?.name || scannedQrPayloadForChoice.roomName,
-                  occupiedBy:
-                    scannedRoomForChoice?.occupiedBy ||
-                    scannedQrPayloadForChoice.occupiedBy ||
-                    unit.department,
+                  occupiedBy: isRoomVacant(rawRoomOccupied) ? 'شاغرة' : (rawRoomOccupied || 'شاغرة'),
                 }
               : undefined;
             setScannedUnitForChoice(null);
@@ -2642,11 +2652,12 @@ export function App() {
               } else if (scannedRoomForChoice) {
                 selectedRoom = scannedRoomForChoice;
               } else if (scannedQrPayloadForChoice?.roomCode || scannedQrPayloadForChoice?.roomName) {
+                const rawRoomOccupied = scannedQrPayloadForChoice.occupiedBy;
                 selectedRoom = {
                   code: scannedQrPayloadForChoice.roomCode,
                   name: scannedQrPayloadForChoice.roomName || 'غرفة',
                   floor: scannedQrPayloadForChoice.floor,
-                  occupiedBy: scannedQrPayloadForChoice.occupiedBy || unit.department,
+                  occupiedBy: isRoomVacant(rawRoomOccupied) ? 'شاغرة' : (rawRoomOccupied || 'شاغرة'),
                 };
               }
             }

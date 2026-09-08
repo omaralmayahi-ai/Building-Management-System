@@ -27,6 +27,9 @@ import {
   buildSecurityBoomGate,
   buildFirePumpStation,
   buildFloodlightTower,
+  buildFireFoamMonitor,
+  buildMusterFirstAidStation,
+  buildEmergencySirenPole,
 } from './customSiteElements3DExtended';
 
 export interface SiteElementDefinition {
@@ -279,6 +282,33 @@ export const SITE_ELEMENT_DEFINITIONS: SiteElementDefinition[] = [
     defaultSize: { x: 1.6, y: 9.0, z: 1.6 },
     iconName: 'Lightbulb',
     description: 'برج كشافات LED غامرة بقدرة عالية لإضاءة الساحات والمخازن ومواقف السيارات ليلاً',
+    defaultMount: 'ground',
+  },
+  {
+    type: 'fire_foam_monitor',
+    nameAr: 'مدفع ورشاش رغوي هيدروليكي للمواقع الحيوية (Foam Monitor)',
+    category: 'safety',
+    defaultSize: { x: 1.6, y: 2.2, z: 1.8 },
+    iconName: 'Flame',
+    description: 'مدفع إطفاء ورشاش رغوي صناعي عالي الضغط مع بكرات توجيه يدوية وأنبوب سحب رغوي للمواقع الحيوية ومحطات النفط',
+    defaultMount: 'ground',
+  },
+  {
+    type: 'muster_first_aid_station',
+    nameAr: 'مظلة ومحطة إسعاف أولي ونقطة تجمع طوارئ (Muster Point)',
+    category: 'safety',
+    defaultSize: { x: 4.2, y: 3.2, z: 3.6 },
+    iconName: 'ShieldAlert',
+    description: 'مظلة أمان ونقطة تجمع طوارئ معتمدة بمدرج خرساني مخطط، لافتة تجمع دولية، خزانة إسعافات أولية، ومحطة غسيل طوارئ',
+    defaultMount: 'ground',
+  },
+  {
+    type: 'emergency_siren_pole',
+    nameAr: 'برج صفارات إنذار عامة مع أعمدة تحذير ومكبرات صوت',
+    category: 'safety',
+    defaultSize: { x: 2.2, y: 9.5, z: 2.2 },
+    iconName: 'Volume2',
+    description: 'برج فولاذي شاهق للإنذار المبكر العام مزود بـ 4 مكبرات صوت اتجاهية 360°، صفارة إلكتروميكانيكية، كابينة تحكم، وفلاش تحذيري',
     defaultMount: 'ground',
   },
 
@@ -584,6 +614,15 @@ export function buildCustomSiteElementMesh(
       break;
     case 'floodlight_tower':
       buildFloodlightTower(root, sx, sy, sz, isNightMode, isNightLightsOn);
+      break;
+    case 'fire_foam_monitor':
+      buildFireFoamMonitor(root, sx, sy, sz, isNightMode, isNightLightsOn);
+      break;
+    case 'muster_first_aid_station':
+      buildMusterFirstAidStation(root, sx, sy, sz, isNightMode, isNightLightsOn);
+      break;
+    case 'emergency_siren_pole':
+      buildEmergencySirenPole(root, sx, sy, sz, isNightMode, isNightLightsOn);
       break;
 
     default:

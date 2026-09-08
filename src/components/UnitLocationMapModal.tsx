@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { UnitAsset, ConditionGrade } from '../types';
 import { toArabicDigits } from '../utils/arabicUtils';
+import { isRoomVacant } from '../utils/unitAndRoomCodeUtils';
 import { GIS_TILE_LAYERS } from '../config/mapsConfig';
 
 // Fix Leaflet default icon paths
@@ -375,8 +376,13 @@ export const UnitLocationMapModal: React.FC<UnitLocationMapModalProps> = ({
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="text-[10px] text-slate-400 font-medium">الجهة الشاغلة</div>
-                  <div className="text-xs font-black text-sky-600 dark:text-sky-400 truncate" title={roomDetails?.occupiedBy || unit.department}>
-                    {roomDetails?.occupiedBy || unit.department || 'غير محدد'}
+                  <div
+                    className={`text-xs font-black truncate ${
+                      isRoomVacant(roomDetails?.occupiedBy) ? 'text-amber-500' : 'text-sky-600 dark:text-sky-400'
+                    }`}
+                    title={isRoomVacant(roomDetails?.occupiedBy) ? 'شاغرة' : (roomDetails?.occupiedBy || 'شاغرة')}
+                  >
+                    {isRoomVacant(roomDetails?.occupiedBy) ? 'شاغرة' : (roomDetails?.occupiedBy || 'شاغرة')}
                   </div>
                 </div>
               </div>

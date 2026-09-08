@@ -24,9 +24,11 @@ import {
   Waves,
   Maximize2,
   Minimize2,
+  Info,
 } from 'lucide-react';
 import { EquipmentItem, Room, UnitDesignFinishing, CustomSiteElement, CustomSiteElementType } from '../types';
 import { Lightbulb, LightbulbOff } from 'lucide-react';
+import { isRoomVacant } from '../utils/unitAndRoomCodeUtils';
 import { toArabicDigits } from '../utils/arabicUtils';
 import { safeSetItem } from '../utils/storageUtils';
 import { DroneHudOverlay, DroneFlightMode } from './DroneHudOverlay';
@@ -241,8 +243,14 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
     }
   }, [unitCode, designFinishing]);
 
-  const saveFinishingSettings = (updated: Partial<UnitDesignFinishing>) => {
-    const current: UnitDesignFinishing = {
+  const autoSaveTimerRef = useRef<any>(null);
+
+  const autoSaveToDatabase = async (
+    elementsList?: CustomSiteElement[],
+    finishingUpdates?: Partial<UnitDesignFinishing>
+  ) => {
+    const finalElements = elementsList !== undefined ? elementsList : customElementsRef.current;
+    const finalFinishing: UnitDesignFinishing = {
       archStyle,
       roofType,
       showFurniture,
@@ -250,13 +258,68 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
       showTrees,
       interiorLightIntensity,
       exteriorLightIntensity,
-      customElements,
-      ...updated,
+      customElements: finalElements,
+      ...finishingUpdates,
     };
-    safeSetItem(`unit_finishing_${unitCode}`, current);
+
+    safeSetItem(`unit_elements_${unitCode}`, finalElements);
+    safeSetItem(`unit_finishing_${unitCode}`, finalFinishing);
+
     if (onUpdateDesignFinishing) {
-      onUpdateDesignFinishing(current);
+      onUpdateDesignFinishing(finalFinishing);
     }
+
+    setIsSavingDb(true);
+    try {
+      const unitsStr = localStorage.getItem('app_units');
+      if (unitsStr) {
+        const units = JSON.parse(unitsStr);
+        const idx = units.findIndex((u: any) => u.code === unitCode);
+        if (idx !== -1) {
+          const updatedUnit = {
+            ...units[idx],
+            designFinishing: finalFinishing,
+          };
+          units[idx] = updatedUnit;
+          localStorage.setItem('app_units', JSON.stringify(units));
+          await updateUnit(updatedUnit);
+        }
+      }
+      setLastSavedTime(new Date().toLocaleTimeString('ar-IQ'));
+    } catch (err) {
+      console.warn('Auto-save note:', err);
+    } finally {
+      setIsSavingDb(false);
+    }
+  };
+
+  const autoSaveImmediate = (
+    elementsList?: CustomSiteElement[],
+    finishingUpdates?: Partial<UnitDesignFinishing>
+  ) => {
+    if (autoSaveTimerRef.current) {
+      clearTimeout(autoSaveTimerRef.current);
+    }
+    autoSaveToDatabase(elementsList, finishingUpdates);
+  };
+
+  const autoSaveDebounced = (
+    elementsList?: CustomSiteElement[],
+    finishingUpdates?: Partial<UnitDesignFinishing>
+  ) => {
+    if (autoSaveTimerRef.current) {
+      clearTimeout(autoSaveTimerRef.current);
+    }
+    autoSaveTimerRef.current = setTimeout(() => {
+      autoSaveToDatabase(elementsList, finishingUpdates);
+    }, 350);
+  };
+
+  const autoSaveImmediateRef = useRef(autoSaveImmediate);
+  autoSaveImmediateRef.current = autoSaveImmediate;
+
+  const saveFinishingSettings = (updated: Partial<UnitDesignFinishing>) => {
+    autoSaveDebounced(customElementsRef.current, updated);
   };
 
   // Selected Room Details for Raycasting Overlay
@@ -527,28 +590,31 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
 
     const updated = [...customElements, newElement];
     setCustomElements(updated);
+    customElementsRef.current = updated;
     setSelectedElementId(newElement.id);
     selectedElementIdRef.current = newElement.id;
     safeSetItem(`unit_elements_${unitCode}`, updated);
-    saveFinishingSettings({ customElements: updated });
+    autoSaveImmediate(updated);
   };
 
   const handleUpdateElement = (updated: CustomSiteElement) => {
     const list = customElements.map((e) => (e.id === updated.id ? updated : e));
     setCustomElements(list);
+    customElementsRef.current = list;
     safeSetItem(`unit_elements_${unitCode}`, list);
-    saveFinishingSettings({ customElements: list });
+    autoSaveDebounced(list);
   };
 
   const handleDeleteElement = (id: string) => {
     const list = customElements.filter((e) => e.id !== id);
     setCustomElements(list);
+    customElementsRef.current = list;
     if (selectedElementId === id) {
       setSelectedElementId(null);
       selectedElementIdRef.current = null;
     }
     safeSetItem(`unit_elements_${unitCode}`, list);
-    saveFinishingSettings({ customElements: list });
+    autoSaveImmediate(list);
   };
 
   const handleDuplicateElement = (target: CustomSiteElement | string) => {
@@ -566,42 +632,15 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
     };
     const list = [...customElements, dupe];
     setCustomElements(list);
+    customElementsRef.current = list;
     setSelectedElementId(dupe.id);
     selectedElementIdRef.current = dupe.id;
     safeSetItem(`unit_elements_${unitCode}`, list);
-    saveFinishingSettings({ customElements: list });
+    autoSaveImmediate(list);
   };
 
   const handleSaveToDatabase = async () => {
-    setIsSavingDb(true);
-    try {
-      saveFinishingSettings({ customElements });
-      const unitsStr = localStorage.getItem('app_units');
-      if (unitsStr) {
-        const units = JSON.parse(unitsStr);
-        const idx = units.findIndex((u: any) => u.code === unitCode);
-        if (idx !== -1) {
-          const updatedUnit = {
-            ...units[idx],
-            designFinishing: {
-              ...(units[idx].designFinishing || {}),
-              customElements,
-            },
-          };
-          units[idx] = updatedUnit;
-          localStorage.setItem('app_units', JSON.stringify(units));
-          if (onUpdateDesignFinishing) {
-            onUpdateDesignFinishing(updatedUnit.designFinishing);
-          }
-          await updateUnit(updatedUnit);
-        }
-      }
-    } catch (err) {
-      console.warn('Error saving site elements to database:', err);
-    } finally {
-      setIsSavingDb(false);
-      setLastSavedTime(new Date().toLocaleTimeString('ar-IQ'));
-    }
+    autoSaveImmediate(customElementsRef.current);
   };
 
   const handleDropOnCanvas = (e: React.DragEvent) => {
@@ -1159,6 +1198,9 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
         if (controlsRef.current) {
           controlsRef.current.enabled = true;
         }
+        if (autoSaveImmediateRef.current) {
+          autoSaveImmediateRef.current(customElementsRef.current);
+        }
       }
     };
 
@@ -1498,63 +1540,67 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
     >
       {/* 3D Control Bar - Positioned outside above the 3D canvas (hidden in drone mode to keep 3D view clean and unobstructed) */}
       {!isDroneMode && (
-        <div className={`p-3 rounded-2xl border shadow-lg flex flex-wrap items-center justify-between gap-3 text-xs transition-colors ${
-          isNightMode ? 'bg-slate-900 border-slate-800 text-slate-300' : 'bg-white border-slate-200 text-slate-800'
+        <div className={`p-1.5 sm:p-2 rounded-2xl border shadow-md flex items-center justify-between gap-1.5 text-xs transition-colors overflow-x-auto no-scrollbar whitespace-nowrap ${
+          isNightMode ? 'bg-slate-900/90 border-slate-800 text-slate-300' : 'bg-white/90 border-slate-200 text-slate-800'
         }`}>
         {/* Camera Views Perspective Shortcuts */}
-        <div className={`flex items-center gap-1 p-1 rounded-xl border transition-colors ${
-          isNightMode ? 'bg-slate-950 border-slate-800' : 'bg-slate-100 border-slate-200'
+        <div className={`flex items-center gap-0.5 p-0.5 rounded-xl border shrink-0 transition-colors ${
+          isNightMode ? 'bg-slate-950/60 border-slate-800' : 'bg-slate-100 border-slate-200'
         }`}>
           <button
             onClick={() => setCameraPerspective('isometric')}
-            className={`px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
+            className={`px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer ${
               activePerspective === 'isometric'
-                ? 'bg-amber-500 text-slate-950 shadow'
+                ? 'bg-amber-500 text-slate-950 shadow-sm'
                 : isNightMode
                 ? 'text-slate-300 hover:text-white hover:bg-slate-800'
                 : 'text-slate-700 hover:text-slate-900 hover:bg-slate-200'
             }`}
+            title="منظور ثلاثي الأبعاد أساسي"
           >
-            منظور أساسي
+            منظور
           </button>
           <button
             onClick={() => setCameraPerspective('top')}
-            className={`px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
+            className={`px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer ${
               activePerspective === 'top'
-                ? 'bg-amber-500 text-slate-950 shadow'
+                ? 'bg-amber-500 text-slate-950 shadow-sm'
                 : isNightMode
                 ? 'text-slate-300 hover:text-white hover:bg-slate-800'
                 : 'text-slate-700 hover:text-slate-900 hover:bg-slate-200'
             }`}
+            title="مسقط رأسي علوي"
           >
-            مسقط علوي
+            علوي
           </button>
           <button
             onClick={() => setCameraPerspective('front')}
-            className={`px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
+            className={`px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer ${
               activePerspective === 'front'
-                ? 'bg-amber-500 text-slate-950 shadow'
+                ? 'bg-amber-500 text-slate-950 shadow-sm'
                 : isNightMode
                 ? 'text-slate-300 hover:text-white hover:bg-slate-800'
                 : 'text-slate-700 hover:text-slate-900 hover:bg-slate-200'
             }`}
+            title="واجهة المبنى الأمامية"
           >
             واجهة
           </button>
         </div>
 
         {unitStatus === 'decommissioned' && (
-          <div className="px-3 py-1.5 rounded-lg bg-rose-500/20 text-rose-400 border border-rose-500/40 text-xs font-black flex items-center gap-1.5" title={decommissionReason || 'وحدة مشطوبة ومجمدة عن الخدمة'}>
+          <div className="px-2.5 py-1 rounded-xl bg-rose-500/20 text-rose-400 border border-rose-500/40 text-xs font-black flex items-center gap-1 shrink-0" title={decommissionReason || 'وحدة مشطوبة ومجمدة عن الخدمة'}>
             <AlertTriangle className="w-3.5 h-3.5 text-rose-400" />
-            <span>🔒 وحدة مشطوبة ومجمدة</span>
+            <span>وحدة مشطوبة</span>
           </div>
         )}
 
-        {/* Action Controls (Day/Night, Night Lighting Toggle, Auto-rotate, Explode Floors, Settings Drawer) */}
-        <div className="flex flex-wrap items-center gap-2">
+        {/* Action Controls - Single Row with compact text and clear icons */}
+        <div className="flex items-center gap-1 sm:gap-1.5 shrink-0 text-xs font-bold">
+          {/* Day / Night Mode */}
           <button
             onClick={() => setIsNightMode(!isNightMode)}
-            className={`px-3 py-1.5 rounded-xl border font-bold transition flex items-center gap-1.5 cursor-pointer ${
+            className={`px-2.5 py-1 rounded-xl border transition flex items-center gap-1 cursor-pointer ${
               isNightMode
                 ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40'
                 : 'bg-amber-500/20 text-amber-700 border-amber-500/40'
@@ -1565,24 +1611,26 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
             <span>{isNightMode ? 'داكن' : 'فاتح'}</span>
           </button>
 
+          {/* Night Lights */}
           {isNightMode && (
             <button
               onClick={() => setIsNightLightsOn(!isNightLightsOn)}
-              className={`px-3 py-1.5 rounded-xl border font-bold transition flex items-center gap-1.5 cursor-pointer ${
+              className={`px-2 py-1 rounded-xl border transition flex items-center gap-1 cursor-pointer ${
                 isNightLightsOn
                   ? 'bg-amber-500/20 text-amber-400 border-amber-500/40'
                   : 'bg-slate-800 text-slate-400 border-slate-700'
               }`}
-              title={isNightLightsOn ? 'إطفاء الإنارة الخارجية والداخلية' : 'تشغيل الإنارة الخارجية والداخلية'}
+              title={isNightLightsOn ? 'إطفاء الإنارة' : 'تشغيل الإنارة'}
             >
               {isNightLightsOn ? <Lightbulb className="w-3.5 h-3.5 text-amber-400 fill-amber-400" /> : <LightbulbOff className="w-3.5 h-3.5" />}
-              <span>{isNightLightsOn ? 'الإنارة مفعلة' : 'الإنارة مطفأة'}</span>
+              <span>إنارة</span>
             </button>
           )}
 
+          {/* Auto Rotate */}
           <button
             onClick={() => setAutoRotate(!autoRotate)}
-            className={`px-3 py-1.5 rounded-xl border font-bold transition flex items-center gap-1.5 cursor-pointer ${
+            className={`px-2 py-1 rounded-xl border transition flex items-center gap-1 cursor-pointer ${
               autoRotate
                 ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40'
                 : isNightMode
@@ -1595,143 +1643,53 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
             <span>تدوير</span>
           </button>
 
-          {/* Explode Floors Control (Moved here next to rotate, day/night & customization) */}
+          {/* Explode Floors (if multi-floor) */}
           {!isCaravan && floorsCount > 1 && (
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setShowExplodePopover(!showExplodePopover)}
-                className={`px-3 py-1.5 rounded-xl border font-bold transition flex items-center gap-1.5 cursor-pointer ${
-                  explodePercent > 0 || showExplodePopover
-                    ? 'bg-amber-500 text-slate-950 border-amber-400 shadow'
-                    : isNightMode
-                    ? 'bg-slate-800 text-slate-300 border-slate-700 hover:text-white'
-                    : 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200'
-                }`}
-                title="تفكيك وفصل الطوابق عمودياً (Exploded View)"
-              >
-                <Layers className="w-3.5 h-3.5" />
-                <span>تفكيك الطوابق</span>
-                {explodePercent > 0 && (
-                  <span
-                    className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-black ${
-                      showExplodePopover || explodePercent > 0
-                        ? 'bg-slate-950 text-amber-400'
-                        : 'bg-amber-500/20 text-amber-500'
-                    }`}
-                  >
-                    {toArabicDigits(explodePercent)}%
-                  </span>
-                )}
-              </button>
-
-              {/* Explode Control Dropdown/Popover */}
-              {showExplodePopover && (
-                <div
-                  className={`absolute top-full mt-2 left-0 sm:left-auto sm:right-0 z-40 p-3.5 rounded-2xl border shadow-2xl backdrop-blur-md w-64 max-w-[90vw] space-y-2.5 text-xs animate-in fade-in slide-in-from-top-2 transition-colors ${
-                    isNightMode
-                      ? 'bg-slate-900/95 border-slate-800 text-slate-200 shadow-black/60'
-                      : 'bg-white/98 border-slate-200 text-slate-800 shadow-slate-300/60'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <span
-                      className={`font-bold flex items-center gap-1.5 ${
-                        isNightMode ? 'text-amber-400' : 'text-amber-700'
-                      }`}
-                    >
-                      <Layers className="w-3.5 h-3.5" />
-                      <span>نسبة تفكيك الطوابق</span>
-                    </span>
-                    <div className="flex items-center gap-1.5">
-                      <span
-                        className={`font-mono font-bold px-1.5 py-0.5 rounded text-[11px] ${
-                          explodePercent > 0
-                            ? 'bg-amber-500/20 text-amber-500 border border-amber-500/30'
-                            : isNightMode
-                            ? 'text-slate-500'
-                            : 'text-slate-400'
-                        }`}
-                      >
-                        {toArabicDigits(explodePercent)}%
-                      </span>
-                      {explodePercent > 0 && (
-                        <button
-                          type="button"
-                          onClick={() => setExplodePercent(0)}
-                          className={`p-1 rounded-lg transition cursor-pointer ${
-                            isNightMode
-                              ? 'hover:bg-slate-800 text-slate-400 hover:text-white'
-                              : 'hover:bg-slate-100 text-slate-500 hover:text-slate-900'
-                          }`}
-                          title="إعادة ضم الطوابق (0%)"
-                        >
-                          <RotateCcw className="w-3 h-3 text-amber-500" />
-                        </button>
-                      )}
-                    </div>
-                  </div>
-
-                  <input
-                    type="range"
-                    min="0"
-                    max="100"
-                    value={explodePercent}
-                    onChange={(e) => setExplodePercent(Number(e.target.value))}
-                    className="w-full accent-amber-500 cursor-pointer h-1.5 bg-slate-200 dark:bg-slate-800 rounded-lg"
-                  />
-
-                  {/* Quick Preset Buttons */}
-                  <div className="grid grid-cols-3 gap-1 pt-0.5">
-                    <button
-                      type="button"
-                      onClick={() => setExplodePercent(0)}
-                      className={`py-1 px-1.5 rounded-lg font-bold text-[10px] text-center transition cursor-pointer border ${
-                        explodePercent === 0
-                          ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-sm'
-                          : isNightMode
-                          ? 'bg-slate-800/80 text-slate-300 border-slate-700 hover:bg-slate-700'
-                          : 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200'
-                      }`}
-                    >
-                      ضم (٠%)
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setExplodePercent(50)}
-                      className={`py-1 px-1.5 rounded-lg font-bold text-[10px] text-center transition cursor-pointer border ${
-                        explodePercent === 50
-                          ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-sm'
-                          : isNightMode
-                          ? 'bg-slate-800/80 text-slate-300 border-slate-700 hover:bg-slate-700'
-                          : 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200'
-                      }`}
-                    >
-                      نصف (٥٠%)
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setExplodePercent(100)}
-                      className={`py-1 px-1.5 rounded-lg font-bold text-[10px] text-center transition cursor-pointer border ${
-                        explodePercent === 100
-                          ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-sm'
-                          : isNightMode
-                          ? 'bg-slate-800/80 text-slate-300 border-slate-700 hover:bg-slate-700'
-                          : 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200'
-                      }`}
-                    >
-                      كامل (١٠٠%)
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
+            <button
+              type="button"
+              onClick={() => setShowExplodePopover(!showExplodePopover)}
+              className={`px-2.5 py-1 rounded-xl border transition flex items-center gap-1 cursor-pointer ${
+                explodePercent > 0 || showExplodePopover
+                  ? 'bg-amber-500 text-slate-950 border-amber-400 font-bold shadow'
+                  : isNightMode
+                  ? 'bg-slate-800 text-slate-300 border-slate-700 hover:text-white'
+                  : 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200'
+              }`}
+              title="تفكيك وفصل الطوابق عمودياً (Exploded View)"
+            >
+              <Layers className="w-3.5 h-3.5" />
+              <span>تفكيك {explodePercent > 0 ? `(${toArabicDigits(explodePercent)}%)` : ''}</span>
+            </button>
           )}
 
-          {/* Interactive Engineering Editor Trigger */}
+          {/* Drone Mode */}
+          <button
+            onClick={() => {
+              const next = !isDroneMode;
+              setIsDroneMode(next);
+              if (next) {
+                if (controlsRef.current) controlsRef.current.enabled = false;
+              } else {
+                if (controlsRef.current) controlsRef.current.enabled = true;
+              }
+            }}
+            className={`px-2.5 py-1 rounded-xl border transition flex items-center gap-1 cursor-pointer ${
+              isDroneMode
+                ? 'bg-amber-500 text-slate-950 border-amber-400 shadow animate-pulse'
+                : isNightMode
+                ? 'bg-slate-800 text-slate-300 border-slate-700 hover:text-white'
+                : 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200'
+            }`}
+            title="تصوير درون سينمائي جوي"
+          >
+            <Camera className="w-3.5 h-3.5 text-amber-500" />
+            <span>درون</span>
+          </button>
+
+          {/* Interactive Engineering Editor & Equipment Trigger */}
           <button
             onClick={() => setShowEngineeringEditor(!showEngineeringEditor)}
-            className={`px-3 py-1.5 rounded-xl border font-bold transition flex items-center gap-1.5 cursor-pointer shadow-sm ${
+            className={`px-2.5 py-1 rounded-xl border transition flex items-center gap-1.5 cursor-pointer shadow-sm ${
               showEngineeringEditor
                 ? 'bg-amber-500 text-slate-950 border-amber-400 font-extrabold ring-2 ring-amber-500/30'
                 : customElements.length > 0
@@ -1740,10 +1698,10 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
                 ? 'bg-slate-800 text-slate-300 border-slate-700 hover:text-white'
                 : 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200'
             }`}
-            title="فتح لوحة المحرر الهندسي التفاعلي للموقع، المعدات، الأرصفة، الأعلام واللافتات"
+            title="المحرر الهندسي والمعدات وتخصيص الهيكل"
           >
             <Sliders className="w-3.5 h-3.5 text-amber-500" />
-            <span>المحرر الهندسي والمعدات</span>
+            <span>المحرر والمعدات</span>
             {customElements.length > 0 && (
               <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono font-black ${
                 showEngineeringEditor ? 'bg-slate-950 text-amber-400' : 'bg-amber-500 text-slate-950'
@@ -1753,96 +1711,20 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
             )}
           </button>
 
-          {/* Site Elements Manager Modal Trigger */}
-          <button
-            onClick={() => setShowSiteElementsModal(true)}
-            className={`px-2.5 py-1.5 rounded-xl border font-bold transition flex items-center gap-1.5 cursor-pointer ${
-              showSiteElementsModal
-                ? 'bg-amber-500/20 text-amber-400 border-amber-500/40 hover:bg-amber-500/30'
-                : isNightMode
-                ? 'bg-slate-800 text-slate-300 border-slate-700 hover:text-white'
-                : 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200'
-            }`}
-            title="دليل وكتالوج معالم ومرافق الموقع والمعدات"
-          >
-            <Plus className="w-3.5 h-3.5 text-amber-500" />
-            <span className="hidden sm:inline">كتالوج المعالم</span>
-          </button>
-
-          {/* Cinematic Drone Mode Button */}
-          <button
-            onClick={() => {
-              const next = !isDroneMode;
-              setIsDroneMode(next);
-              if (next) {
-                // Disable orbit controls while drone is active
-                if (controlsRef.current) {
-                  controlsRef.current.enabled = false;
-                }
-              } else {
-                if (controlsRef.current) {
-                  controlsRef.current.enabled = true;
-                }
-              }
-            }}
-            className={`px-3 py-1.5 rounded-xl border font-bold transition flex items-center gap-1.5 cursor-pointer ${
-              isDroneMode
-                ? 'bg-amber-500 text-slate-950 border-amber-400 shadow animate-pulse'
-                : isNightMode
-                ? 'bg-slate-800 text-slate-300 border-slate-700 hover:text-white'
-                : 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200'
-            }`}
-            title="تفعيل وضع التصوير السينمائي الجوي بالدرون (Drone Mode)"
-          >
-            <Camera className="w-3.5 h-3.5 text-amber-500" />
-            <span>تصوير درون سينمائي</span>
-          </button>
-
-          {/* 3D Geometric Coordinate Axes (XYZ) Helper Toggle - Positioned in top bar above canvas */}
-          <button
-            onClick={() => setShowAxesHelper(!showAxesHelper)}
-            className={`px-3 py-1.5 rounded-xl border font-bold transition flex items-center gap-1.5 cursor-pointer ${
-              showAxesHelper
-                ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-md ring-2 ring-amber-400/40'
-                : isNightMode
-                ? 'bg-slate-800 text-slate-300 border-slate-700 hover:text-white'
-                : 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200'
-            }`}
-            title="إظهار / إخفاء المحور الهندسي ثلاثي الأبعاد (XYZ Axes)"
-          >
-            <Compass className="w-3.5 h-3.5 text-amber-500" />
-            <span>المحور الهندسي</span>
-          </button>
-
-          {/* Fullscreen Toggle Button */}
+          {/* Fullscreen Toggle */}
           <button
             onClick={toggleFullscreen}
-            className={`px-3 py-1.5 rounded-xl border font-bold transition flex items-center gap-1.5 cursor-pointer ${
+            className={`px-2.5 py-1 rounded-xl border transition flex items-center gap-1 cursor-pointer ${
               isFullscreen
                 ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-md'
                 : isNightMode
                 ? 'bg-slate-800 text-slate-300 border-slate-700 hover:text-white'
                 : 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200'
             }`}
-            title={isFullscreen ? 'الخروج من وضع ملء الشاشة' : 'ملء الشاشة بالكامل لعرض المجسم ثلاثي الأبعاد'}
+            title={isFullscreen ? 'تصغير الشاشة' : 'ملء الشاشة'}
           >
             {isFullscreen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5 text-amber-500" />}
             <span>{isFullscreen ? 'تصغير' : 'ملء الشاشة'}</span>
-          </button>
-
-          <button
-            onClick={() => setShowSettingsPanel(!showSettingsPanel)}
-            className={`px-3 py-1.5 rounded-xl border font-bold transition flex items-center gap-1.5 cursor-pointer ${
-              showSettingsPanel
-                ? 'bg-amber-500 text-slate-950 border-amber-400 shadow'
-                : isNightMode
-                ? 'bg-slate-800 text-slate-300 border-slate-700 hover:text-white'
-                : 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200'
-            }`}
-            title="إعدادات الهيكل والتصميم"
-          >
-            <Sliders className="w-3.5 h-3.5" />
-            <span>تخصيص المعالم</span>
           </button>
         </div>
       </div>
@@ -1867,180 +1749,138 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
           className="absolute inset-0 w-full h-full z-0 cursor-grab active:cursor-grabbing"
         />
 
-      {/* Floating Architectural Customization Panel */}
-      {showSettingsPanel && (
-        <div className={`absolute top-16 right-2 sm:right-3 z-30 w-72 sm:w-80 max-w-[92vw] backdrop-blur-md rounded-2xl border p-4 shadow-2xl space-y-4 text-xs animate-in fade-in slide-in-from-top-2 transition-colors ${
-          isNightMode
-            ? 'bg-slate-900/95 border-slate-800 text-slate-200'
-            : 'bg-white/95 border-slate-200 text-slate-800'
-        }`}>
-          <div className={`flex items-center justify-between border-b pb-2 ${isNightMode ? 'border-slate-800' : 'border-slate-200'}`}>
-            <h4 className={`font-extrabold flex items-center gap-1.5 ${isNightMode ? 'text-amber-400' : 'text-amber-700'}`}>
-              <Building className="w-4 h-4" />
-              تخصيص التصميم والتشطيب
-            </h4>
-            <button
-              onClick={() => setShowSettingsPanel(false)}
-              className={`p-1 rounded-lg ${isNightMode ? 'hover:bg-slate-800 text-slate-400 hover:text-white' : 'hover:bg-slate-100 text-slate-500 hover:text-slate-900'}`}
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
+        {/* Interactive Exploded View Floating Controller Overlay (Always on top of 3D Canvas, never clipped) */}
+        {!isCaravan && floorsCount > 1 && showExplodePopover && !isDroneMode && (
+          <div
+            className={`absolute top-3 left-3 sm:left-auto sm:right-3 z-30 p-3.5 sm:p-4 rounded-2xl border shadow-2xl backdrop-blur-md w-72 sm:w-80 max-w-[92vw] space-y-3 text-xs animate-in fade-in slide-in-from-top-2 transition-all ${
+              isNightMode
+                ? 'bg-slate-900/95 border-amber-500/40 text-slate-200 shadow-black/80 ring-1 ring-amber-500/20'
+                : 'bg-white/95 border-amber-500/50 text-slate-800 shadow-slate-400/50 ring-1 ring-amber-500/20'
+            }`}
+          >
+            {/* Header with Title and Close Button */}
+            <div className={`flex items-center justify-between border-b pb-2.5 ${isNightMode ? 'border-slate-800' : 'border-slate-200'}`}>
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 rounded-xl bg-amber-500/20 text-amber-500 border border-amber-500/30">
+                  <Layers className="w-4 h-4" />
+                </div>
+                <div>
+                  <h4 className="font-black text-xs sm:text-sm text-amber-500">تفكيك وفصل الطوابق</h4>
+                  <p className={`text-[10px] ${isNightMode ? 'text-slate-400' : 'text-slate-500'}`}>فصل الطوابق رأسياً لمعاينة التقسيمات والمعدات</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowExplodePopover(false)}
+                className={`p-1 rounded-lg transition cursor-pointer ${
+                  isNightMode ? 'hover:bg-slate-800 text-slate-400 hover:text-white' : 'hover:bg-slate-100 text-slate-500 hover:text-slate-900'
+                }`}
+                title="إغلاق اللوحة"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
 
-          <div className="space-y-3">
-            <div>
-              <label className={`block font-bold mb-1 ${isNightMode ? 'text-slate-300' : 'text-slate-700'}`}>النمط المعماري:</label>
-              <select
-                value={archStyle}
-                onChange={(e) => {
-                  const val = e.target.value as any;
-                  setArchStyle(val);
-                  saveFinishingSettings({ archStyle: val });
-                }}
-                className={`w-full border rounded-xl p-2 font-bold outline-none cursor-pointer transition-colors ${
-                  isNightMode
-                    ? 'bg-slate-950 border-slate-800 text-slate-200 focus:border-amber-500'
-                    : 'bg-slate-50 border-slate-300 text-slate-800 focus:border-amber-600'
+            {/* Live Percentage & Quick Reset */}
+            <div className="flex items-center justify-between font-bold">
+              <span className={isNightMode ? 'text-slate-300' : 'text-slate-700'}>مسافة التباعد العمودي:</span>
+              <div className="flex items-center gap-1.5">
+                <span className="font-mono font-black text-xs sm:text-sm px-2 py-0.5 rounded-lg bg-amber-500 text-slate-950 shadow-sm">
+                  {toArabicDigits(explodePercent)}%
+                </span>
+                {explodePercent > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setExplodePercent(0)}
+                    className={`p-1 rounded-lg transition cursor-pointer ${
+                      isNightMode ? 'bg-slate-800 hover:bg-slate-700 text-amber-400' : 'bg-slate-100 hover:bg-slate-200 text-amber-600'
+                    }`}
+                    title="إعادة ضم الطوابق بالكامل (0%)"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Interactive Range Slider */}
+            <input
+              type="range"
+              min="0"
+              max="100"
+              step="1"
+              value={explodePercent}
+              onChange={(e) => setExplodePercent(Number(e.target.value))}
+              className="w-full accent-amber-500 cursor-pointer h-2 bg-slate-200 dark:bg-slate-800 rounded-lg"
+            />
+
+            {/* Quick Presets */}
+            <div className="grid grid-cols-4 gap-1 pt-0.5">
+              <button
+                type="button"
+                onClick={() => setExplodePercent(0)}
+                className={`py-1 px-1 rounded-lg font-bold text-[10px] text-center transition cursor-pointer border ${
+                  explodePercent === 0
+                    ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-sm'
+                    : isNightMode
+                    ? 'bg-slate-800/80 text-slate-300 border-slate-700 hover:bg-slate-700'
+                    : 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200'
                 }`}
               >
-                <option value="modern">حديث مع واجهات زجاجية (Modern Glass)</option>
-                <option value="classic">كلاسيكي حجري (Classic Stone)</option>
-                <option value="industrial">صناعي متطور (Industrial Frame)</option>
-                <option value="minimalist">بسيط وأنيق (Minimalist White)</option>
-              </select>
-            </div>
-
-            <div>
-              <label className={`block font-bold mb-1 ${isNightMode ? 'text-slate-300' : 'text-slate-700'}`}>نوع السطح والتصميم:</label>
-              <select
-                value={roofType}
-                onChange={(e) => {
-                  const val = e.target.value as any;
-                  setRoofType(val);
-                  saveFinishingSettings({ roofType: val });
-                }}
-                className={`w-full border rounded-xl p-2 font-bold outline-none cursor-pointer transition-colors ${
-                  isNightMode
-                    ? 'bg-slate-950 border-slate-800 text-slate-200 focus:border-amber-500'
-                    : 'bg-slate-50 border-slate-300 text-slate-800 focus:border-amber-600'
+                ضم (٠%)
+              </button>
+              <button
+                type="button"
+                onClick={() => setExplodePercent(30)}
+                className={`py-1 px-1 rounded-lg font-bold text-[10px] text-center transition cursor-pointer border ${
+                  explodePercent === 30
+                    ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-sm'
+                    : isNightMode
+                    ? 'bg-slate-800/80 text-slate-300 border-slate-700 hover:bg-slate-700'
+                    : 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200'
                 }`}
               >
-                <option value="flat">سطح مسطح (سطح مستوي)</option>
-                <option value="flat_parapet">سطح مسطح مع سياج السطح</option>
-                <option value="gabled">سطح مثلث مائل الشكل (مخصص للجملونات)</option>
-                <option value="pitched_tile">سطح من القرميد مائل الشكل</option>
-                <option value="garden">سطح حديقة خضراء (Roof Garden)</option>
-              </select>
+                خفيف (٣٠%)
+              </button>
+              <button
+                type="button"
+                onClick={() => setExplodePercent(60)}
+                className={`py-1 px-1 rounded-lg font-bold text-[10px] text-center transition cursor-pointer border ${
+                  explodePercent === 60
+                    ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-sm'
+                    : isNightMode
+                    ? 'bg-slate-800/80 text-slate-300 border-slate-700 hover:bg-slate-700'
+                    : 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200'
+                }`}
+              >
+                متوسط (٦٠%)
+              </button>
+              <button
+                type="button"
+                onClick={() => setExplodePercent(100)}
+                className={`py-1 px-1 rounded-lg font-bold text-[10px] text-center transition cursor-pointer border ${
+                  explodePercent === 100
+                    ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-sm'
+                    : isNightMode
+                    ? 'bg-slate-800/80 text-slate-300 border-slate-700 hover:bg-slate-700'
+                    : 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200'
+                }`}
+              >
+                كامل (١٠٠%)
+              </button>
             </div>
 
-            <div className={`space-y-2 pt-1 border-t ${isNightMode ? 'border-slate-800' : 'border-slate-200'}`}>
-              <label className={`flex items-center gap-2 cursor-pointer ${isNightMode ? 'text-slate-300' : 'text-slate-700'}`}>
-                <input
-                  type="checkbox"
-                  checked={showFurniture}
-                  onChange={(e) => {
-                    const checked = e.target.checked;
-                    setShowFurniture(checked);
-                    saveFinishingSettings({ showFurniture: checked });
-                  }}
-                  className="rounded border-slate-400 accent-amber-500"
-                />
-                <span>إظهار الأثاث والمعدات الداخلية</span>
-              </label>
-
-              <label className={`flex items-center gap-2 cursor-pointer ${isNightMode ? 'text-slate-300' : 'text-slate-700'}`}>
-                <input
-                  type="checkbox"
-                  checked={showWindows}
-                  onChange={(e) => {
-                    const checked = e.target.checked;
-                    setShowWindows(checked);
-                    saveFinishingSettings({ showWindows: checked });
-                  }}
-                  className="rounded border-slate-400 accent-amber-500"
-                />
-                <span>نوافذ وواجهات زجاجية شفافة</span>
-              </label>
-
-              <label className={`flex items-center gap-2 cursor-pointer ${isNightMode ? 'text-slate-300' : 'text-slate-700'}`}>
-                <input
-                  type="checkbox"
-                  checked={showTrees}
-                  onChange={(e) => {
-                    const checked = e.target.checked;
-                    setShowTrees(checked);
-                    saveFinishingSettings({ showTrees: checked });
-                  }}
-                  className="rounded border-slate-400 accent-amber-500"
-                />
-                <span>إظهار المحيط والبيئة الميدانية (أشجار)</span>
-              </label>
-            </div>
-
-            {/* Lighting Intensity Controls */}
-            <div className={`space-y-3 pt-3 border-t ${isNightMode ? 'border-slate-800' : 'border-slate-200'}`}>
-              <div className="flex items-center justify-between">
-                <label className={`font-extrabold flex items-center gap-1.5 text-xs ${isNightMode ? 'text-amber-400' : 'text-amber-700'}`}>
-                  <Sun className="w-3.5 h-3.5 text-amber-500" />
-                  <span>التحكم بشدة وسطوع الإنارة:</span>
-                </label>
-              </div>
-
-              {/* Interior Lighting Slider */}
-              <div>
-                <div className="flex items-center justify-between mb-1 font-bold">
-                  <span className={`flex items-center gap-1.5 ${isNightMode ? 'text-slate-300' : 'text-slate-700'}`}>
-                    <Lightbulb className="w-3.5 h-3.5 text-amber-400" />
-                    الإنارة الداخلية (الغرف والأنوار):
-                  </span>
-                  <span className="font-mono bg-amber-500/10 text-amber-500 border border-amber-500/20 px-1.5 py-0.5 rounded text-[11px]">
-                    {toArabicDigits(interiorLightIntensity.toFixed(1))}×
-                  </span>
-                </div>
-                <input
-                  type="range"
-                  min="0.5"
-                  max="8.0"
-                  step="0.5"
-                  value={interiorLightIntensity}
-                  onChange={(e) => {
-                    const val = parseFloat(e.target.value);
-                    setInteriorLightIntensity(val);
-                    saveFinishingSettings({ interiorLightIntensity: val });
-                  }}
-                  className="w-full accent-amber-500 cursor-pointer h-1.5 bg-slate-200 dark:bg-slate-800 rounded-lg"
-                />
-              </div>
-
-              {/* Exterior Lighting Slider */}
-              <div>
-                <div className="flex items-center justify-between mb-1 font-bold">
-                  <span className={`flex items-center gap-1.5 ${isNightMode ? 'text-slate-300' : 'text-slate-700'}`}>
-                    <Sun className="w-3.5 h-3.5 text-sky-400" />
-                    الإنارة الخارجية (الكشافات والمحيط):
-                  </span>
-                  <span className="font-mono bg-sky-500/10 text-sky-400 border border-sky-500/20 px-1.5 py-0.5 rounded text-[11px]">
-                    {toArabicDigits(exteriorLightIntensity.toFixed(1))}×
-                  </span>
-                </div>
-                <input
-                  type="range"
-                  min="0.5"
-                  max="8.0"
-                  step="0.5"
-                  value={exteriorLightIntensity}
-                  onChange={(e) => {
-                    const val = parseFloat(e.target.value);
-                    setExteriorLightIntensity(val);
-                    saveFinishingSettings({ exteriorLightIntensity: val });
-                  }}
-                  className="w-full accent-sky-500 cursor-pointer h-1.5 bg-slate-200 dark:bg-slate-800 rounded-lg"
-                />
-              </div>
+            {/* Informational Hint */}
+            <div className={`text-[10px] p-2 rounded-xl border flex items-center gap-1.5 ${
+              isNightMode ? 'bg-amber-500/10 border-amber-500/20 text-amber-300' : 'bg-amber-50 border-amber-200 text-amber-900'
+            }`}>
+              <Info className="w-3.5 h-3.5 shrink-0 text-amber-500" />
+              <span>يمكنك تدوير المبنى أو تكبيره بحرية لرؤية الغرف والمعدات أثناء التفكيك.</span>
             </div>
           </div>
-        </div>
-      )}
+        )}
+
+
 
       {/* Selected Room Details Floating Overlay Card (Raycaster Selection) */}
       {selectedRoomData && (
@@ -2076,14 +1916,16 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
             <strong className={`font-bold text-sm ${isNightMode ? 'text-emerald-400' : 'text-emerald-600'}`}>{toArabicDigits(selectedRoomData.area)}</strong>
           </div>
 
-          {selectedRoomData.occupiedBy && (
-            <div className={`p-2 rounded-xl border flex items-center justify-between ${
-              isNightMode ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200'
+          <div className={`p-2 rounded-xl border flex items-center justify-between ${
+            isNightMode ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200'
+          }`}>
+            <span className="text-slate-500 text-xs font-bold">الجهة الشاغلة:</span>
+            <strong className={`font-bold text-xs ${
+              isRoomVacant(selectedRoomData.occupiedBy) ? 'text-amber-500' : 'text-sky-500'
             }`}>
-              <span className="text-slate-500 text-xs font-bold">الجهة الشاغلة:</span>
-              <strong className="font-bold text-xs text-amber-500">{selectedRoomData.occupiedBy}</strong>
-            </div>
-          )}
+              {isRoomVacant(selectedRoomData.occupiedBy) ? 'شاغرة' : selectedRoomData.occupiedBy}
+            </strong>
+          </div>
 
           {selectedRoomData.contents && selectedRoomData.contents.length > 0 && (
             <div className="flex flex-wrap gap-1.5 pt-1">
@@ -2164,7 +2006,7 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
         />
       )}
 
-      {/* Interactive Engineering Editor - Draggable & Configurable Site Elements */}
+      {/* Interactive Engineering Editor - Draggable & Configurable Site Elements + Finishing Settings */}
       <InteractiveEngineeringEditor
         isOpen={showEngineeringEditor}
         onToggleOpen={() => setShowEngineeringEditor(!showEngineeringEditor)}
@@ -2178,7 +2020,6 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
         onUpdateElement={handleUpdateElement}
         onDeleteElement={handleDeleteElement}
         onDuplicateElement={handleDuplicateElement}
-        onSaveToDatabase={handleSaveToDatabase}
         isSavingDatabase={isSavingDb}
         lastSavedTime={lastSavedTime}
         roofHeight={floorsCount * storyHeight}
@@ -2186,6 +2027,23 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
         buildingDepth={depth}
         isNightMode={isNightMode}
         theme={theme}
+        archStyle={archStyle}
+        roofType={roofType}
+        showFurniture={showFurniture}
+        showWindows={showWindows}
+        showTrees={showTrees}
+        interiorLightIntensity={interiorLightIntensity}
+        exteriorLightIntensity={exteriorLightIntensity}
+        onUpdateFinishingSettings={(updated) => {
+          if (updated.archStyle !== undefined) setArchStyle(updated.archStyle);
+          if (updated.roofType !== undefined) setRoofType(updated.roofType as any);
+          if (updated.showFurniture !== undefined) setShowFurniture(updated.showFurniture);
+          if (updated.showWindows !== undefined) setShowWindows(updated.showWindows);
+          if (updated.showTrees !== undefined) setShowTrees(updated.showTrees);
+          if (updated.interiorLightIntensity !== undefined) setInteriorLightIntensity(updated.interiorLightIntensity);
+          if (updated.exteriorLightIntensity !== undefined) setExteriorLightIntensity(updated.exteriorLightIntensity);
+          autoSaveDebounced(customElements, updated);
+        }}
       />
 
       {/* Site Elements Manager & Catalog Modal */}
@@ -2487,7 +2345,7 @@ function renderInteriorRooms(
         isStopped ? 'الحالة: متوقفة 🔴' : 'الحالة: فعالة 🟢',
         `الموقع المعماري: ${wingName}`,
         isStopped && rm.notes ? `سبب التوقف: ${rm.notes}` : null,
-        rm.occupiedBy ? `الجهة الشاغلة: ${rm.occupiedBy}` : null,
+        `الجهة الشاغلة: ${isRoomVacant(rm.occupiedBy) ? 'شاغرة' : (rm.occupiedBy || 'شاغرة')}`,
       ].filter(Boolean),
     };
 
@@ -3064,6 +2922,152 @@ function createEquipmentMesh3D(eq: EquipmentItem): THREE.Group {
     const led = new THREE.Mesh(ledGeo, ledMat);
     led.position.set(0, 1.2, 0.36);
     group.add(led);
+  } else if (nameStr.includes('foam') || nameStr.includes('رغوي') || nameStr.includes('إطفاء') || nameStr.includes('fire_foam')) {
+    // Hydraulic Fire Foam Monitor (High-Visibility Red & Yellow)
+    const baseMat = getCachedStandardMaterial(0x1e293b, 0.8, 0.4);
+    const baseGeo = getCachedBoxGeometry(1.2, 0.15, 1.2);
+    const base = new THREE.Mesh(baseGeo, baseMat);
+    base.position.y = 0.075;
+    group.add(base);
+
+    const riserMat = getCachedStandardMaterial(0xdc2626, 0.3, 0.4);
+    const riserGeo = getCachedCylinderGeometry(0.12, 0.12, 0.9, 12);
+    const riser = new THREE.Mesh(riserGeo, riserMat);
+    riser.position.y = 0.6;
+    group.add(riser);
+
+    const wheelMat = getCachedStandardMaterial(0xfacc15, 0.3, 0.3);
+    const wheelGeo = getCachedCylinderGeometry(0.18, 0.18, 0.04, 12);
+    const wheel = new THREE.Mesh(wheelGeo, wheelMat);
+    wheel.position.set(0.18, 0.85, 0);
+    wheel.rotation.z = Math.PI / 2;
+    group.add(wheel);
+
+    const cannonGeo = getCachedCylinderGeometry(0.08, 0.11, 0.7, 12);
+    const cannon = new THREE.Mesh(cannonGeo, riserMat);
+    cannon.position.set(0, 1.15, 0.25);
+    cannon.rotation.x = Math.PI / 3;
+    group.add(cannon);
+
+    const nozzleMat = getCachedStandardMaterial(0xd97706, 0.8, 0.3);
+    const nozzleGeo = getCachedCylinderGeometry(0.07, 0.1, 0.2, 12);
+    const nozzle = new THREE.Mesh(nozzleGeo, nozzleMat);
+    nozzle.position.set(0, 1.35, 0.5);
+    nozzle.rotation.x = Math.PI / 3;
+    group.add(nozzle);
+  } else if (nameStr.includes('muster') || nameStr.includes('إسعاف') || nameStr.includes('تجمع') || nameStr.includes('first_aid')) {
+    // Emergency Muster Point & First Aid Station
+    const padMat = getCachedStandardMaterial(0x94a3b8, 0.3, 0.7);
+    const padGeo = getCachedBoxGeometry(1.8, 0.15, 1.8);
+    const pad = new THREE.Mesh(padGeo, padMat);
+    pad.position.y = 0.075;
+    group.add(pad);
+
+    const postMat = getCachedStandardMaterial(0xe2e8f0, 0.3, 0.3);
+    const postGeo = getCachedCylinderGeometry(0.04, 0.04, 1.8, 8);
+    [[-0.75, -0.75], [0.75, -0.75], [-0.75, 0.75], [0.75, 0.75]].forEach(([px, pz]) => {
+      const post = new THREE.Mesh(postGeo, postMat);
+      post.position.set(px, 1.0, pz);
+      group.add(post);
+    });
+
+    const roofMat = getCachedStandardMaterial(0x15803d, 0.3, 0.4);
+    const roofGeo = getCachedBoxGeometry(2.0, 0.1, 2.0);
+    const roof = new THREE.Mesh(roofGeo, roofMat);
+    roof.position.y = 1.95;
+    group.add(roof);
+
+    const cabMat = getCachedStandardMaterial(0x16a34a, 0.3, 0.4);
+    const cabGeo = getCachedBoxGeometry(0.5, 0.6, 0.2);
+    const cab = new THREE.Mesh(cabGeo, cabMat);
+    cab.position.set(0, 1.0, -0.75);
+    group.add(cab);
+
+    const crossMat = getCachedBasicMaterial(0xffffff);
+    const cross1 = new THREE.Mesh(getCachedBoxGeometry(0.25, 0.07, 0.02), crossMat);
+    cross1.position.set(0, 1.0, -0.64);
+    group.add(cross1);
+    const cross2 = new THREE.Mesh(getCachedBoxGeometry(0.07, 0.25, 0.02), crossMat);
+    cross2.position.set(0, 1.0, -0.64);
+    group.add(cross2);
+  } else if (nameStr.includes('siren') || nameStr.includes('صفارة') || nameStr.includes('إنذار') || nameStr.includes('تحذير')) {
+    // Public Emergency Siren & Warning Loudspeakers Pole
+    const baseMat = getCachedStandardMaterial(0x334155, 0.8, 0.5);
+    const baseGeo = getCachedBoxGeometry(0.8, 0.15, 0.8);
+    const base = new THREE.Mesh(baseGeo, baseMat);
+    base.position.y = 0.075;
+    group.add(base);
+
+    const poleMat = getCachedStandardMaterial(0x94a3b8, 0.4, 0.5);
+    const poleGeo = getCachedCylinderGeometry(0.06, 0.08, 2.4, 10);
+    const pole = new THREE.Mesh(poleGeo, poleMat);
+    pole.position.y = 1.25;
+    group.add(pole);
+
+    const hornMat = getCachedStandardMaterial(0x475569, 0.4, 0.4);
+    const hornGeo = getCachedConeGeometry(0.16, 0.3, 10);
+    for (let i = 0; i < 4; i++) {
+      const angle = (i * Math.PI) / 2;
+      const horn = new THREE.Mesh(hornGeo, hornMat);
+      horn.position.set(Math.cos(angle) * 0.18, 2.2, Math.sin(angle) * 0.18);
+      horn.rotation.z = Math.PI / 2;
+      horn.rotation.y = angle;
+      group.add(horn);
+    }
+
+    const beaconMat = getCachedBasicMaterial(0xef4444);
+    const beaconGeo = getCachedCylinderGeometry(0.08, 0.08, 0.18, 12);
+    const beacon = new THREE.Mesh(beaconGeo, beaconMat);
+    beacon.position.y = 2.5;
+    group.add(beacon);
+  } else if (nameStr.includes('pump') || nameStr.includes('مضخة')) {
+    // Water / Booster Pressure Pump
+    const skidMat = getCachedStandardMaterial(0x1e293b, 0.8, 0.4);
+    const skidGeo = getCachedBoxGeometry(1.4, 0.15, 0.9);
+    const skid = new THREE.Mesh(skidGeo, skidMat);
+    skid.position.y = 0.075;
+    group.add(skid);
+
+    const motorMat = getCachedStandardMaterial(0x0284c7, 0.6, 0.3);
+    const motorGeo = getCachedCylinderGeometry(0.24, 0.24, 0.65, 12);
+    const motor = new THREE.Mesh(motorGeo, motorMat);
+    motor.rotation.z = Math.PI / 2;
+    motor.position.set(-0.25, 0.38, 0);
+    group.add(motor);
+
+    const voluteMat = getCachedStandardMaterial(0x0369a1, 0.5, 0.4);
+    const voluteGeo = getCachedCylinderGeometry(0.28, 0.28, 0.25, 12);
+    const volute = new THREE.Mesh(voluteGeo, voluteMat);
+    volute.rotation.z = Math.PI / 2;
+    volute.position.set(0.22, 0.38, 0);
+    group.add(volute);
+
+    const pipeMat = getCachedStandardMaterial(0x64748b, 0.7, 0.5);
+    const pipeGeo = getCachedCylinderGeometry(0.08, 0.08, 0.4, 10);
+    const pipe = new THREE.Mesh(pipeGeo, pipeMat);
+    pipe.position.set(0.22, 0.65, 0);
+    group.add(pipe);
+  } else if (nameStr.includes('cctv') || nameStr.includes('كاميرا') || nameStr.includes('مراقبة')) {
+    // Surveillance Camera Pole Mount
+    const poleMat = getCachedStandardMaterial(0x334155, 0.6, 0.5);
+    const poleGeo = getCachedCylinderGeometry(0.04, 0.05, 1.6, 8);
+    const pole = new THREE.Mesh(poleGeo, poleMat);
+    pole.position.y = 0.8;
+    group.add(pole);
+
+    const camMat = getCachedStandardMaterial(0xffffff, 0.2, 0.1);
+    const camGeo = getCachedBoxGeometry(0.12, 0.12, 0.28);
+    const cam = new THREE.Mesh(camGeo, camMat);
+    cam.position.set(0, 1.55, 0.15);
+    cam.rotation.x = Math.PI / 8;
+    group.add(cam);
+
+    const lensMat = getCachedBasicMaterial(0x0284c7);
+    const lensGeo = getCachedCylinderGeometry(0.04, 0.04, 0.02, 10);
+    const lens = new THREE.Mesh(lensGeo, lensMat);
+    lens.position.set(0, 1.52, 0.3);
+    lens.rotation.x = Math.PI / 2 + Math.PI / 8;
+    group.add(lens);
   } else {
     // Generic Heavy Equipment Skid
     const eqMat = getCachedStandardMaterial(0x475569, 0.7, 0.4);

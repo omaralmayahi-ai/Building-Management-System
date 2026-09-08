@@ -1717,3 +1717,557 @@ export function buildFloodlightTower(
 
   root.add(group);
 }
+
+// -------------------------------------------------------------
+// 5. معدات سلامة ودفاع مدني ميدانية (Civil Defense & HSE Safety)
+// -------------------------------------------------------------
+
+/**
+ * 1. مدفع ورشاش رغوي هيدروليكي للمواقع الحيوية (Foam Monitor)
+ */
+export function buildFireFoamMonitor(
+  root: THREE.Group,
+  sx: number,
+  sy: number,
+  sz: number,
+  isNight: boolean,
+  isLightsOn: boolean
+) {
+  const group = new THREE.Group();
+  const scale = Math.min(sx, sy, sz);
+
+  // Foundation skid plinth (dark heavy concrete / steel plate)
+  const basePadGeo = new THREE.BoxGeometry(1.6 * sx, 0.2 * sy, 1.6 * sz);
+  const basePadMat = createMat(0x334155, 0.2, 0.8);
+  const basePad = new THREE.Mesh(basePadGeo, basePadMat);
+  basePad.position.y = 0.1 * sy;
+  basePad.receiveShadow = true;
+  group.add(basePad);
+
+  // 4 Yellow protective corner bollards on foundation
+  const bollardGeo = new THREE.CylinderGeometry(0.04, 0.04, 0.6 * sy, 8);
+  const bollardMat = createMat(0xfacc15, 0.3, 0.5);
+  const bOffsets = [
+    [-0.65 * sx, -0.65 * sz],
+    [0.65 * sx, -0.65 * sz],
+    [-0.65 * sx, 0.65 * sz],
+    [0.65 * sx, 0.65 * sz],
+  ];
+  bOffsets.forEach(([bx, bz]) => {
+    const b = new THREE.Mesh(bollardGeo, bollardMat);
+    b.position.set(bx, 0.4 * sy, bz);
+    group.add(b);
+  });
+
+  // Base Mounting Flange with bolted ring
+  const flangeGeo = new THREE.CylinderGeometry(0.32 * scale, 0.36 * scale, 0.08 * sy, 16);
+  const fireRedMat = createMat(0xdc2626, 0.3, 0.4); // High-visibility Fire Signal Red
+  const flange = new THREE.Mesh(flangeGeo, fireRedMat);
+  flange.position.y = 0.24 * sy;
+  group.add(flange);
+
+  // 8 Chrome Bolt Nuts on flange
+  const boltGeo = new THREE.CylinderGeometry(0.02 * scale, 0.02 * scale, 0.04 * sy, 6);
+  const boltMat = createMat(0xe2e8f0, 0.8, 0.2);
+  for (let i = 0; i < 8; i++) {
+    const angle = (i / 8) * Math.PI * 2;
+    const bolt = new THREE.Mesh(boltGeo, boltMat);
+    bolt.position.set(Math.cos(angle) * 0.28 * scale, 0.28 * sy, Math.sin(angle) * 0.28 * scale);
+    group.add(bolt);
+  }
+
+  // Main Vertical High-Pressure Riser Pipe
+  const riserHeight = 0.85 * sy;
+  const riserGeo = new THREE.CylinderGeometry(0.14 * scale, 0.14 * scale, riserHeight, 16);
+  const riser = new THREE.Mesh(riserGeo, fireRedMat);
+  riser.position.y = 0.28 * sy + riserHeight / 2;
+  riser.castShadow = true;
+  group.add(riser);
+
+  // Reflective Yellow Safety Stripes on riser pipe
+  const stripeGeo = new THREE.CylinderGeometry(0.145 * scale, 0.145 * scale, 0.08 * sy, 16);
+  const stripeMat = createMat(0xfacc15, 0.4, 0.4);
+  const stripe1 = new THREE.Mesh(stripeGeo, stripeMat);
+  stripe1.position.y = 0.5 * sy;
+  group.add(stripe1);
+  const stripe2 = new THREE.Mesh(stripeGeo, stripeMat);
+  stripe2.position.y = 0.85 * sy;
+  group.add(stripe2);
+
+  // Dial Pressure Gauge with brass stem
+  const gaugeStem = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.12 * scale, 8), createMat(0xd97706, 0.8, 0.3));
+  gaugeStem.rotation.z = Math.PI / 2;
+  gaugeStem.position.set(0.18 * scale, 0.75 * sy, 0);
+  group.add(gaugeStem);
+
+  const gaugeDial = new THREE.Mesh(new THREE.CylinderGeometry(0.06 * scale, 0.06 * scale, 0.025 * scale, 16), createMat(0xffffff, 0.1, 0.2));
+  gaugeDial.rotation.z = Math.PI / 2;
+  gaugeDial.position.set(0.24 * scale, 0.75 * sy, 0);
+  group.add(gaugeDial);
+
+  const gaugeRim = new THREE.Mesh(new THREE.TorusGeometry(0.06 * scale, 0.01 * scale, 8, 16), createMat(0xd97706, 0.8, 0.3));
+  gaugeRim.rotation.y = Math.PI / 2;
+  gaugeRim.position.set(0.25 * scale, 0.75 * sy, 0);
+  group.add(gaugeRim);
+
+  // Horizontal Swivel Joint (Azimuth Pan Joint)
+  const swivelGeo = new THREE.CylinderGeometry(0.18 * scale, 0.18 * scale, 0.18 * sy, 16);
+  const darkSwivelMat = createMat(0x1e293b, 0.6, 0.3);
+  const swivel = new THREE.Mesh(swivelGeo, darkSwivelMat);
+  swivel.position.y = 0.28 * sy + riserHeight + 0.09 * sy;
+  group.add(swivel);
+
+  // Gooseneck Dual Elbows Loop Assembly
+  const elbowMat = fireRedMat;
+  const pivotY = 0.28 * sy + riserHeight + 0.24 * sy;
+
+  // Elevation Swivel & Monitor Carriage
+  const carriageGeo = new THREE.BoxGeometry(0.28 * scale, 0.24 * sy, 0.24 * scale);
+  const carriage = new THREE.Mesh(carriageGeo, fireRedMat);
+  carriage.position.set(0, pivotY, 0);
+  group.add(carriage);
+
+  // Dual Manual Control Hand-Wheels (Azimuth & Elevation)
+  // 1. Right Elevation Hand-Wheel
+  const wheelRimGeo = new THREE.TorusGeometry(0.12 * scale, 0.016 * scale, 8, 16);
+  const wheelHubGeo = new THREE.CylinderGeometry(0.03 * scale, 0.03 * scale, 0.08 * scale, 8);
+  const wheelMat = createMat(0xfacc15, 0.4, 0.3); // Bright yellow wheel
+
+  const wheel1 = new THREE.Mesh(wheelRimGeo, wheelMat);
+  wheel1.rotation.y = Math.PI / 2;
+  wheel1.position.set(0.22 * scale, pivotY, 0);
+  group.add(wheel1);
+
+  const hub1 = new THREE.Mesh(wheelHubGeo, createMat(0x0f172a, 0.7, 0.3));
+  hub1.rotation.z = Math.PI / 2;
+  hub1.position.set(0.18 * scale, pivotY, 0);
+  group.add(hub1);
+
+  // 2. Left Horizontal Pan Hand-Wheel
+  const wheel2 = new THREE.Mesh(wheelRimGeo, wheelMat);
+  wheel2.position.set(-0.22 * scale, pivotY - 0.12 * sy, 0);
+  wheel2.rotation.x = Math.PI / 2;
+  group.add(wheel2);
+
+  // High-Flow Deluge Foam Barrel (angled upwards 30 degrees)
+  const cannonGroup = new THREE.Group();
+  cannonGroup.position.set(0, pivotY, 0);
+  cannonGroup.rotation.x = -Math.PI * 0.16; // 30° elevation angle
+
+  // Monitor Main Barrel Tube
+  const barrelGeo = new THREE.CylinderGeometry(0.08 * scale, 0.11 * scale, 0.85 * sy, 16);
+  const barrel = new THREE.Mesh(barrelGeo, fireRedMat);
+  barrel.rotation.x = Math.PI / 2;
+  barrel.position.z = 0.45 * scale;
+  cannonGroup.add(barrel);
+
+  // Foam Aeration Induction Sleeve (Aspiration chamber with air holes)
+  const foamSleeveGeo = new THREE.CylinderGeometry(0.13 * scale, 0.1 * scale, 0.45 * sy, 16);
+  const chromeMat = createMat(0xe2e8f0, 0.85, 0.15); // Polished stainless steel / chrome
+  const foamSleeve = new THREE.Mesh(foamSleeveGeo, chromeMat);
+  foamSleeve.rotation.x = Math.PI / 2;
+  foamSleeve.position.z = 0.75 * scale;
+  cannonGroup.add(foamSleeve);
+
+  // Brass Deluge Discharge Nozzle Tip
+  const nozzleGeo = new THREE.CylinderGeometry(0.07 * scale, 0.11 * scale, 0.18 * sy, 16);
+  const brassMat = createMat(0xd97706, 0.8, 0.25);
+  const nozzle = new THREE.Mesh(nozzleGeo, brassMat);
+  nozzle.rotation.x = Math.PI / 2;
+  nozzle.position.z = 1.02 * scale;
+  cannonGroup.add(nozzle);
+
+  // Black Foam Pickup Hose Connector
+  const hoseGeo = new THREE.CylinderGeometry(0.035 * scale, 0.035 * scale, 0.7 * sy, 8);
+  const hoseMat = createMat(0x1e293b, 0.2, 0.9);
+  const hose = new THREE.Mesh(hoseGeo, hoseMat);
+  hose.position.set(0.08 * scale, -0.25 * sy, 0.45 * scale);
+  hose.rotation.z = 0.3;
+  cannonGroup.add(hose);
+
+  group.add(cannonGroup);
+  root.add(group);
+}
+
+/**
+ * 2. مظلات ومحطات إسعاف أولي ونقاط تجمع طوارئ (Muster Points & First Aid Station)
+ */
+export function buildMusterFirstAidStation(
+  root: THREE.Group,
+  sx: number,
+  sy: number,
+  sz: number,
+  isNight: boolean,
+  isLightsOn: boolean
+) {
+  const group = new THREE.Group();
+  const width = sx * 4.2;
+  const height = sy * 3.2;
+  const depth = sz * 3.6;
+
+  // 1. Concrete Platform Pad with Hazard Perimeter
+  const padHeight = 0.22;
+  const padGeo = new THREE.BoxGeometry(width, padHeight, depth);
+  const padMat = createMat(0xd1d5db, 0.1, 0.8);
+  const pad = new THREE.Mesh(padGeo, padMat);
+  pad.position.y = padHeight / 2;
+  pad.receiveShadow = true;
+  group.add(pad);
+
+  // Hazard border (yellow & black safety banding on pad edges)
+  const borderThick = 0.2;
+  const borderGeo = new THREE.BoxGeometry(width + 0.04, padHeight + 0.01, borderThick);
+  const yellowMat = createMat(0xfacc15, 0.2, 0.5);
+  const frontBorder = new THREE.Mesh(borderGeo, yellowMat);
+  frontBorder.position.set(0, padHeight / 2, depth / 2 - borderThick / 2);
+  group.add(frontBorder);
+
+  const backBorder = new THREE.Mesh(borderGeo, yellowMat);
+  backBorder.position.set(0, padHeight / 2, -depth / 2 + borderThick / 2);
+  group.add(backBorder);
+
+  // 2. 4 Tubular Steel Support Posts with Footing Plates
+  const postRadius = 0.075;
+  const postHeight = height - 0.5;
+  const postGeo = new THREE.CylinderGeometry(postRadius, postRadius, postHeight, 16);
+  const postMat = createMat(0xf8fafc, 0.4, 0.4); // Clean industrial white/silver
+
+  const postPositions = [
+    [-width / 2 + 0.35, -depth / 2 + 0.35],
+    [width / 2 - 0.35, -depth / 2 + 0.35],
+    [-width / 2 + 0.35, depth / 2 - 0.35],
+    [width / 2 - 0.35, depth / 2 - 0.35],
+  ];
+
+  postPositions.forEach(([px, pz]) => {
+    const post = new THREE.Mesh(postGeo, postMat);
+    post.position.set(px, padHeight + postHeight / 2, pz);
+    post.castShadow = true;
+    group.add(post);
+
+    // Footing Flange Plate
+    const footing = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.04, 0.3), createMat(0x64748b, 0.6, 0.3));
+    footing.position.set(px, padHeight + 0.02, pz);
+    group.add(footing);
+  });
+
+  // 3. Sloped Weather Canopy Roof (Industrial Safety Green)
+  const roofGroup = new THREE.Group();
+  roofGroup.position.set(0, padHeight + postHeight, 0);
+
+  // Pitched/Curved Canopy Slab
+  const canopyWidth = width + 0.4;
+  const canopyDepth = depth + 0.4;
+  const canopyGeo = new THREE.BoxGeometry(canopyWidth, 0.12, canopyDepth);
+  const canopyGreenMat = createMat(0x15803d, 0.3, 0.4); // Official ISO Safety Green
+  const canopy = new THREE.Mesh(canopyGeo, canopyGreenMat);
+  canopy.castShadow = true;
+  roofGroup.add(canopy);
+
+  // White Fascia Edge Trim
+  const fasciaGeo = new THREE.BoxGeometry(canopyWidth + 0.05, 0.16, 0.06);
+  const whiteMat = createMat(0xffffff, 0.1, 0.3);
+  const frontFascia = new THREE.Mesh(fasciaGeo, whiteMat);
+  frontFascia.position.set(0, 0, canopyDepth / 2);
+  roofGroup.add(frontFascia);
+
+  const backFascia = new THREE.Mesh(fasciaGeo, whiteMat);
+  backFascia.position.set(0, 0, -canopyDepth / 2);
+  roofGroup.add(backFascia);
+
+  // Green Beacon Indicator on Roof Peak
+  const beaconGeo = new THREE.CylinderGeometry(0.08, 0.08, 0.16, 16);
+  const beaconMat = new THREE.MeshStandardMaterial({
+    color: 0x22c55e,
+    emissive: isNight ? 0x22c55e : 0x15803d,
+    emissiveIntensity: isNight ? 2.5 : 0.4,
+    roughness: 0.1,
+  });
+  const beacon = new THREE.Mesh(beaconGeo, beaconMat);
+  beacon.position.set(0, 0.14, 0);
+  roofGroup.add(beacon);
+
+  group.add(roofGroup);
+
+  // 4. Double-Sided Emergency Assembly / Muster Point Signboard (Hanging from front trusses)
+  const signWidth = 2.4;
+  const signHeight = 0.75;
+  const signBoard = new THREE.Mesh(new THREE.BoxGeometry(signWidth, signHeight, 0.08), canopyGreenMat);
+  signBoard.position.set(0, padHeight + postHeight - 0.5, depth / 2 - 0.35);
+  group.add(signBoard);
+
+  // Sign White Border and ISO Symbols Plate
+  const signFaceMat = new THREE.MeshStandardMaterial({
+    color: 0x16a34a,
+    roughness: 0.2,
+    emissive: isNight && isLightsOn ? 0x16a34a : 0x000000,
+    emissiveIntensity: isNight && isLightsOn ? 0.8 : 0,
+  });
+  const signFace = new THREE.Mesh(new THREE.PlaneGeometry(signWidth - 0.1, signHeight - 0.1), signFaceMat);
+  signFace.position.set(0, padHeight + postHeight - 0.5, depth / 2 - 0.35 + 0.045);
+  group.add(signFace);
+
+  // Central Gathering Circle Graphic
+  const centerCircle = new THREE.Mesh(new THREE.CircleGeometry(0.12, 16), whiteMat);
+  centerCircle.position.set(0, padHeight + postHeight - 0.5, depth / 2 - 0.35 + 0.05);
+  group.add(centerCircle);
+
+  // 4 Converging Inward Arrows (ISO 7010 evacuation symbol)
+  const arrowGeo = new THREE.ConeGeometry(0.06, 0.12, 3);
+  const arrowPositions = [
+    { x: -0.22, y: padHeight + postHeight - 0.5, rot: -Math.PI / 2 },
+    { x: 0.22, y: padHeight + postHeight - 0.5, rot: Math.PI / 2 },
+    { x: 0, y: padHeight + postHeight - 0.28, rot: 0 },
+    { x: 0, y: padHeight + postHeight - 0.72, rot: Math.PI },
+  ];
+  arrowPositions.forEach((pos) => {
+    const arr = new THREE.Mesh(arrowGeo, whiteMat);
+    arr.position.set(pos.x, pos.y, depth / 2 - 0.35 + 0.05);
+    arr.rotation.z = pos.rot;
+    group.add(arr);
+  });
+
+  // 5. Rear Safety Wall Partition with First Aid Cabinet & Stretcher Rack
+  const wallWidth = width - 0.7;
+  const wallHeight = 2.1;
+  const rearWallGeo = new THREE.BoxGeometry(wallWidth, wallHeight, 0.08);
+  const rearWallMat = createMat(0xe2e8f0, 0.2, 0.7);
+  const rearWall = new THREE.Mesh(rearWallGeo, rearWallMat);
+  rearWall.position.set(0, padHeight + wallHeight / 2, -depth / 2 + 0.4);
+  group.add(rearWall);
+
+  // Metal Emergency First Aid Cabinet (Green box with bold White Cross)
+  const cabWidth = 0.65;
+  const cabHeight = 0.85;
+  const cabinet = new THREE.Mesh(new THREE.BoxGeometry(cabWidth, cabHeight, 0.24), canopyGreenMat);
+  cabinet.position.set(-0.8, padHeight + 1.35, -depth / 2 + 0.4 + 0.14);
+  group.add(cabinet);
+
+  // White Medical Cross on Cabinet Door
+  const crossH = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.1, 0.02), whiteMat);
+  crossH.position.set(-0.8, padHeight + 1.35, -depth / 2 + 0.4 + 0.27);
+  group.add(crossH);
+
+  const crossV = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.35, 0.02), whiteMat);
+  crossV.position.set(-0.8, padHeight + 1.35, -depth / 2 + 0.4 + 0.27);
+  group.add(crossV);
+
+  // Emergency Folding Evacuation Stretcher on Wall Rack
+  const stretcherPoleGeo = new THREE.CylinderGeometry(0.02, 0.02, 1.8, 8);
+  const stretcherCanvasGeo = new THREE.BoxGeometry(0.45, 1.6, 0.03);
+  const canvasMat = createMat(0xea580c, 0.1, 0.8); // High-vis rescue orange
+  const stretcher = new THREE.Mesh(stretcherCanvasGeo, canvasMat);
+  stretcher.position.set(0.8, padHeight + 1.15, -depth / 2 + 0.4 + 0.08);
+  group.add(stretcher);
+
+  const p1 = new THREE.Mesh(stretcherPoleGeo, createMat(0x94a3b8, 0.8, 0.2));
+  p1.position.set(0.8 - 0.24, padHeight + 1.15, -depth / 2 + 0.4 + 0.08);
+  group.add(p1);
+  const p2 = new THREE.Mesh(stretcherPoleGeo, createMat(0x94a3b8, 0.8, 0.2));
+  p2.position.set(0.8 + 0.24, padHeight + 1.15, -depth / 2 + 0.4 + 0.08);
+  group.add(p2);
+
+  // Emergency Eye-Wash / Safety Shower Unit
+  const showerPipeMat = createMat(0xe2e8f0, 0.8, 0.2);
+  const showerRiser = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 2.2, 8), showerPipeMat);
+  showerRiser.position.set(0, padHeight + 1.1, -depth / 2 + 0.4 + 0.22);
+  group.add(showerRiser);
+
+  // Eye-wash green bowl
+  const bowl = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.12, 0.08, 16), canopyGreenMat);
+  bowl.position.set(0, padHeight + 1.05, -depth / 2 + 0.4 + 0.35);
+  group.add(bowl);
+
+  // Shower top head
+  const showerHead = new THREE.Mesh(new THREE.ConeGeometry(0.14, 0.1, 16), canopyGreenMat);
+  showerHead.rotation.x = Math.PI;
+  showerHead.position.set(0, padHeight + 2.15, -depth / 2 + 0.4 + 0.35);
+  group.add(showerHead);
+
+  // 6. Rest & Triage Bench with Wooden Slats
+  const benchGeo = new THREE.BoxGeometry(width - 1.2, 0.08, 0.45);
+  const benchWoodMat = createMat(0x78350f, 0.1, 0.7);
+  const bench = new THREE.Mesh(benchGeo, benchWoodMat);
+  bench.position.set(0, padHeight + 0.45, -depth / 2 + 1.1);
+  group.add(bench);
+
+  const bLeg1 = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.45, 0.4), createMat(0x1e293b, 0.8, 0.3));
+  bLeg1.position.set(-width / 2 + 0.9, padHeight + 0.225, -depth / 2 + 1.1);
+  group.add(bLeg1);
+
+  const bLeg2 = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.45, 0.4), createMat(0x1e293b, 0.8, 0.3));
+  bLeg2.position.set(width / 2 - 0.9, padHeight + 0.225, -depth / 2 + 1.1);
+  group.add(bLeg2);
+
+  root.add(group);
+}
+
+/**
+ * 3. برج صفارات إنذار عامة مع أعمدة تحذير ومكبرات صوت (Public Siren & Warning Tower)
+ */
+export function buildEmergencySirenPole(
+  root: THREE.Group,
+  sx: number,
+  sy: number,
+  sz: number,
+  isNight: boolean,
+  isLightsOn: boolean
+) {
+  const group = new THREE.Group();
+  const scale = Math.min(sx, sz);
+  const totalHeight = sy * 9.5;
+
+  // 1. Heavy Concrete Base Pedestal with Anchor Bolts
+  const padGeo = new THREE.BoxGeometry(1.2 * scale, 0.45, 1.2 * scale);
+  const padMat = createMat(0x64748b, 0.1, 0.85);
+  const pad = new THREE.Mesh(padGeo, padMat);
+  pad.position.y = 0.225;
+  pad.receiveShadow = true;
+  group.add(pad);
+
+  // Steel Base Plate & 4 Heavy Gusset Plates
+  const basePlateGeo = new THREE.BoxGeometry(0.7 * scale, 0.06, 0.7 * scale);
+  const steelMat = createMat(0x475569, 0.8, 0.3);
+  const basePlate = new THREE.Mesh(basePlateGeo, steelMat);
+  basePlate.position.y = 0.48;
+  group.add(basePlate);
+
+  // 2. High-Strength Tubular Galvanized Steel Mast (9.5m)
+  const mastGeo = new THREE.CylinderGeometry(0.12 * scale, 0.22 * scale, totalHeight, 16);
+  const mastMat = createMat(0x94a3b8, 0.7, 0.3);
+  const mast = new THREE.Mesh(mastGeo, mastMat);
+  mast.position.y = 0.5 + totalHeight / 2;
+  mast.castShadow = true;
+  group.add(mast);
+
+  // Safety Hazard Bands (Alternating Yellow & Black Stripes near base)
+  const bandHeight = 0.25;
+  const bandMatYellow = createMat(0xfacc15, 0.3, 0.4);
+  const bandMatBlack = createMat(0x0f172a, 0.5, 0.4);
+  for (let i = 0; i < 6; i++) {
+    const bGeo = new THREE.CylinderGeometry(0.205 * scale, 0.205 * scale, bandHeight, 16);
+    const bMesh = new THREE.Mesh(bGeo, i % 2 === 0 ? bandMatYellow : bandMatBlack);
+    bMesh.position.y = 0.8 + i * bandHeight;
+    group.add(bMesh);
+  }
+
+  // 3. Eye-Level Weatherproof Control & Siren Amplifier Enclosure (Yellow Enclosure)
+  const cabWidth = 0.55 * scale;
+  const cabHeight = 0.8 * scale;
+  const cabDepth = 0.35 * scale;
+  const cabGeo = new THREE.BoxGeometry(cabWidth, cabHeight, cabDepth);
+  const cabMat = createMat(0xeab308, 0.4, 0.4); // Warning yellow
+  const cab = new THREE.Mesh(cabGeo, cabMat);
+  cab.position.set(0, 2.7, 0.28 * scale);
+  group.add(cab);
+
+  // Red Emergency Stop/Activation Button on Cabinet Door
+  const eStopGeo = new THREE.CylinderGeometry(0.04 * scale, 0.04 * scale, 0.05 * scale, 12);
+  const redMat = createMat(0xdc2626, 0.5, 0.3);
+  const eStop = new THREE.Mesh(eStopGeo, redMat);
+  eStop.rotation.x = Math.PI / 2;
+  eStop.position.set(0, 2.7, 0.28 * scale + cabDepth / 2 + 0.02);
+  group.add(eStop);
+
+  // 4. Climbing Safety Access Ladder on Back of Mast
+  const ladderGeo = new THREE.BoxGeometry(0.35 * scale, totalHeight - 2.5, 0.04);
+  const ladderMat = createMat(0x334155, 0.8, 0.3);
+  const ladder = new THREE.Mesh(ladderGeo, ladderMat);
+  ladder.position.set(0, 2.5 + (totalHeight - 2.5) / 2, -0.22 * scale);
+  group.add(ladder);
+
+  // 5. Directional Megaphone Horn Array (4 Acoustic Horns facing 360 degrees)
+  const hornArmY = totalHeight * 0.82;
+  const armGeo = new THREE.BoxGeometry(1.6 * scale, 0.08, 1.6 * scale);
+  const arm = new THREE.Mesh(armGeo, steelMat);
+  arm.position.y = hornArmY;
+  group.add(arm);
+
+  const hornAngles = [0, Math.PI / 2, Math.PI, -Math.PI / 2];
+  hornAngles.forEach((angle) => {
+    const hornGroup = new THREE.Group();
+    hornGroup.position.set(0, hornArmY, 0);
+    hornGroup.rotation.y = angle;
+
+    // Horn Mounting Bracket
+    const bStub = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.06, 0.4 * scale), steelMat);
+    bStub.position.set(0, 0, 0.5 * scale);
+    hornGroup.add(bStub);
+
+    // Driver Housing (Acoustic Compression Driver Unit)
+    const driverGeo = new THREE.CylinderGeometry(0.09 * scale, 0.09 * scale, 0.16 * scale, 12);
+    const driver = new THREE.Mesh(driverGeo, createMat(0x1e293b, 0.7, 0.3));
+    driver.rotation.x = Math.PI / 2 + 0.25; // Angled downwards 15°
+    driver.position.set(0, 0, 0.75 * scale);
+    hornGroup.add(driver);
+
+    // Bell Horn Flare (Trumpet Megaphone)
+    const hornGeo = new THREE.ConeGeometry(0.24 * scale, 0.45 * scale, 16, 1, true);
+    const hornMat = createMat(0xe2e8f0, 0.3, 0.5); // Light grey aluminum horn
+    const horn = new THREE.Mesh(hornGeo, hornMat);
+    horn.rotation.x = -Math.PI / 2 + 0.25; // Pointing outward & slightly downward
+    horn.position.set(0, -0.06 * scale, 1.02 * scale);
+    hornGroup.add(horn);
+
+    group.add(hornGroup);
+  });
+
+  // 6. High-Decibel Rotational Electromechanical Siren Head Unit on Mast Summit
+  const sirenY = totalHeight * 0.94;
+  const sirenRotorGeo = new THREE.CylinderGeometry(0.38 * scale, 0.38 * scale, 0.45 * scale, 16);
+  const sirenMat = createMat(0xdc2626, 0.4, 0.3); // Emergency Red Siren Housing
+  const sirenRotor = new THREE.Mesh(sirenRotorGeo, sirenMat);
+  sirenRotor.position.y = sirenY;
+  group.add(sirenRotor);
+
+  // Louver Ports / Sound Projector Rings
+  for (let r = -0.15; r <= 0.15; r += 0.08) {
+    const ringGeo = new THREE.TorusGeometry(0.39 * scale, 0.02 * scale, 8, 16);
+    const ring = new THREE.Mesh(ringGeo, createMat(0x0f172a, 0.8, 0.3));
+    ring.rotation.x = Math.PI / 2;
+    ring.position.y = sirenY + r * scale;
+    group.add(ring);
+  }
+
+  // Deflector Rain Hood Dome on Siren Head
+  const hoodGeo = new THREE.ConeGeometry(0.48 * scale, 0.18 * scale, 16);
+  const hood = new THREE.Mesh(hoodGeo, sirenMat);
+  hood.position.y = sirenY + 0.3 * scale;
+  group.add(hood);
+
+  // 7. Backup Solar PV Panel (tilted for autonomous emergency operation)
+  const solarGroup = new THREE.Group();
+  solarGroup.position.set(0.45 * scale, hornArmY - 0.8 * scale, 0);
+  solarGroup.rotation.x = 0.5; // 30° tilt
+  const solarPanel = new THREE.Mesh(new THREE.BoxGeometry(0.8 * scale, 0.04, 0.6 * scale), createMat(0x1e3a8a, 0.8, 0.2));
+  solarGroup.add(solarPanel);
+  group.add(solarGroup);
+
+  // 8. Emergency Xenon Strobe Warning Beacon at Mast Pinnacle
+  const beaconY = totalHeight + 0.25;
+  const beaconBase = new THREE.Mesh(new THREE.CylinderGeometry(0.08 * scale, 0.1 * scale, 0.1 * scale, 12), steelMat);
+  beaconBase.position.y = beaconY;
+  group.add(beaconBase);
+
+  const strobeGeo = new THREE.CylinderGeometry(0.07 * scale, 0.07 * scale, 0.18 * scale, 16);
+  const strobeMat = new THREE.MeshStandardMaterial({
+    color: 0xef4444, // Intense Red Strobe
+    emissive: 0xef4444,
+    emissiveIntensity: isNight ? 4.0 : 1.2,
+    roughness: 0.1,
+    transparent: true,
+    opacity: 0.95,
+  });
+  const strobe = new THREE.Mesh(strobeGeo, strobeMat);
+  strobe.position.y = beaconY + 0.12 * scale;
+  group.add(strobe);
+
+  // Night beacon point-light glow
+  if (isNight) {
+    const beaconLight = new THREE.PointLight(0xef4444, 2.5, 20);
+    beaconLight.position.y = beaconY + 0.2 * scale;
+    group.add(beaconLight);
+  }
+
+  root.add(group);
+}

@@ -1667,10 +1667,12 @@ async function startServer() {
         );
       }
       memStore.referenceData = refData;
+      notifySyncChange('reference_data_updated', { refData });
       return res.json({ success: true });
     } catch (err) {
       console.error('DB save failed for reference-data:', err);
       memStore.referenceData = refData;
+      notifySyncChange('reference_data_updated', { refData });
       return res.json({ success: true });
     }
   });

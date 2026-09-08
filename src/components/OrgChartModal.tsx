@@ -17,9 +17,11 @@ import {
   ChevronDown,
 } from 'lucide-react';
 import html2canvas from 'html2canvas-pro';
-import { OrgEntity, SystemBranding, UnitAsset } from '../types';
+import { OrgEntity, SystemBranding, UnitAsset, Room } from '../types';
 import { toArabicDigits } from '../utils/arabicUtils';
 import { ORG_LEVEL_LABELS } from '../utils/orgExcelUtils';
+import { isRoomVacant } from '../utils/unitAndRoomCodeUtils';
+import { extractOccupyingList } from '../utils/qrCardPrintHtml';
 
 export type PaperFormat = 'A4_landscape' | 'A4_portrait' | 'A3_landscape' | 'A3_portrait';
 
@@ -418,10 +420,92 @@ export const OrgChartModal: React.FC<OrgChartModalProps> = ({
     }
   }, [searchQuery, matchingIds]);
 
+  // Helper to get all units and occupied assets for an entity
+  const getEntityOccupiedAssets = useCallback(
+    (entity: OrgEntity) => {
+      if (!entity || !units || units.length === 0) return [];
+
+      const normalizeAr = (str: string) =>
+        str
+          .trim()
+          .toLowerCase()
+          .replace(/[أإآ]/g, 'ا')
+          .replace(/ة/g, 'ه')
+          .replace(/ى/g, 'ي')
+          .replace(/[\u064B-\u065F]/g, '')
+          .replace(/\s+/g, ' ');
+
+      const entityName = entity.nameAr?.trim() || '';
+      const entityCode = entity.code?.trim() || '';
+      const entityId = entity.id?.trim() || '';
+
+      const normName = entityName ? normalizeAr(entityName) : '';
+      const normCode = entityCode ? normalizeAr(entityCode) : '';
+
+      const isMatch = (val?: string) => {
+        if (!val) return false;
+        if (isRoomVacant(val)) return false;
+        const nVal = normalizeAr(val);
+        if (normName && normName.length >= 3 && (nVal === normName || nVal.includes(normName) || normName.includes(nVal))) {
+          return true;
+        }
+        if (normCode && (nVal === normCode || nVal.includes(normCode))) {
+          return true;
+        }
+        if (entityId && val === entityId) {
+          return true;
+        }
+        return false;
+      };
+
+      const results: {
+        unit: UnitAsset;
+        occupiedRooms: Room[];
+        isEntireUnit: boolean;
+      }[] = [];
+
+      for (const u of units) {
+        let unitAssigned = false;
+        if (u.orgEntityId && u.orgEntityId === entity.id) {
+          unitAssigned = true;
+        }
+        if (!unitAssigned && u.departments && Array.isArray(u.departments)) {
+          unitAssigned = u.departments.some((d) => isMatch(d));
+        }
+        if (!unitAssigned && u.department) {
+          const parts = extractOccupyingList(u.department);
+          unitAssigned = parts.some((p) => isMatch(p)) || isMatch(u.department);
+        }
+
+        const occupiedRooms = (u.rooms || []).filter((r) => {
+          if (!r.occupiedBy || isRoomVacant(r.occupiedBy)) return false;
+          const rParts = extractOccupyingList(r.occupiedBy);
+          return rParts.some((p) => isMatch(p)) || isMatch(r.occupiedBy);
+        });
+
+        if (unitAssigned || occupiedRooms.length > 0) {
+          results.push({
+            unit: u,
+            occupiedRooms,
+            isEntireUnit: unitAssigned && occupiedRooms.length === 0,
+          });
+        }
+      }
+
+      return results;
+    },
+    [units]
+  );
+
   // Unit count helper
-  const getEntityUnitCount = (entityId: string) => {
-    return units.filter((u) => u.orgEntityId === entityId).length;
-  };
+  const getEntityUnitCount = useCallback(
+    (entityId: string) => {
+      const entity = orgEntities.find((e) => e.id === entityId);
+      if (!entity) return 0;
+      return getEntityOccupiedAssets(entity).length;
+    },
+    [orgEntities, getEntityOccupiedAssets]
+  );
 
   // Zoom handlers
   const handleZoomIn = () => setZoomLevel((prev) => Math.min(parseFloat((prev + 0.1).toFixed(2)), 1.8));
@@ -1384,71 +1468,150 @@ export const OrgChartModal: React.FC<OrgChartModalProps> = ({
     </div>
 
       {/* Detail Slide-out / Modal for Clicked Entity (Daylight / Light Mode) */}
-      {selectedEntity && (
-        <div className="non-printable fixed bottom-6 left-6 z-50 w-96 p-5 rounded-2xl bg-white/95 border border-amber-500/40 text-slate-900 shadow-2xl shadow-slate-900/20 backdrop-blur-md animate-fade-in">
-          <div className="flex items-start justify-between gap-3 mb-3">
-            <div className="flex items-center gap-2.5">
-              <div className="p-2 rounded-xl bg-amber-500/15 text-amber-700 border border-amber-500/30">
-                <Building2 className="w-5 h-5" />
+      {selectedEntity && (() => {
+        const occupiedAssets = getEntityOccupiedAssets(selectedEntity);
+        return (
+          <div className="non-printable fixed bottom-6 left-6 z-50 w-96 max-w-[calc(100vw-2rem)] max-h-[85vh] overflow-y-auto p-5 rounded-2xl bg-white/95 border border-amber-500/40 text-slate-900 shadow-2xl shadow-slate-900/20 backdrop-blur-md animate-fade-in">
+            <div className="flex items-start justify-between gap-3 mb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-amber-500/15 text-amber-700 border border-amber-500/30">
+                  <Building2 className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-black text-slate-900 leading-tight">
+                    {selectedEntity.nameAr}
+                  </h4>
+                  {selectedEntity.nameEn && (
+                    <p className="text-xs text-slate-500 font-sans mt-0.5">{selectedEntity.nameEn}</p>
+                  )}
+                </div>
               </div>
-              <div>
-                <h4 className="text-sm font-black text-slate-900 leading-tight">
-                  {selectedEntity.nameAr}
-                </h4>
-                {selectedEntity.nameEn && (
-                  <p className="text-xs text-slate-500 font-sans mt-0.5">{selectedEntity.nameEn}</p>
+              <button
+                onClick={() => setSelectedEntity(null)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer"
+                title="إغلاق البطاقة"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-2 text-xs">
+              <div className="flex justify-between items-center py-1.5 border-b border-slate-100">
+                <span className="text-slate-500 font-bold">الرمز الإداري:</span>
+                <span className="font-mono font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                  {selectedEntity.code}
+                </span>
+              </div>
+              <div className="flex justify-between items-center py-1.5 border-b border-slate-100">
+                <span className="text-slate-500 font-bold">المستوى الهيكلي:</span>
+                <span className="font-bold text-slate-800 px-2 py-0.5 rounded bg-slate-100 border border-slate-200">
+                  {getArabicLevelLabel(selectedEntity)}
+                </span>
+              </div>
+              <div className="flex justify-between items-center py-1.5 border-b border-slate-100">
+                <span className="text-slate-500 font-bold">الكادر البشري المباشر:</span>
+                <span className="font-bold text-sky-700">
+                  {toArabicDigits(selectedEntity.employeeCount || 0)} موظف
+                </span>
+              </div>
+              
+              {/* Occupied Assets Section with Detailed Names & Occupied Rooms */}
+              <div className="py-2 border-b border-slate-100 space-y-1.5">
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-500 font-bold flex items-center gap-1.5">
+                    <Building2 className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>الأصول الإنشائية المشغولة:</span>
+                  </span>
+                  <span
+                    className={`font-bold px-2 py-0.5 rounded text-[11px] ${
+                      occupiedAssets.length > 0
+                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                        : 'bg-slate-100 text-slate-500 border border-slate-200'
+                    }`}
+                  >
+                    {occupiedAssets.length > 0
+                      ? `${toArabicDigits(occupiedAssets.length)} ${occupiedAssets.length === 1 ? 'أصل منشأة' : 'أصول منشآت'}`
+                      : 'لا يشغل أصول حالياً'}
+                  </span>
+                </div>
+
+                {occupiedAssets.length > 0 ? (
+                  <div className="space-y-1.5 pt-1 max-h-56 overflow-y-auto pr-0.5">
+                    {occupiedAssets.map((asset, idx) => (
+                      <div
+                        key={asset.unit.id || asset.unit.code || idx}
+                        className="p-2.5 rounded-xl bg-slate-50/90 border border-slate-200 text-right space-y-1.5 hover:bg-slate-100/90 transition shadow-2xs"
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <span className="font-black text-slate-900 text-xs leading-snug">
+                            {asset.unit.name}
+                          </span>
+                          <span className="font-mono text-[10px] font-bold text-sky-700 bg-sky-50 px-1.5 py-0.5 rounded border border-sky-200 shrink-0">
+                            {asset.unit.code}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center justify-between text-[10.5px] text-slate-500">
+                          <span className="text-emerald-700 font-bold">
+                            {asset.unit.governorate} • حقل {asset.unit.field}
+                          </span>
+                          {asset.unit.fixedAssetCode && (
+                            <span className="font-mono text-slate-400 text-[9.5px]">
+                              أصل: {asset.unit.fixedAssetCode}
+                            </span>
+                          )}
+                        </div>
+
+                        {asset.occupiedRooms.length > 0 ? (
+                          <div className="pt-1 border-t border-slate-200/60">
+                            <div className="text-[10px] font-bold text-amber-700 mb-1">
+                              الغرف المشغولة ({toArabicDigits(asset.occupiedRooms.length)}):
+                            </div>
+                            <div className="flex flex-wrap gap-1">
+                              {asset.occupiedRooms.map((rm, rIdx) => (
+                                <span
+                                  key={rm.id || rm.code || rIdx}
+                                  className="inline-flex items-center gap-1 text-[9.5px] font-bold px-1.5 py-0.5 rounded bg-white text-slate-700 border border-slate-200 shadow-2xs"
+                                >
+                                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+                                  <span>{rm.name}</span>
+                                  {rm.code && <span className="font-mono text-[8.5px] text-slate-400">({rm.code})</span>}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="text-[10px] text-emerald-700 font-bold flex items-center gap-1 pt-0.5">
+                            <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                            <span>إشغال كامل للمنشأة الهندسية</span>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-[10.5px] text-slate-400 italic pt-0.5">
+                    لا توجد منشآت أو غرف مسجلة باسم هذا التشكيل حالياً.
+                  </p>
                 )}
               </div>
-            </div>
-            <button
-              onClick={() => setSelectedEntity(null)}
-              className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer"
-              title="إغلاق البطاقة"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
 
-          <div className="space-y-2 text-xs">
-            <div className="flex justify-between items-center py-1.5 border-b border-slate-100">
-              <span className="text-slate-500 font-bold">الرمز الإداري:</span>
-              <span className="font-mono font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
-                {selectedEntity.code}
-              </span>
-            </div>
-            <div className="flex justify-between items-center py-1.5 border-b border-slate-100">
-              <span className="text-slate-500 font-bold">المستوى الهيكلي:</span>
-              <span className="font-bold text-slate-800 px-2 py-0.5 rounded bg-slate-100 border border-slate-200">
-                {getArabicLevelLabel(selectedEntity)}
-              </span>
-            </div>
-            <div className="flex justify-between items-center py-1.5 border-b border-slate-100">
-              <span className="text-slate-500 font-bold">الكادر البشري المباشر:</span>
-              <span className="font-bold text-sky-700">
-                {toArabicDigits(selectedEntity.employeeCount || 0)} موظف
-              </span>
-            </div>
-            <div className="flex justify-between items-center py-1.5 border-b border-slate-100">
-              <span className="text-slate-500 font-bold">الأصول الإنشائية المشغولة:</span>
-              <span className="font-bold text-emerald-700">
-                {toArabicDigits(getEntityUnitCount(selectedEntity.id))} وحدة أصل
-              </span>
-            </div>
-            <div className="flex justify-between items-center py-1.5">
-              <span className="text-slate-500 font-bold">الحالة التشغيلية:</span>
-              <span
-                className={`font-bold px-2 py-0.5 rounded ${
-                  selectedEntity.status === 'active'
-                    ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                    : 'bg-rose-50 text-rose-700 border border-rose-200'
-                }`}
-              >
-                {selectedEntity.status === 'active' ? 'نشط ومعتمد' : 'معطل مؤقتاً'}
-              </span>
+              <div className="flex justify-between items-center py-1.5">
+                <span className="text-slate-500 font-bold">الحالة التشغيلية:</span>
+                <span
+                  className={`font-bold px-2 py-0.5 rounded ${
+                    selectedEntity.status === 'active'
+                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                      : 'bg-rose-50 text-rose-700 border border-rose-200'
+                  }`}
+                >
+                  {selectedEntity.status === 'active' ? 'نشط ومعتمد' : 'معطل مؤقتاً'}
+                </span>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
     </div>
   );
 };

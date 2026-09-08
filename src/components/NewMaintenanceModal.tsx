@@ -52,6 +52,7 @@ import {
 } from '../types';
 import { INITIAL_MAINTENANCE_DEPARTMENTS } from '../data/mockData';
 import { compressImageFile } from '../utils/imageCompressor';
+import { isRoomVacant } from '../utils/unitAndRoomCodeUtils';
 
 const MAX_FILE_SIZE = 15 * 1024 * 1024; // Up to 15 MB before compression
 
@@ -144,11 +145,15 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
   const [selectedRoomFloor, setSelectedRoomFloor] = useState<string>(
     isUnitLockedByQr ? '' : (initialRoom?.floor || initialRoomFloor || '')
   );
-  const [occupyingEntity, setOccupyingEntity] = useState<string>(
-    isUnitLockedByQr
-      ? (selectedUnitAsset?.department || initialOccupyingEntity || '')
-      : (initialRoom?.occupiedBy || initialOccupyingEntity || selectedUnitAsset?.department || '')
-  );
+  const [occupyingEntity, setOccupyingEntity] = useState<string>(() => {
+    if (isUnitLockedByQr) {
+      return selectedUnitAsset?.department || initialOccupyingEntity || '';
+    }
+    if (initialRoom) {
+      return isRoomVacant(initialRoom.occupiedBy) ? 'شاغرة' : (initialRoom.occupiedBy || 'شاغرة');
+    }
+    return initialOccupyingEntity || selectedUnitAsset?.department || '';
+  });
 
   // Room selection UI filters & view mode
   const [roomTypeFilter, setRoomTypeFilter] = useState<string>('all');
@@ -245,7 +250,11 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
     if (foundRoom) {
       setSelectedRoomName(foundRoom.name);
       setSelectedRoomFloor(foundRoom.floor || 'الطابق 1');
-      setOccupyingEntity(foundRoom.occupiedBy || selectedUnitAsset?.department || '');
+      setOccupyingEntity(
+        isRoomVacant(foundRoom.occupiedBy)
+          ? 'شاغرة'
+          : (foundRoom.occupiedBy || 'شاغرة')
+      );
     }
   };
 

@@ -238,6 +238,7 @@ CREATE TABLE IF NOT EXISTS system_users (
     username VARCHAR(128) UNIQUE NOT NULL,
     password_hash VARCHAR(255),
     role VARCHAR(64) NOT NULL,
+    maintenance_department VARCHAR(128),
     email VARCHAR(255),
     phone VARCHAR(64),
     governorate VARCHAR(128),
@@ -246,6 +247,18 @@ CREATE TABLE IF NOT EXISTS system_users (
     last_active TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE INDEX IF NOT EXISTS idx_system_users_username ON system_users(username);
+CREATE INDEX IF NOT EXISTS idx_system_users_role ON system_users(role);
+
+-- 9. Key-Value Dynamic System Settings & JSON Caches (إعدادات النظام العامة)
+CREATE TABLE IF NOT EXISTS system_settings (
+    key VARCHAR(100) PRIMARY KEY,
+    value JSONB NOT NULL,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_system_settings_key ON system_settings(key);
 
 CREATE TABLE IF NOT EXISTS system_branding (
     id VARCHAR(64) PRIMARY KEY DEFAULT 'default',
@@ -258,3 +271,10 @@ CREATE TABLE IF NOT EXISTS system_branding (
     logo_url TEXT,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Additional Performance Indexes for High-Traffic Queries
+CREATE INDEX IF NOT EXISTS idx_oilfields_gov_id ON oilfields_ref(governorate_id);
+CREATE INDEX IF NOT EXISTS idx_occupancy_room_id ON occupancy_records(room_id);
+CREATE INDEX IF NOT EXISTS idx_maintenance_assigned_to ON maintenance_requests(assigned_to);
+CREATE INDEX IF NOT EXISTS idx_inspections_type ON periodic_inspections(inspection_type);
+CREATE INDEX IF NOT EXISTS idx_units_name_trgm ON units USING gin (name gin_trgm_ops);

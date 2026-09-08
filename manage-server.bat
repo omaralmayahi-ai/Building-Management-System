@@ -54,10 +54,23 @@ if %errorLevel% neq 0 (
 :: إعداد المتغيرات الأساسية (عدّل هذه القيم حسب بيئة السيرفر لديك)
 :: ============================================================================
 
-:: 1. مسارات النظام والتشغيل
-set PROJECT_DIR=C:\prog\Building-Management-System-main
-set NODE_PATH=C:\Program Files\nodejs\node.exe
-set NSSM="%~dp0nssm.exe"
+:: 1. مسارات النظام والتشغيل التلقائية
+set "CURRENT_DIR=%~dp0"
+if "%CURRENT_DIR:~-1%"=="\" set "CURRENT_DIR=%CURRENT_DIR:~0,-1%"
+
+if exist "dist\server.cjs" (
+    set "PROJECT_DIR=%CURRENT_DIR%"
+) else if "%PROJECT_DIR%"=="" (
+    set "PROJECT_DIR=%CURRENT_DIR%"
+)
+
+where node >nul 2>&1
+if %errorlevel% equ 0 (
+    for /f "tokens=*" %%i in ('where node') do if not defined NODE_PATH set "NODE_PATH=%%i"
+)
+if "%NODE_PATH%"=="" set "NODE_PATH=C:\Program Files\nodejs\node.exe"
+
+set NSSM="%PROJECT_DIR%\nssm.exe"
 set SERVICE_NAME=BuildingsManagementServer
 
 :: 2. إعدادات قاعدة بيانات PostgreSQL

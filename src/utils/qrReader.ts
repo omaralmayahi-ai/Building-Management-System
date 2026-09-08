@@ -1,4 +1,5 @@
 import jsQR from 'jsqr';
+import { isRoomVacant } from './unitAndRoomCodeUtils';
 
 /**
  * Universal high-performance QR code reader utility for Midland Oil Company system.
@@ -184,6 +185,9 @@ export function parseScannedQrPayload(rawText: string): ScannedQrPayload {
   }
 
   const resolvedUnitCode = unitCode || parseScannedQrText(trimmed);
+  const resolvedOccupiedBy = isRoom
+    ? (isRoomVacant(occupiedBy) ? 'شاغرة' : occupiedBy)
+    : (occupiedBy || undefined);
 
   return {
     rawText: trimmed,
@@ -193,7 +197,7 @@ export function parseScannedQrPayload(rawText: string): ScannedQrPayload {
     roomCode: roomCode || undefined,
     roomName: roomName || undefined,
     floor: floor || undefined,
-    occupiedBy: occupiedBy || undefined,
+    occupiedBy: resolvedOccupiedBy,
   };
 }
 
