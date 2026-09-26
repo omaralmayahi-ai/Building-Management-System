@@ -371,7 +371,7 @@ export const DroneHudOverlay: React.FC<DroneHudOverlayProps> = ({
             >
               <button
                 onClick={() => onFlightModeChange('orbit_360')}
-                className={`px-2.5 py-1 rounded-lg font-bold transition cursor-pointer flex items-center gap-1 text-[11px] sm:text-xs ${
+                className={`px-2 sm:px-2.5 py-1 rounded-lg font-bold transition cursor-pointer flex items-center gap-1 text-[10.5px] sm:text-xs ${
                   flightMode === 'orbit_360'
                     ? 'bg-amber-500 text-slate-950 shadow-sm'
                     : isNightMode
@@ -380,12 +380,13 @@ export const DroneHudOverlay: React.FC<DroneHudOverlayProps> = ({
                 }`}
               >
                 <RotateCw className="w-3 h-3" />
-                <span>مدار سينمائي 360°</span>
+                <span className="hidden sm:inline">مدار سينمائي 360°</span>
+                <span className="sm:hidden">مدار 360°</span>
               </button>
 
               <button
                 onClick={() => onFlightModeChange('spiral_ascend')}
-                className={`px-2.5 py-1 rounded-lg font-bold transition cursor-pointer flex items-center gap-1 text-[11px] sm:text-xs ${
+                className={`px-2 sm:px-2.5 py-1 rounded-lg font-bold transition cursor-pointer flex items-center gap-1 text-[10.5px] sm:text-xs ${
                   flightMode === 'spiral_ascend'
                     ? 'bg-amber-500 text-slate-950 shadow-sm'
                     : isNightMode
@@ -394,12 +395,13 @@ export const DroneHudOverlay: React.FC<DroneHudOverlayProps> = ({
                 }`}
               >
                 <Sparkles className="w-3 h-3" />
-                <span>صعود حلزوني</span>
+                <span className="hidden sm:inline">صعود حلزوني</span>
+                <span className="sm:hidden">حلزوني</span>
               </button>
 
               <button
                 onClick={() => onFlightModeChange('flyby')}
-                className={`px-2.5 py-1 rounded-lg font-bold transition cursor-pointer flex items-center gap-1 text-[11px] sm:text-xs ${
+                className={`px-2 sm:px-2.5 py-1 rounded-lg font-bold transition cursor-pointer flex items-center gap-1 text-[10.5px] sm:text-xs ${
                   flightMode === 'flyby'
                     ? 'bg-amber-500 text-slate-950 shadow-sm'
                     : isNightMode
@@ -408,12 +410,13 @@ export const DroneHudOverlay: React.FC<DroneHudOverlayProps> = ({
                 }`}
               >
                 <Compass className="w-3 h-3" />
-                <span>مسح جانبي</span>
+                <span className="hidden sm:inline">مسح جانبي</span>
+                <span className="sm:hidden">جانبي</span>
               </button>
 
               <button
                 onClick={() => onFlightModeChange('topdown_dive')}
-                className={`px-2.5 py-1 rounded-lg font-bold transition cursor-pointer flex items-center gap-1 text-[11px] sm:text-xs ${
+                className={`px-2 sm:px-2.5 py-1 rounded-lg font-bold transition cursor-pointer flex items-center gap-1 text-[10.5px] sm:text-xs ${
                   flightMode === 'topdown_dive'
                     ? 'bg-amber-500 text-slate-950 shadow-sm'
                     : isNightMode
@@ -422,12 +425,13 @@ export const DroneHudOverlay: React.FC<DroneHudOverlayProps> = ({
                 }`}
               >
                 <ArrowDown className="w-3 h-3" />
-                <span>غوص درامي</span>
+                <span className="hidden sm:inline">غوص درامي</span>
+                <span className="sm:hidden">غوص</span>
               </button>
 
               <button
                 onClick={() => onFlightModeChange('manual_fpv')}
-                className={`px-2.5 py-1 rounded-lg font-bold transition cursor-pointer flex items-center gap-1 text-[11px] sm:text-xs ${
+                className={`px-2 sm:px-2.5 py-1 rounded-lg font-bold transition cursor-pointer flex items-center gap-1 text-[10.5px] sm:text-xs ${
                   flightMode === 'manual_fpv'
                     ? 'bg-amber-500 text-slate-950 shadow-sm'
                     : isNightMode
@@ -436,7 +440,8 @@ export const DroneHudOverlay: React.FC<DroneHudOverlayProps> = ({
                 }`}
               >
                 <Sliders className="w-3 h-3" />
-                <span>تحكم يدوي</span>
+                <span className="hidden sm:inline">تحكم يدوي</span>
+                <span className="sm:hidden">يدوي</span>
               </button>
             </div>
 

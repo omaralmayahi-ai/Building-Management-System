@@ -116,12 +116,12 @@ export const A4PrintPlacementSelector: React.FC<A4PrintPlacementSelectorProps> =
         <label className="text-[10.5px] font-bold text-slate-600 dark:text-slate-400 block">
           ١. اختر حجم البطاقة المطلوب:
         </label>
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-3 gap-1 sm:gap-2">
           {/* Compact A6 */}
           <button
             type="button"
             onClick={() => handleSizeChange('compact')}
-            className={`p-2 rounded-xl text-right border transition cursor-pointer flex flex-col justify-between ${
+            className={`p-1.5 sm:p-2 rounded-xl text-right border transition cursor-pointer flex flex-col justify-between ${
               size === 'compact'
                 ? 'bg-amber-500 text-slate-950 border-amber-500 shadow-sm'
                 : isLight
@@ -130,18 +130,18 @@ export const A4PrintPlacementSelector: React.FC<A4PrintPlacementSelectorProps> =
             }`}
           >
             <div className="flex items-center justify-between">
-              <span className="font-extrabold text-xs flex items-center gap-1">
-                <Grid className="w-3.5 h-3.5" />
+              <span className="font-extrabold text-[11px] sm:text-xs flex items-center gap-0.5 sm:gap-1">
+                <Grid className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                 <span>مدمج (A6)</span>
               </span>
-              {size === 'compact' && <CheckCircle2 className="w-3.5 h-3.5" />}
+              {size === 'compact' && <CheckCircle2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />}
             </div>
             <span
-              className={`text-[9.5px] mt-1 font-medium ${
+              className={`text-[8.5px] sm:text-[9.5px] mt-0.5 font-medium leading-tight ${
                 size === 'compact' ? 'text-slate-900 font-bold' : 'text-slate-500 dark:text-slate-400'
               }`}
             >
-              ربع ورقة • ٤ بطاقات بالـ A4
+              ربع ورقة • ٤ بطاقات
             </span>
           </button>
 
@@ -149,7 +149,7 @@ export const A4PrintPlacementSelector: React.FC<A4PrintPlacementSelectorProps> =
           <button
             type="button"
             onClick={() => handleSizeChange('medium')}
-            className={`p-2 rounded-xl text-right border transition cursor-pointer flex flex-col justify-between ${
+            className={`p-1.5 sm:p-2 rounded-xl text-right border transition cursor-pointer flex flex-col justify-between ${
               size === 'medium'
                 ? 'bg-amber-500 text-slate-950 border-amber-500 shadow-sm'
                 : isLight
@@ -158,18 +158,18 @@ export const A4PrintPlacementSelector: React.FC<A4PrintPlacementSelectorProps> =
             }`}
           >
             <div className="flex items-center justify-between">
-              <span className="font-extrabold text-xs flex items-center gap-1">
-                <FileText className="w-3.5 h-3.5" />
+              <span className="font-extrabold text-[11px] sm:text-xs flex items-center gap-0.5 sm:gap-1">
+                <FileText className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                 <span>متوسط (A5)</span>
               </span>
-              {size === 'medium' && <CheckCircle2 className="w-3.5 h-3.5" />}
+              {size === 'medium' && <CheckCircle2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />}
             </div>
             <span
-              className={`text-[9.5px] mt-1 font-medium ${
+              className={`text-[8.5px] sm:text-[9.5px] mt-0.5 font-medium leading-tight ${
                 size === 'medium' ? 'text-slate-900 font-bold' : 'text-slate-500 dark:text-slate-400'
               }`}
             >
-              نصف ورقة • بطاقتان بالـ A4
+              نصف ورقة • بطاقتان
             </span>
           </button>
 
@@ -177,7 +177,7 @@ export const A4PrintPlacementSelector: React.FC<A4PrintPlacementSelectorProps> =
           <button
             type="button"
             onClick={() => handleSizeChange('full')}
-            className={`p-2 rounded-xl text-right border transition cursor-pointer flex flex-col justify-between ${
+            className={`p-1.5 sm:p-2 rounded-xl text-right border transition cursor-pointer flex flex-col justify-between ${
               size === 'full'
                 ? 'bg-amber-500 text-slate-950 border-amber-500 shadow-sm'
                 : isLight
@@ -186,18 +186,18 @@ export const A4PrintPlacementSelector: React.FC<A4PrintPlacementSelectorProps> =
             }`}
           >
             <div className="flex items-center justify-between">
-              <span className="font-extrabold text-xs flex items-center gap-1">
-                <Maximize2 className="w-3.5 h-3.5" />
+              <span className="font-extrabold text-[11px] sm:text-xs flex items-center gap-0.5 sm:gap-1">
+                <Maximize2 className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                 <span>كامل (A4)</span>
               </span>
-              {size === 'full' && <CheckCircle2 className="w-3.5 h-3.5" />}
+              {size === 'full' && <CheckCircle2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />}
             </div>
             <span
-              className={`text-[9.5px] mt-1 font-medium ${
+              className={`text-[8.5px] sm:text-[9.5px] mt-0.5 font-medium leading-tight ${
                 size === 'full' ? 'text-slate-900 font-bold' : 'text-slate-500 dark:text-slate-400'
               }`}
             >
-              لوحة جدارية كبيرة
+              لوحة جدارية كاملة
             </span>
           </button>
         </div>
@@ -206,22 +206,22 @@ export const A4PrintPlacementSelector: React.FC<A4PrintPlacementSelectorProps> =
       {/* Row 2: Placement Selector on A4 Sheet */}
       {size !== 'full' ? (
         <div className="space-y-1.5 pt-1 border-t border-slate-200 dark:border-slate-800">
-          <label className="text-[10.5px] font-bold text-slate-600 dark:text-slate-400 flex items-center justify-between">
-            <span>٢. اختر موقع البطاقة على ورقة A4:</span>
-            <span className="text-[10px] text-amber-600 dark:text-amber-400 font-normal">
+          <label className="text-[10px] sm:text-[10.5px] font-bold text-slate-600 dark:text-slate-400 flex items-center justify-between">
+            <span>٢. موضع البطاقة داخل ورقة A4:</span>
+            <span className="text-[9.5px] text-amber-600 dark:text-amber-400 font-normal hidden sm:inline">
               (انقر على أي زاوية داخل الورقة أو اختر من الأزرار)
             </span>
           </label>
 
-          <div className="flex items-center gap-3 sm:gap-4">
+          <div className="flex flex-row items-center gap-2 sm:gap-4 w-full">
             {/* Interactive Visual A4 Sheet Simulation Widget */}
             <div
-              className={`w-20 h-28 sm:w-22 sm:h-32 border-2 rounded-md shadow-md p-1 shrink-0 flex flex-col justify-between relative select-none transition-all ${
+              className={`w-16 h-24 sm:w-22 sm:h-32 border-2 rounded-md shadow-md p-1 shrink-0 flex flex-col justify-between relative select-none transition-all ${
                 isLight ? 'bg-white border-slate-300' : 'bg-slate-950 border-slate-700'
               }`}
               title="ورقة A4 التفاعلية: اضغط على الموضع المطلوب لوضع البطاقة فيه"
             >
-              <span className="absolute -top-2 right-1.5 text-[8px] font-bold px-1 bg-slate-200 dark:bg-slate-800 rounded text-slate-600 dark:text-slate-300">
+              <span className="absolute -top-2 right-1.5 text-[7.5px] sm:text-[8px] font-bold px-1 bg-slate-200 dark:bg-slate-800 rounded text-slate-600 dark:text-slate-300">
                 A4
               </span>
 
@@ -320,13 +320,13 @@ export const A4PrintPlacementSelector: React.FC<A4PrintPlacementSelectorProps> =
             </div>
 
             {/* Quick Placement Action Buttons */}
-            <div className="flex-1 space-y-1.5">
+            <div className="w-full flex-1 space-y-1">
               {size === 'compact' ? (
-                <div className="grid grid-cols-2 gap-1.5">
+                <div className="grid grid-cols-2 gap-1 sm:gap-1.5">
                   <button
                     type="button"
                     onClick={() => setPlacement('top-right')}
-                    className={`px-2 py-1.5 rounded-lg text-xs font-bold border transition text-center cursor-pointer ${
+                    className={`px-1.5 py-1 sm:py-1.5 rounded-lg text-[10.5px] sm:text-xs font-bold border transition text-center cursor-pointer ${
                       placement === 'top-right'
                         ? 'bg-amber-500 text-slate-950 border-amber-500 font-black'
                         : isLight
@@ -334,12 +334,12 @@ export const A4PrintPlacementSelector: React.FC<A4PrintPlacementSelectorProps> =
                         : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-750'
                     }`}
                   >
-                    الزاوية العليا يميناً
+                    أعلى اليمين
                   </button>
                   <button
                     type="button"
                     onClick={() => setPlacement('top-left')}
-                    className={`px-2 py-1.5 rounded-lg text-xs font-bold border transition text-center cursor-pointer ${
+                    className={`px-1.5 py-1 sm:py-1.5 rounded-lg text-[10.5px] sm:text-xs font-bold border transition text-center cursor-pointer ${
                       placement === 'top-left'
                         ? 'bg-amber-500 text-slate-950 border-amber-500 font-black'
                         : isLight
@@ -347,12 +347,12 @@ export const A4PrintPlacementSelector: React.FC<A4PrintPlacementSelectorProps> =
                         : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-750'
                     }`}
                   >
-                    الزاوية العليا يساراً
+                    أعلى اليسار
                   </button>
                   <button
                     type="button"
                     onClick={() => setPlacement('bottom-right')}
-                    className={`px-2 py-1.5 rounded-lg text-xs font-bold border transition text-center cursor-pointer ${
+                    className={`px-1.5 py-1 sm:py-1.5 rounded-lg text-[10.5px] sm:text-xs font-bold border transition text-center cursor-pointer ${
                       placement === 'bottom-right'
                         ? 'bg-amber-500 text-slate-950 border-amber-500 font-black'
                         : isLight
@@ -360,12 +360,12 @@ export const A4PrintPlacementSelector: React.FC<A4PrintPlacementSelectorProps> =
                         : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-750'
                     }`}
                   >
-                    الزاوية السفلى يميناً
+                    أسفل اليمين
                   </button>
                   <button
                     type="button"
                     onClick={() => setPlacement('bottom-left')}
-                    className={`px-2 py-1.5 rounded-lg text-xs font-bold border transition text-center cursor-pointer ${
+                    className={`px-1.5 py-1 sm:py-1.5 rounded-lg text-[10.5px] sm:text-xs font-bold border transition text-center cursor-pointer ${
                       placement === 'bottom-left'
                         ? 'bg-amber-500 text-slate-950 border-amber-500 font-black'
                         : isLight
@@ -373,13 +373,13 @@ export const A4PrintPlacementSelector: React.FC<A4PrintPlacementSelectorProps> =
                         : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-750'
                     }`}
                   >
-                    الزاوية السفلى يساراً
+                    أسفل اليسار
                   </button>
 
                   <button
                     type="button"
                     onClick={() => setPlacement('center')}
-                    className={`px-2 py-1.5 rounded-lg text-xs font-bold border transition text-center cursor-pointer ${
+                    className={`px-1.5 py-1 sm:py-1.5 rounded-lg text-[10.5px] sm:text-xs font-bold border transition text-center cursor-pointer ${
                       placement === 'center'
                         ? 'bg-amber-500 text-slate-950 border-amber-500 font-black'
                         : isLight
@@ -392,7 +392,7 @@ export const A4PrintPlacementSelector: React.FC<A4PrintPlacementSelectorProps> =
                   <button
                     type="button"
                     onClick={() => setPlacement('four-copies')}
-                    className={`px-2 py-1.5 rounded-lg text-xs font-bold border transition text-center cursor-pointer flex items-center justify-center gap-1 ${
+                    className={`px-1.5 py-1 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-bold border transition text-center cursor-pointer flex items-center justify-center gap-1 ${
                       placement === 'four-copies'
                         ? 'bg-emerald-600 text-white border-emerald-600 font-black'
                         : isLight
@@ -401,17 +401,17 @@ export const A4PrintPlacementSelector: React.FC<A4PrintPlacementSelectorProps> =
                     }`}
                     title="تعبئة الأركان الأربعة بـ 4 نسخ من البطاقة لتوفير الورق"
                   >
-                    <Copy className="w-3.5 h-3.5" />
-                    <span>٤ نسخ (تعبئة الورقة)</span>
+                    <Copy className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                    <span>٤ نسخ (تعبئة)</span>
                   </button>
                 </div>
               ) : (
                 /* Medium A5 Placement Buttons */
-                <div className="grid grid-cols-2 gap-1.5">
+                <div className="grid grid-cols-2 gap-1 sm:gap-1.5">
                   <button
                     type="button"
                     onClick={() => setPlacement('top')}
-                    className={`px-2 py-2 rounded-lg text-xs font-bold border transition text-center cursor-pointer ${
+                    className={`px-1.5 py-1 sm:py-1.5 rounded-lg text-[10.5px] sm:text-xs font-bold border transition text-center cursor-pointer ${
                       placement === 'top'
                         ? 'bg-amber-500 text-slate-950 border-amber-500 font-black'
                         : isLight
@@ -419,12 +419,12 @@ export const A4PrintPlacementSelector: React.FC<A4PrintPlacementSelectorProps> =
                         : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-750'
                     }`}
                   >
-                    النصف العلوي للورقة
+                    النصف العلوي
                   </button>
                   <button
                     type="button"
                     onClick={() => setPlacement('bottom')}
-                    className={`px-2 py-2 rounded-lg text-xs font-bold border transition text-center cursor-pointer ${
+                    className={`px-1.5 py-1 sm:py-1.5 rounded-lg text-[10.5px] sm:text-xs font-bold border transition text-center cursor-pointer ${
                       placement === 'bottom'
                         ? 'bg-amber-500 text-slate-950 border-amber-500 font-black'
                         : isLight
@@ -432,12 +432,12 @@ export const A4PrintPlacementSelector: React.FC<A4PrintPlacementSelectorProps> =
                         : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-750'
                     }`}
                   >
-                    النصف السفلي للورقة
+                    النصف السفلي
                   </button>
                   <button
                     type="button"
                     onClick={() => setPlacement('center')}
-                    className={`px-2 py-2 rounded-lg text-xs font-bold border transition text-center cursor-pointer ${
+                    className={`px-1.5 py-1 sm:py-1.5 rounded-lg text-[10.5px] sm:text-xs font-bold border transition text-center cursor-pointer ${
                       placement === 'center'
                         ? 'bg-amber-500 text-slate-950 border-amber-500 font-black'
                         : isLight
@@ -450,17 +450,17 @@ export const A4PrintPlacementSelector: React.FC<A4PrintPlacementSelectorProps> =
                   <button
                     type="button"
                     onClick={() => setPlacement('two-copies')}
-                    className={`px-2 py-2 rounded-lg text-xs font-bold border transition text-center cursor-pointer flex items-center justify-center gap-1 ${
+                    className={`px-1.5 py-1 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-bold border transition text-center cursor-pointer flex items-center justify-center gap-1 ${
                       placement === 'two-copies'
                         ? 'bg-emerald-600 text-white border-emerald-600 font-black'
                         : isLight
                         ? 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100'
                         : 'bg-emerald-950/40 text-emerald-300 border-emerald-800 hover:bg-emerald-900/60'
                     }`}
-                    title="طباعة نسختين في الورقة (أعلى وأسفل)"
+                    title="تعبئة النصفين العلوي والسفلي بنسختين"
                   >
-                    <Copy className="w-3.5 h-3.5" />
-                    <span>نسختان (تعبئة الورقة)</span>
+                    <Copy className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                    <span>نسختان (تعبئة)</span>
                   </button>
                 </div>
               )}

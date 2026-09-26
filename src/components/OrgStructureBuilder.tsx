@@ -1759,8 +1759,8 @@ export const OrgStructureBuilder: React.FC<OrgStructureBuilderProps> = ({
                   </div>
                 </div>
 
-                <div className="max-h-60 overflow-y-auto border border-slate-800 rounded-xl">
-                  <table className="w-full text-right text-xs">
+                <div className="max-h-60 overflow-x-auto overflow-y-auto border border-slate-800 rounded-xl">
+                  <table className="w-full min-w-[550px] sm:min-w-0 text-right text-xs">
                     <thead>
                       <tr className={`${isLight ? 'bg-slate-100 text-slate-700' : 'bg-slate-950 text-slate-400'}`}>
                         <th className="p-2 font-bold">الكود</th>

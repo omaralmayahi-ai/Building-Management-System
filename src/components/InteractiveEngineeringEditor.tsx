@@ -189,7 +189,7 @@ export const InteractiveEngineeringEditor: React.FC<InteractiveEngineeringEditor
 
   return (
     <div
-      className={`absolute top-3 right-3 bottom-3 z-30 w-84 sm:w-96 flex flex-col rounded-3xl border shadow-2xl backdrop-blur-xl transition-all duration-300 overflow-hidden ${
+      className={`absolute top-2 sm:top-3 right-2 sm:right-3 bottom-2 sm:bottom-3 left-2 sm:left-auto sm:w-96 max-w-[calc(100%-1rem)] sm:max-w-none z-30 flex flex-col rounded-2xl sm:rounded-3xl border shadow-2xl backdrop-blur-xl transition-all duration-300 overflow-hidden ${
         isNightMode
           ? 'bg-slate-900/95 border-slate-700/80 text-slate-100 shadow-black/80'
           : 'bg-white/95 border-slate-200 text-slate-900 shadow-slate-400/40'

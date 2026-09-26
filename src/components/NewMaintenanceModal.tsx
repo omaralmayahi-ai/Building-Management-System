@@ -429,32 +429,32 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
   };
 
   return (
-    <div className={`fixed inset-0 z-50 backdrop-blur-md flex items-center justify-center p-3 sm:p-5 overflow-y-auto ${
+    <div className={`fixed inset-0 z-50 backdrop-blur-md flex items-center justify-center p-2.5 sm:p-5 overflow-y-auto ${
       isLight ? 'bg-slate-900/40' : 'bg-slate-950/80'
     }`}>
       <div
-        className={`rounded-2xl max-w-4xl w-full p-5 shadow-2xl border flex flex-col max-h-[92vh] space-y-4 text-xs ${
+        className={`rounded-2xl max-w-4xl w-full p-3.5 sm:p-5 shadow-2xl border flex flex-col max-h-[92vh] space-y-3.5 sm:space-y-4 text-xs ${
           isLight ? 'bg-white border-slate-200 text-slate-800' : 'bg-slate-900 border-slate-800 text-slate-100'
         }`}
       >
         {/* MODAL HEADER */}
-        <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800 shrink-0">
-          <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-amber-500/10 text-amber-500 border border-amber-500/20">
-              <Wrench className="w-5 h-5" />
+        <div className="flex items-center justify-between pb-2.5 sm:pb-3 border-b border-slate-200 dark:border-slate-800 shrink-0">
+          <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
+            <div className="p-1.5 sm:p-2 rounded-xl bg-amber-500/10 text-amber-500 border border-amber-500/20 shrink-0">
+              <Wrench className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
-            <div>
-              <h3 className={`font-bold text-base ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+            <div className="min-w-0">
+              <h3 className={`font-bold text-sm sm:text-base truncate ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
                 طلب صيانة جديد
               </h3>
-              <p className={`text-[11px] ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+              <p className={`text-[10px] sm:text-[11px] truncate ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
                 توثيق وإصدار طلب صيانة جديد وتكليف الجهة الفنية المختصة
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className={`p-1.5 rounded-xl transition cursor-pointer ${
+            className={`p-1.5 rounded-xl transition cursor-pointer shrink-0 ${
               isLight ? 'hover:bg-slate-100 text-slate-400 hover:text-slate-700' : 'hover:bg-slate-800 text-slate-400 hover:text-slate-200'
             }`}
           >

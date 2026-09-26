@@ -39,6 +39,7 @@ import {
   Minimize2,
   Users,
   Network,
+  DoorOpen,
 } from 'lucide-react';
 import { UnitAsset, ConditionGrade, ReferenceUnitType, UnitAttachment, OrgEntity, GovernorateRef, OilfieldRef, Room, SystemBranding } from '../types';
 import { ThreeBuildingCanvas } from './ThreeBuildingCanvas';
@@ -241,6 +242,58 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
 
   // Selected unit (null if no unit code selected or matched)
   const selectedUnit = units.find((u) => u.code === selectedUnitCode) || null;
+
+  // Room filtering state for selected unit (by floor, room type, search)
+  const [roomFloorFilter, setRoomFloorFilter] = useState<string>('all');
+  const [roomTypeFilter, setRoomTypeFilter] = useState<string>('all');
+  const [roomSearchQuery, setRoomSearchQuery] = useState<string>('');
+
+  // Reset room filters whenever selected unit changes
+  useEffect(() => {
+    setRoomFloorFilter('all');
+    setRoomTypeFilter('all');
+    setRoomSearchQuery('');
+  }, [selectedUnitCode]);
+
+  // Available floors in the current unit
+  const availableFloors = useMemo(() => {
+    if (!selectedUnit?.rooms) return [];
+    const set = new Set<string>();
+    selectedUnit.rooms.forEach((r) => {
+      if (r.floor && r.floor.trim()) set.add(r.floor.trim());
+    });
+    return Array.from(set).sort((a, b) => a.localeCompare(b, 'ar', { numeric: true }));
+  }, [selectedUnit?.rooms]);
+
+  // Available room types in the current unit
+  const availableRoomTypes = useMemo(() => {
+    if (!selectedUnit?.rooms) return [];
+    const set = new Set<string>();
+    selectedUnit.rooms.forEach((r) => {
+      if (r.type && r.type.trim()) set.add(r.type.trim());
+    });
+    return Array.from(set).sort((a, b) => a.localeCompare(b, 'ar'));
+  }, [selectedUnit?.rooms]);
+
+  // Filtered rooms list
+  const filteredRooms = useMemo(() => {
+    if (!selectedUnit?.rooms) return [];
+    return selectedUnit.rooms.filter((rm) => {
+      if (roomFloorFilter !== 'all' && rm.floor?.trim() !== roomFloorFilter) return false;
+      if (roomTypeFilter !== 'all' && rm.type?.trim() !== roomTypeFilter) return false;
+      if (roomSearchQuery.trim()) {
+        const q = roomSearchQuery.toLowerCase().trim();
+        const code = (rm.code || '').toLowerCase();
+        const name = (rm.name || '').toLowerCase();
+        const occ = (rm.occupiedBy || '').toLowerCase();
+        const type = (rm.type || '').toLowerCase();
+        if (!code.includes(q) && !name.includes(q) && !occ.includes(q) && !type.includes(q)) {
+          return false;
+        }
+      }
+      return true;
+    });
+  }, [selectedUnit?.rooms, roomFloorFilter, roomTypeFilter, roomSearchQuery]);
 
   const filteredUnits = units.filter((u) => {
     // Governorate filter match
@@ -524,27 +577,27 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 text-right dir-rtl w-full max-w-full min-w-0 overflow-hidden break-words">
       {/* Top Header & Search Filter Bar */}
-      <div className={`border rounded-2xl p-4 sm:p-5 shadow-lg flex flex-col gap-3.5 transition-colors ${
+      <div className={`border rounded-2xl p-3.5 sm:p-5 shadow-lg flex flex-col gap-3 transition-colors w-full min-w-0 overflow-hidden ${
         isLight ? 'bg-white border-slate-200 text-slate-900 shadow-sm' : 'bg-slate-900 border-slate-800 text-white'
       }`}>
         {/* Title & Subtitle Phrase Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b pb-3 border-slate-200 dark:border-slate-800">
-          <div>
-            <h2 className={`text-lg sm:text-xl font-black flex items-center gap-2.5 ${isLight ? 'text-slate-900' : 'text-white'}`}>
-              <div className="w-8 h-8 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-500 font-bold shrink-0">
-                <Box className="w-5 h-5 text-amber-500" />
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b pb-3 border-slate-200 dark:border-slate-800 min-w-0">
+          <div className="min-w-0">
+            <h2 className={`text-base sm:text-xl font-black flex items-center gap-2 sm:gap-2.5 ${isLight ? 'text-slate-900' : 'text-white'}`}>
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-500 font-bold shrink-0">
+                <Box className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500" />
               </div>
-              <span>الوحدات والمشاهدة ثلاثية الأبعاد (3D)</span>
+              <span className="truncate">الوحدات والمشاهدة ثلاثية الأبعاد (3D)</span>
             </h2>
-            <p className={`text-xs mt-1 font-medium ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+            <p className={`text-[11px] sm:text-xs mt-1 font-medium leading-relaxed break-words ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
               استعراض المنشآت النفطية بالـ 3D، قطع الطوابق، التقييم الهندسي، وتعديل كافة البيانات الهندسية
             </p>
           </div>
 
-          <div className="flex items-center gap-2 text-xs">
-            <span className={`px-3 py-1.5 rounded-xl border font-bold ${
+          <div className="flex items-center gap-2 text-xs shrink-0 w-full sm:w-auto">
+            <span className={`w-full sm:w-auto text-center px-3 py-1.5 rounded-xl border font-bold text-[11px] sm:text-xs ${
               isLight ? 'bg-slate-50 border-slate-200 text-slate-700' : 'bg-slate-800/80 border-slate-700 text-slate-300'
             }`}>
               المنشآت المطابقة: <b className="text-amber-500 font-black">{toArabicDigits(filteredUnits.length)}</b> من {toArabicDigits(units.length)}
@@ -552,13 +605,13 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
           </div>
         </div>
 
-        {/* Filter Controls Bar - PLACED DIRECTLY BELOW THE PHRASE */}
-        <div className="flex flex-wrap items-center gap-2 pt-0.5 text-xs">
+        {/* Filter Controls Bar - Responsive Grid on Mobile, Flex on Desktop */}
+        <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 pt-0.5 text-xs w-full min-w-0">
           {/* Governorate Filter */}
           <select
             value={filterGovernorate}
             onChange={(e) => handleGovernorateFilterChange(e.target.value)}
-            className={`border rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-amber-500 font-semibold cursor-pointer ${
+            className={`w-full sm:w-auto min-w-0 border rounded-lg px-2 sm:px-2.5 py-1.5 focus:outline-none focus:border-amber-500 font-semibold cursor-pointer text-[11px] sm:text-xs truncate ${
               isLight ? 'bg-slate-50 border-slate-300 text-slate-800' : 'bg-slate-950 border-slate-800 text-slate-200'
             }`}
           >
@@ -576,11 +629,11 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
           <select
             value={filterField}
             onChange={(e) => setFilterField(e.target.value)}
-            className={`border rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-amber-500 font-semibold cursor-pointer ${
+            className={`w-full sm:w-auto min-w-0 border rounded-lg px-2 sm:px-2.5 py-1.5 focus:outline-none focus:border-amber-500 font-semibold cursor-pointer text-[11px] sm:text-xs truncate ${
               isLight ? 'bg-slate-50 border-slate-300 text-slate-800' : 'bg-slate-950 border-slate-800 text-slate-200'
             }`}
           >
-            <option value="all">كافة الحقول النفطية</option>
+            <option value="all">كافة الحقول</option>
             {availableOilfieldOptions.map((f) => (
               <option key={f.id} value={f.nameAr}>
                 {f.nameAr}
@@ -589,11 +642,11 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
           </select>
 
           {/* زر التشكيلات / الجهات الشاغلة - يظهر صفحة التشكيلات للاختيار منها */}
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 col-span-2 sm:col-span-1 min-w-0 w-full sm:w-auto">
             <button
               type="button"
               onClick={() => setShowOrgPickerModal(true)}
-              className={`px-3 py-1.5 rounded-lg border font-bold flex items-center gap-1.5 transition cursor-pointer shadow-sm ${
+              className={`w-full sm:w-auto px-2.5 sm:px-3 py-1.5 rounded-lg border font-bold flex items-center justify-between sm:justify-start gap-1.5 transition cursor-pointer shadow-sm text-[11px] sm:text-xs min-w-0 ${
                 filterOrgEntity !== 'all'
                   ? 'bg-amber-500 text-slate-950 border-amber-400 font-black ring-1 ring-amber-400'
                   : isLight
@@ -602,10 +655,12 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
               }`}
               title="فتح صفحة التشكيلات والجهات الشاغلة للاختيار منها"
             >
-              <Network className="w-3.5 h-3.5 shrink-0 text-amber-500" />
-              <span className="truncate max-w-[200px]">
-                {filterOrgEntity !== 'all' ? `التشكيل: ${filterOrgEntity}` : 'التشكيلات / الجهات الشاغلة'}
-              </span>
+              <div className="flex items-center gap-1.5 min-w-0">
+                <Network className="w-3.5 h-3.5 shrink-0 text-amber-500" />
+                <span className="truncate max-w-[160px] sm:max-w-[200px]">
+                  {filterOrgEntity !== 'all' ? `التشكيل: ${filterOrgEntity}` : 'التشكيلات / الجهات الشاغلة'}
+                </span>
+              </div>
               <ChevronDown className="w-3.5 h-3.5 shrink-0 opacity-70" />
             </button>
 
@@ -613,7 +668,7 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
               <button
                 type="button"
                 onClick={() => setFilterOrgEntity('all')}
-                className={`p-1.5 rounded-lg border text-red-500 hover:bg-red-500/10 transition cursor-pointer ${
+                className={`p-1.5 rounded-lg border text-red-500 hover:bg-red-500/10 transition cursor-pointer shrink-0 ${
                   isLight ? 'border-red-200 bg-red-50' : 'border-red-900/40 bg-red-950/30'
                 }`}
                 title="إلغاء تصفية التشكيل"
@@ -627,26 +682,26 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
           <select
             value={filterGrade}
             onChange={(e) => setFilterGrade(e.target.value)}
-            className={`border rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-amber-500 font-semibold cursor-pointer ${
+            className={`w-full sm:w-auto min-w-0 border rounded-lg px-2 sm:px-2.5 py-1.5 focus:outline-none focus:border-amber-500 font-semibold cursor-pointer text-[11px] sm:text-xs truncate ${
               isLight ? 'bg-slate-50 border-slate-300 text-slate-800' : 'bg-slate-950 border-slate-800 text-slate-200'
             }`}
           >
-            <option value="all">كافة درجات التقييم (A, B, C, D)</option>
+            <option value="all">كافة درجات التقييم</option>
             <option value="A">Grade A - ممتاز</option>
             <option value="B">Grade B - جيد</option>
             <option value="C">Grade C - متوسط</option>
             <option value="D">Grade D - حرج</option>
           </select>
 
-          {/* Unit Type Filter (Synchronized dynamically with Reference Building Types in System Settings) */}
+          {/* Unit Type Filter */}
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value)}
-            className={`border rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-amber-500 font-semibold cursor-pointer ${
+            className={`w-full sm:w-auto min-w-0 border rounded-lg px-2 sm:px-2.5 py-1.5 focus:outline-none focus:border-amber-500 font-semibold cursor-pointer text-[11px] sm:text-xs truncate ${
               isLight ? 'bg-slate-50 border-slate-300 text-slate-800' : 'bg-slate-950 border-slate-800 text-slate-200'
             }`}
           >
-            <option value="all">كافة أنواع المنشآت ({toArabicDigits(availableFilterTypes.length)})</option>
+            <option value="all">كافة الأنواع ({toArabicDigits(availableFilterTypes.length)})</option>
             {availableFilterTypes.map((ut) => (
               <option key={ut.code} value={ut.code}>
                 {ut.nameAr} ({ut.code})
@@ -658,17 +713,17 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value as any)}
-            className={`border rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-amber-500 font-semibold cursor-pointer ${
+            className={`w-full sm:w-auto min-w-0 border rounded-lg px-2 sm:px-2.5 py-1.5 focus:outline-none focus:border-amber-500 font-semibold cursor-pointer text-[11px] sm:text-xs truncate ${
               isLight ? 'bg-slate-50 border-slate-300 text-slate-800' : 'bg-slate-950 border-slate-800 text-slate-200'
             }`}
           >
-            <option value="all">كافة الحالات (نشطة ومشطوبة)</option>
-            <option value="active">المنشآت التشغيلية النشطة</option>
-            <option value="decommissioned">المنشآت المشطوبة والمجمدة</option>
+            <option value="all">كافة الحالات</option>
+            <option value="active">نشطة وتشغيلية</option>
+            <option value="decommissioned">مشطوبة ومجمدة</option>
           </select>
 
           {/* Quick Search */}
-          <div className="relative w-48 sm:w-56">
+          <div className="relative w-full sm:w-56 col-span-2 sm:col-span-1 min-w-0">
             <Search className={`absolute right-2.5 top-2 w-3.5 h-3.5 ${isLight ? 'text-slate-400' : 'text-slate-500'}`} />
             <input
               type="text"
@@ -685,7 +740,7 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
           {isFiltered && (
             <button
               onClick={handleResetFilters}
-              className={`px-3 py-1.5 rounded-lg border text-xs font-bold transition flex items-center gap-1 cursor-pointer ${
+              className={`col-span-2 sm:col-span-1 w-full sm:w-auto px-3 py-1.5 rounded-lg border text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer ${
                 isLight
                   ? 'bg-amber-100 hover:bg-amber-200 text-amber-900 border-amber-300'
                   : 'bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 border-amber-500/40'
@@ -703,30 +758,30 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
         isLight ? 'bg-white border-slate-200' : 'bg-slate-900 border-slate-800'
       }`}>
         {/* Card Header Bar */}
-        <div className={`flex flex-col sm:flex-row sm:items-center justify-between pb-3 gap-3 border-b text-xs ${
+        <div className={`flex flex-col sm:flex-row sm:items-center justify-between pb-3 gap-2.5 sm:gap-3 border-b text-xs min-w-0 ${
           isLight ? 'border-slate-200' : 'border-slate-800'
         }`}>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 min-w-0">
             <div className="w-8 h-8 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-500 font-bold shrink-0">
               <Building className="w-4 h-4" />
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h3 className={`font-extrabold text-sm ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+                <h3 className={`font-extrabold text-xs sm:text-sm truncate ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
                   اختر المنشأة أو الأصل النفطي للعرض والتحكم
                 </h3>
-                <span className="text-[11px] px-2 py-0.5 rounded-full font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                <span className="text-[10px] sm:text-[11px] px-2 py-0.5 rounded-full font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30 shrink-0">
                   {toArabicDigits(filteredUnits.length)} منشأة
                 </span>
               </div>
-              <p className={`text-[11px] ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+              <p className={`text-[10px] sm:text-[11px] mt-0.5 leading-relaxed break-words ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
                 مرتبة ضمن هرم جغرافية شركة نفط الوسط (المحافظة ← الحقل النفطي ← المنشآت)
               </p>
             </div>
           </div>
 
           {/* Action Toolbar */}
-          <div className="flex flex-wrap items-center gap-2 shrink-0">
+          <div className="flex flex-wrap items-center justify-between sm:justify-end gap-1.5 sm:gap-2 shrink-0 w-full sm:w-auto">
             {/* View Layout Toggle: Tree vs Flat Ribbon */}
             {!isSelectorCollapsed && (
               <>
@@ -735,27 +790,27 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
                 }`}>
                   <button
                     onClick={() => setViewLayoutMode('tree')}
-                    className={`px-2.5 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1.5 transition cursor-pointer ${
+                    className={`px-2 sm:px-2.5 py-1 rounded-lg text-[10px] sm:text-[11px] font-bold flex items-center gap-1 sm:gap-1.5 transition cursor-pointer ${
                       viewLayoutMode === 'tree'
                         ? 'bg-amber-500 text-slate-950 shadow-xs'
                         : isLight ? 'text-slate-600 hover:text-slate-900' : 'text-slate-400 hover:text-slate-200'
                     }`}
                     title="عرض شجرة الهيكلية (محافظات وحقول)"
                   >
-                    <ListTree className="w-3.5 h-3.5" />
+                    <ListTree className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                     <span>عرض الشجرة</span>
                   </button>
                   <button
                     onClick={() => setViewLayoutMode('flat')}
-                    className={`px-2.5 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1.5 transition cursor-pointer ${
+                    className={`px-2 sm:px-2.5 py-1 rounded-lg text-[10px] sm:text-[11px] font-bold flex items-center gap-1 sm:gap-1.5 transition cursor-pointer ${
                       viewLayoutMode === 'flat'
                         ? 'bg-amber-500 text-slate-950 shadow-xs'
                         : isLight ? 'text-slate-600 hover:text-slate-900' : 'text-slate-400 hover:text-slate-200'
                     }`}
                     title="عرض شريط أفقي سريع لكافة المنشآت"
                   >
-                    <Grid className="w-3.5 h-3.5" />
-                    <span>شريط أفقي</span>
+                    <Grid className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                    <span>شريط سريع</span>
                   </button>
                 </div>
 
@@ -768,7 +823,7 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
                       }`}
                       title="توسيع كافة المحافظات والحقول"
                     >
-                      توسيع الكل
+                      توسيع
                     </button>
                     <button
                       onClick={handleCollapseAll}
@@ -777,7 +832,7 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
                       }`}
                       title="طي كافة المحافظات والحقول"
                     >
-                      طي الكل
+                      طي
                     </button>
                   </div>
                 )}
@@ -787,18 +842,18 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
             {/* Collapse/Expand Selector Toggle Button */}
             <button
               onClick={() => setIsSelectorCollapsed(!isSelectorCollapsed)}
-              className="px-3 py-1.5 rounded-xl border text-xs font-bold transition flex items-center gap-1.5 cursor-pointer bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 border-amber-500/40 shadow-xs"
+              className="px-2.5 sm:px-3 py-1.5 rounded-xl border text-[11px] sm:text-xs font-bold transition flex items-center gap-1 sm:gap-1.5 cursor-pointer bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 border-amber-500/40 shadow-xs"
               title={isSelectorCollapsed ? 'توسيع قائمة المنشآت' : 'طي قائمة المنشآت'}
             >
               {isSelectorCollapsed ? (
                 <>
-                  <ChevronDown className="w-4 h-4 text-amber-400" />
-                  <span>توسيع البطاقة</span>
+                  <ChevronDown className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400" />
+                  <span>توسيع</span>
                 </>
               ) : (
                 <>
-                  <ChevronUp className="w-4 h-4 text-amber-400" />
-                  <span>طي البطاقة</span>
+                  <ChevronUp className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400" />
+                  <span>طي</span>
                 </>
               )}
             </button>
@@ -975,8 +1030,8 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
             })}
           </div>
         ) : (
-          /* Flat Horizontal Ribbon View */
-          <div className="flex items-center gap-2 overflow-x-auto pt-2 pb-1 text-xs">
+          /* Flat Ribbon View (Grid on mobile, flex ribbon on desktop) */
+          <div className="grid grid-cols-1 xs:grid-cols-2 sm:flex sm:items-center gap-2 sm:overflow-x-auto pt-2 pb-1 text-xs w-full min-w-0">
             {paginatedUnits.map((u) => {
               const isSelected = selectedUnit?.code === u.code;
               const isDecom = u.status === 'decommissioned';
@@ -984,7 +1039,7 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
                 <button
                   key={u.id}
                   onClick={() => onSelectUnit(u.code)}
-                  className={`px-3 py-2 rounded-xl border text-right transition cursor-pointer whitespace-nowrap flex items-center gap-2.5 shrink-0 ${
+                  className={`px-2.5 sm:px-3 py-2 rounded-xl border text-right transition cursor-pointer flex items-center justify-between gap-2 min-w-0 w-full sm:w-auto shrink-0 ${
                     isSelected
                       ? 'bg-amber-500 text-slate-950 border-amber-400 font-bold shadow-md'
                       : isDecom
@@ -994,16 +1049,16 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
                       : 'bg-slate-950 border-slate-800/80 text-slate-300 hover:border-slate-700'
                   }`}
                 >
-                  <span className="font-mono text-xs font-black">{toArabicDigits(u.code)}</span>
-                  <span className="truncate max-w-[140px]">{u.name}</span>
+                  <span className="font-mono text-xs font-black shrink-0">{toArabicDigits(u.code)}</span>
+                  <span className="truncate flex-1 min-w-0 max-w-[130px] sm:max-w-[140px] text-xs">{u.name}</span>
                   {isDecom ? (
-                    <span className="text-[10px] px-1.5 py-0.2 rounded font-black bg-rose-600 text-white flex items-center gap-0.5">
+                    <span className="text-[10px] px-1.5 py-0.2 rounded font-black bg-rose-600 text-white flex items-center gap-0.5 shrink-0">
                       <Archive className="w-2.5 h-2.5" />
                       <span>مشطوبة</span>
                     </span>
                   ) : (
                     <span
-                      className={`text-[10px] px-1.5 py-0.2 rounded font-bold ${
+                      className={`text-[10px] px-1.5 py-0.2 rounded font-bold shrink-0 ${
                         isSelected
                           ? 'bg-slate-950/20 text-slate-950'
                           : u.conditionGrade === 'A'
@@ -1026,17 +1081,17 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
 
         {/* Pagination Controls Bar */}
         {totalUnitsCount > 0 && (
-          <div className={`mt-3 pt-3 border-t flex flex-col sm:flex-row items-center justify-between gap-3 text-xs ${
+          <div className={`mt-3 pt-3 border-t flex flex-col sm:flex-row items-center justify-between gap-2.5 sm:gap-3 text-xs w-full min-w-0 ${
             isLight ? 'border-slate-200 text-slate-700' : 'border-slate-800 text-slate-300'
           }`}>
             {/* Pagination Range Summary */}
-            <div className="flex items-center gap-2">
-              <span className="font-semibold">
+            <div className="flex items-center justify-center sm:justify-start gap-1.5 sm:gap-2 flex-wrap text-center sm:text-right w-full sm:w-auto">
+              <span className="font-semibold text-[11px] sm:text-xs">
                 عرض <strong className="font-mono text-amber-500">{toArabicDigits(startIndex + 1)}</strong> إلى{' '}
                 <strong className="font-mono text-amber-500">{toArabicDigits(endIndex)}</strong> من إجمالي{' '}
-                <strong className="font-mono text-amber-500">{toArabicDigits(totalUnitsCount)}</strong> منشأة
+                <strong className="font-mono text-amber-500">{toArabicDigits(totalUnitsCount)}</strong>
               </span>
-              <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold border ${
+              <span className={`text-[9.5px] sm:text-[10px] px-2 py-0.5 rounded-full font-bold border ${
                 isLight ? 'bg-slate-100 border-slate-300 text-slate-600' : 'bg-slate-800 border-slate-700 text-slate-400'
               }`}>
                 50 وحدة / صفحة
@@ -1045,12 +1100,12 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
 
             {/* Pagination Navigation Buttons */}
             {totalPages > 1 && (
-              <div className="flex items-center gap-1.5 select-none">
+              <div className="flex flex-wrap items-center justify-center gap-1 sm:gap-1.5 select-none w-full sm:w-auto">
                 {/* Previous Button (RTL: right arrow goes back to page - 1) */}
                 <button
                   onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                   disabled={validPage === 1}
-                  className={`px-2.5 py-1.5 rounded-lg border font-bold flex items-center gap-1 transition ${
+                  className={`px-2 sm:px-2.5 py-1.5 rounded-lg border font-bold flex items-center gap-1 transition text-[11px] sm:text-xs ${
                     validPage === 1
                       ? 'opacity-40 cursor-not-allowed border-transparent'
                       : isLight
@@ -1060,7 +1115,7 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
                   title="الصفحة السابقة"
                 >
                   <ChevronRight className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">السابق</span>
+                  <span className="hidden xs:inline">السابق</span>
                 </button>
 
                 {/* Page Number Chips */}
@@ -1084,7 +1139,7 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
                     return pages.map((item, idx) => {
                       if (typeof item === 'string') {
                         return (
-                          <span key={`el-${idx}`} className="px-1.5 text-slate-400 font-mono">
+                          <span key={`el-${idx}`} className="px-1 text-slate-400 font-mono text-[10px]">
                             ...
                           </span>
                         );
@@ -1095,7 +1150,7 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
                         <button
                           key={item}
                           onClick={() => setCurrentPage(item)}
-                          className={`w-7 h-7 rounded-lg text-xs font-bold font-mono transition flex items-center justify-center cursor-pointer ${
+                          className={`w-6.5 h-6.5 sm:w-7 sm:h-7 rounded-lg text-[11px] sm:text-xs font-bold font-mono transition flex items-center justify-center cursor-pointer ${
                             isActive
                               ? 'bg-amber-500 text-slate-950 font-black shadow-sm'
                               : isLight
@@ -1114,7 +1169,7 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
                 <button
                   onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                   disabled={validPage === totalPages}
-                  className={`px-2.5 py-1.5 rounded-lg border font-bold flex items-center gap-1 transition ${
+                  className={`px-2 sm:px-2.5 py-1.5 rounded-lg border font-bold flex items-center gap-1 transition text-[11px] sm:text-xs ${
                     validPage === totalPages
                       ? 'opacity-40 cursor-not-allowed border-transparent'
                       : isLight
@@ -1123,7 +1178,7 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
                   }`}
                   title="الصفحة التالية"
                 >
-                  <span className="hidden sm:inline">التالي</span>
+                  <span className="hidden xs:inline">التالي</span>
                   <ChevronLeft className="w-3.5 h-3.5" />
                 </button>
               </div>
@@ -1153,47 +1208,48 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
       ) : (
         <>
           {/* Top Return / Selection Switch Bar */}
-          <div className={`p-3.5 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-md transition-colors ${
+          <div className={`p-3 sm:p-3.5 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 shadow-md transition-colors w-full min-w-0 ${
             isLight
               ? 'bg-amber-500/10 border-amber-300 text-slate-900'
               : 'bg-slate-900/90 border-amber-500/30 text-slate-100'
           }`}>
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-2.5 min-w-0">
               <div className="w-8 h-8 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center font-bold shrink-0 shadow">
                 <Building className="w-4 h-4" />
               </div>
-              <div>
-                <span className="text-[11px] font-bold block text-amber-600 dark:text-amber-400">المنشأة المحددة حالياً:</span>
-                <h4 className="font-extrabold text-sm">{selectedUnit.name} <span className="font-mono text-xs opacity-80">({toArabicDigits(selectedUnit.code)})</span></h4>
+              <div className="min-w-0">
+                <span className="text-[10px] sm:text-[11px] font-bold block text-amber-600 dark:text-amber-400">المنشأة المحددة حالياً:</span>
+                <h4 className="font-extrabold text-xs sm:text-sm truncate">{selectedUnit.name} <span className="font-mono text-xs opacity-80">({toArabicDigits(selectedUnit.code)})</span></h4>
               </div>
             </div>
 
             <button
               onClick={() => onSelectUnit('')}
-              className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-4 py-2 rounded-xl text-xs flex items-center justify-center gap-2 transition cursor-pointer shadow-md shrink-0"
+              className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-3.5 py-1.5 sm:py-2 rounded-xl text-xs flex items-center justify-center gap-1.5 sm:gap-2 transition cursor-pointer shadow-md w-full sm:w-auto shrink-0"
               title="العودة لشاشة الاختيار وتصفح كافة المنشآت والأصول النفطية"
             >
               <ArrowRight className="w-4 h-4 shrink-0" />
-              <span>العودة إلى (اختر منشأة أو أصلاً نفطياً)</span>
+              <span className="hidden sm:inline">العودة إلى (اختر منشأة أو أصلاً نفطياً)</span>
+              <span className="sm:hidden">العودة لقائمة المنشآت</span>
             </button>
           </div>
 
       {/* Notice Banner for Decommissioned Unit */}
       {selectedUnit.status === 'decommissioned' && (
-        <div className="bg-rose-500/10 border border-rose-500/30 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-          <div className="flex items-center gap-3">
-            <ShieldAlert className="w-6 h-6 text-rose-500 shrink-0" />
-            <div>
-              <h4 className="font-black text-rose-400 text-sm">⚠️ هذه المنشأة مشطوبة ومجمدة عن الخدمة التشغيلية</h4>
-              <p className="text-slate-300 mt-0.5">
-                تاريخ الشطب والتجميد: <strong className="font-mono text-white">{selectedUnit.decommissionedAt || 'الآن'}</strong> | سبب الشطب: <span className="text-amber-300 font-semibold">{selectedUnit.decommissionReason || 'غير محدد'}</span>
+        <div className="bg-rose-500/10 border border-rose-500/30 rounded-2xl p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs w-full min-w-0">
+          <div className="flex items-start sm:items-center gap-2.5 min-w-0">
+            <ShieldAlert className="w-5 h-5 sm:w-6 sm:h-6 text-rose-500 shrink-0 mt-0.5 sm:mt-0" />
+            <div className="min-w-0">
+              <h4 className="font-black text-rose-400 text-xs sm:text-sm">⚠️ هذه المنشأة مشطوبة ومجمدة عن الخدمة التشغيلية</h4>
+              <p className="text-slate-300 text-[11px] mt-0.5 leading-relaxed break-words">
+                تاريخ الشطب: <strong className="font-mono text-white">{selectedUnit.decommissionedAt || 'الآن'}</strong> | السبب: <span className="text-amber-300 font-semibold">{selectedUnit.decommissionReason || 'غير محدد'}</span>
               </p>
             </div>
           </div>
           {onReactivateUnit && (
             <button
               onClick={() => onReactivateUnit(selectedUnit.code)}
-              className="bg-emerald-600 hover:bg-emerald-500 text-white font-black px-4 py-2 rounded-xl flex items-center gap-1.5 shrink-0 transition cursor-pointer shadow"
+              className="bg-emerald-600 hover:bg-emerald-500 text-white font-black px-3.5 py-1.5 sm:py-2 rounded-xl flex items-center justify-center gap-1.5 shrink-0 transition cursor-pointer shadow w-full sm:w-auto text-xs"
             >
               <RotateCcw className="w-4 h-4" />
               <span>إعادة تفعيل الوحدة</span>
@@ -1202,77 +1258,55 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
         </div>
       )}
 
-      {/* 1. MASTER UNIFIED ASSET & 3D METADATA CARD (بطاقة البيانات الهندسية والشغل الإشغالي الموحدة الشاملة) */}
-      <div className={`w-full border rounded-2xl p-5 sm:p-6 shadow-xl space-y-5 transition-colors ${
+      {/* 1. MASTER UNIFIED ASSET & 3D METADATA CARD */}
+      <div className={`w-full border rounded-2xl p-3.5 sm:p-6 shadow-xl space-y-4 sm:space-y-5 transition-colors min-w-0 overflow-hidden ${
         isLight ? 'bg-white border-slate-200' : 'bg-slate-900 border-slate-800'
       }`}>
-        {/* Top Header Section: Centered Identity Badges & Building Title over Centered Action Groups */}
-        <div className={`flex flex-col items-center justify-center text-center pb-5 border-b gap-4 ${
+        {/* Top Header Section: Building Title, Status Badges & Action Toolbar */}
+        <div className={`flex flex-col items-center justify-center text-center pb-4 sm:pb-5 border-b gap-3 sm:gap-4 min-w-0 ${
           isLight ? 'border-slate-200/80' : 'border-slate-800'
         }`}>
-          {/* Identity Badges - Centered on Top */}
-          <div className="flex flex-wrap items-center justify-center gap-2">
-            <span
-              className={`font-mono text-xs px-3.5 py-1 rounded-full font-black border flex items-center gap-1.5 shadow-xs ${
-                isLight ? 'bg-amber-100/90 text-amber-950 border-amber-300' : 'bg-amber-500/20 text-amber-300 border-amber-500/40'
-              }`}
-              title="رمز المنشأة الفريد (Structural Code)"
-            >
-              <Box className="w-3.5 h-3.5 text-amber-500" />
-              <span>رمز المنشأة: {toArabicDigits(selectedUnit.code)}</span>
-            </span>
-
-            {/* Fixed Asset Code Badge if present */}
-            {selectedUnit.fixedAssetCode && (
-              <span
-                className={`font-mono text-xs px-3.5 py-1 rounded-full font-black border flex items-center gap-1.5 shadow-xs ${
-                  isLight ? 'bg-indigo-100/90 text-indigo-950 border-indigo-300' : 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40'
-                }`}
-                title="رمز الأصل في سجلات أصول الشركة"
-              >
-                <Layers className="w-3.5 h-3.5 text-indigo-500" />
-                <span>رمز الأصل: {selectedUnit.fixedAssetCode}</span>
-              </span>
-            )}
-
-            <span className={`text-xs px-3 py-1 rounded-full font-bold border ${
-              isLight ? 'bg-slate-100 text-slate-800 border-slate-300' : 'bg-slate-800 text-slate-300 border-slate-700'
-            }`}>
-              {getUnitTypeLabel(selectedUnit.type, selectedUnit.code)}
-            </span>
-
-            {selectedUnit.status === 'decommissioned' ? (
-              <span className="text-xs px-3 py-1 rounded-full font-black bg-rose-600 text-white flex items-center gap-1.5 shadow-xs">
-                <Archive className="w-3.5 h-3.5" />
-                <span>مشطوبة ومجمدة</span>
-              </span>
-            ) : (
-              <span className="text-xs px-3 py-1 rounded-full font-black bg-emerald-500/20 text-emerald-500 dark:text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5 shadow-xs">
-                <CheckCircle className="w-3.5 h-3.5 text-emerald-500 dark:text-emerald-400" />
-                <span>نشطة وتشغيلية</span>
-              </span>
-            )}
-          </div>
-
-          {/* Building Name */}
-          <div className="flex items-center justify-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-500 border border-amber-500/30 flex items-center justify-center font-black shadow-xs">
-              <Box className="w-4.5 h-4.5" />
+          {/* Building Name and Status & Quality Badges */}
+          <div className="flex flex-col items-center justify-center gap-2 max-w-full">
+            <div className="flex items-center justify-center gap-2 max-w-full">
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-amber-500/20 text-amber-500 border border-amber-500/30 flex items-center justify-center font-black shadow-xs shrink-0">
+                <Box className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
+              </div>
+              <h3 className={`font-black text-lg sm:text-2xl md:text-3xl tracking-tight break-words text-center ${isLight ? 'text-slate-900' : 'text-white'}`}>
+                {selectedUnit.name}
+              </h3>
             </div>
-            <h3 className={`font-black text-2xl sm:text-3xl tracking-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>
-              {selectedUnit.name}
-            </h3>
+
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              {selectedUnit.status === 'decommissioned' ? (
+                <span className="text-[10px] sm:text-xs px-2.5 sm:px-3 py-0.5 rounded-full font-black bg-rose-600 text-white flex items-center gap-1 shadow-xs shrink-0">
+                  <Archive className="w-3.5 h-3.5 shrink-0" />
+                  <span>مشطوبة ومجمدة</span>
+                </span>
+              ) : (
+                <span className="text-[10px] sm:text-xs px-2.5 sm:px-3 py-0.5 rounded-full font-black bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center gap-1 shadow-xs shrink-0">
+                  <CheckCircle className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                  <span>نشطة وتشغيلية</span>
+                </span>
+              )}
+
+              <span className={`text-[10px] sm:text-xs px-2.5 py-0.5 rounded-full font-bold border ${
+                isLight ? 'bg-slate-100 text-slate-800 border-slate-300' : 'bg-slate-800 text-slate-300 border-slate-700'
+              }`}>
+                درجة الجودة: {selectedUnit.conditionGrade || 'A'}
+              </span>
+            </div>
           </div>
 
           {/* Action Buttons Hub - Centered Categorized Toolbar */}
-          <div className="flex flex-wrap items-center justify-center gap-3 w-full pt-1">
+          <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 w-full pt-1">
             {/* Cluster 1: Navigation & Map & QR */}
-            <div className={`flex items-center gap-1.5 p-1 rounded-xl border ${
+            <div className={`flex flex-wrap sm:flex-nowrap items-center justify-center gap-1 sm:gap-1.5 p-1 rounded-xl border max-w-full ${
               isLight ? 'bg-slate-100/80 border-slate-200 shadow-2xs' : 'bg-slate-950/60 border-slate-800'
             }`}>
               <button
                 onClick={() => onSelectUnit('')}
-                className={`font-bold py-1.5 px-3 rounded-lg text-xs flex items-center gap-1.5 transition cursor-pointer whitespace-nowrap ${
+                className={`font-bold py-1.5 px-2.5 sm:px-3 rounded-lg text-[11px] sm:text-xs flex items-center gap-1 transition cursor-pointer whitespace-nowrap ${
                   isLight
                     ? 'hover:bg-white text-slate-700 hover:text-slate-900 shadow-xs'
                     : 'hover:bg-slate-800 text-slate-300 hover:text-white'
@@ -1280,14 +1314,14 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
                 title="إلغاء اختيار الوحدة الحالية والعودة إلى قائمة المنشآت"
               >
                 <ArrowRight className="w-3.5 h-3.5 shrink-0 text-amber-500" />
-                <span>العودة للمنشآت</span>
+                <span>العودة</span>
               </button>
 
-              <div className={`w-px h-4 ${isLight ? 'bg-slate-300' : 'bg-slate-800'}`} />
+              <div className={`hidden sm:block w-px h-4 ${isLight ? 'bg-slate-300' : 'bg-slate-800'}`} />
 
               <button
                 onClick={() => setShowLocationMapModal(true)}
-                className={`font-bold py-1.5 px-3 rounded-lg text-xs flex items-center gap-1.5 transition cursor-pointer whitespace-nowrap ${
+                className={`font-bold py-1.5 px-2.5 sm:px-3 rounded-lg text-[11px] sm:text-xs flex items-center gap-1 transition cursor-pointer whitespace-nowrap ${
                   isLight
                     ? 'hover:bg-white text-emerald-800 hover:text-emerald-950 shadow-xs'
                     : 'hover:bg-emerald-500/20 text-emerald-400'
@@ -1295,15 +1329,16 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
                 title="عرض موقع المنشأة على الخريطة التفاعلية وتوجيه الملاحة GPS"
               >
                 <MapPin className="w-3.5 h-3.5 shrink-0 text-emerald-500" />
-                <span>الموقع على الخريطة</span>
+                <span className="hidden xs:inline">الموقع بالخريطة</span>
+                <span className="xs:hidden">الخريطة</span>
               </button>
 
-              <div className={`w-px h-4 ${isLight ? 'bg-slate-300' : 'bg-slate-800'}`} />
+              <div className={`hidden sm:block w-px h-4 ${isLight ? 'bg-slate-300' : 'bg-slate-800'}`} />
 
-              {/* QR Code button with unit code directly beside map location */}
+              {/* QR Code button with unit code */}
               <button
                 onClick={() => setShowQrModal(true)}
-                className={`font-mono font-bold py-1.5 px-3 rounded-lg text-xs flex items-center gap-1.5 transition cursor-pointer whitespace-nowrap shadow-xs ${
+                className={`font-mono font-bold py-1.5 px-2.5 sm:px-3 rounded-lg text-[11px] sm:text-xs flex items-center gap-1 transition cursor-pointer whitespace-nowrap shadow-xs ${
                   isLight
                     ? 'hover:bg-white text-amber-900 bg-amber-50/80 border border-amber-200 hover:border-amber-300'
                     : 'hover:bg-slate-800 text-amber-400 bg-amber-500/10 border border-amber-500/30'
@@ -1311,7 +1346,8 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
                 title="عرض وتنزيل وطباعة رمز الوصول السريع (Quick Access QR Code) للوحدة"
               >
                 <QrCode className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-                <span>رمز QR ({toArabicDigits(selectedUnit.code)})</span>
+                <span className="hidden sm:inline">QR ({toArabicDigits(selectedUnit.code)})</span>
+                <span className="sm:hidden">QR</span>
               </button>
             </div>
 
@@ -1319,18 +1355,19 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
             {!isReadOnly && onUpdateUnit && (
               <button
                 onClick={() => setShowEditModal(true)}
-                className="bg-linear-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black py-2 px-4 rounded-xl text-xs flex items-center gap-2 shadow-lg shadow-amber-500/20 transition-all cursor-pointer whitespace-nowrap transform active:scale-98"
+                className="bg-linear-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black py-1.5 sm:py-2 px-3 sm:px-4 rounded-xl text-[11px] sm:text-xs flex items-center justify-center gap-1.5 sm:gap-2 shadow-lg shadow-amber-500/20 transition-all cursor-pointer transform active:scale-98"
                 title="تعديل كافة الخصائص، الأبعاد، الطوابق، والتصميم ثلاثي الأبعاد للمبنى"
               >
-                <Edit3 className="w-4 h-4 shrink-0" />
-                <span>تعديل بيانات وتصميم المبنى (3D)</span>
+                <Edit3 className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+                <span className="hidden sm:inline">تعديل بيانات وتصميم المبنى (3D)</span>
+                <span className="sm:hidden">تعديل المنشأة (3D)</span>
               </button>
             )}
 
             {/* Read-Only Badge */}
             {isReadOnly && (
               <div
-                className={`font-bold py-2 px-3 rounded-xl text-xs flex items-center gap-1.5 border whitespace-nowrap ${
+                className={`font-bold py-1.5 sm:py-2 px-2.5 sm:px-3 rounded-xl text-[11px] sm:text-xs flex items-center gap-1.5 border whitespace-nowrap ${
                   isLight
                     ? 'bg-slate-100 border-slate-300 text-slate-700'
                     : 'bg-slate-800/80 border-slate-700 text-slate-300'
@@ -1338,20 +1375,21 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
                 title="صلاحية حسابك الحالية هي استعراض وتصفح وطباعة التقارير فقط"
               >
                 <Eye className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                <span>وضع الاستعراض (مستخدم)</span>
+                <span className="hidden sm:inline">وضع الاستعراض (مستخدم)</span>
+                <span className="sm:hidden">استعراض</span>
               </div>
             )}
 
             {/* Cluster 3: Lifecycle & Deletion */}
             {!isReadOnly && (
-              <div className={`flex items-center gap-1.5 p-1 rounded-xl border ${
+              <div className={`flex items-center gap-1 sm:gap-1.5 p-1 rounded-xl border ${
                 isLight ? 'bg-slate-100/80 border-slate-200 shadow-2xs' : 'bg-slate-950/60 border-slate-800'
               }`}>
                 {selectedUnit.status === 'decommissioned' ? (
                   onReactivateUnit && (
                     <button
                       onClick={() => onReactivateUnit(selectedUnit.code)}
-                      className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-1.5 px-3 rounded-lg text-xs flex items-center gap-1.5 shadow-xs transition cursor-pointer whitespace-nowrap"
+                      className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-1.5 px-2.5 sm:px-3 rounded-lg text-[11px] sm:text-xs flex items-center gap-1 shadow-xs transition cursor-pointer whitespace-nowrap"
                       title="إعادة تفعيل الوحدة وتغيير حالتها إلى نشطة"
                     >
                       <RotateCcw className="w-3.5 h-3.5 shrink-0" />
@@ -1365,7 +1403,7 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
                         setDecommissionReasonInput('');
                         setShowDecommissionModal(true);
                       }}
-                      className={`font-bold py-1.5 px-3 rounded-lg text-xs flex items-center gap-1.5 transition cursor-pointer whitespace-nowrap ${
+                      className={`font-bold py-1.5 px-2.5 sm:px-3 rounded-lg text-[11px] sm:text-xs flex items-center gap-1 transition cursor-pointer whitespace-nowrap ${
                         isLight
                           ? 'hover:bg-amber-100/80 text-amber-900'
                           : 'hover:bg-amber-500/20 text-amber-400'
@@ -1373,7 +1411,8 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
                       title="تجميد الوحدة ونقلها إلى حالة مشطوبة"
                     >
                       <Archive className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-                      <span>شطب وتجميد</span>
+                      <span className="hidden xs:inline">شطب وتجميد</span>
+                      <span className="xs:hidden">شطب</span>
                     </button>
                   )
                 )}
@@ -1383,11 +1422,12 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
                     <div className={`w-px h-4 ${isLight ? 'bg-slate-300' : 'bg-slate-800'}`} />
                     <button
                       onClick={() => setShowDeleteModal(true)}
-                      className="bg-rose-600 hover:bg-rose-500 text-white font-bold py-1.5 px-3 rounded-lg text-xs flex items-center gap-1.5 shadow-xs transition cursor-pointer whitespace-nowrap"
+                      className="bg-rose-600 hover:bg-rose-500 text-white font-bold py-1.5 px-2.5 sm:px-3 rounded-lg text-[11px] sm:text-xs flex items-center gap-1 shadow-xs transition cursor-pointer whitespace-nowrap"
                       title="حذف الوحدة نهائياً مع كافة معلوماتها وبياناتها من النظام وقاعدة البيانات"
                     >
                       <Trash2 className="w-3.5 h-3.5 shrink-0" />
-                      <span>حذف نهائي</span>
+                      <span className="hidden xs:inline">حذف نهائي</span>
+                      <span className="xs:hidden">حذف</span>
                     </button>
                   </>
                 )}
@@ -1396,165 +1436,165 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
           </div>
         </div>
 
-        {/* Structured Bento Grid of 5 Metadata Categories (عرض منظم، أنيق، وموزع بتوازن) */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
-          {/* Card 1: الحقل والقطاع */}
-          <div className={`p-4 rounded-xl border flex flex-col justify-between transition ${
-            isLight ? 'bg-slate-50 border-slate-200/90 shadow-2xs hover:border-amber-300' : 'bg-slate-950/60 border-slate-800 hover:border-slate-700'
-          }`}>
-            <div className="space-y-1.5">
-              <span className={`text-xs font-bold flex items-center gap-1.5 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
-                <MapPin className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-                <span>الحقل والقطاع:</span>
-              </span>
-              <p className="font-black text-base text-amber-600 dark:text-amber-400">{selectedUnit.field}</p>
-            </div>
-            <div className={`mt-2 pt-2 border-t text-[11px] font-medium flex items-center justify-between ${
-              isLight ? 'border-slate-200 text-slate-500' : 'border-slate-800/80 text-slate-400'
-            }`}>
-              <span>المحافظة:</span>
-              <span className="font-bold text-slate-700 dark:text-slate-300">{selectedUnit.governorate}</span>
-            </div>
-          </div>
+        {/* Unified 8-Card Specifications Grid (بطاقات هوية ومواصفات المنشأة المنظمة والمتوازنة) */}
+        {(() => {
+          const shapeObj = BUILDING_SHAPE_OPTIONS.find((s) => s.id === selectedUnit.buildingShape) || {
+            nameAr: selectedUnit.buildingShape || 'مستطيل',
+            symbol: '▭',
+            category: 'الأشكال الأساسية',
+          };
+          const occupiedRoomsCount = selectedUnit.rooms?.filter((r) => r.occupiedBy && !isRoomVacant(r.occupiedBy)).length || 0;
+          const vacantRoomsCount = selectedUnit.rooms?.filter((r) => !r.occupiedBy || isRoomVacant(r.occupiedBy)).length || 0;
 
-          {/* Card 2: شكل وهندسة المبنى (3D) */}
-          <div className={`p-4 rounded-xl border flex flex-col justify-between transition ${
-            isLight ? 'bg-slate-50 border-slate-200/90 shadow-2xs hover:border-amber-300' : 'bg-slate-950/60 border-slate-800 hover:border-slate-700'
-          }`}>
-            {(() => {
-              const shapeObj = BUILDING_SHAPE_OPTIONS.find((s) => s.id === selectedUnit.buildingShape) || {
-                nameAr: selectedUnit.buildingShape || 'مستطيل',
-                symbol: '▭',
-                category: 'الأشكال الأساسية',
-              };
-              return (
-                <>
-                  <div className="space-y-1.5">
-                    <span className={`text-xs font-bold flex items-center gap-1.5 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
-                      <Box className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-                      <span>شكل وهندسة المبنى (3D):</span>
-                    </span>
-                    <p className={`font-black text-sm flex items-center gap-1.5 ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
-                      <span className="text-amber-500 font-black text-lg leading-none">{shapeObj.symbol}</span>
-                      <span>{shapeObj.nameAr}</span>
-                    </p>
-                  </div>
-                  <div className={`mt-2 pt-2 border-t text-[10.5px] font-medium flex items-center justify-between gap-1 ${
-                    isLight ? 'border-slate-200 text-slate-500' : 'border-slate-800/80 text-slate-400'
-                  }`}>
-                    <span className="shrink-0 font-bold">الأبعاد:</span>
-                    <div
-                      className="flex items-center gap-1 font-mono text-[10.5px] text-slate-700 dark:text-slate-300 font-bold shrink-0"
-                      title={`الطول: ${selectedUnit.lengthM || 0}م | العرض: ${selectedUnit.widthM || 0}م | الارتفاع: ${selectedUnit.heightM || ((selectedUnit.floorsCount || 1) * 3.5)}م`}
-                    >
-                      <span className="px-1 py-0.5 rounded bg-slate-200/70 dark:bg-slate-800" title="الطول">
-                        <span className="text-[9.5px] font-sans text-slate-500 dark:text-slate-400 ml-0.5">ط:</span>
-                        {selectedUnit.lengthM ? `${toArabicDigits(selectedUnit.lengthM)}م` : '—'}
-                      </span>
-                      <span>×</span>
-                      <span className="px-1 py-0.5 rounded bg-slate-200/70 dark:bg-slate-800" title="العرض">
-                        <span className="text-[9.5px] font-sans text-slate-500 dark:text-slate-400 ml-0.5">ع:</span>
-                        {selectedUnit.widthM ? `${toArabicDigits(selectedUnit.widthM)}م` : '—'}
-                      </span>
-                      <span>×</span>
-                      <span className="px-1 py-0.5 rounded bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/20" title="الارتفاع">
-                        <span className="text-[9.5px] font-sans ml-0.5 opacity-80">ارتفاع:</span>
-                        {toArabicDigits(selectedUnit.heightM || ((selectedUnit.floorsCount || 1) * 3.5))}م
-                      </span>
-                    </div>
-                  </div>
-                </>
-              );
-            })()}
-          </div>
-
-          {/* Card 3: المساحة والطوابق */}
-          <div className={`p-4 rounded-xl border flex flex-col justify-between transition ${
-            isLight ? 'bg-slate-50 border-slate-200/90 shadow-2xs hover:border-amber-300' : 'bg-slate-950/60 border-slate-800 hover:border-slate-700'
-          }`}>
-            <div className="space-y-1.5">
-              <span className={`text-xs font-bold flex items-center gap-1.5 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
-                <Maximize2 className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-                <span>المساحة والطوابق:</span>
-              </span>
-              <p className={`font-black text-base ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
-                {toArabicDigits(selectedUnit.totalAreaSqM)} م²
-              </p>
-            </div>
-            <div className={`mt-2 pt-2 border-t text-[11px] font-medium flex items-center justify-between ${
-              isLight ? 'border-slate-200 text-slate-500' : 'border-slate-800/80 text-slate-400'
-            }`}>
-              <span>{toArabicDigits(selectedUnit.floorsCount)} طوابق</span>
-              <span className="font-bold text-amber-600 dark:text-amber-400">
-                {toArabicDigits(selectedUnit.rooms?.length || 0)} غرفة
-              </span>
-            </div>
-          </div>
-
-          {/* Card 4: سنة الإنشاء والإحداثيات */}
-          <div className={`p-4 rounded-xl border flex flex-col justify-between transition ${
-            isLight ? 'bg-slate-50 border-slate-200/90 shadow-2xs hover:border-amber-300' : 'bg-slate-950/60 border-slate-800 hover:border-slate-700'
-          }`}>
-            <div className="space-y-1.5">
-              <span className={`text-xs font-bold flex items-center gap-1.5 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
-                <Calendar className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-                <span>سنة الإنشاء والإحداثيات:</span>
-              </span>
-              <p className={`font-black text-base ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
-                {toArabicDigits(selectedUnit.constructionYear)} م
-              </p>
-            </div>
-            <div className={`mt-2 pt-2 border-t text-[10.5px] font-mono flex items-center justify-between ${
-              isLight ? 'border-slate-200 text-amber-800 font-bold' : 'border-slate-800/80 text-amber-400 font-bold'
-            }`}>
-              <span>GPS:</span>
-              <span>{toArabicDigits(selectedUnit.coordinates.lat)}°, {toArabicDigits(selectedUnit.coordinates.lng)}°</span>
-            </div>
-          </div>
-
-          {/* Card 5: رمز الأصل في سجلات الشركة */}
-          <div className={`p-4 rounded-xl border flex flex-col justify-between transition ${
-            isLight ? 'bg-slate-50 border-slate-200/90 shadow-2xs hover:border-indigo-300' : 'bg-slate-950/60 border-slate-800 hover:border-indigo-900/60'
-          }`}>
-            <div className="space-y-1.5">
-              <span className={`text-xs font-bold flex items-center gap-1.5 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
-                <Layers className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
-                <span>رمز الأصل:</span>
-              </span>
-              <div className="pt-0.5">
-                {selectedUnit.fixedAssetCode ? (
-                  <span
-                    className={`inline-flex items-center justify-center w-full py-1.5 rounded-lg text-xs font-mono font-black border shadow-xs tracking-wider ${
-                      isLight
-                        ? 'bg-indigo-100/90 text-indigo-950 border-indigo-300'
-                        : 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40'
-                    }`}
-                  >
-                    {selectedUnit.fixedAssetCode}
+          return (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3.5">
+              {/* Card 1: رمز المنشأة */}
+              <div className={`p-3 sm:p-3.5 rounded-xl border flex flex-col justify-between transition ${
+                isLight ? 'bg-amber-50/40 border-amber-200/80 shadow-2xs' : 'bg-slate-950/60 border-amber-500/20'
+              }`}>
+                <div className="space-y-1">
+                  <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                    <Box className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                    <span>رمز المنشأة</span>
                   </span>
-                ) : (
-                  <span
-                    className={`inline-flex items-center justify-center w-full py-1.5 rounded-lg text-xs font-bold border ${
-                      isLight
-                        ? 'bg-slate-100 text-slate-500 border-slate-200'
-                        : 'bg-slate-900 text-slate-400 border-slate-800'
-                    }`}
-                  >
-                    غير مسجل
+                  <p className="font-mono font-black text-xs sm:text-sm text-amber-600 dark:text-amber-400 truncate" title={selectedUnit.code}>
+                    {toArabicDigits(selectedUnit.code)}
+                  </p>
+                </div>
+                <div className="mt-2 pt-1.5 border-t border-slate-200/70 dark:border-slate-800 text-[10px] sm:text-[10.5px] text-slate-500 truncate">
+                  رمز هيكلي فريد
+                </div>
+              </div>
+
+              {/* Card 2: رمز الأصل */}
+              <div className={`p-3 sm:p-3.5 rounded-xl border flex flex-col justify-between transition ${
+                isLight ? 'bg-indigo-50/40 border-indigo-200/80 shadow-2xs' : 'bg-slate-950/60 border-indigo-500/20'
+              }`}>
+                <div className="space-y-1">
+                  <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                    <Layers className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+                    <span>رمز الأصل</span>
                   </span>
-                )}
+                  <p className="font-mono font-black text-xs sm:text-sm text-indigo-600 dark:text-indigo-400 truncate" title={selectedUnit.fixedAssetCode || 'غير مسجل'}>
+                    {selectedUnit.fixedAssetCode || 'غير مسجل'}
+                  </p>
+                </div>
+                <div className="mt-2 pt-1.5 border-t border-slate-200/70 dark:border-slate-800 text-[10px] sm:text-[10.5px] text-slate-500 truncate">
+                  {selectedUnit.fixedAssetCode ? 'سجل أصول معتمد' : 'بانتظار التوثيق'}
+                </div>
+              </div>
+
+              {/* Card 3: نوع المنشأة */}
+              <div className={`p-3 sm:p-3.5 rounded-xl border flex flex-col justify-between transition ${
+                isLight ? 'bg-sky-50/40 border-sky-200/80 shadow-2xs' : 'bg-slate-950/60 border-sky-500/20'
+              }`}>
+                <div className="space-y-1">
+                  <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                    <Building className="w-3.5 h-3.5 text-sky-500 shrink-0" />
+                    <span>نوع المنشأة</span>
+                  </span>
+                  <p className="font-bold text-xs sm:text-sm text-slate-800 dark:text-slate-100 truncate" title={getUnitTypeLabel(selectedUnit.type, selectedUnit.code)}>
+                    {getUnitTypeLabel(selectedUnit.type, selectedUnit.code)}
+                  </p>
+                </div>
+                <div className="mt-2 pt-1.5 border-t border-slate-200/70 dark:border-slate-800 text-[10px] sm:text-[10.5px] text-slate-500 truncate">
+                  التصنيف المعماري
+                </div>
+              </div>
+
+              {/* Card 4: الحقل والقطاع */}
+              <div className={`p-3 sm:p-3.5 rounded-xl border flex flex-col justify-between transition ${
+                isLight ? 'bg-rose-50/40 border-rose-200/80 shadow-2xs' : 'bg-slate-950/60 border-rose-500/20'
+              }`}>
+                <div className="space-y-1">
+                  <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                    <MapPin className="w-3.5 h-3.5 text-rose-500 shrink-0" />
+                    <span>الحقل والقطاع</span>
+                  </span>
+                  <p className="font-bold text-xs sm:text-sm text-rose-700 dark:text-rose-400 truncate" title={selectedUnit.field}>
+                    {selectedUnit.field}
+                  </p>
+                </div>
+                <div className="mt-2 pt-1.5 border-t border-slate-200/70 dark:border-slate-800 text-[10px] sm:text-[10.5px] text-slate-500 truncate">
+                  محافظة {selectedUnit.governorate}
+                </div>
+              </div>
+
+              {/* Card 5: شكل وهندسة المبنى 3D */}
+              <div className={`p-3 sm:p-3.5 rounded-xl border flex flex-col justify-between transition ${
+                isLight ? 'bg-purple-50/40 border-purple-200/80 shadow-2xs' : 'bg-slate-950/60 border-purple-500/20'
+              }`}>
+                <div className="space-y-1">
+                  <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                    <Box className="w-3.5 h-3.5 text-purple-500 shrink-0" />
+                    <span>الهندسة والأبعاد (3D)</span>
+                  </span>
+                  <p className="font-bold text-xs sm:text-sm text-slate-800 dark:text-slate-100 flex items-center gap-1.5 truncate">
+                    <span className="text-purple-500 font-black text-base leading-none">{shapeObj.symbol}</span>
+                    <span className="truncate">{shapeObj.nameAr}</span>
+                  </p>
+                </div>
+                <div className="mt-2 pt-1.5 border-t border-slate-200/70 dark:border-slate-800 text-[10px] sm:text-[10.5px] text-slate-500 truncate font-mono" dir="ltr">
+                  {selectedUnit.lengthM ? `${toArabicDigits(selectedUnit.lengthM)}L` : '—'} × {selectedUnit.widthM ? `${toArabicDigits(selectedUnit.widthM)}W` : '—'} × {toArabicDigits(selectedUnit.heightM || ((selectedUnit.floorsCount || 1) * 3.5))}H
+                </div>
+              </div>
+
+              {/* Card 6: المساحة والطوابق */}
+              <div className={`p-3 sm:p-3.5 rounded-xl border flex flex-col justify-between transition ${
+                isLight ? 'bg-emerald-50/40 border-emerald-200/80 shadow-2xs' : 'bg-slate-950/60 border-emerald-500/20'
+              }`}>
+                <div className="space-y-1">
+                  <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                    <Maximize2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                    <span>المساحة والطوابق</span>
+                  </span>
+                  <p className="font-black text-xs sm:text-sm text-emerald-700 dark:text-emerald-400 truncate">
+                    {toArabicDigits(selectedUnit.totalAreaSqM)} م²
+                  </p>
+                </div>
+                <div className="mt-2 pt-1.5 border-t border-slate-200/70 dark:border-slate-800 text-[10px] sm:text-[10.5px] text-slate-500 truncate">
+                  {toArabicDigits(selectedUnit.floorsCount)} طوابق • {toArabicDigits(selectedUnit.rooms?.length || 0)} غرفة
+                </div>
+              </div>
+
+              {/* Card 7: سنة الإنشاء والإحداثيات */}
+              <div className={`p-3 sm:p-3.5 rounded-xl border flex flex-col justify-between transition ${
+                isLight ? 'bg-teal-50/40 border-teal-200/80 shadow-2xs' : 'bg-slate-950/60 border-teal-500/20'
+              }`}>
+                <div className="space-y-1">
+                  <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                    <Calendar className="w-3.5 h-3.5 text-teal-500 shrink-0" />
+                    <span>سنة الإنشاء و GPS</span>
+                  </span>
+                  <p className="font-bold text-xs sm:text-sm text-slate-800 dark:text-slate-100 truncate">
+                    {toArabicDigits(selectedUnit.constructionYear)} م
+                  </p>
+                </div>
+                <div className="mt-2 pt-1.5 border-t border-slate-200/70 dark:border-slate-800 text-[10px] sm:text-[10.5px] text-teal-600 dark:text-teal-400 truncate font-mono">
+                  {toArabicDigits(selectedUnit.coordinates.lat)}°, {toArabicDigits(selectedUnit.coordinates.lng)}°
+                </div>
+              </div>
+
+              {/* Card 8: إشغال الغرف والقاعات */}
+              <div className={`p-3 sm:p-3.5 rounded-xl border flex flex-col justify-between transition ${
+                isLight ? 'bg-amber-50/40 border-amber-200/80 shadow-2xs' : 'bg-slate-950/60 border-amber-500/20'
+              }`}>
+                <div className="space-y-1">
+                  <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                    <Users className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                    <span>إشغال الغرف والقاعات</span>
+                  </span>
+                  <p className="font-bold text-xs sm:text-sm text-slate-800 dark:text-slate-100 truncate">
+                    {toArabicDigits(occupiedRoomsCount)} مشغولة
+                  </p>
+                </div>
+                <div className="mt-2 pt-1.5 border-t border-slate-200/70 dark:border-slate-800 text-[10px] sm:text-[10.5px] text-amber-600 dark:text-amber-400 truncate font-bold">
+                  {toArabicDigits(vacantRoomsCount)} شاغرة (متاحة)
+                </div>
               </div>
             </div>
-            <div className={`mt-2 pt-2 border-t text-[11px] font-medium flex items-center justify-between ${
-              isLight ? 'border-slate-200 text-slate-500' : 'border-slate-800/80 text-slate-400'
-            }`}>
-              <span>سجلات أصول الشركة:</span>
-              <span className={`font-bold ${selectedUnit.fixedAssetCode ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400'}`}>
-                {selectedUnit.fixedAssetCode ? 'موثق ومعتمد' : 'بانتظار التوثيق'}
-              </span>
-            </div>
-          </div>
-        </div>
+          );
+        })()}
 
         {/* Row 2: Occupying Entities Showcase (الجهات الشاغلة للمنشأة) - لوحة فاخرة منظمة وتوزيع متناسق */}
         {(() => {
@@ -1687,16 +1727,16 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
       </div>
 
       {/* Bottom Tabs Area: Rooms, Attachments */}
-      <div className={`border rounded-2xl p-5 shadow-lg transition-colors ${
+      <div className={`border rounded-2xl p-3.5 sm:p-5 shadow-lg transition-colors w-full min-w-0 overflow-hidden ${
         isLight ? 'bg-white border-slate-200' : 'bg-slate-900 border-slate-800'
       }`}>
         {/* Tab Headers */}
-        <div className={`flex items-center gap-2 border-b pb-3 mb-4 text-xs font-bold ${
+        <div className={`grid grid-cols-2 gap-1.5 sm:flex sm:items-center sm:gap-2 border-b pb-3 mb-4 text-xs font-bold w-full min-w-0 ${
           isLight ? 'border-slate-200' : 'border-slate-800'
         }`}>
           <button
             onClick={() => setActiveTab('rooms')}
-            className={`px-4 py-2 rounded-lg transition ${
+            className={`px-2.5 sm:px-4 py-2 rounded-lg transition text-center justify-center flex items-center gap-1 min-w-0 ${
               activeTab === 'rooms'
                 ? 'bg-amber-500 text-slate-950 shadow font-bold'
                 : isLight
@@ -1704,11 +1744,13 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            سجل الغرف والقاعات ({toArabicDigits(selectedUnit.rooms.length)})
+            <span className="hidden sm:inline">سجل الغرف والقاعات</span>
+            <span className="sm:hidden">الغرف والقاعات</span>
+            <span>({toArabicDigits(selectedUnit.rooms.length)})</span>
           </button>
           <button
             onClick={() => setActiveTab('attachments')}
-            className={`px-4 py-2 rounded-lg transition ${
+            className={`px-2.5 sm:px-4 py-2 rounded-lg transition text-center justify-center flex items-center gap-1 min-w-0 ${
               activeTab === 'attachments'
                 ? 'bg-amber-500 text-slate-950 shadow font-bold'
                 : isLight
@@ -1716,90 +1758,303 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            المرفقات والمخططات الرسمية ({toArabicDigits(selectedUnit.attachments?.length || 0)})
+            <span className="hidden sm:inline">المرفقات والمخططات الرسمية</span>
+            <span className="sm:hidden">المرفقات</span>
+            <span>({toArabicDigits(selectedUnit.attachments?.length || 0)})</span>
           </button>
         </div>
 
         {/* Rooms Tab Content */}
         {activeTab === 'rooms' && (
-          <div className="overflow-x-auto">
-            <table className="w-full text-right text-xs">
-              <thead>
-                <tr className={`${isLight ? 'bg-slate-100 text-slate-700 border-slate-200' : 'bg-slate-950 text-slate-400 border-slate-800'} border-b`}>
-                  <th className="p-3 font-semibold">رمز الغرفة القياسي</th>
-                  <th className="p-3 font-semibold">اسم الغرفة</th>
-                  <th className="p-3 font-semibold">نوع الاستخدام</th>
-                  <th className="p-3 font-semibold">الطابق</th>
-                  <th className="p-3 font-semibold">المساحة (م²)</th>
-                  <th className="p-3 font-semibold">عدد الشاغلين</th>
-                  <th className="p-3 font-semibold">الجهة الشاغلة</th>
-                  <th className="p-3 font-semibold">الحالة</th>
-                  <th className="p-3 font-semibold text-center">بطاقة QR</th>
-                </tr>
-              </thead>
-              <tbody className={`divide-y ${isLight ? 'divide-slate-200 text-slate-800' : 'divide-slate-800 text-slate-300'}`}>
-                {selectedUnit.rooms.map((rm) => {
-                  const isStopped = rm.status === 'Stopped' || rm.status === 'متوقفة';
-                  const roomComputedCode =
-                    (rm.code && rm.code.trim()) ? rm.code.trim() : getStandardRoomCode(selectedUnit.code, rm, selectedUnit.rooms);
-                  const occDisplay = formatRoomOccupancyDisplay(rm);
+          <div className="space-y-3">
+            {/* Filter Toolbar for Rooms & Halls (فلترة الغرف بحسب الطابق، النوع، والبحث) */}
+            <div className={`p-3 rounded-xl border flex flex-col md:flex-row md:items-center justify-between gap-2.5 transition ${
+              isLight ? 'bg-slate-50 border-slate-200 shadow-2xs' : 'bg-slate-950/60 border-slate-800'
+            }`}>
+              <div className="flex flex-wrap items-center gap-2 flex-1 min-w-0">
+                {/* Floor Filter */}
+                <div className="flex items-center gap-1.5 min-w-[140px] flex-1 sm:flex-initial">
+                  <span className="text-[11px] font-bold text-slate-500 shrink-0">الطابق:</span>
+                  <select
+                    value={roomFloorFilter}
+                    onChange={(e) => setRoomFloorFilter(e.target.value)}
+                    className={`w-full text-xs font-bold py-1.5 px-2.5 rounded-lg border outline-none cursor-pointer transition ${
+                      roomFloorFilter !== 'all'
+                        ? 'bg-amber-500/15 border-amber-500 text-amber-600 dark:text-amber-400 font-black'
+                        : isLight ? 'bg-white border-slate-300 text-slate-800' : 'bg-slate-900 border-slate-700 text-slate-200'
+                    }`}
+                  >
+                    <option value="all">كافة الطوابق ({toArabicDigits(selectedUnit.rooms?.length || 0)})</option>
+                    {availableFloors.map((floor) => {
+                      const count = selectedUnit.rooms.filter((r) => r.floor?.trim() === floor).length;
+                      return (
+                        <option key={floor} value={floor}>
+                          الطابق {floor} ({toArabicDigits(count)})
+                        </option>
+                      );
+                    })}
+                  </select>
+                </div>
 
-                  return (
-                    <tr key={rm.id} className={`${isStopped ? (isLight ? 'bg-red-50/50' : 'bg-red-950/20') : isLight ? 'hover:bg-amber-50/40' : 'hover:bg-slate-800/40'} transition`}>
-                      <td className="p-3">
-                        <span className="font-mono font-black text-xs text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-lg border border-amber-500/20">
-                          {roomComputedCode}
-                        </span>
-                      </td>
-                      <td className={`p-3 font-bold ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>{rm.name}</td>
-                      <td className="p-3">{rm.type}</td>
-                      <td className="p-3">{rm.floor}</td>
-                      <td className="p-3 font-semibold">{toArabicDigits(rm.areaSqM)} م²</td>
-                      <td className="p-3 font-semibold">
-                        <span className={occDisplay.badgeClass}>{toArabicDigits(occDisplay.text)}</span>
-                      </td>
-                      <td className={`p-3 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
-                        {rm.occupiedBy && rm.occupiedBy.trim() && !isRoomVacant(rm.occupiedBy) ? (
-                          <span className="font-semibold">{rm.occupiedBy}</span>
-                        ) : (
-                          <span className="text-amber-500/90 font-bold text-xs bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/20">
-                            شاغرة (فارغة)
-                          </span>
-                        )}
-                      </td>
-                      <td className="p-3">
-                        <div className="flex flex-col gap-1 items-start">
-                          <span className={`border px-2.5 py-0.5 rounded text-[11px] font-bold flex items-center gap-1 ${
+                {/* Room Type Filter */}
+                <div className="flex items-center gap-1.5 min-w-[150px] flex-1 sm:flex-initial">
+                  <span className="text-[11px] font-bold text-slate-500 shrink-0">نوع الغرفة:</span>
+                  <select
+                    value={roomTypeFilter}
+                    onChange={(e) => setRoomTypeFilter(e.target.value)}
+                    className={`w-full text-xs font-bold py-1.5 px-2.5 rounded-lg border outline-none cursor-pointer transition ${
+                      roomTypeFilter !== 'all'
+                        ? 'bg-amber-500/15 border-amber-500 text-amber-600 dark:text-amber-400 font-black'
+                        : isLight ? 'bg-white border-slate-300 text-slate-800' : 'bg-slate-900 border-slate-700 text-slate-200'
+                    }`}
+                  >
+                    <option value="all">كافة أنواع الغرف</option>
+                    {availableRoomTypes.map((type) => {
+                      const count = selectedUnit.rooms.filter((r) => r.type?.trim() === type).length;
+                      return (
+                        <option key={type} value={type}>
+                          {type} ({toArabicDigits(count)})
+                        </option>
+                      );
+                    })}
+                  </select>
+                </div>
+
+                {/* Quick Search */}
+                <div className="relative flex-1 min-w-[160px]">
+                  <Search className="w-3.5 h-3.5 absolute right-2.5 top-2.5 text-slate-400 pointer-events-none" />
+                  <input
+                    type="text"
+                    value={roomSearchQuery}
+                    onChange={(e) => setRoomSearchQuery(e.target.value)}
+                    placeholder="بحث بالرمز، الاسم، أو الشاغل..."
+                    className={`w-full pr-8 pl-7 py-1.5 text-xs rounded-lg border outline-none font-medium transition ${
+                      isLight ? 'bg-white border-slate-300 text-slate-900' : 'bg-slate-900 border-slate-700 text-white'
+                    }`}
+                  />
+                  {roomSearchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => setRoomSearchQuery('')}
+                      className="absolute left-2 top-2 text-slate-400 hover:text-slate-200 cursor-pointer"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+
+                {/* Reset Filters button */}
+                {(roomFloorFilter !== 'all' || roomTypeFilter !== 'all' || roomSearchQuery.trim()) && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setRoomFloorFilter('all');
+                      setRoomTypeFilter('all');
+                      setRoomSearchQuery('');
+                    }}
+                    className="px-2.5 py-1.5 rounded-lg border border-red-500/30 bg-red-500/10 hover:bg-red-500/20 text-red-500 text-xs font-bold flex items-center gap-1 transition shrink-0 cursor-pointer"
+                    title="إلغاء التصفية وإعادة عرض كافة الغرف"
+                  >
+                    <X className="w-3 h-3" />
+                    <span>إلغاء التصفية</span>
+                  </button>
+                )}
+              </div>
+
+              {/* Counter Display */}
+              <div className="text-[11px] font-bold text-slate-500 shrink-0 self-end md:self-center">
+                <span>عرض </span>
+                <strong className="text-amber-500 font-black">{toArabicDigits(filteredRooms.length)}</strong>
+                <span> من أصل </span>
+                <strong>{toArabicDigits(selectedUnit.rooms?.length || 0)}</strong>
+                <span> غرفة وقاعة</span>
+              </div>
+            </div>
+
+            {/* Empty state when no rooms match filter */}
+            {filteredRooms.length === 0 ? (
+              <div className={`p-8 text-center rounded-xl border border-dashed space-y-2.5 ${
+                isLight ? 'bg-slate-50 border-slate-300' : 'bg-slate-950/40 border-slate-800'
+              }`}>
+                <DoorOpen className="w-8 h-8 mx-auto text-slate-400 animate-pulse" />
+                <p className="text-xs sm:text-sm font-bold text-slate-500">
+                  لا توجد غرف أو قاعات مطابقة لخيارات الفلترة المحددة
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setRoomFloorFilter('all');
+                    setRoomTypeFilter('all');
+                    setRoomSearchQuery('');
+                  }}
+                  className="px-3 py-1.5 rounded-lg bg-amber-500 text-slate-950 text-xs font-black hover:bg-amber-400 transition cursor-pointer"
+                >
+                  إعادة عرض كافة الغرف والقاعات
+                </button>
+              </div>
+            ) : (
+              <>
+                {/* Mobile Stacked Room Cards View (md:hidden) */}
+                <div className="md:hidden space-y-2.5">
+                  {filteredRooms.map((rm) => {
+                    const isStopped = rm.status === 'Stopped' || rm.status === 'متوقفة';
+                    const roomComputedCode =
+                      (rm.code && rm.code.trim()) ? rm.code.trim() : getStandardRoomCode(selectedUnit.code, rm, selectedUnit.rooms);
+                    const occDisplay = formatRoomOccupancyDisplay(rm);
+
+                    return (
+                      <div
+                        key={rm.id}
+                        className={`p-3 rounded-xl border space-y-2 transition ${
+                          isStopped
+                            ? isLight ? 'bg-red-50/70 border-red-200' : 'bg-red-950/30 border-red-900/50'
+                            : isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-950/60 border-slate-800'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                            <span className="font-mono font-black text-xs text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-lg border border-amber-500/20 shrink-0">
+                              {roomComputedCode}
+                            </span>
+                            <span className={`font-bold text-xs truncate ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                              {rm.name}
+                            </span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setSelectedRoomForQrCard({ ...rm, code: roomComputedCode })}
+                            className="p-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500 text-amber-500 hover:text-slate-950 transition cursor-pointer inline-flex items-center gap-1 text-[11px] font-bold shrink-0"
+                            title="استعراض وطباعة بطاقة QR للغرفة"
+                          >
+                            <QrCode className="w-3.5 h-3.5" />
+                            <span>QR</span>
+                          </button>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2 text-[11px] pt-1 border-t border-slate-200/60 dark:border-slate-800/60">
+                          <div>
+                            <span className="text-slate-400 font-medium">الاستخدام: </span>
+                            <span className="font-bold">{rm.type}</span>
+                          </div>
+                          <div>
+                            <span className="text-slate-400 font-medium">الطابق: </span>
+                            <span className="font-bold">{rm.floor}</span>
+                          </div>
+                          <div>
+                            <span className="text-slate-400 font-medium">المساحة: </span>
+                            <span className="font-bold text-emerald-600 dark:text-emerald-400">{toArabicDigits(rm.areaSqM)} م²</span>
+                          </div>
+                          <div>
+                            <span className="text-slate-400 font-medium">الشاغلون: </span>
+                            <span className={occDisplay.badgeClass}>{toArabicDigits(occDisplay.text)}</span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between gap-2 text-[11px] pt-1">
+                          <div className="truncate flex-1 min-w-0">
+                            <span className="text-slate-400 font-medium">الجهة: </span>
+                            {rm.occupiedBy && rm.occupiedBy.trim() && !isRoomVacant(rm.occupiedBy) ? (
+                              <span className="font-semibold text-slate-800 dark:text-slate-200">{rm.occupiedBy}</span>
+                            ) : (
+                              <span className="text-amber-500 font-bold">شاغرة</span>
+                            )}
+                          </div>
+                          <span className={`border px-2 py-0.5 rounded text-[10px] font-bold flex items-center gap-1 shrink-0 ${
                             isStopped
                               ? isLight ? 'bg-red-100 text-red-800 border-red-300' : 'bg-red-500/20 text-red-400 border-red-500/30'
                               : isLight ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
                           }`}>
                             <span className={`w-1.5 h-1.5 rounded-full ${isStopped ? 'bg-red-500 animate-pulse' : 'bg-emerald-500'}`} />
-                            {isStopped ? 'متوقفة 🔴' : 'فعالة 🟢'}
+                            {isStopped ? 'متوقفة' : 'فعالة'}
                           </span>
-                          {isStopped && rm.notes && (
-                            <span className={`text-[11px] font-bold ${isLight ? 'text-red-700' : 'text-red-300'}`}>
-                              سبب التوقف: {rm.notes}
-                            </span>
-                          )}
                         </div>
-                      </td>
-                      <td className="p-3 text-center">
-                        <button
-                          type="button"
-                          onClick={() => setSelectedRoomForQrCard({ ...rm, code: roomComputedCode })}
-                          className="p-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500 text-amber-500 hover:text-slate-950 transition cursor-pointer inline-flex items-center gap-1 text-[11px] font-bold"
-                          title="استعراض وطباعة بطاقة QR للغرفة"
-                        >
-                          <QrCode className="w-3.5 h-3.5" />
-                          <span>QR</span>
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Desktop Table View (hidden md:block) */}
+                <div className="hidden md:block overflow-x-auto">
+                  <table className="w-full text-right text-xs">
+                    <thead>
+                      <tr className={`${isLight ? 'bg-slate-100 text-slate-700 border-slate-200' : 'bg-slate-950 text-slate-400 border-slate-800'} border-b`}>
+                        <th className="p-3 font-semibold">رمز الغرفة القياسي</th>
+                        <th className="p-3 font-semibold">اسم الغرفة</th>
+                        <th className="p-3 font-semibold">نوع الاستخدام</th>
+                        <th className="p-3 font-semibold">الطابق</th>
+                        <th className="p-3 font-semibold">المساحة (م²)</th>
+                        <th className="p-3 font-semibold">عدد الشاغلين</th>
+                        <th className="p-3 font-semibold">الجهة الشاغلة</th>
+                        <th className="p-3 font-semibold">الحالة</th>
+                        <th className="p-3 font-semibold text-center">بطاقة QR</th>
+                      </tr>
+                    </thead>
+                    <tbody className={`divide-y ${isLight ? 'divide-slate-200 text-slate-800' : 'divide-slate-800 text-slate-300'}`}>
+                      {filteredRooms.map((rm) => {
+                        const isStopped = rm.status === 'Stopped' || rm.status === 'متوقفة';
+                        const roomComputedCode =
+                          (rm.code && rm.code.trim()) ? rm.code.trim() : getStandardRoomCode(selectedUnit.code, rm, selectedUnit.rooms);
+                        const occDisplay = formatRoomOccupancyDisplay(rm);
+
+                        return (
+                          <tr key={rm.id} className={`${isStopped ? (isLight ? 'bg-red-50/50' : 'bg-red-950/20') : isLight ? 'hover:bg-amber-50/40' : 'hover:bg-slate-800/40'} transition`}>
+                            <td className="p-3">
+                              <span className="font-mono font-black text-xs text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-lg border border-amber-500/20">
+                                {roomComputedCode}
+                              </span>
+                            </td>
+                            <td className={`p-3 font-bold ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>{rm.name}</td>
+                            <td className="p-3">{rm.type}</td>
+                            <td className="p-3">{rm.floor}</td>
+                            <td className="p-3 font-semibold">{toArabicDigits(rm.areaSqM)} م²</td>
+                            <td className="p-3 font-semibold">
+                              <span className={occDisplay.badgeClass}>{toArabicDigits(occDisplay.text)}</span>
+                            </td>
+                            <td className={`p-3 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                              {rm.occupiedBy && rm.occupiedBy.trim() && !isRoomVacant(rm.occupiedBy) ? (
+                                <span className="font-semibold">{rm.occupiedBy}</span>
+                              ) : (
+                                <span className="text-amber-500/90 font-bold text-xs bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/20">
+                                  شاغرة (فارغة)
+                                </span>
+                              )}
+                            </td>
+                            <td className="p-3">
+                              <div className="flex flex-col gap-1 items-start">
+                                <span className={`border px-2.5 py-0.5 rounded text-[11px] font-bold flex items-center gap-1 ${
+                                  isStopped
+                                    ? isLight ? 'bg-red-100 text-red-800 border-red-300' : 'bg-red-500/20 text-red-400 border-red-500/30'
+                                    : isLight ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                                }`}>
+                                  <span className={`w-1.5 h-1.5 rounded-full ${isStopped ? 'bg-red-500 animate-pulse' : 'bg-emerald-500'}`} />
+                                  {isStopped ? 'متوقفة 🔴' : 'فعالة 🟢'}
+                                </span>
+                                {isStopped && rm.notes && (
+                                  <span className={`text-[11px] font-bold ${isLight ? 'text-red-700' : 'text-red-300'}`}>
+                                    سبب التوقف: {rm.notes}
+                                  </span>
+                                )}
+                              </div>
+                            </td>
+                            <td className="p-3 text-center">
+                              <button
+                                type="button"
+                                onClick={() => setSelectedRoomForQrCard({ ...rm, code: roomComputedCode })}
+                                className="p-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500 text-amber-500 hover:text-slate-950 transition cursor-pointer inline-flex items-center gap-1 text-[11px] font-bold"
+                                title="استعراض وطباعة بطاقة QR للغرفة"
+                              >
+                                <QrCode className="w-3.5 h-3.5" />
+                                <span>QR</span>
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </>
+            )}
           </div>
         )}
 

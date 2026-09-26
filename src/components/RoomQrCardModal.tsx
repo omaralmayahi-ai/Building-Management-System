@@ -11,6 +11,7 @@ import {
   FileSpreadsheet,
   CheckCircle2,
   Copy,
+  ChevronDown,
 } from 'lucide-react';
 import { UnitAsset, Room, SystemBranding } from '../types';
 import { toArabicDigits, getServerDateDDMMYYYY } from '../utils/arabicUtils';
@@ -246,7 +247,7 @@ export const RoomQrCardModal: React.FC<RoomQrCardModalProps> = ({
             isLight
               ? 'bg-white border-amber-500/50 text-slate-900'
               : 'bg-slate-950 border-amber-500/40 text-slate-100'
-          } ${isMini ? 'w-full h-full scale-[0.85] origin-top' : 'max-w-xs'}`}
+          } ${isMini ? 'w-full h-full scale-[0.85] origin-top' : 'w-full max-w-[290px] sm:max-w-xs'}`}
         >
           {/* Header */}
           <div className="border-b pb-1.5 border-slate-200 dark:border-slate-800 space-y-0.5">
@@ -271,7 +272,7 @@ export const RoomQrCardModal: React.FC<RoomQrCardModalProps> = ({
                 <img
                   src={qrDataUrl}
                   alt="Room QR"
-                  className={isMini ? 'w-14 h-14 object-contain' : 'w-36 h-36 sm:w-44 sm:h-44 object-contain'}
+                  className={isMini ? 'w-14 h-14 object-contain' : 'w-28 h-28 xs:w-32 xs:h-32 sm:w-40 sm:h-40 object-contain'}
                 />
               ) : (
                 <div className="w-24 h-24 bg-slate-100 flex items-center justify-center text-[9px] text-slate-400">
@@ -518,12 +519,12 @@ export const RoomQrCardModal: React.FC<RoomQrCardModalProps> = ({
   return (
     <div
       id="modal-room-qr-card"
-      className={`fixed inset-0 z-50 backdrop-blur-md flex items-center justify-center p-3 sm:p-5 animate-fadeIn ${
+      className={`fixed inset-0 z-50 backdrop-blur-md flex items-center justify-center p-2.5 sm:p-5 animate-fadeIn ${
         isLight ? 'bg-slate-900/60' : 'bg-slate-950/85'
       }`}
     >
       <div
-        className={`border rounded-3xl max-w-2xl w-full flex flex-col max-h-[94vh] shadow-2xl overflow-hidden transition-all ${
+        className={`border rounded-2xl sm:rounded-3xl max-w-2xl w-full flex flex-col max-h-[96vh] sm:max-h-[94vh] shadow-2xl overflow-hidden transition-all ${
           isLight
             ? 'bg-white border-slate-200 text-slate-900 shadow-slate-300/50'
             : 'bg-slate-900 border-slate-800 text-white'
@@ -531,63 +532,96 @@ export const RoomQrCardModal: React.FC<RoomQrCardModalProps> = ({
       >
         {/* Modal Header */}
         <div
-          className={`p-4 sm:p-5 border-b flex items-center justify-between shrink-0 transition-colors ${
+          className={`p-3 sm:p-5 border-b flex items-center justify-between gap-2.5 shrink-0 transition-colors ${
             isLight
               ? 'bg-slate-50 border-slate-200 text-slate-900'
               : 'bg-slate-950/60 border-slate-800 text-slate-100'
           }`}
         >
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-amber-500 text-slate-950 font-black flex items-center justify-center shadow-lg shrink-0">
-              <DoorClosed className="w-6 h-6" />
+          <div className="flex items-center gap-2.5 min-w-0 flex-1">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-amber-500 text-slate-950 font-black flex items-center justify-center shadow-md shrink-0">
+              <DoorClosed className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h3 className={`font-extrabold text-base sm:text-lg ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
-                  بطاقة تعريف وترقيم الغرفة (Room QR Card)
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-1.5 min-w-0">
+                <h3 className={`font-black text-xs xs:text-sm sm:text-base leading-tight truncate ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                  بطاقة تعريف وترقيم الغرفة
                 </h3>
-                <span className="font-mono text-xs px-2.5 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-600 dark:text-amber-400 font-bold">
+                <span className="font-mono text-[10.5px] sm:text-xs px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-600 dark:text-amber-400 font-bold shrink-0">
                   {toArabicDigits(finalRoomCode)}
                 </span>
               </div>
-              <p className={`text-xs ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
-                بطاقة التثبيت على باب الغرفة المعتمدة • طباعة ٤ بطاقات في كل ورقة A4 لتفادي هدر الورق
+              <p className={`text-[10px] sm:text-xs mt-0.5 truncate ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                بطاقة تثبيت باب الغرفة • طباعة اقتصادية بمقاس A4
               </p>
             </div>
           </div>
 
           <button
             onClick={onClose}
-            className={`p-2 rounded-xl transition cursor-pointer ${
+            className={`p-1.5 sm:p-2 rounded-xl transition cursor-pointer shrink-0 ${
               isLight
                 ? 'text-slate-500 hover:text-slate-900 bg-slate-200/70 hover:bg-slate-200'
                 : 'text-slate-400 hover:text-white bg-slate-800/80 hover:bg-slate-800'
             }`}
             title="إغلاق"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
         </div>
 
         {/* Modal Body */}
-        <div className="p-4 sm:p-5 overflow-y-auto space-y-4">
-          {/* Room quick selector tabs if multiple rooms exist */}
+        <div className="p-3 sm:p-5 overflow-y-auto space-y-3 sm:space-y-4">
+          {/* Room quick selector dropdown (mobile) and pills (desktop) */}
           {allRooms.length > 1 && (
-            <div className="space-y-1.5">
-              <label className={`text-xs font-bold ${isLight ? 'text-slate-700' : 'text-slate-300'} flex items-center gap-1.5`}>
-                <Layers className="w-3.5 h-3.5 text-amber-500" />
-                <span>اختر الغرفة لعرض وتخصيص بطاقتها:</span>
+            <div className="space-y-1">
+              <label className={`text-[11px] sm:text-xs font-bold ${isLight ? 'text-slate-700' : 'text-slate-300'} flex items-center justify-between`}>
+                <span className="flex items-center gap-1.5">
+                  <Layers className="w-3.5 h-3.5 text-amber-500" />
+                  <span>الغرفة المحددة للبطاقة:</span>
+                </span>
+                <span className="text-[10px] text-slate-500 dark:text-slate-400">
+                  {toArabicDigits(allRooms.length)} غرف متوفرة
+                </span>
               </label>
-              <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-thin">
+
+              {/* Mobile native select dropdown: super compact & easy to tap */}
+              <div className="block sm:hidden">
+                <div className="relative">
+                  <select
+                    value={activeRoom.id || activeRoom.code}
+                    onChange={(e) => setSelectedRoomId(e.target.value)}
+                    className={`w-full py-1.5 pr-8 pl-7 text-xs rounded-xl border font-bold appearance-none outline-none focus:border-amber-500 transition cursor-pointer ${
+                      isLight
+                        ? 'bg-slate-50 border-slate-300 text-slate-900'
+                        : 'bg-slate-950 border-slate-700 text-white'
+                    }`}
+                  >
+                    {allRooms.map((r) => {
+                      const rCode = (r.code && r.code.trim()) ? r.code.trim() : getStandardRoomCode(unit.code, r, allRooms);
+                      return (
+                        <option key={r.id || r.code} value={r.id || r.code}>
+                          {r.name} ({rCode}) - {r.floor}
+                        </option>
+                      );
+                    })}
+                  </select>
+                  <DoorClosed className="absolute right-2.5 top-2.5 w-3.5 h-3.5 text-amber-500 pointer-events-none" />
+                  <ChevronDown className="absolute left-2.5 top-2.5 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
+                </div>
+              </div>
+
+              {/* Desktop horizontal scroll pills */}
+              <div className="hidden sm:flex items-center gap-2 overflow-x-auto pb-1 scrollbar-thin">
                 {allRooms.map((r) => {
                   const isSelected = r.id === activeRoom.id || r.code === activeRoom.code;
                   const fN = parseInt(String(r.floor || '').replace(/\D/g, ''), 10) || 1;
-                  const rCode = r.code || generateRoomCode(unit.code, fN, r.type, r.sequenceNumber || 101, true);
+                  const rCode = (r.code && r.code.trim()) ? r.code.trim() : generateRoomCode(unit.code, fN, r.type, r.sequenceNumber || 101, true);
 
                   return (
                     <button
-                      key={r.id}
-                      onClick={() => setSelectedRoomId(r.id)}
+                      key={r.id || r.code}
+                      onClick={() => setSelectedRoomId(r.id || r.code)}
                       className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shrink-0 border cursor-pointer ${
                         isSelected
                           ? 'bg-amber-500 text-slate-950 border-amber-500 shadow-xs'
@@ -626,11 +660,11 @@ export const RoomQrCardModal: React.FC<RoomQrCardModalProps> = ({
 
         {/* Modal Action Buttons Footer */}
         <div
-          className={`p-3 sm:p-4 border-t flex flex-wrap items-center justify-between gap-2.5 shrink-0 ${
+          className={`p-2.5 sm:p-4 border-t flex flex-col sm:flex-row sm:items-center justify-between gap-2 shrink-0 ${
             isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-950/60 border-slate-800'
           }`}
         >
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 w-full sm:w-auto">
             {onOpenMaintenance && (
               <button
                 type="button"
@@ -638,46 +672,46 @@ export const RoomQrCardModal: React.FC<RoomQrCardModalProps> = ({
                   onClose();
                   onOpenMaintenance(unit, activeRoom);
                 }}
-                className="bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold px-3 py-2 rounded-xl text-xs transition flex items-center gap-1.5 shadow-md cursor-pointer"
+                className="bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl text-xs transition flex items-center justify-center gap-1.5 shadow-sm cursor-pointer flex-1 sm:flex-initial"
               >
-                <Wrench className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">طلب صيانة</span>
+                <Wrench className="w-3.5 h-3.5 shrink-0" />
+                <span>طلب صيانة</span>
               </button>
             )}
 
             <button
               type="button"
               onClick={handleDownloadQr}
-              className={`px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 border cursor-pointer ${
+              className={`px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 border cursor-pointer flex-1 sm:flex-initial ${
                 isLight
                   ? 'bg-white hover:bg-slate-100 text-slate-700 border-slate-300 shadow-xs'
                   : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700'
               }`}
             >
-              <Download className="w-3.5 h-3.5 text-emerald-500" />
+              <Download className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
               <span>تحميل PNG</span>
             </button>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-col sm:flex-row items-center gap-1.5 sm:gap-2 w-full sm:w-auto">
             {/* Batch Print All Rooms: 4 rooms per A4 page! */}
             {allRooms.length > 1 && (
               <button
                 type="button"
                 onClick={handlePrintAllRoomsBatch}
                 disabled={isGeneratingAll}
-                className={`px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 border cursor-pointer shadow-sm ${
+                className={`w-full sm:w-auto px-3 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 border cursor-pointer shadow-xs ${
                   isLight
                     ? 'bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border-indigo-200'
                     : 'bg-indigo-950/60 hover:bg-indigo-900/80 text-indigo-300 border-indigo-800'
                 }`}
-                title={`طباعة كافة بطاقات غرف المنشأة الـ (${allRooms.length}) بحيث تتسع كل ورقة A4 لأربع بطاقات، مما يحتاج إلى (${sheetsCount}) ورقة فقط!`}
+                title={`طباعة كافة بطاقات غرف المنشأة الـ (${allRooms.length})`}
               >
-                <FileSpreadsheet className="w-4 h-4 text-indigo-500" />
+                <FileSpreadsheet className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
                 <span>
                   {isGeneratingAll
                     ? `جاري التجهيز (${batchProgress}%)...`
-                    : `طباعة كافة الغرف (${toArabicDigits(allRooms.length)} في ${toArabicDigits(sheetsCount)} ورقة A4)`}
+                    : `طباعة كافة الغرف (${toArabicDigits(allRooms.length)} في ${toArabicDigits(sheetsCount)} ورقة)`}
                 </span>
               </button>
             )}
@@ -686,9 +720,9 @@ export const RoomQrCardModal: React.FC<RoomQrCardModalProps> = ({
             <button
               type="button"
               onClick={handlePrintSingleCard}
-              className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2 rounded-xl text-xs transition flex items-center gap-1.5 shadow-md cursor-pointer"
+              className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-500 text-white font-black px-4 py-2 rounded-xl text-xs transition flex items-center justify-center gap-1.5 shadow-md cursor-pointer"
             >
-              <Printer className="w-4 h-4" />
+              <Printer className="w-4 h-4 shrink-0" />
               <span>
                 طباعة البطاقة ({cardSize === 'compact' ? 'A6 ربع ورقة' : cardSize === 'medium' ? 'A5 نصف ورقة' : 'A4 كاملة'})
               </span>

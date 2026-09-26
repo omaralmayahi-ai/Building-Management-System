@@ -305,23 +305,23 @@ export const UnitQrCodeModal: React.FC<UnitQrCodeModalProps> = ({
             </span>
           </div>
 
-          <div className="my-2.5 sm:my-3 flex items-center justify-between gap-2.5 sm:gap-3">
-            <div className="text-center shrink-0">
+          <div className="my-2.5 sm:my-3 flex flex-col sm:flex-row items-center sm:items-stretch justify-between gap-2.5 sm:gap-3">
+            <div className="text-center shrink-0 w-full sm:w-auto flex flex-col items-center">
               <div className="mb-1 font-mono text-xs font-black bg-slate-900 text-amber-400 px-2.5 py-0.5 sm:py-1 rounded-lg border border-amber-500">
                 {unit.code}
               </div>
               <div className="p-1.5 sm:p-2 bg-white rounded-xl border-2 border-slate-900 shadow-sm inline-block">
                 {qrDataUrl ? (
-                  <img src={qrDataUrl} alt="Unit QR" className="w-28 h-28 sm:w-36 sm:h-36 object-contain" />
+                  <img src={qrDataUrl} alt="Unit QR" className="w-24 h-24 xs:w-28 xs:h-28 sm:w-36 sm:h-36 object-contain" />
                 ) : (
-                  <div className="w-28 h-28 sm:w-36 sm:h-36 bg-slate-100 flex items-center justify-center text-xs text-slate-400">
+                  <div className="w-24 h-24 sm:w-36 sm:h-36 bg-slate-100 flex items-center justify-center text-xs text-slate-400">
                     جاري التوليد...
                   </div>
                 )}
               </div>
             </div>
 
-            <div className="flex-1 min-w-0 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden text-xs divide-y divide-slate-100 dark:divide-slate-800 text-right">
+            <div className="w-full flex-1 min-w-0 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden text-xs divide-y divide-slate-100 dark:divide-slate-800 text-right">
               <div className="flex justify-between items-center px-2.5 py-1.5 bg-slate-50/70 dark:bg-slate-900/40">
                 <span className="text-slate-400 font-bold text-[10.5px] shrink-0 min-w-[70px]">اسم المنشأة:</span>
                 <span className="font-black text-xs truncate text-left flex-1 min-w-0 mr-2" title={unit.name}>{unit.name}</span>
@@ -519,23 +519,23 @@ export const UnitQrCodeModal: React.FC<UnitQrCodeModalProps> = ({
       >
         {/* Header */}
         <div
-          className={`p-4 sm:p-5 border-b flex items-center justify-between shrink-0 transition-colors ${
+          className={`p-3 sm:p-5 border-b flex items-center justify-between shrink-0 transition-colors ${
             isLight
               ? 'bg-slate-50 border-slate-200 text-slate-900'
               : 'bg-slate-950/50 border-slate-800/80 text-slate-100'
           }`}
         >
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-amber-500 text-slate-950 font-black flex items-center justify-center shadow-lg shrink-0">
-              <QrCode className="w-6 h-6" />
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-amber-500 text-slate-950 font-black flex items-center justify-center shadow-md shrink-0">
+              <QrCode className="w-4 h-4 sm:w-6 sm:h-6" />
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h3 className={`font-extrabold text-base ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
-                  لوحة التعريف ورمز الوصول السريع (Unit QR Plate)
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <h3 className={`font-extrabold text-xs sm:text-base truncate ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                  لوحة التعريف ورمز QR
                 </h3>
                 <span
-                  className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                  className={`text-[9px] sm:text-[10px] font-bold px-1.5 py-0.2 rounded-full border ${
                     isLight
                       ? 'bg-amber-100 text-amber-900 border-amber-300'
                       : 'bg-amber-500/20 text-amber-400 border-amber-500/30'
@@ -544,22 +544,22 @@ export const UnitQrCodeModal: React.FC<UnitQrCodeModalProps> = ({
                   {toArabicDigits(unit.code)}
                 </span>
               </div>
-              <p className={`text-xs ${isLight ? 'text-slate-500 font-medium' : 'text-slate-400'}`}>
-                بطاقة التثبيت الميداني • مرونة كاملة في الحجم وتحديد الزاوية داخل ورقة A4 لمنع هدر الورق
+              <p className={`text-[10px] sm:text-xs truncate hidden xs:block ${isLight ? 'text-slate-500 font-medium' : 'text-slate-400'}`}>
+                بطاقة التثبيت الميداني • مرونة كاملة في الحجم وتحديد الزاوية
               </p>
             </div>
           </div>
 
           <button
             onClick={onClose}
-            className={`p-2 rounded-xl transition cursor-pointer ${
+            className={`p-1.5 sm:p-2 rounded-xl transition cursor-pointer shrink-0 ${
               isLight
                 ? 'text-slate-500 hover:text-slate-900 bg-slate-200/70 hover:bg-slate-200'
                 : 'text-slate-400 hover:text-white bg-slate-800/80 hover:bg-slate-800'
             }`}
             title="إغلاق"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
         </div>
 
@@ -614,13 +614,13 @@ export const UnitQrCodeModal: React.FC<UnitQrCodeModalProps> = ({
 
         {/* Action Buttons Toolbar */}
         <div
-          className={`p-3 sm:p-4 border-t flex flex-wrap items-center justify-end gap-2.5 shrink-0 transition-colors ${
+          className={`p-3 sm:p-4 border-t flex flex-wrap items-center justify-between sm:justify-end gap-2 shrink-0 transition-colors ${
             isLight ? 'border-slate-200 bg-slate-50' : 'border-slate-800 bg-slate-950'
           }`}
         >
           <button
             onClick={onClose}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+            className={`w-full xs:w-auto px-3.5 py-2 rounded-xl text-xs font-bold transition cursor-pointer order-3 sm:order-1 ${
               isLight
                 ? 'bg-slate-200 hover:bg-slate-300 text-slate-700'
                 : 'bg-slate-800 hover:bg-slate-700 text-slate-300'
@@ -631,20 +631,18 @@ export const UnitQrCodeModal: React.FC<UnitQrCodeModalProps> = ({
 
           <button
             onClick={handleDownloadQr}
-            className="flex-1 sm:flex-none bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center justify-center gap-1.5 shadow transition cursor-pointer"
+            className="flex-1 sm:flex-none bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-2 rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-sm transition cursor-pointer order-1 sm:order-2"
           >
             <Download className="w-4 h-4" />
-            <span>تنزيل PNG</span>
+            <span>PNG</span>
           </button>
 
           <button
             onClick={handlePrintPlate}
-            className="flex-1 sm:flex-none bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-4 py-2 rounded-xl text-xs flex items-center justify-center gap-1.5 shadow transition cursor-pointer"
+            className="flex-1 sm:flex-none bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-3 py-2 rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-sm transition cursor-pointer order-2 sm:order-3"
           >
             <Printer className="w-4 h-4" />
-            <span>
-              طباعة اللوحة ({cardSize === 'compact' ? 'A6 ربع ورقة' : cardSize === 'medium' ? 'A5 نصف ورقة' : 'A4 كاملة'})
-            </span>
+            <span>طباعة اللوحة</span>
           </button>
         </div>
       </div>

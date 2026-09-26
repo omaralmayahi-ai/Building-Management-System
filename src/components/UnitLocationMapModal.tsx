@@ -271,30 +271,30 @@ export const UnitLocationMapModal: React.FC<UnitLocationMapModalProps> = ({
       >
         {/* Header */}
         <div
-          className={`p-4 sm:p-5 border-b flex items-center justify-between shrink-0 transition-colors ${
+          className={`p-3 sm:p-5 border-b flex items-center justify-between shrink-0 transition-colors ${
             isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-950/60 border-slate-800'
           }`}
         >
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-amber-500 text-slate-950 flex items-center justify-center font-bold shadow-lg shrink-0">
-              <MapPin className="w-5 h-5" />
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-amber-500 text-slate-950 flex items-center justify-center font-bold shadow-lg shrink-0">
+              <MapPin className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="font-mono text-amber-500 font-bold text-xs">
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                <span className="font-mono text-amber-500 font-bold text-[11px] sm:text-xs">
                   {isRoom && roomDetails?.roomCode ? roomDetails.roomCode : toArabicDigits(unit.code)}
                 </span>
                 <span
-                  className="px-2 py-0.5 rounded-full text-[10px] font-bold text-white shadow-sm"
+                  className="px-1.5 sm:px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold text-white shadow-sm shrink-0"
                   style={{ backgroundColor: gradeColor }}
                 >
                   Grade {unit.conditionGrade}
                 </span>
-                <span className="text-[11px] font-bold px-2 py-0.5 rounded-md bg-blue-500/15 border border-blue-500/30 text-blue-600 dark:text-blue-400">
-                  {isRoom ? 'موقع الغرفة والقاعة' : 'موقع المنشأة الهندسية'}
+                <span className="text-[10px] sm:text-[11px] font-bold px-1.5 sm:px-2 py-0.5 rounded-md bg-blue-500/15 border border-blue-500/30 text-blue-600 dark:text-blue-400 shrink-0">
+                  {isRoom ? 'موقع الغرفة' : 'موقع المنشأة'}
                 </span>
               </div>
-              <h2 className="font-extrabold text-base sm:text-lg leading-tight mt-0.5">
+              <h2 className="font-extrabold text-sm sm:text-lg leading-tight mt-0.5 truncate">
                 {isRoom && roomDetails?.roomName ? `${roomDetails.roomName}` : unit.name}
               </h2>
             </div>
@@ -302,7 +302,7 @@ export const UnitLocationMapModal: React.FC<UnitLocationMapModalProps> = ({
 
           <button
             onClick={onClose}
-            className={`p-2 rounded-xl transition cursor-pointer ${
+            className={`p-1.5 sm:p-2 rounded-xl transition cursor-pointer shrink-0 ${
               isLight
                 ? 'hover:bg-slate-200 text-slate-500'
                 : 'hover:bg-slate-800 text-slate-400 hover:text-white'
@@ -315,69 +315,69 @@ export const UnitLocationMapModal: React.FC<UnitLocationMapModalProps> = ({
 
         {/* 4 Required Information Cards Panel */}
         <div
-          className={`p-3.5 sm:p-4 border-b transition-colors ${
+          className={`p-2.5 sm:p-4 border-b transition-colors ${
             isLight ? 'bg-amber-50/70 border-amber-200' : 'bg-amber-500/10 border-amber-500/20'
           }`}
         >
           {isRoom ? (
-            /* Room Scan: 4 Required Information Elements */
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+            /* Room Scan: 4 Required Information Elements (2x2 on mobile, 4 in row on lg) */
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-2.5">
               {/* 1. اسم المنشأة */}
-              <div className={`p-2.5 rounded-xl border flex items-center gap-2.5 ${
+              <div className={`p-2 sm:p-2.5 rounded-xl border flex items-center gap-2 sm:gap-2.5 min-w-0 ${
                 isLight ? 'bg-white border-amber-200 text-slate-800' : 'bg-slate-900/90 border-amber-500/30 text-slate-100'
               }`}>
-                <div className="w-8 h-8 rounded-lg bg-blue-500/15 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
-                  <Building className="w-4 h-4" />
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-blue-500/15 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+                  <Building className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="text-[10px] text-slate-400 font-medium">اسم المنشأة</div>
-                  <div className="text-xs font-black truncate" title={unit.name}>
+                  <div className="text-[9px] sm:text-[10px] text-slate-400 font-medium">اسم المنشأة</div>
+                  <div className="text-[11px] sm:text-xs font-black truncate" title={unit.name}>
                     {unit.name}
                   </div>
                 </div>
               </div>
 
               {/* 2. الطابق */}
-              <div className={`p-2.5 rounded-xl border flex items-center gap-2.5 ${
+              <div className={`p-2 sm:p-2.5 rounded-xl border flex items-center gap-2 sm:gap-2.5 min-w-0 ${
                 isLight ? 'bg-white border-amber-200 text-slate-800' : 'bg-slate-900/90 border-amber-500/30 text-slate-100'
               }`}>
-                <div className="w-8 h-8 rounded-lg bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
-                  <Layers className="w-4 h-4" />
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                  <Layers className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="text-[10px] text-slate-400 font-medium">الطابق</div>
-                  <div className="text-xs font-black text-emerald-600 dark:text-emerald-400 truncate">
+                  <div className="text-[9px] sm:text-[10px] text-slate-400 font-medium">الطابق</div>
+                  <div className="text-[11px] sm:text-xs font-black text-emerald-600 dark:text-emerald-400 truncate">
                     {roomDetails?.floor || 'الطابق 1'}
                   </div>
                 </div>
               </div>
 
               {/* 3. رمز الغرفة */}
-              <div className={`p-2.5 rounded-xl border flex items-center gap-2.5 ${
+              <div className={`p-2 sm:p-2.5 rounded-xl border flex items-center gap-2 sm:gap-2.5 min-w-0 ${
                 isLight ? 'bg-white border-amber-200 text-slate-800' : 'bg-slate-900/90 border-amber-500/30 text-slate-100'
               }`}>
-                <div className="w-8 h-8 rounded-lg bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
-                  <DoorClosed className="w-4 h-4" />
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+                  <DoorClosed className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="text-[10px] text-slate-400 font-medium">رمز الغرفة</div>
-                  <div className="text-xs font-mono font-black text-amber-600 dark:text-amber-400 truncate">
+                  <div className="text-[9px] sm:text-[10px] text-slate-400 font-medium">رمز الغرفة</div>
+                  <div className="text-[11px] sm:text-xs font-mono font-black text-amber-600 dark:text-amber-400 truncate">
                     {roomDetails?.roomCode || roomDetails?.roomName || '—'}
                   </div>
                 </div>
               </div>
 
               {/* 4. الجهة الشاغلة */}
-              <div className={`p-2.5 rounded-xl border flex items-center gap-2.5 ${
+              <div className={`p-2 sm:p-2.5 rounded-xl border flex items-center gap-2 sm:gap-2.5 min-w-0 ${
                 isLight ? 'bg-white border-amber-200 text-slate-800' : 'bg-slate-900/90 border-amber-500/30 text-slate-100'
               }`}>
-                <div className="w-8 h-8 rounded-lg bg-sky-500/15 text-sky-600 dark:text-sky-400 flex items-center justify-center shrink-0">
-                  <UserCheck className="w-4 h-4" />
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-sky-500/15 text-sky-600 dark:text-sky-400 flex items-center justify-center shrink-0">
+                  <UserCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="text-[10px] text-slate-400 font-medium">الجهة الشاغلة</div>
+                  <div className="text-[9px] sm:text-[10px] text-slate-400 font-medium">الجهة الشاغلة</div>
                   <div
-                    className={`text-xs font-black truncate ${
+                    className={`text-[11px] sm:text-xs font-black truncate ${
                       isRoomVacant(roomDetails?.occupiedBy) ? 'text-amber-500' : 'text-sky-600 dark:text-sky-400'
                     }`}
                     title={isRoomVacant(roomDetails?.occupiedBy) ? 'شاغرة' : (roomDetails?.occupiedBy || 'شاغرة')}
@@ -388,37 +388,37 @@ export const UnitLocationMapModal: React.FC<UnitLocationMapModalProps> = ({
               </div>
             </div>
           ) : (
-            /* Facility Scan: Facility Details */
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+            /* Facility Scan: Facility Details (2x2 on mobile, 4 in row on lg) */
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-2.5">
               {/* 1. اسم المنشأة */}
-              <div className={`p-2.5 rounded-xl border flex items-center gap-2.5 ${
+              <div className={`p-2 sm:p-2.5 rounded-xl border flex items-center gap-2 sm:gap-2.5 min-w-0 ${
                 isLight ? 'bg-white border-amber-200 text-slate-800' : 'bg-slate-900/90 border-amber-500/30 text-slate-100'
               }`}>
-                <div className="w-8 h-8 rounded-lg bg-blue-500/15 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
-                  <Building className="w-4 h-4" />
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-blue-500/15 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+                  <Building className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="text-[10px] text-slate-400 font-medium">اسم المنشأة</div>
-                  <div className="text-xs font-black truncate" title={unit.name}>
+                  <div className="text-[9px] sm:text-[10px] text-slate-400 font-medium">اسم المنشأة</div>
+                  <div className="text-[11px] sm:text-xs font-black truncate" title={unit.name}>
                     {unit.name}
                   </div>
                 </div>
               </div>
 
               {/* 2. رمز المنشأة ورمز الأصل */}
-              <div className={`p-2.5 rounded-xl border flex items-center gap-2.5 ${
+              <div className={`p-2 sm:p-2.5 rounded-xl border flex items-center gap-2 sm:gap-2.5 min-w-0 ${
                 isLight ? 'bg-white border-amber-200 text-slate-800' : 'bg-slate-900/90 border-amber-500/30 text-slate-100'
               }`}>
-                <div className="w-8 h-8 rounded-lg bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
-                  <Compass className="w-4 h-4" />
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+                  <Compass className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="text-[10px] text-slate-400 font-medium">رمز المنشأة {unit.fixedAssetCode ? '/ الأصل' : ''}</div>
-                  <div className="text-xs font-mono font-black text-amber-600 dark:text-amber-400 truncate">
+                  <div className="text-[9px] sm:text-[10px] text-slate-400 font-medium">رمز المنشأة {unit.fixedAssetCode ? '/ الأصل' : ''}</div>
+                  <div className="text-[11px] sm:text-xs font-mono font-black text-amber-600 dark:text-amber-400 truncate">
                     {unit.code}
                   </div>
                   {unit.fixedAssetCode && (
-                    <div className="text-[10px] font-mono font-bold text-indigo-600 dark:text-indigo-400 truncate">
+                    <div className="text-[9px] sm:text-[10px] font-mono font-bold text-indigo-600 dark:text-indigo-400 truncate">
                       أصل: {unit.fixedAssetCode}
                     </div>
                   )}
@@ -426,30 +426,30 @@ export const UnitLocationMapModal: React.FC<UnitLocationMapModalProps> = ({
               </div>
 
               {/* 3. الموقع والمحافظة */}
-              <div className={`p-2.5 rounded-xl border flex items-center gap-2.5 ${
+              <div className={`p-2 sm:p-2.5 rounded-xl border flex items-center gap-2 sm:gap-2.5 min-w-0 ${
                 isLight ? 'bg-white border-amber-200 text-slate-800' : 'bg-slate-900/90 border-amber-500/30 text-slate-100'
               }`}>
-                <div className="w-8 h-8 rounded-lg bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
-                  <MapPin className="w-4 h-4" />
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                  <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="text-[10px] text-slate-400 font-medium">المحافظة والحقل</div>
-                  <div className="text-xs font-black text-emerald-600 dark:text-emerald-400 truncate">
+                  <div className="text-[9px] sm:text-[10px] text-slate-400 font-medium">المحافظة والحقل</div>
+                  <div className="text-[11px] sm:text-xs font-black text-emerald-600 dark:text-emerald-400 truncate">
                     {unit.field} ({unit.governorate})
                   </div>
                 </div>
               </div>
 
               {/* 4. الجهة الشاغلة / التابعة */}
-              <div className={`p-2.5 rounded-xl border flex items-center gap-2.5 ${
+              <div className={`p-2 sm:p-2.5 rounded-xl border flex items-center gap-2 sm:gap-2.5 min-w-0 ${
                 isLight ? 'bg-white border-amber-200 text-slate-800' : 'bg-slate-900/90 border-amber-500/30 text-slate-100'
               }`}>
-                <div className="w-8 h-8 rounded-lg bg-sky-500/15 text-sky-600 dark:text-sky-400 flex items-center justify-center shrink-0">
-                  <UserCheck className="w-4 h-4" />
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-sky-500/15 text-sky-600 dark:text-sky-400 flex items-center justify-center shrink-0">
+                  <UserCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="text-[10px] text-slate-400 font-medium">الجهة الشاغلة</div>
-                  <div className="text-xs font-black text-sky-600 dark:text-sky-400 truncate" title={unit.department}>
+                  <div className="text-[9px] sm:text-[10px] text-slate-400 font-medium">الجهة الشاغلة</div>
+                  <div className="text-[11px] sm:text-xs font-black text-sky-600 dark:text-sky-400 truncate" title={unit.department}>
                     {unit.department || 'غير محدد'}
                   </div>
                 </div>

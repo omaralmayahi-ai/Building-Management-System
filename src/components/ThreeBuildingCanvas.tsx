@@ -819,6 +819,61 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
     }
   }, [customElements, selectedElementId, isNightMode, isNightLightsOn]);
 
+  // Helper to calculate ideal camera framing with generous zoom-out so the building is completely visible at initial load
+  const getOptimalCameraPlacement = (
+    aspectRatio: number,
+    bWidth: number,
+    bDepth: number,
+    totalHeight: number,
+    mode: 'isometric' | 'top' | 'front' | 'floor_cut' | 'reset' = 'isometric'
+  ) => {
+    // 3D bounding radius from center
+    const halfX = bWidth / 2;
+    const halfZ = bDepth / 2;
+    const halfY = totalHeight / 2;
+    const boundingRadius = Math.sqrt(halfX * halfX + halfZ * halfZ + halfY * halfY);
+
+    // 45 degrees vertical FOV
+    const halfFovRad = (45 / 2) * (Math.PI / 180);
+    const tanHalfFov = Math.tan(halfFovRad);
+
+    // Calculate required distance to fit both vertically and horizontally
+    // On mobile screens with portrait aspect < 0.8, horizontal framing requires larger distance
+    const distV = (boundingRadius * 1.55) / tanHalfFov;
+    const distH = (boundingRadius * 1.55) / (tanHalfFov * Math.max(aspectRatio, 0.45));
+
+    // Generous zoom-out distance with safe minimum (48) so the model is fully framed with padding
+    const optimalDist = Math.max(distV, distH, 48);
+    const targetY = totalHeight * 0.45;
+
+    if (mode === 'top') {
+      return {
+        pos: new THREE.Vector3(0, optimalDist * 1.3, 0.01),
+        target: new THREE.Vector3(0, 0, 0),
+      };
+    }
+
+    if (mode === 'front') {
+      return {
+        pos: new THREE.Vector3(0, targetY + optimalDist * 0.12, optimalDist * 1.15),
+        target: new THREE.Vector3(0, targetY, 0),
+      };
+    }
+
+    if (mode === 'floor_cut') {
+      return {
+        pos: new THREE.Vector3(optimalDist * 0.62, targetY + optimalDist * 0.65, optimalDist * 0.74),
+        target: new THREE.Vector3(0, targetY, 0),
+      };
+    }
+
+    // Isometric / Exterior / Reset: Angled camera with full comfortable zoom-out
+    return {
+      pos: new THREE.Vector3(optimalDist * 0.68, targetY + optimalDist * 0.58, optimalDist * 0.78),
+      target: new THREE.Vector3(0, targetY, 0),
+    };
+  };
+
   // Main Three.js Scene Initialization & Re-render
   useEffect(() => {
     const container = mountRef.current;
@@ -835,13 +890,15 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
     scene.background = new THREE.Color(bgHex);
     scene.fog = new THREE.FogExp2(bgHex, 0.008);
 
-    // 2. Camera setup
-    const camera = new THREE.PerspectiveCamera(45, w / h, 0.1, 1000);
+    // 2. Camera setup with generous initial zoom-out to ensure building is completely visible
+    const aspect = w / h;
+    const camera = new THREE.PerspectiveCamera(45, aspect, 0.1, 1500);
     cameraRef.current = camera;
 
     const totalY = floorsCount * storyHeight;
-    camera.position.set(22, totalY + 8, 26);
-    camera.lookAt(0, totalY / 2, 0);
+    const initialCam = getOptimalCameraPlacement(aspect, width, depth, totalY, 'isometric');
+    camera.position.copy(initialCam.pos);
+    camera.lookAt(initialCam.target);
 
     // 3. WebGL Renderer
     const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true, alpha: true });
@@ -860,15 +917,15 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
     container.innerHTML = '';
     container.appendChild(renderer.domElement);
 
-    // 4. Orbit Controls
+    // 4. Orbit Controls with adjusted zoom range
     const controls = new OrbitControls(camera, renderer.domElement);
     controlsRef.current = controls;
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
     controls.maxPolarAngle = Math.PI / 2 - 0.02; // Prevent going below ground
-    controls.minDistance = 6;
-    controls.maxDistance = 120;
-    controls.target.set(0, totalY / 2, 0);
+    controls.minDistance = 4;
+    controls.maxDistance = Math.max(250, initialCam.pos.length() * 3);
+    controls.target.copy(initialCam.target);
     controls.autoRotate = autoRotate;
     controls.autoRotateSpeed = 2.0;
 
@@ -1427,15 +1484,18 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
     const camera = cameraRef.current;
     const controls = controlsRef.current;
     const totalY = floorsCount * storyHeight;
+    const aspect = camera.aspect || 1;
 
     if (viewMode === 'floor_cut') {
       setExplodePercent(50);
-      camera.position.set(16, totalY + 12, 18);
-      controls.target.set(0, totalY / 2, 0);
+      const cam = getOptimalCameraPlacement(aspect, width, depth, totalY, 'floor_cut');
+      camera.position.copy(cam.pos);
+      controls.target.copy(cam.target);
     } else if (viewMode === 'blueprint2d') {
       setExplodePercent(0);
-      camera.position.set(0, totalY + 28, 0.01);
-      controls.target.set(0, 0, 0);
+      const cam = getOptimalCameraPlacement(aspect, width, depth, totalY, 'top');
+      camera.position.copy(cam.pos);
+      controls.target.copy(cam.target);
     } else if (viewMode === 'walkthrough') {
       setExplodePercent(0);
       let posX = camPos.x;
@@ -1453,11 +1513,12 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
     } else {
       // Exterior
       setExplodePercent(0);
-      camera.position.set(22, totalY + 8, 26);
-      controls.target.set(0, totalY / 2, 0);
+      const cam = getOptimalCameraPlacement(aspect, width, depth, totalY, 'isometric');
+      camera.position.copy(cam.pos);
+      controls.target.copy(cam.target);
     }
     controls.update();
-  }, [viewMode, floorsCount, storyHeight]);
+  }, [viewMode, floorsCount, storyHeight, width, depth]);
 
   // Preset Camera Views
   const setCameraPerspective = (type: 'isometric' | 'top' | 'front' | 'reset') => {
@@ -1465,18 +1526,22 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
     const camera = cameraRef.current;
     const controls = controlsRef.current;
     const totalY = floorsCount * storyHeight;
+    const aspect = camera.aspect || 1;
 
     if (type === 'isometric' || type === 'reset') {
-      camera.position.set(22, totalY + 8, 26);
-      controls.target.set(0, totalY / 2, 0);
+      const cam = getOptimalCameraPlacement(aspect, width, depth, totalY, 'isometric');
+      camera.position.copy(cam.pos);
+      controls.target.copy(cam.target);
       setActivePerspective('isometric');
     } else if (type === 'top') {
-      camera.position.set(0, totalY + 32, 0.01);
-      controls.target.set(0, 0, 0);
+      const cam = getOptimalCameraPlacement(aspect, width, depth, totalY, 'top');
+      camera.position.copy(cam.pos);
+      controls.target.copy(cam.target);
       setActivePerspective('top');
     } else if (type === 'front') {
-      camera.position.set(0, totalY / 2 + 1, depth + 22);
-      controls.target.set(0, totalY / 2, 0);
+      const cam = getOptimalCameraPlacement(aspect, width, depth, totalY, 'front');
+      camera.position.copy(cam.pos);
+      controls.target.copy(cam.target);
       setActivePerspective('front');
     }
     controls.update();
@@ -1540,7 +1605,7 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
     >
       {/* 3D Control Bar - Positioned outside above the 3D canvas (hidden in drone mode to keep 3D view clean and unobstructed) */}
       {!isDroneMode && (
-        <div className={`p-1.5 sm:p-2 rounded-2xl border shadow-md flex items-center justify-between gap-1.5 text-xs transition-colors overflow-x-auto no-scrollbar whitespace-nowrap ${
+        <div className={`p-1.5 sm:p-2 rounded-2xl border shadow-md flex flex-wrap items-center justify-between gap-1.5 text-xs transition-colors w-full min-w-0 ${
           isNightMode ? 'bg-slate-900/90 border-slate-800 text-slate-300' : 'bg-white/90 border-slate-200 text-slate-800'
         }`}>
         {/* Camera Views Perspective Shortcuts */}
@@ -1549,7 +1614,7 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
         }`}>
           <button
             onClick={() => setCameraPerspective('isometric')}
-            className={`px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer ${
+            className={`px-2 sm:px-2.5 py-1 rounded-lg text-[10.5px] sm:text-xs font-bold transition-all cursor-pointer ${
               activePerspective === 'isometric'
                 ? 'bg-amber-500 text-slate-950 shadow-sm'
                 : isNightMode
@@ -1562,7 +1627,7 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
           </button>
           <button
             onClick={() => setCameraPerspective('top')}
-            className={`px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer ${
+            className={`px-2 sm:px-2.5 py-1 rounded-lg text-[10.5px] sm:text-xs font-bold transition-all cursor-pointer ${
               activePerspective === 'top'
                 ? 'bg-amber-500 text-slate-950 shadow-sm'
                 : isNightMode
@@ -1575,7 +1640,7 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
           </button>
           <button
             onClick={() => setCameraPerspective('front')}
-            className={`px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer ${
+            className={`px-2 sm:px-2.5 py-1 rounded-lg text-[10.5px] sm:text-xs font-bold transition-all cursor-pointer ${
               activePerspective === 'front'
                 ? 'bg-amber-500 text-slate-950 shadow-sm'
                 : isNightMode
@@ -1589,18 +1654,18 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
         </div>
 
         {unitStatus === 'decommissioned' && (
-          <div className="px-2.5 py-1 rounded-xl bg-rose-500/20 text-rose-400 border border-rose-500/40 text-xs font-black flex items-center gap-1 shrink-0" title={decommissionReason || 'وحدة مشطوبة ومجمدة عن الخدمة'}>
+          <div className="px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-xl bg-rose-500/20 text-rose-400 border border-rose-500/40 text-[10px] sm:text-xs font-black flex items-center gap-1 shrink-0" title={decommissionReason || 'وحدة مشطوبة ومجمدة عن الخدمة'}>
             <AlertTriangle className="w-3.5 h-3.5 text-rose-400" />
-            <span>وحدة مشطوبة</span>
+            <span>مشطوبة</span>
           </div>
         )}
 
-        {/* Action Controls - Single Row with compact text and clear icons */}
-        <div className="flex items-center gap-1 sm:gap-1.5 shrink-0 text-xs font-bold">
+        {/* Action Controls - Responsive flex row with compact text and clear icons */}
+        <div className="flex flex-wrap items-center gap-1 sm:gap-1.5 shrink-0 text-xs font-bold">
           {/* Day / Night Mode */}
           <button
             onClick={() => setIsNightMode(!isNightMode)}
-            className={`px-2.5 py-1 rounded-xl border transition flex items-center gap-1 cursor-pointer ${
+            className={`px-2 sm:px-2.5 py-1 rounded-xl border transition flex items-center gap-1 cursor-pointer text-[10.5px] sm:text-xs ${
               isNightMode
                 ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40'
                 : 'bg-amber-500/20 text-amber-700 border-amber-500/40'
@@ -1608,14 +1673,14 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
             title={isNightMode ? 'الوضع الداكن (مفعل)' : 'الوضع الفاتح (مفعل)'}
           >
             {isNightMode ? <Moon className="w-3.5 h-3.5" /> : <Sun className="w-3.5 h-3.5" />}
-            <span>{isNightMode ? 'داكن' : 'فاتح'}</span>
+            <span className="hidden xs:inline">{isNightMode ? 'داكن' : 'فاتح'}</span>
           </button>
 
           {/* Night Lights */}
           {isNightMode && (
             <button
               onClick={() => setIsNightLightsOn(!isNightLightsOn)}
-              className={`px-2 py-1 rounded-xl border transition flex items-center gap-1 cursor-pointer ${
+              className={`px-2 py-1 rounded-xl border transition flex items-center gap-1 cursor-pointer text-[10.5px] sm:text-xs ${
                 isNightLightsOn
                   ? 'bg-amber-500/20 text-amber-400 border-amber-500/40'
                   : 'bg-slate-800 text-slate-400 border-slate-700'
@@ -1623,14 +1688,14 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
               title={isNightLightsOn ? 'إطفاء الإنارة' : 'تشغيل الإنارة'}
             >
               {isNightLightsOn ? <Lightbulb className="w-3.5 h-3.5 text-amber-400 fill-amber-400" /> : <LightbulbOff className="w-3.5 h-3.5" />}
-              <span>إنارة</span>
+              <span className="hidden xs:inline">إنارة</span>
             </button>
           )}
 
           {/* Auto Rotate */}
           <button
             onClick={() => setAutoRotate(!autoRotate)}
-            className={`px-2 py-1 rounded-xl border transition flex items-center gap-1 cursor-pointer ${
+            className={`px-2 py-1 rounded-xl border transition flex items-center gap-1 cursor-pointer text-[10.5px] sm:text-xs ${
               autoRotate
                 ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40'
                 : isNightMode
@@ -1640,7 +1705,7 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
             title={autoRotate ? 'إيقاف التدوير التلقائي' : 'تشغيل التدوير التلقائي'}
           >
             <RotateCw className={`w-3.5 h-3.5 ${autoRotate ? 'animate-spin' : ''}`} />
-            <span>تدوير</span>
+            <span className="hidden sm:inline">تدوير</span>
           </button>
 
           {/* Explode Floors (if multi-floor) */}
@@ -1648,7 +1713,7 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
             <button
               type="button"
               onClick={() => setShowExplodePopover(!showExplodePopover)}
-              className={`px-2.5 py-1 rounded-xl border transition flex items-center gap-1 cursor-pointer ${
+              className={`px-2 sm:px-2.5 py-1 rounded-xl border transition flex items-center gap-1 cursor-pointer text-[10.5px] sm:text-xs ${
                 explodePercent > 0 || showExplodePopover
                   ? 'bg-amber-500 text-slate-950 border-amber-400 font-bold shadow'
                   : isNightMode
@@ -1658,7 +1723,7 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
               title="تفكيك وفصل الطوابق عمودياً (Exploded View)"
             >
               <Layers className="w-3.5 h-3.5" />
-              <span>تفكيك {explodePercent > 0 ? `(${toArabicDigits(explodePercent)}%)` : ''}</span>
+              <span>تفكيك{explodePercent > 0 ? ` (${toArabicDigits(explodePercent)}%)` : ''}</span>
             </button>
           )}
 
@@ -1673,7 +1738,7 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
                 if (controlsRef.current) controlsRef.current.enabled = true;
               }
             }}
-            className={`px-2.5 py-1 rounded-xl border transition flex items-center gap-1 cursor-pointer ${
+            className={`px-2 sm:px-2.5 py-1 rounded-xl border transition flex items-center gap-1 cursor-pointer text-[10.5px] sm:text-xs ${
               isDroneMode
                 ? 'bg-amber-500 text-slate-950 border-amber-400 shadow animate-pulse'
                 : isNightMode
@@ -1683,13 +1748,13 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
             title="تصوير درون سينمائي جوي"
           >
             <Camera className="w-3.5 h-3.5 text-amber-500" />
-            <span>درون</span>
+            <span className="hidden xs:inline">درون</span>
           </button>
 
           {/* Interactive Engineering Editor & Equipment Trigger */}
           <button
             onClick={() => setShowEngineeringEditor(!showEngineeringEditor)}
-            className={`px-2.5 py-1 rounded-xl border transition flex items-center gap-1.5 cursor-pointer shadow-sm ${
+            className={`px-2 sm:px-2.5 py-1 rounded-xl border transition flex items-center gap-1 sm:gap-1.5 cursor-pointer shadow-sm text-[10.5px] sm:text-xs ${
               showEngineeringEditor
                 ? 'bg-amber-500 text-slate-950 border-amber-400 font-extrabold ring-2 ring-amber-500/30'
                 : customElements.length > 0
@@ -1701,9 +1766,10 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
             title="المحرر الهندسي والمعدات وتخصيص الهيكل"
           >
             <Sliders className="w-3.5 h-3.5 text-amber-500" />
-            <span>المحرر والمعدات</span>
+            <span className="hidden sm:inline">المحرر والمعدات</span>
+            <span className="sm:hidden">المحرر</span>
             {customElements.length > 0 && (
-              <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono font-black ${
+              <span className={`px-1.5 py-0.2 rounded-full text-[9px] sm:text-[10px] font-mono font-black ${
                 showEngineeringEditor ? 'bg-slate-950 text-amber-400' : 'bg-amber-500 text-slate-950'
               }`}>
                 {toArabicDigits(customElements.length)}
@@ -1714,7 +1780,7 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
           {/* Fullscreen Toggle */}
           <button
             onClick={toggleFullscreen}
-            className={`px-2.5 py-1 rounded-xl border transition flex items-center gap-1 cursor-pointer ${
+            className={`px-2 sm:px-2.5 py-1 rounded-xl border transition flex items-center gap-1 cursor-pointer text-[10.5px] sm:text-xs ${
               isFullscreen
                 ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-md'
                 : isNightMode
@@ -1724,7 +1790,7 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
             title={isFullscreen ? 'تصغير الشاشة' : 'ملء الشاشة'}
           >
             {isFullscreen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5 text-amber-500" />}
-            <span>{isFullscreen ? 'تصغير' : 'ملء الشاشة'}</span>
+            <span className="hidden sm:inline">{isFullscreen ? 'تصغير' : 'ملء الشاشة'}</span>
           </button>
         </div>
       </div>
@@ -1733,8 +1799,8 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
       {/* 3D WebGL Canvas Viewport */}
       <div
         className={`relative w-full ${
-          isFullscreen ? 'flex-1 h-full rounded-none border-0' : 'h-[540px] rounded-2xl border'
-        } overflow-hidden shadow-2xl flex flex-col select-none transition-all duration-300 ${
+          isFullscreen ? 'flex-1 h-full rounded-none border-0' : 'h-[360px] xs:h-[440px] sm:h-[540px] rounded-2xl border'
+        } overflow-hidden shadow-2xl flex flex-col select-none transition-all duration-300 min-w-0 ${
           isNightMode ? 'bg-slate-950 border-slate-800' : 'bg-slate-100 border-slate-300'
         }`}
         onDragOver={(e) => {

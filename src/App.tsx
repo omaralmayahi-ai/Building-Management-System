@@ -13,6 +13,7 @@ import {
   Info,
   X,
   MapPin,
+  QrCode,
 } from 'lucide-react';
 import { Header } from './components/Header';
 import { Sidebar, NavTab } from './components/Sidebar';
@@ -2137,74 +2138,6 @@ export function App() {
   const isRoleMaintenance = currentUserRole === 'موظف الصيانة' || currentUserRole === 'maintenance_employee';
   const isRoleUser = currentUserRole === 'مستخدم' || currentUserRole === 'user';
 
-  // Responsive Mobile Navigation Items (Tailored to permissions)
-  const mobileMenuItems = [
-    {
-      id: 'field_inspection' as NavTab,
-      label: 'كشف ميداني',
-      icon: ClipboardCheck,
-      roles: ['موظف الكشف والصيانة'],
-    },
-    {
-      id: 'dashboard' as NavTab,
-      label: 'الرئيسية',
-      icon: LayoutDashboard,
-      roles: ['مدير النظام', 'مشغل النظام', 'مستخدم'],
-    },
-    {
-      id: 'units' as NavTab,
-      label: 'الوحدات',
-      icon: Box,
-      roles: ['مدير النظام', 'مشغل النظام', 'مستخدم'],
-    },
-    {
-      id: 'gis_map' as NavTab,
-      label: 'الخريطة GIS',
-      icon: MapPin,
-      roles: ['مدير النظام', 'مشغل النظام', 'مستخدم'],
-    },
-    {
-      id: 'new_unit' as NavTab,
-      label: 'تسجيل',
-      icon: PlusCircle,
-      roles: ['مدير النظام', 'مشغل النظام'],
-    },
-    {
-      id: 'periodic_inspection' as NavTab,
-      label: 'كشوفات',
-      icon: CalendarCheck,
-      roles: ['مدير النظام', 'مشغل النظام'],
-    },
-    {
-      id: 'maintenance' as NavTab,
-      label: 'صيانة',
-      icon: Wrench,
-      roles: ['مدير النظام', 'مشغل النظام', 'موظف الصيانة'],
-    },
-    {
-      id: 'reports' as NavTab,
-      label: 'تقارير',
-      icon: FileText,
-      roles: ['مدير النظام', 'مشغل النظام', 'مستخدم', 'موظف الصيانة'],
-    },
-    {
-      id: 'settings' as NavTab,
-      label: 'إعدادات',
-      icon: Settings,
-      roles: ['مدير النظام'],
-    },
-  ].filter((item) => {
-    if (isRoleAdmin) return true;
-    if (isRoleInspector) {
-      return ['field_inspection'].includes(item.id);
-    }
-    if (isRoleMaintenance) {
-      return ['maintenance', 'reports'].includes(item.id);
-    }
-    if (isRoleOperator) return item.id !== 'settings' && item.id !== 'field_inspection';
-    return item.roles.includes('مستخدم') && item.id !== 'field_inspection';
-  });
-
   return (
     <div
       dir="rtl"
@@ -2212,7 +2145,7 @@ export function App() {
         theme === 'light' ? 'light bg-slate-100 text-slate-900' : 'dark bg-slate-950 text-slate-100'
       }`}
     >
-      {/* Top Navigation Header */}
+      {/* Top Navigation Header with embedded mobile sub-header navigation */}
       <Header
         onOpenNewAssetModal={!isRoleUser && !isRoleInspector && !isRoleMaintenance ? () => setActiveTab('new_unit') : undefined}
         onOpenNewMaintenanceModal={
@@ -2234,6 +2167,8 @@ export function App() {
         onLogout={handleLogout}
         onChangePassword={handleChangePassword}
         syncStatus={syncStatus}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
       />
 
       {/* Main Body Layout: Sidebar + Dynamic Main Content */}
@@ -2252,42 +2187,7 @@ export function App() {
           currentUserRole={currentUserRole}
         />
 
-        <main className="flex-1 p-2 sm:p-3 md:p-5 pb-24 md:pb-5 min-w-0 max-w-full overflow-x-clip space-y-3.5 sm:space-y-4 md:space-y-5">
-          {/* Mobile Main Navigation Bar: Sticky as user scrolls down for effortless navigation */}
-          <div
-            className={`md:hidden w-full rounded-2xl p-1 shadow-md border transition select-none sticky top-[61px] z-20 backdrop-blur-md ${
-              theme === 'light'
-                ? 'bg-white/95 border-slate-200 shadow-slate-200/60'
-                : 'bg-slate-900/95 border-slate-800 shadow-slate-950/60'
-            }`}
-          >
-            <div className="flex items-center justify-between w-full gap-0.5">
-              {mobileMenuItems.map((item) => {
-                const Icon = item.icon;
-                const isActive = activeTab === item.id;
-                return (
-                  <button
-                    key={`top-nav-${item.id}`}
-                    onClick={() => setActiveTab(item.id)}
-                    className={`flex-1 flex flex-col items-center justify-center py-1.5 px-0.5 rounded-xl transition-all cursor-pointer select-none min-w-0 ${
-                      isActive
-                        ? 'bg-amber-500 text-slate-950 font-black shadow-xs'
-                        : theme === 'light'
-                        ? 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-                        : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'
-                    }`}
-                    title={item.label}
-                  >
-                    <Icon className={`w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 ${isActive ? 'text-slate-950' : 'text-amber-500 dark:text-amber-400'}`} />
-                    <span className="text-[9px] sm:text-[10px] leading-tight mt-0.5 truncate w-full text-center font-bold">
-                      {item.label}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
+        <main className="flex-1 p-2 sm:p-3 md:p-5 pb-6 sm:pb-8 md:pb-5 min-w-0 max-w-full overflow-x-clip space-y-3.5 sm:space-y-4 md:space-y-5">
           {/* Active View Router */}
           {activeTab === 'field_inspection' && (
             <FieldInspectionView
@@ -2514,45 +2414,6 @@ export function App() {
           )}
         </main>
       </div>
-
-      {/* Fixed Bottom Mobile Navigation Dock (Thumb-friendly, 0 scrollbars) */}
-      <nav
-        aria-label="Mobile Bottom Navigation"
-        className={`fixed bottom-0 left-0 right-0 z-40 md:hidden border-t px-1 py-1 shadow-2xl backdrop-blur-md transition-colors duration-300 ${
-          theme === 'light'
-            ? 'bg-white/95 border-slate-200 shadow-slate-300 text-slate-800'
-            : 'bg-slate-950/95 border-slate-800 shadow-black text-slate-200'
-        }`}
-      >
-        <div className="flex items-center justify-around w-full gap-0.5 max-w-lg mx-auto">
-          {mobileMenuItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = activeTab === item.id;
-            return (
-              <button
-                key={`dock-nav-${item.id}`}
-                onClick={() => {
-                  setActiveTab(item.id);
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                }}
-                className={`flex-1 flex flex-col items-center justify-center py-1 px-0.5 rounded-xl transition-all cursor-pointer select-none min-w-0 ${
-                  isActive
-                    ? 'bg-amber-500 text-slate-950 font-black shadow-sm'
-                    : theme === 'light'
-                    ? 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-                    : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'
-                }`}
-                title={item.label}
-              >
-                <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-slate-950' : 'text-amber-500 dark:text-amber-400'}`} />
-                <span className="text-[9px] leading-tight mt-0.5 truncate w-full text-center font-bold">
-                  {item.label}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      </nav>
 
       {/* Maintenance Request Modal */}
       {showNewMaintenanceModal && (

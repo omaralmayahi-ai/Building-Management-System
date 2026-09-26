@@ -15,6 +15,20 @@ import {
   Sparkles,
   ChevronUp,
   ChevronDown,
+  Smartphone,
+  LayoutGrid,
+  Shield,
+  Briefcase,
+  Layers,
+  FolderTree,
+  Folder,
+  Box,
+  Crown,
+  Filter,
+  Users,
+  ChevronRight,
+  ChevronLeft,
+  RotateCcw,
 } from 'lucide-react';
 import html2canvas from 'html2canvas-pro';
 import { OrgEntity, SystemBranding, UnitAsset, Room } from '../types';
@@ -73,8 +87,47 @@ export const OrgChartModal: React.FC<OrgChartModalProps> = ({
   const [isToolbarOpen, setIsToolbarOpen] = useState<boolean>(true);
   const [chartContentHeight, setChartContentHeight] = useState<number>(2200);
 
+  // Screen detection & View Mode (Interactive List vs Canvas Chart)
+  const [isMobileScreen, setIsMobileScreen] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth < 768;
+    }
+    return false;
+  });
+
+  const [activeViewMode, setActiveViewMode] = useState<'interactive' | 'canvas'>(() => {
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      return 'interactive';
+    }
+    return 'canvas';
+  });
+
+  // Level filter for interactive mobile mode
+  const [levelFilter, setLevelFilter] = useState<string>('all');
+  const [interactiveDisplayMode, setInteractiveDisplayMode] = useState<'tree' | 'flat'>('tree');
+  const [expandedCommissions, setExpandedCommissions] = useState<Record<string, boolean>>(() => {
+    const init: Record<string, boolean> = {};
+    orgEntities.filter((e) => e.level === 'commission' || e.nameAr?.startsWith('هيئة')).slice(0, 2).forEach((c) => {
+      init[c.id] = true;
+    });
+    return init;
+  });
+  const [expandedDepts, setExpandedDepts] = useState<Record<string, boolean>>({});
+
   const chartRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Detect resize to keep isMobileScreen synced
+  useEffect(() => {
+    const handleResize = () => {
+      if (typeof window !== 'undefined') {
+        const mobile = window.innerWidth < 768;
+        setIsMobileScreen(mobile);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Sync selectedOccupantNames when modal opens in selectionMode
   useEffect(() => {
@@ -89,9 +142,17 @@ export const OrgChartModal: React.FC<OrgChartModalProps> = ({
     return selectedOccupantNames.includes(entity.nameAr.trim());
   };
 
+  const isNameSelected = (name: string): boolean => {
+    return selectedOccupantNames.includes(name.trim());
+  };
+
   const getEntitySelectionIndex = (entity: OrgEntity | null | undefined): number => {
     if (!entity) return -1;
     return selectedOccupantNames.indexOf(entity.nameAr.trim());
+  };
+
+  const getNameSelectionIndex = (name: string): number => {
+    return selectedOccupantNames.indexOf(name.trim());
   };
 
   const handleEntityClick = (entity: OrgEntity) => {
@@ -107,6 +168,38 @@ export const OrgChartModal: React.FC<OrgChartModalProps> = ({
     } else {
       setSelectedEntity(entity);
     }
+  };
+
+  const handleToggleSelectByName = (name: string) => {
+    const trimmed = name.trim();
+    setSelectedOccupantNames((prev) => {
+      if (prev.includes(trimmed)) {
+        return prev.filter((n) => n !== trimmed);
+      } else {
+        return [...prev, trimmed];
+      }
+    });
+  };
+
+  const handleSetPrimaryByName = (name: string) => {
+    const trimmed = name.trim();
+    setSelectedOccupantNames((prev) => {
+      const filtered = prev.filter((n) => n !== trimmed);
+      return [trimmed, ...filtered];
+    });
+  };
+
+  const handleRemoveOccupantByName = (name: string) => {
+    const trimmed = name.trim();
+    setSelectedOccupantNames((prev) => prev.filter((n) => n !== trimmed));
+  };
+
+  const toggleCommissionExpand = (id: string) => {
+    setExpandedCommissions((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const toggleDeptExpand = (id: string) => {
+    setExpandedDepts((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
   const renderSelectionBadge = (entity: OrgEntity | null | undefined) => {
@@ -507,6 +600,156 @@ export const OrgChartModal: React.FC<OrgChartModalProps> = ({
     [orgEntities, getEntityOccupiedAssets]
   );
 
+  // Level configuration for labels, icons, and theme badges in mobile interactive mode
+  const LEVEL_CONFIG: Record<string, { label: string; icon: React.ComponentType<{ className?: string }>; color: string; bgLight: string; bgDark: string; badge: string }> = {
+    director_general: {
+      label: 'المدير العام',
+      icon: Shield,
+      color: 'text-amber-500',
+      bgLight: 'bg-amber-100 text-amber-900 border-amber-300',
+      bgDark: 'bg-amber-500/20 text-amber-300 border-amber-500/40',
+      badge: 'إدارة عليا',
+    },
+    deputy_director: {
+      label: 'معاون المدير العام',
+      icon: Briefcase,
+      color: 'text-amber-400',
+      bgLight: 'bg-amber-50 text-amber-900 border-amber-300',
+      bgDark: 'bg-amber-500/15 text-amber-300 border-amber-500/30',
+      badge: 'معاون مدير',
+    },
+    commission: {
+      label: 'هيئة رئيسية',
+      icon: Building2,
+      color: 'text-emerald-500',
+      bgLight: 'bg-emerald-100 text-emerald-900 border-emerald-300',
+      bgDark: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40',
+      badge: 'هيئة',
+    },
+    central_dept: {
+      label: 'قسم مركزي',
+      icon: Layers,
+      color: 'text-cyan-500',
+      bgLight: 'bg-cyan-100 text-cyan-900 border-cyan-300',
+      bgDark: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40',
+      badge: 'قسم مركزي',
+    },
+    department: {
+      label: 'قسم إداري',
+      icon: FolderTree,
+      color: 'text-blue-500',
+      bgLight: 'bg-blue-100 text-blue-900 border-blue-300',
+      bgDark: 'bg-blue-500/20 text-blue-300 border-blue-500/40',
+      badge: 'قسم',
+    },
+    section: {
+      label: 'شعبة',
+      icon: Folder,
+      color: 'text-purple-500',
+      bgLight: 'bg-purple-100 text-purple-900 border-purple-300',
+      bgDark: 'bg-purple-500/20 text-purple-300 border-purple-500/40',
+      badge: 'شعبة',
+    },
+    unit: {
+      label: 'وحدة إدارية',
+      icon: Box,
+      color: 'text-slate-400',
+      bgLight: 'bg-slate-100 text-slate-700 border-slate-300',
+      bgDark: 'bg-slate-800 text-slate-300 border-slate-700',
+      badge: 'وحدة',
+    },
+  };
+
+  const getLevelConfig = (level: string) => {
+    return LEVEL_CONFIG[level] || LEVEL_CONFIG.unit;
+  };
+
+  const entityMap = useMemo(() => {
+    const map = new Map<string, OrgEntity>();
+    orgEntities.forEach((e) => map.set(e.id, e));
+    return map;
+  }, [orgEntities]);
+
+  const levelCounts = useMemo(() => {
+    const counts: Record<string, number> = {
+      all: orgEntities.length,
+      dgAndDeputies: 0,
+      commission: 0,
+      central_dept: 0,
+      department: 0,
+      section: 0,
+      unit: 0,
+    };
+
+    orgEntities.forEach((e) => {
+      if (
+        e.level === 'director_general' ||
+        e.level === 'deputy_director' ||
+        e.nameAr?.includes('معاون') ||
+        e.nameAr?.includes('المدير العام')
+      ) {
+        counts.dgAndDeputies++;
+      } else if (e.level === 'commission' || e.nameAr?.startsWith('هيئة') || e.nameAr?.startsWith('الهيئة')) {
+        counts.commission++;
+      } else if (
+        e.level === 'central_dept' ||
+        (e.level === 'department' && (e.nameAr?.includes('مركزي') || !e.parentId))
+      ) {
+        counts.central_dept++;
+      } else if (e.level === 'department') {
+        counts.department++;
+      } else if (e.level === 'section') {
+        counts.section++;
+      } else {
+        counts.unit++;
+      }
+    });
+
+    return counts;
+  }, [orgEntities]);
+
+  const interactiveFilteredEntities = useMemo(() => {
+    let list = orgEntities.filter((e) => e.status !== 'disabled');
+
+    if (levelFilter !== 'all') {
+      if (levelFilter === 'dgAndDeputies') {
+        list = list.filter(
+          (e) =>
+            e.level === 'director_general' ||
+            e.level === 'deputy_director' ||
+            e.nameAr?.includes('معاون') ||
+            e.nameAr?.includes('المدير العام')
+        );
+      } else if (levelFilter === 'commission') {
+        list = list.filter((e) => e.level === 'commission' || e.nameAr?.startsWith('هيئة') || e.nameAr?.startsWith('الهيئة'));
+      } else if (levelFilter === 'central_dept') {
+        list = list.filter(
+          (e) =>
+            e.level === 'central_dept' ||
+            (e.level === 'department' && (e.nameAr?.includes('مركزي') || !e.parentId))
+        );
+      } else if (levelFilter === 'department') {
+        list = list.filter((e) => e.level === 'department' && !e.nameAr?.includes('مركزي') && e.parentId);
+      } else if (levelFilter === 'section') {
+        list = list.filter((e) => e.level === 'section');
+      } else if (levelFilter === 'unit') {
+        list = list.filter((e) => e.level === 'unit');
+      }
+    }
+
+    if (searchQuery.trim()) {
+      const q = searchQuery.trim().toLowerCase();
+      list = list.filter(
+        (e) =>
+          (e.nameAr && e.nameAr.toLowerCase().includes(q)) ||
+          (e.nameEn && e.nameEn.toLowerCase().includes(q)) ||
+          (e.code && e.code.toLowerCase().includes(q))
+      );
+    }
+
+    return list;
+  }, [orgEntities, levelFilter, searchQuery]);
+
   // Zoom handlers
   const handleZoomIn = () => setZoomLevel((prev) => Math.min(parseFloat((prev + 0.1).toFixed(2)), 1.8));
   const handleZoomOut = () => setZoomLevel((prev) => Math.max(parseFloat((prev - 0.1).toFixed(2)), 0.2));
@@ -735,71 +978,106 @@ export const OrgChartModal: React.FC<OrgChartModalProps> = ({
 
       {/* Top Modal Controls Header (Hidden during Print) */}
       <div className="non-printable bg-slate-900 border-b border-slate-800 text-slate-100 shrink-0 shadow-md">
-        {/* Row 1: Main Header (Title + Collapsible Toolbar Toggle + Exit Button on Top-Left Corner) */}
-        <div className="px-4 py-2 flex items-center justify-between gap-3">
-          {/* Right Section (in RTL): Icon, Title, Selection count, Toolbar Toggle */}
-          <div className="flex items-center gap-2.5">
-            <div className="p-1.5 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20">
+        {/* Row 1: Main Header (Title + View Switcher + Collapsible Toolbar Toggle + Exit Button) */}
+        <div className="px-3 sm:px-4 py-2 flex items-center justify-between gap-2 flex-wrap">
+          {/* Right Section (in RTL): Icon, Title, Selection count */}
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="p-1.5 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20 shrink-0">
               <Network className="w-4 h-4" />
             </div>
-            <h2 className="text-sm font-black text-white">
-              {selectionMode ? 'الهيكل التنظيمي - اختيار الجهات الشاغلة' : 'الهيكل التنظيمي المعتمد'}
-            </h2>
-
-            {selectionMode && (
-              <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                <span>تم تحديد ({toArabicDigits(selectedOccupantNames.length)}) تشكيل</span>
-              </span>
-            )}
-
-            {/* زر طي / فتح شريط أزرار التحكم */}
-            <button
-              type="button"
-              onClick={() => setIsToolbarOpen((prev) => !prev)}
-              className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-750 text-slate-200 border border-slate-700 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs ml-1"
-              title={isToolbarOpen ? 'طي شريط أزرار التحكم' : 'فتح شريط أزرار التحكم'}
-            >
-              {isToolbarOpen ? (
-                <>
-                  <ChevronUp className="w-3.5 h-3.5 text-amber-400" />
-                  <span>طي أزرار التحكم</span>
-                </>
-              ) : (
-                <>
-                  <ChevronDown className="w-3.5 h-3.5 text-amber-400" />
-                  <span>فتح أزرار التحكم</span>
-                </>
+            <div className="min-w-0">
+              <h2 className="text-xs sm:text-sm font-black text-white truncate leading-tight">
+                {selectionMode ? 'الهيكل التنظيمي - اختيار الجهات الشاغلة' : 'الهيكل التنظيمي المعتمد'}
+              </h2>
+              {selectionMode && (
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  <span className="text-[10px] font-bold text-amber-400">
+                    {selectedOccupantNames.length > 0
+                      ? `تم تحديد (${toArabicDigits(selectedOccupantNames.length)}) تشكيل`
+                      : 'لم يتم تحديد أي جهة بعد'}
+                  </span>
+                  {selectedOccupantNames.length > 0 && (
+                    <span className="hidden sm:inline text-[9.5px] text-slate-400">
+                      • الرئيسية: <strong className="text-amber-300 font-bold">{selectedOccupantNames[0]}</strong>
+                    </span>
+                  )}
+                </div>
               )}
-            </button>
+            </div>
           </div>
 
-          {/* Left Section (in RTL -> Top-Left Corner): Close / Exit Button */}
-          <div className="flex items-center">
+          {/* Left Section (in RTL): View Switcher + Close/Exit */}
+          <div className="flex items-center gap-1.5 shrink-0 mr-auto">
+            {/* View Mode Toggle Switcher: Interactive Mobile List 📱 vs Canvas Chart 📐 */}
+            <div className="flex items-center bg-slate-950/80 rounded-xl p-0.5 border border-slate-800 shadow-xs">
+              <button
+                type="button"
+                onClick={() => setActiveViewMode('interactive')}
+                className={`px-2 py-1 rounded-lg text-[11px] sm:text-xs font-bold transition flex items-center gap-1 cursor-pointer ${
+                  activeViewMode === 'interactive'
+                    ? 'bg-amber-500 text-slate-950 font-black shadow-xs'
+                    : 'text-slate-300 hover:text-white'
+                }`}
+                title="عرض شجرة وقوائم التشكيلات المخصص للهاتف المحمول"
+              >
+                <Smartphone className="w-3.5 h-3.5" />
+                <span className="hidden xs:inline">قائمة الهاتف</span>
+                <span className="xs:hidden">قائمة</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveViewMode('canvas')}
+                className={`px-2 py-1 rounded-lg text-[11px] sm:text-xs font-bold transition flex items-center gap-1 cursor-pointer ${
+                  activeViewMode === 'canvas'
+                    ? 'bg-amber-500 text-slate-950 font-black shadow-xs'
+                    : 'text-slate-300 hover:text-white'
+                }`}
+                title="عرض المخطط الهيكلي الهندسي الشامل"
+              >
+                <LayoutGrid className="w-3.5 h-3.5" />
+                <span className="hidden xs:inline">المخطط الهندسي</span>
+                <span className="xs:hidden">مخطط</span>
+              </button>
+            </div>
+
+            {/* In Canvas Mode: Toolbar toggle */}
+            {activeViewMode === 'canvas' && (
+              <button
+                type="button"
+                onClick={() => setIsToolbarOpen((prev) => !prev)}
+                className="hidden sm:flex px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-750 text-slate-200 border border-slate-700 text-xs font-bold transition items-center gap-1 cursor-pointer shadow-xs"
+                title={isToolbarOpen ? 'طي شريط أزرار التحكم' : 'فتح شريط أزرار التحكم'}
+              >
+                {isToolbarOpen ? <ChevronUp className="w-3.5 h-3.5 text-amber-400" /> : <ChevronDown className="w-3.5 h-3.5 text-amber-400" />}
+              </button>
+            )}
+
+            {/* Exit Button */}
             <button
               type="button"
               onClick={onClose}
-              className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-rose-600 text-slate-300 hover:text-white transition cursor-pointer border border-slate-700 shadow-xs flex items-center gap-1.5 text-xs font-bold"
+              className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-rose-600 text-slate-300 hover:text-white transition cursor-pointer border border-slate-700 shadow-xs flex items-center gap-1 text-xs font-bold"
               title="خروج من الهيكل التنظيمي (Esc)"
             >
               <X className="w-4 h-4" />
-              <span>خروج</span>
+              <span className="hidden xs:inline">خروج</span>
             </button>
           </div>
         </div>
 
-        {/* Row 2: Collapsible Controls Toolbar */}
-        {isToolbarOpen && (
-          <div className="px-4 py-1.5 bg-slate-950/70 border-t border-slate-800/80 flex items-center justify-between gap-2 flex-wrap text-xs">
+        {/* Row 2: Collapsible Controls Toolbar (Only shown in Canvas Mode when open) */}
+        {activeViewMode === 'canvas' && isToolbarOpen && (
+          <div className="px-3 sm:px-4 py-1.5 bg-slate-950/70 border-t border-slate-800/80 flex items-center justify-between gap-2 flex-wrap text-xs">
             {/* Search, Formats/Orientations, and Action Buttons */}
             <div className="flex items-center gap-2 flex-wrap">
               {/* Search Field */}
-              <div className="relative w-44 sm:w-56">
+              <div className="relative w-36 sm:w-56">
                 <Search className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-1.5 pointer-events-none" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="بحث عن هيئة، قسم، أو شعبة..."
+                  placeholder="بحث عن تشكيل..."
                   className="w-full pl-6 pr-8 py-1 rounded-lg bg-slate-800 border border-slate-700 text-[11px] text-slate-200 placeholder-slate-400 focus:outline-none focus:border-amber-500 transition"
                 />
                 {searchQuery && (
@@ -820,7 +1098,7 @@ export const OrgChartModal: React.FC<OrgChartModalProps> = ({
                   <span>
                     {matchingIds.size > 0
                       ? `(${toArabicDigits(matchingIds.size)}) نتيجة`
-                      : 'لا توجد نتائج'}
+                      : 'لا نتائج'}
                   </span>
                 </span>
               )}
@@ -834,7 +1112,7 @@ export const OrgChartModal: React.FC<OrgChartModalProps> = ({
                       key={opt.id}
                       type="button"
                       onClick={() => handleFormatChange(opt.id)}
-                      className={`px-2 py-0.5 rounded text-[10px] font-bold transition cursor-pointer flex items-center gap-1 ${
+                      className={`px-1.5 sm:px-2 py-0.5 rounded text-[9.5px] sm:text-[10px] font-bold transition cursor-pointer flex items-center gap-1 ${
                         isSelected
                           ? 'bg-amber-500 text-slate-950 shadow-xs font-black'
                           : 'text-slate-300 hover:text-white hover:bg-slate-700'
@@ -859,11 +1137,11 @@ export const OrgChartModal: React.FC<OrgChartModalProps> = ({
                       }
                       onClose();
                     }}
-                    className="px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-black text-[11px] transition flex items-center gap-1 cursor-pointer shadow-xs"
+                    className="px-2.5 sm:px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-black text-[11px] transition flex items-center gap-1 cursor-pointer shadow-xs"
                     title="حفظ التشكيلات المحددة وتعيينها كجهات شاغلة للمنشأة"
                   >
                     <Check className="w-3.5 h-3.5 text-emerald-100" />
-                    <span>حفظ التحديد ({toArabicDigits(selectedOccupantNames.length)})</span>
+                    <span>حفظ ({toArabicDigits(selectedOccupantNames.length)})</span>
                   </button>
 
                   {selectedOccupantNames.length > 0 && (
@@ -873,7 +1151,7 @@ export const OrgChartModal: React.FC<OrgChartModalProps> = ({
                       className="px-2 py-1 rounded-lg bg-slate-800 hover:bg-rose-500/20 text-slate-300 hover:text-rose-300 border border-slate-700 font-bold text-[10px] transition cursor-pointer"
                       title="إلغاء تحديد كافة التشكيلات"
                     >
-                      إلغاء التحديد
+                      مسح
                     </button>
                   )}
                 </div>
@@ -883,7 +1161,7 @@ export const OrgChartModal: React.FC<OrgChartModalProps> = ({
                   type="button"
                   onClick={handleExportImage}
                   disabled={isExporting}
-                  className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-750 disabled:opacity-50 text-slate-200 border border-slate-700 hover:border-slate-600 font-bold text-[11px] transition flex items-center gap-1 cursor-pointer shadow-xs"
+                  className="px-2 sm:px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-750 disabled:opacity-50 text-slate-200 border border-slate-700 hover:border-slate-600 font-bold text-[10px] sm:text-[11px] transition flex items-center gap-1 cursor-pointer shadow-xs"
                   title="تصدير الهيكل التنظيمي كاملاً كصورة عالية الدقة PNG"
                 >
                   {isExporting ? (
@@ -891,7 +1169,7 @@ export const OrgChartModal: React.FC<OrgChartModalProps> = ({
                   ) : (
                     <Download className="w-3.5 h-3.5 text-emerald-400" />
                   )}
-                  <span>{isExporting ? 'جاري التصدير...' : 'تصدير صورة (PNG)'}</span>
+                  <span>{isExporting ? 'تصدير...' : 'تصدير PNG'}</span>
                 </button>
               )}
             </div>
@@ -906,7 +1184,7 @@ export const OrgChartModal: React.FC<OrgChartModalProps> = ({
               >
                 <ZoomOut className="w-3.5 h-3.5" />
               </button>
-              <span className="text-[10px] font-mono px-1.5 text-slate-300 min-w-[40px] text-center font-bold">
+              <span className="text-[10px] font-mono px-1 text-slate-300 min-w-[36px] text-center font-bold">
                 {Math.round(zoomLevel * 100)}%
               </span>
               <button
@@ -920,11 +1198,11 @@ export const OrgChartModal: React.FC<OrgChartModalProps> = ({
               <button
                 type="button"
                 onClick={handleAutoFit}
-                className="px-2 py-0.5 text-slate-300 hover:text-amber-400 text-[10px] font-bold transition cursor-pointer flex items-center gap-1 border-r border-slate-700"
+                className="px-1.5 sm:px-2 py-0.5 text-slate-300 hover:text-amber-400 text-[10px] font-bold transition cursor-pointer flex items-center gap-1 border-r border-slate-700"
                 title="احتواء الهيكل التنظيمي ليلائم عرض الشاشة بالكامل"
               >
                 <Maximize2 className="w-3 h-3 text-amber-400" />
-                <span>احتواء الشاشة</span>
+                <span className="hidden xs:inline">احتواء</span>
               </button>
               <button
                 type="button"
@@ -939,23 +1217,23 @@ export const OrgChartModal: React.FC<OrgChartModalProps> = ({
         )}
       </div>
 
-      {/* Selection Mode Ribbon Bar: Displays instructions and selected entities order */}
-      {selectionMode && (
-        <div className="non-printable bg-slate-900/95 border-b border-amber-500/30 px-6 py-2.5 flex flex-wrap items-center justify-between gap-3 text-xs shrink-0">
+      {/* Selection Mode Ribbon Bar: Displays instructions and selected entities order (in Canvas Mode) */}
+      {selectionMode && activeViewMode === 'canvas' && (
+        <div className="non-printable bg-slate-900/95 border-b border-amber-500/30 px-3 sm:px-6 py-2 flex flex-wrap items-center justify-between gap-2 text-xs shrink-0">
           <div className="flex items-center gap-2">
-            <span className="px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-300 font-black text-xs border border-amber-500/30 flex items-center gap-1.5 shrink-0">
-              <CheckCircle2 className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+            <span className="px-2 py-0.5 rounded-lg bg-amber-500/20 text-amber-300 font-black text-xs border border-amber-500/30 flex items-center gap-1 shrink-0">
+              <CheckCircle2 className="w-3 h-3 text-amber-400 shrink-0" />
               <span>وضع اختيار الجهات الشاغلة</span>
             </span>
-            <span className="text-slate-300 font-medium hidden lg:inline text-[11px]">
-              انقر على أي تشكيل بالهيكل لتحديده أو إلغاء تحديده. أول تشكيل يتم اختياره يُعتبر تلقائياً هو <strong className="text-amber-400">الجهة الرئيسية</strong> للمنشأة.
+            <span className="text-slate-300 font-medium hidden md:inline text-[11px]">
+              انقر على أي تشكيل بالهيكل لتحديده. التشكيل الأول يُعتبر تلقائياً هو <strong className="text-amber-400">الجهة الرئيسية</strong>.
             </span>
           </div>
 
           <div className="flex items-center gap-1.5 flex-wrap max-w-2xl overflow-x-auto py-0.5">
             {selectedOccupantNames.length === 0 ? (
               <span className="text-slate-400 text-[11px] italic">
-                لم يتم تحديد أي تشكيل بعد. انقر على أي تشكيل من الهيكل التنظيمي أدناه لاختياره.
+                لم يتم تحديد أي تشكيل بعد. انقر على أي تشكيل لاختياره.
               </span>
             ) : (
               selectedOccupantNames.map((name, index) => {
@@ -963,28 +1241,28 @@ export const OrgChartModal: React.FC<OrgChartModalProps> = ({
                 return (
                   <span
                     key={name}
-                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] font-bold border transition ${
+                    className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-xl text-[10.5px] font-bold border transition ${
                       isPrimary
                         ? 'bg-amber-500/25 border-amber-500/60 text-amber-300 shadow-xs'
                         : 'bg-slate-800 border-slate-700 text-slate-200'
                     }`}
                   >
                     <span
-                      className={`w-4 h-4 rounded-full text-[9px] flex items-center justify-center font-black ${
+                      className={`w-3.5 h-3.5 rounded-full text-[9px] flex items-center justify-center font-black ${
                         isPrimary ? 'bg-amber-500 text-slate-950' : 'bg-slate-700 text-slate-200'
                       }`}
                     >
                       {toArabicDigits(index + 1)}
                     </span>
-                    <span className="truncate max-w-[140px]">{name}</span>
+                    <span className="truncate max-w-[120px]">{name}</span>
                     {isPrimary && (
-                      <span className="text-[9px] px-1 rounded bg-amber-500/30 text-amber-200 font-black">
+                      <span className="text-[8.5px] px-1 rounded bg-amber-500/30 text-amber-200 font-black">
                         رئيسية
                       </span>
                     )}
                     <button
                       type="button"
-                      onClick={() => setSelectedOccupantNames((prev) => prev.filter((n) => n !== name))}
+                      onClick={() => handleRemoveOccupantByName(name)}
                       className="hover:text-rose-400 p-0.5 rounded transition cursor-pointer"
                       title="إزالة التشكيل من التحديد"
                     >
@@ -1006,10 +1284,832 @@ export const OrgChartModal: React.FC<OrgChartModalProps> = ({
         </div>
       )}
 
-      {/* Scrollable Viewport (Pure White Canvas - No surrounding gray workspace) */}
+      {/* INTERACTIVE MOBILE VIEW (Optimized for Phones & Touch Tablets) */}
+      {activeViewMode === 'interactive' && (
+        <div className="non-printable flex-1 overflow-y-auto overscroll-contain bg-slate-950 text-slate-100 p-2 sm:p-4 space-y-2.5 pb-32">
+          {/* 1. Search Bar & Display Mode Selector */}
+          <div className="p-2 sm:p-2.5 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-2">
+            <div className="flex items-center gap-2">
+              <div className="relative flex-1 min-w-0">
+                <Search className="w-4 h-4 text-slate-400 absolute right-3 top-2.5 pointer-events-none" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="ابحث باسم الهيئة، القسم، الشعبة، أو الرمز..."
+                  className="w-full pr-9 pl-8 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 transition font-medium"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="absolute left-2.5 top-2.5 text-slate-400 hover:text-white cursor-pointer"
+                    title="مسح البحث"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+
+              {/* Toggle Tree vs Flat View within Interactive Mode */}
+              <div className="flex items-center bg-slate-950 rounded-xl p-0.5 border border-slate-800 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setInteractiveDisplayMode('tree')}
+                  className={`px-2 py-1.5 rounded-lg text-[10.5px] font-bold flex items-center gap-1 transition cursor-pointer ${
+                    interactiveDisplayMode === 'tree' && !searchQuery.trim()
+                      ? 'bg-amber-500 text-slate-950 font-black'
+                      : 'text-slate-400 hover:text-slate-200'
+                  }`}
+                  title="عرض هرمي منظم بحسب الهيئات والأقسام"
+                >
+                  <FolderTree className="w-3.5 h-3.5" />
+                  <span className="hidden xs:inline">شجرة</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setInteractiveDisplayMode('flat')}
+                  className={`px-2 py-1.5 rounded-lg text-[10.5px] font-bold flex items-center gap-1 transition cursor-pointer ${
+                    interactiveDisplayMode === 'flat' || searchQuery.trim()
+                      ? 'bg-amber-500 text-slate-950 font-black'
+                      : 'text-slate-400 hover:text-slate-200'
+                  }`}
+                  title="عرض قائمة مباشرة لكافة التشكيلات"
+                >
+                  <Filter className="w-3.5 h-3.5" />
+                  <span className="hidden xs:inline">قائمة</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Level Filter Scrollable Pills */}
+            <div className="flex items-center gap-1 overflow-x-auto py-0.5 scrollbar-none text-xs">
+              <button
+                type="button"
+                onClick={() => setLevelFilter('all')}
+                className={`px-2.5 py-1 rounded-xl border text-[11px] font-bold whitespace-nowrap shrink-0 transition flex items-center gap-1 cursor-pointer ${
+                  levelFilter === 'all'
+                    ? 'bg-amber-500 text-slate-950 border-amber-400 font-black shadow-xs'
+                    : 'bg-slate-950 hover:bg-slate-800 border-slate-800 text-slate-300'
+                }`}
+              >
+                <span>الكل</span>
+                <span className="text-[10px] font-mono opacity-80 font-black">({toArabicDigits(levelCounts.all)})</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setLevelFilter('commission')}
+                className={`px-2.5 py-1 rounded-xl border text-[11px] font-bold whitespace-nowrap shrink-0 transition flex items-center gap-1 cursor-pointer ${
+                  levelFilter === 'commission'
+                    ? 'bg-emerald-600 text-white border-emerald-500 font-black shadow-xs'
+                    : 'bg-slate-950 hover:bg-slate-800 border-slate-800 text-slate-300'
+                }`}
+              >
+                <Building2 className="w-3 h-3 text-emerald-400" />
+                <span>الهيئات</span>
+                <span className="text-[10px] font-mono opacity-80 font-black">({toArabicDigits(levelCounts.commission)})</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setLevelFilter('central_dept')}
+                className={`px-2.5 py-1 rounded-xl border text-[11px] font-bold whitespace-nowrap shrink-0 transition flex items-center gap-1 cursor-pointer ${
+                  levelFilter === 'central_dept'
+                    ? 'bg-cyan-600 text-white border-cyan-500 font-black shadow-xs'
+                    : 'bg-slate-950 hover:bg-slate-800 border-slate-800 text-slate-300'
+                }`}
+              >
+                <Layers className="w-3 h-3 text-cyan-400" />
+                <span>المركزية</span>
+                <span className="text-[10px] font-mono opacity-80 font-black">({toArabicDigits(levelCounts.central_dept)})</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setLevelFilter('department')}
+                className={`px-2.5 py-1 rounded-xl border text-[11px] font-bold whitespace-nowrap shrink-0 transition flex items-center gap-1 cursor-pointer ${
+                  levelFilter === 'department'
+                    ? 'bg-blue-600 text-white border-blue-500 font-black shadow-xs'
+                    : 'bg-slate-950 hover:bg-slate-800 border-slate-800 text-slate-300'
+                }`}
+              >
+                <FolderTree className="w-3 h-3 text-blue-400" />
+                <span>الأقسام</span>
+                <span className="text-[10px] font-mono opacity-80 font-black">({toArabicDigits(levelCounts.department)})</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setLevelFilter('section')}
+                className={`px-2.5 py-1 rounded-xl border text-[11px] font-bold whitespace-nowrap shrink-0 transition flex items-center gap-1 cursor-pointer ${
+                  levelFilter === 'section'
+                    ? 'bg-purple-600 text-white border-purple-500 font-black shadow-xs'
+                    : 'bg-slate-950 hover:bg-slate-800 border-slate-800 text-slate-300'
+                }`}
+              >
+                <Folder className="w-3 h-3 text-purple-400" />
+                <span>الشعب</span>
+                <span className="text-[10px] font-mono opacity-80 font-black">({toArabicDigits(levelCounts.section)})</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setLevelFilter('dgAndDeputies')}
+                className={`px-2.5 py-1 rounded-xl border text-[11px] font-bold whitespace-nowrap shrink-0 transition flex items-center gap-1 cursor-pointer ${
+                  levelFilter === 'dgAndDeputies'
+                    ? 'bg-amber-600 text-white border-amber-500 font-black shadow-xs'
+                    : 'bg-slate-950 hover:bg-slate-800 border-slate-800 text-slate-300'
+                }`}
+              >
+                <Shield className="w-3 h-3 text-amber-400" />
+                <span>الإدارة والمعاونين</span>
+                <span className="text-[10px] font-mono opacity-80 font-black">({toArabicDigits(levelCounts.dgAndDeputies)})</span>
+              </button>
+            </div>
+          </div>
+
+          {/* 2. Selection Mode Ribbon & Selected Entities Cards */}
+          {selectionMode && (
+            <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5 text-xs font-bold text-amber-300">
+                  <CheckCircle2 className="w-4 h-4 text-amber-400" />
+                  <span>الجهات الشاغلة المحددة للمنشأة ({toArabicDigits(selectedOccupantNames.length)}):</span>
+                </div>
+                {selectedOccupantNames.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setSelectedOccupantNames([])}
+                    className="text-[10.5px] text-rose-400 hover:text-rose-300 hover:underline cursor-pointer flex items-center gap-0.5"
+                  >
+                    <span>مسح الكل</span>
+                  </button>
+                )}
+              </div>
+
+              {selectedOccupantNames.length === 0 ? (
+                <div className="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 text-[11px] text-slate-400 text-center space-y-1">
+                  <p>💡 انقر على زر "اختيار" لأي تشكيل أدناه لتعيينه كجهة شاغلة للمنشأة.</p>
+                  <p className="text-[10px] text-amber-400/90 font-medium">أول تشكيل يتم اختياره يكون تلقائياً هو <strong className="font-bold underline">الجهة الرئيسية</strong> للمنشأة.</p>
+                </div>
+              ) : (
+                <div className="flex flex-wrap gap-1.5">
+                  {selectedOccupantNames.map((name, idx) => {
+                    const isPrimary = idx === 0;
+                    return (
+                      <div
+                        key={name}
+                        className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border text-xs transition shadow-xs ${
+                          isPrimary
+                            ? 'bg-amber-500/25 border-amber-400 text-amber-300 font-bold ring-1 ring-amber-400/40'
+                            : 'bg-slate-900 border-slate-700 text-slate-200'
+                        }`}
+                      >
+                        <span
+                          className={`w-4 h-4 rounded-full text-[9px] flex items-center justify-center font-black ${
+                            isPrimary ? 'bg-amber-400 text-slate-950' : 'bg-slate-700 text-slate-200'
+                          }`}
+                        >
+                          {toArabicDigits(idx + 1)}
+                        </span>
+                        <span className="font-bold truncate max-w-[140px] sm:max-w-xs">{name}</span>
+                        {isPrimary ? (
+                          <span className="text-[9px] px-1.5 py-0.5 rounded font-black bg-amber-400 text-slate-950">
+                            رئيسية
+                          </span>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => handleSetPrimaryByName(name)}
+                            className="text-[9.5px] px-1.5 py-0.5 rounded bg-slate-800 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 font-bold transition cursor-pointer"
+                            title="تعيين هذه الجهة كجهة شاغلة رئيسية للمنشأة"
+                          >
+                            جعلها رئيسية
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveOccupantByName(name)}
+                          className="text-slate-400 hover:text-rose-400 p-0.5 rounded transition cursor-pointer"
+                          title="إزالة الجهة من التحديد"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* 3. Entity Cards Listing (Tree Mode vs Flat Mode) */}
+          {interactiveDisplayMode === 'tree' && !searchQuery.trim() && levelFilter === 'all' ? (
+            /* Structured Tree View: DG -> Deputies -> Commissions (with expand/collapse) -> Central Depts */
+            <div className="space-y-3">
+              {/* SECTION A: الإدارة العليا والمعاونون */}
+              <div className="rounded-2xl bg-slate-900/70 border border-slate-800 p-3 space-y-2">
+                <div className="flex items-center gap-1.5 text-xs font-bold text-amber-400 pb-1 border-b border-slate-800">
+                  <Shield className="w-4 h-4" />
+                  <span>الإدارة العليا والمعاونين</span>
+                </div>
+
+                {/* Director General */}
+                {dgEntity && (() => {
+                  const isSelected = isNameSelected(dgEntity.nameAr);
+                  const selIdx = getNameSelectionIndex(dgEntity.nameAr);
+                  const isPrimary = selIdx === 0;
+
+                  return (
+                    <div
+                      key={dgEntity.id}
+                      onClick={() => handleEntityClick(dgEntity)}
+                      className={`p-3 rounded-xl border flex items-center justify-between gap-2 transition cursor-pointer ${
+                        isSelected
+                          ? isPrimary
+                            ? 'bg-amber-500/20 border-amber-400 text-amber-200 ring-2 ring-amber-400/30'
+                            : 'bg-emerald-500/20 border-emerald-400 text-emerald-200 ring-2 ring-emerald-400/30'
+                          : 'bg-slate-950/80 hover:bg-slate-800/80 border-slate-800 text-slate-100'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                        <div className="w-8 h-8 rounded-xl bg-amber-500/20 border border-amber-500/30 text-amber-400 flex items-center justify-center shrink-0">
+                          <Shield className="w-4 h-4" />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1.5">
+                            <h4 className="text-xs sm:text-sm font-black truncate">{dgEntity.nameAr}</h4>
+                            <span className="text-[9px] px-1.5 py-0.5 rounded font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                              إدارة عليا
+                            </span>
+                          </div>
+                          <div className="text-[10px] text-slate-400 mt-0.5 flex items-center gap-1.5">
+                            <span>الرمز: {dgEntity.code || 'ORG-DG'}</span>
+                            <span>•</span>
+                            <span>{toArabicDigits(dgEntity.employeeCount || 0)} كادر</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {selectionMode ? (
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          {isSelected && !isPrimary && (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleSetPrimaryByName(dgEntity.nameAr);
+                              }}
+                              className="text-[9.5px] px-2 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500 text-amber-300 hover:text-slate-950 border border-amber-500/30 font-bold transition"
+                            >
+                              تعيين كرئيسية
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleToggleSelectByName(dgEntity.nameAr);
+                            }}
+                            className={`px-2.5 py-1 rounded-xl text-xs font-bold border transition flex items-center gap-1 cursor-pointer ${
+                              isSelected
+                                ? isPrimary
+                                  ? 'bg-amber-500 text-slate-950 border-amber-400 font-black shadow-xs'
+                                  : 'bg-emerald-600 text-white border-emerald-500 font-black shadow-xs'
+                                : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700'
+                            }`}
+                          >
+                            <span>{isSelected ? (isPrimary ? '١. الجهة الرئيسية ✓' : `${toArabicDigits(selIdx + 1)}. محددة ✓`) : '+ اختيار'}</span>
+                          </button>
+                        </div>
+                      ) : null}
+                    </div>
+                  );
+                })()}
+
+                {/* Deputies */}
+                {deputies.map((dep) => {
+                  const isSelected = isNameSelected(dep.nameAr);
+                  const selIdx = getNameSelectionIndex(dep.nameAr);
+                  const isPrimary = selIdx === 0;
+
+                  return (
+                    <div
+                      key={dep.id}
+                      onClick={() => handleEntityClick(dep)}
+                      className={`p-2.5 rounded-xl border flex items-center justify-between gap-2 transition cursor-pointer ${
+                        isSelected
+                          ? isPrimary
+                            ? 'bg-amber-500/20 border-amber-400 text-amber-200 ring-2 ring-amber-400/30'
+                            : 'bg-emerald-500/20 border-emerald-400 text-emerald-200 ring-2 ring-emerald-400/30'
+                          : 'bg-slate-950/80 hover:bg-slate-800/80 border-slate-800 text-slate-100'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                        <div className="w-7 h-7 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center shrink-0">
+                          <Briefcase className="w-3.5 h-3.5" />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1.5">
+                            <h4 className="text-xs font-bold truncate">{dep.nameAr}</h4>
+                            <span className="text-[9px] px-1 py-0.5 rounded font-bold bg-amber-500/15 text-amber-300">
+                              معاون
+                            </span>
+                          </div>
+                          <span className="text-[9.5px] text-slate-400 mt-0.5 block">
+                            {dep.code} • {toArabicDigits(dep.employeeCount || 0)} كادر
+                          </span>
+                        </div>
+                      </div>
+
+                      {selectionMode && (
+                        <div className="flex items-center gap-1 shrink-0">
+                          {isSelected && !isPrimary && (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleSetPrimaryByName(dep.nameAr);
+                              }}
+                              className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 font-bold"
+                            >
+                              رئيسية
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleToggleSelectByName(dep.nameAr);
+                            }}
+                            className={`px-2 py-1 rounded-lg text-[11px] font-bold border transition ${
+                              isSelected
+                                ? isPrimary
+                                  ? 'bg-amber-500 text-slate-950 border-amber-400 font-black'
+                                  : 'bg-emerald-600 text-white border-emerald-500 font-black'
+                                : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-700'
+                            }`}
+                          >
+                            <span>{isSelected ? (isPrimary ? '١. الرئيسية ✓' : `${toArabicDigits(selIdx + 1)}. محددة ✓`) : '+ اختيار'}</span>
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* SECTION B: الهيئات الرئيسية وفروعها التابعة (Commissions & Branches) */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between px-1">
+                  <div className="flex items-center gap-1.5 text-xs font-black text-emerald-400">
+                    <Building2 className="w-4 h-4" />
+                    <span>الهيئات الرئيسية وفروعها ({toArabicDigits(commissions.length)} هيئة):</span>
+                  </div>
+                </div>
+
+                {commissions.map((comm) => {
+                  const isSelected = isNameSelected(comm.nameAr);
+                  const selIdx = getNameSelectionIndex(comm.nameAr);
+                  const isPrimary = selIdx === 0;
+                  const children = commissionChildrenMap.get(comm.id) || [];
+                  const isExpanded = !!expandedCommissions[comm.id];
+                  const unitsCount = getEntityUnitCount(comm.id);
+
+                  return (
+                    <div
+                      key={comm.id}
+                      className={`rounded-2xl border transition-all overflow-hidden ${
+                        isSelected
+                          ? 'border-amber-500/60 bg-slate-900/90 shadow-md ring-1 ring-amber-500/30'
+                          : 'border-slate-800 bg-slate-900/60 hover:border-slate-700'
+                      }`}
+                    >
+                      {/* Commission Header Card */}
+                      <div
+                        onClick={() => handleEntityClick(comm)}
+                        className="p-3 flex items-center justify-between gap-2.5 cursor-pointer hover:bg-slate-800/40 transition"
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                          <div className="w-8 h-8 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 flex items-center justify-center shrink-0">
+                            <Building2 className="w-4 h-4" />
+                          </div>
+
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <h4 className="text-xs sm:text-sm font-black text-white leading-tight">
+                                {comm.nameAr}
+                              </h4>
+                              {isSelected && (
+                                <span className={`text-[9px] px-1.5 py-0.2 rounded-full font-black ${
+                                  isPrimary ? 'bg-amber-400 text-slate-950' : 'bg-emerald-500 text-white'
+                                }`}>
+                                  {isPrimary ? 'الجهة الرئيسية' : `محددة #${toArabicDigits(selIdx + 1)}`}
+                                </span>
+                              )}
+                            </div>
+
+                            <div className="flex flex-wrap items-center gap-2 text-[10px] text-slate-400 mt-1">
+                              <span className="px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">
+                                هيئة
+                              </span>
+                              {comm.code && <span className="font-mono text-slate-400">{comm.code}</span>}
+                              {children.length > 0 && (
+                                <span className="text-slate-400 font-medium">
+                                  • {toArabicDigits(children.length)} قسم وشعبة
+                                </span>
+                              )}
+                              {unitsCount > 0 && (
+                                <span className="text-emerald-400 font-bold">
+                                  • {toArabicDigits(unitsCount)} أصل
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Actions: Select Button & Expand Toggle */}
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          {selectionMode && (
+                            <>
+                              {isSelected && !isPrimary && (
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleSetPrimaryByName(comm.nameAr);
+                                  }}
+                                  className="text-[9.5px] px-2 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500 text-amber-300 hover:text-slate-950 border border-amber-500/30 font-bold transition"
+                                >
+                                  رئيسية
+                                </button>
+                              )}
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleToggleSelectByName(comm.nameAr);
+                                }}
+                                className={`px-2.5 py-1 rounded-xl text-xs font-bold border transition flex items-center gap-1 cursor-pointer ${
+                                  isSelected
+                                    ? isPrimary
+                                      ? 'bg-amber-500 text-slate-950 border-amber-400 font-black shadow-xs'
+                                      : 'bg-emerald-600 text-white border-emerald-500 font-black shadow-xs'
+                                    : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700'
+                                }`}
+                              >
+                                <span>{isSelected ? (isPrimary ? '١. الرئيسية ✓' : `${toArabicDigits(selIdx + 1)}. محددة ✓`) : '+ اختيار'}</span>
+                              </button>
+                            </>
+                          )}
+
+                          {children.length > 0 && (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleCommissionExpand(comm.id);
+                              }}
+                              className={`p-1.5 rounded-lg border text-xs font-bold transition flex items-center gap-1 cursor-pointer ${
+                                isExpanded
+                                  ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
+                                  : 'bg-slate-800 hover:bg-slate-750 text-slate-400 border-slate-700'
+                              }`}
+                              title={isExpanded ? 'طي الأقسام والشعب' : 'عرض الأقسام والشعب التابعة'}
+                            >
+                              {isExpanded ? (
+                                <>
+                                  <ChevronUp className="w-3.5 h-3.5" />
+                                  <span className="text-[10px] hidden sm:inline">طي</span>
+                                </>
+                              ) : (
+                                <>
+                                  <ChevronDown className="w-3.5 h-3.5" />
+                                  <span className="text-[10px] hidden sm:inline">الأقسام ({toArabicDigits(children.length)})</span>
+                                </>
+                              )}
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Expandable Children Stack (Indented) */}
+                      {isExpanded && children.length > 0 && (
+                        <div className="p-2 sm:p-2.5 pt-1 border-t border-slate-800/80 bg-slate-950/70 space-y-1.5 mr-3 pr-2 border-r-2 border-emerald-500/40">
+                          <div className="text-[10.5px] font-bold text-slate-400 py-0.5">
+                            الأقسام والشعب التابعة لـ {comm.nameAr}:
+                          </div>
+
+                          {children.map((child) => {
+                            const isChildSelected = isNameSelected(child.nameAr);
+                            const childSelIdx = getNameSelectionIndex(child.nameAr);
+                            const isChildPrimary = childSelIdx === 0;
+                            const isDept = child.level === 'department';
+                            const isUnit = child.level === 'unit';
+                            const childUnitsCount = getEntityUnitCount(child.id);
+
+                            return (
+                              <div
+                                key={child.id}
+                                onClick={() => handleEntityClick(child)}
+                                className={`p-2 rounded-xl border flex items-center justify-between gap-2 transition cursor-pointer ${
+                                  isChildSelected
+                                    ? isChildPrimary
+                                      ? 'bg-amber-500/20 border-amber-400 text-amber-200 ring-1 ring-amber-400/40'
+                                      : 'bg-emerald-500/20 border-emerald-400 text-emerald-200 ring-1 ring-emerald-400/40'
+                                    : 'bg-slate-900/90 hover:bg-slate-800/80 border-slate-800/90 text-slate-200'
+                                }`}
+                              >
+                                <div className="flex items-center gap-2 min-w-0 flex-1">
+                                  <div className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 text-xs ${
+                                    isDept ? 'bg-sky-500/20 text-sky-400' : isUnit ? 'bg-slate-700 text-slate-300' : 'bg-purple-500/20 text-purple-400'
+                                  }`}>
+                                    {isDept ? <FolderTree className="w-3.5 h-3.5" /> : isUnit ? <Box className="w-3.5 h-3.5" /> : <Folder className="w-3.5 h-3.5" />}
+                                  </div>
+
+                                  <div className="min-w-0">
+                                    <div className="flex items-center gap-1.5">
+                                      <h5 className="text-xs font-bold truncate">{child.nameAr}</h5>
+                                      <span className={`text-[8.5px] px-1 py-0.2 rounded font-bold ${
+                                        isDept ? 'bg-sky-500/20 text-sky-300' : isUnit ? 'bg-slate-700 text-slate-300' : 'bg-purple-500/20 text-purple-300'
+                                      }`}>
+                                        {isDept ? 'قسم' : isUnit ? 'وحدة' : 'شعبة'}
+                                      </span>
+                                    </div>
+                                    <div className="text-[9.5px] text-slate-400 mt-0.5 flex items-center gap-1.5">
+                                      {child.code && <span className="font-mono">{child.code}</span>}
+                                      {child.employeeCount > 0 && <span>• {toArabicDigits(child.employeeCount)} موظف</span>}
+                                      {childUnitsCount > 0 && <span className="text-emerald-400 font-bold">• {toArabicDigits(childUnitsCount)} أصل</span>}
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {selectionMode && (
+                                  <div className="flex items-center gap-1 shrink-0">
+                                    {isChildSelected && !isChildPrimary && (
+                                      <button
+                                        type="button"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleSetPrimaryByName(child.nameAr);
+                                        }}
+                                        className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/20 hover:bg-amber-500 text-amber-300 hover:text-slate-950 border border-amber-500/30 font-bold transition"
+                                      >
+                                        رئيسية
+                                      </button>
+                                    )}
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleToggleSelectByName(child.nameAr);
+                                      }}
+                                      className={`px-2 py-0.5 rounded-lg text-[10.5px] font-bold border transition ${
+                                        isChildSelected
+                                          ? isChildPrimary
+                                            ? 'bg-amber-500 text-slate-950 border-amber-400 font-black'
+                                            : 'bg-emerald-600 text-white border-emerald-500 font-black'
+                                          : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-700'
+                                      }`}
+                                    >
+                                      <span>{isChildSelected ? (isChildPrimary ? '١. الرئيسية ✓' : `${toArabicDigits(childSelIdx + 1)}. محددة ✓`) : '+ اختيار'}</span>
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* SECTION C: الأقسام المركزية المستقلة (Central Departments) */}
+              {centralDepartments.length > 0 && (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-1.5 text-xs font-black text-cyan-400 px-1">
+                    <Layers className="w-4 h-4" />
+                    <span>الأقسام المركزية المستقلة ({toArabicDigits(centralDepartments.length)} قسم):</span>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    {centralDepartments.map((dept) => {
+                      const isSelected = isNameSelected(dept.nameAr);
+                      const selIdx = getNameSelectionIndex(dept.nameAr);
+                      const isPrimary = selIdx === 0;
+                      const unitsCount = getEntityUnitCount(dept.id);
+
+                      return (
+                        <div
+                          key={dept.id}
+                          onClick={() => handleEntityClick(dept)}
+                          className={`p-2.5 sm:p-3 rounded-2xl border flex items-center justify-between gap-2 transition cursor-pointer ${
+                            isSelected
+                              ? isPrimary
+                                ? 'bg-amber-500/20 border-amber-400 text-amber-200 ring-2 ring-amber-400/30'
+                                : 'bg-cyan-500/20 border-cyan-400 text-cyan-200 ring-2 ring-cyan-400/30'
+                              : 'bg-slate-900/70 hover:bg-slate-800/80 border-slate-800 text-slate-100'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-cyan-500/15 border border-cyan-500/30 text-cyan-400 flex items-center justify-center shrink-0">
+                              <Layers className="w-4 h-4" />
+                            </div>
+
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-1.5">
+                                <h4 className="text-xs sm:text-sm font-bold truncate leading-tight">{dept.nameAr}</h4>
+                                <span className="text-[9px] px-1.5 py-0.2 rounded font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+                                  مركزي
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2 text-[10px] text-slate-400 mt-0.5">
+                                {dept.code && <span className="font-mono">{dept.code}</span>}
+                                {dept.employeeCount > 0 && <span>• {toArabicDigits(dept.employeeCount)} موظف</span>}
+                                {unitsCount > 0 && <span className="text-emerald-400 font-bold">• {toArabicDigits(unitsCount)} أصل</span>}
+                              </div>
+                            </div>
+                          </div>
+
+                          {selectionMode && (
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              {isSelected && !isPrimary && (
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleSetPrimaryByName(dept.nameAr);
+                                  }}
+                                  className="text-[9.5px] px-2 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500 text-amber-300 hover:text-slate-950 border border-amber-500/30 font-bold transition"
+                                >
+                                  رئيسية
+                                </button>
+                              )}
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleToggleSelectByName(dept.nameAr);
+                                }}
+                                className={`px-2.5 py-1 rounded-xl text-xs font-bold border transition flex items-center gap-1 cursor-pointer ${
+                                  isSelected
+                                    ? isPrimary
+                                      ? 'bg-amber-500 text-slate-950 border-amber-400 font-black shadow-xs'
+                                      : 'bg-cyan-600 text-white border-cyan-500 font-black shadow-xs'
+                                    : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700'
+                                }`}
+                              >
+                                <span>{isSelected ? (isPrimary ? '١. الرئيسية ✓' : `${toArabicDigits(selIdx + 1)}. محددة ✓`) : '+ اختيار'}</span>
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            /* Flat Filtered / Search List View */
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between text-[11px] font-bold text-slate-400 px-1 py-0.5">
+                <span>النتائج المطابقة: ({toArabicDigits(interactiveFilteredEntities.length)} تشكيل)</span>
+                {(searchQuery.trim() || levelFilter !== 'all') && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSearchQuery('');
+                      setLevelFilter('all');
+                    }}
+                    className="text-amber-400 hover:underline flex items-center gap-1 cursor-pointer"
+                  >
+                    <RotateCcw className="w-3 h-3" />
+                    <span>إعادة ضبط التصفية</span>
+                  </button>
+                )}
+              </div>
+
+              {interactiveFilteredEntities.length === 0 ? (
+                <div className="text-center py-12 rounded-2xl bg-slate-900/50 border border-slate-800 space-y-2">
+                  <Network className="w-10 h-10 mx-auto text-slate-600 animate-pulse" />
+                  <p className="text-sm font-bold text-slate-300">لا توجد تشكيلات مطابقة لمعايير البحث</p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSearchQuery('');
+                      setLevelFilter('all');
+                    }}
+                    className="text-xs text-amber-400 underline font-bold cursor-pointer"
+                  >
+                    إلغاء فلاتر البحث وإظهار كافة التشكيلات
+                  </button>
+                </div>
+              ) : (
+                interactiveFilteredEntities.map((entity) => {
+                  const isSelected = isNameSelected(entity.nameAr);
+                  const selIdx = getNameSelectionIndex(entity.nameAr);
+                  const isPrimary = selIdx === 0;
+                  const lvl = getLevelConfig(entity.level);
+                  const LevelIcon = lvl.icon;
+                  const parentEntity = entity.parentId ? entityMap.get(entity.parentId) : null;
+                  const unitsCount = getEntityUnitCount(entity.id);
+
+                  return (
+                    <div
+                      key={entity.id}
+                      onClick={() => handleEntityClick(entity)}
+                      className={`p-2.5 sm:p-3 rounded-2xl border flex items-center justify-between gap-2.5 transition cursor-pointer ${
+                        isSelected
+                          ? isPrimary
+                            ? 'bg-amber-500/20 border-amber-400 text-amber-200 ring-2 ring-amber-400/30'
+                            : 'bg-emerald-500/20 border-emerald-400 text-emerald-200 ring-2 ring-emerald-400/30'
+                          : 'bg-slate-900/70 hover:bg-slate-800/80 border-slate-800 text-slate-100'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                        <div className={`w-8 h-8 rounded-xl border flex items-center justify-center shrink-0 ${lvl.bgDark} ${lvl.color}`}>
+                          <LevelIcon className="w-4 h-4" />
+                        </div>
+
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-1.5">
+                            <h4 className="text-xs sm:text-sm font-black truncate leading-tight">{entity.nameAr}</h4>
+                            {isSelected && (
+                              <span className={`text-[9px] px-1.5 py-0.2 rounded-full font-black ${
+                                isPrimary ? 'bg-amber-400 text-slate-950' : 'bg-emerald-500 text-white'
+                              }`}>
+                                {isPrimary ? 'الجهة الرئيسية' : `محددة #${toArabicDigits(selIdx + 1)}`}
+                              </span>
+                            )}
+                          </div>
+
+                          <div className="flex flex-wrap items-center gap-1.5 text-[9.5px] sm:text-[10px] text-slate-400 mt-1">
+                            <span className={`px-1.5 py-0.2 rounded font-bold border ${lvl.bgDark} ${lvl.color}`}>
+                              {lvl.badge}
+                            </span>
+                            {parentEntity && (
+                              <span className="truncate max-w-[150px] text-slate-400">
+                                • تابع لـ: <strong className="text-slate-300 font-bold">{parentEntity.nameAr}</strong>
+                              </span>
+                            )}
+                            {entity.code && <span className="font-mono text-slate-500">[{entity.code}]</span>}
+                            {unitsCount > 0 && <span className="text-emerald-400 font-bold">• {toArabicDigits(unitsCount)} أصل</span>}
+                          </div>
+                        </div>
+                      </div>
+
+                      {selectionMode && (
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          {isSelected && !isPrimary && (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleSetPrimaryByName(entity.nameAr);
+                              }}
+                              className="text-[9.5px] px-2 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500 text-amber-300 hover:text-slate-950 border border-amber-500/30 font-bold transition"
+                            >
+                              رئيسية
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleToggleSelectByName(entity.nameAr);
+                            }}
+                            className={`px-2.5 py-1 rounded-xl text-xs font-bold border transition flex items-center gap-1 cursor-pointer ${
+                              isSelected
+                                ? isPrimary
+                                  ? 'bg-amber-500 text-slate-950 border-amber-400 font-black shadow-xs'
+                                  : 'bg-emerald-600 text-white border-emerald-500 font-black shadow-xs'
+                                : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700'
+                            }`}
+                          >
+                            <span>{isSelected ? (isPrimary ? '١. الرئيسية ✓' : `${toArabicDigits(selIdx + 1)}. محددة ✓`) : '+ اختيار'}</span>
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Scrollable Viewport (Canvas View - Hidden on screen when in interactive mode, but always printable) */}
       <div
         ref={containerRef}
-        className="flex-1 overflow-auto bg-white p-4 sm:p-6 print:p-0 print:m-0 print:overflow-visible relative"
+        className={
+          activeViewMode === 'canvas'
+            ? 'flex-1 overflow-auto bg-white p-2 sm:p-6 print:p-0 print:m-0 print:overflow-visible relative pb-32 sm:pb-28'
+            : 'hidden print:block print:p-0 print:m-0 print:overflow-visible'
+        }
         style={{
           backgroundColor: '#ffffff',
         }}
@@ -1467,11 +2567,90 @@ export const OrgChartModal: React.FC<OrgChartModalProps> = ({
       </div>
     </div>
 
+      {/* Sticky Bottom Action Bar (Fixed at bottom for easy thumb action on mobile & quick saving) */}
+      {selectionMode ? (
+        <div className="non-printable fixed bottom-0 inset-x-0 z-40 bg-slate-900/95 backdrop-blur-md border-t border-slate-800 p-2.5 sm:p-3 shadow-2xl">
+          <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2.5">
+            {/* Occupants Status Summary */}
+            <div className="flex items-center justify-between w-full sm:w-auto gap-3 px-1">
+              <div className="flex items-center gap-1.5 text-xs font-bold text-slate-200">
+                <span className="w-2 h-2 rounded-full bg-amber-400 shrink-0 animate-pulse" />
+                <span>المحدد:</span>
+                <span className="text-amber-400 font-black text-sm">
+                  {toArabicDigits(selectedOccupantNames.length)}
+                </span>
+                <span className="text-slate-400 text-[11px]">تشكيل</span>
+              </div>
+
+              {selectedOccupantNames.length > 0 ? (
+                <div className="text-[11px] text-slate-300 truncate max-w-[200px] sm:max-w-xs flex items-center gap-1">
+                  <span className="text-amber-400/90 font-bold shrink-0">الرئيسية:</span>
+                  <strong className="text-amber-300 font-bold truncate">{selectedOccupantNames[0]}</strong>
+                </div>
+              ) : (
+                <span className="text-[10.5px] text-slate-400 italic">لم يتم اختيار أي جهة</span>
+              )}
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <button
+                type="button"
+                onClick={() => {
+                  if (onSaveSelection) {
+                    onSaveSelection(selectedOccupantNames);
+                  }
+                  onClose();
+                }}
+                className="flex-1 sm:flex-initial py-2.5 sm:py-2 px-5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20 active:scale-[0.98] transition cursor-pointer"
+                title="تأكيد حفظ التشكيلات المحددة واعتمادها كجهات شاغلة"
+              >
+                <Check className="w-4 h-4 text-slate-950" />
+                <span>تأكيد وحفظ الجهات الشاغلة ({toArabicDigits(selectedOccupantNames.length)})</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={onClose}
+                className="py-2.5 sm:py-2 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 font-bold text-xs transition cursor-pointer"
+                title="خروج دون حفظ التغييرات"
+              >
+                إلغاء
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : isMobileScreen && (
+        <div className="non-printable fixed bottom-0 inset-x-0 z-40 bg-slate-900/95 backdrop-blur-md border-t border-slate-800 p-2 sm:p-2.5 flex items-center justify-between gap-2 shadow-2xl">
+          <span className="text-[11px] text-slate-300 font-medium px-1">
+            الهيكل التنظيمي المعتمد
+          </span>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleExportImage}
+              disabled={isExporting}
+              className="py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold text-xs flex items-center gap-1.5 transition cursor-pointer"
+            >
+              {isExporting ? <Loader2 className="w-3.5 h-3.5 text-emerald-400 animate-spin" /> : <Download className="w-3.5 h-3.5 text-emerald-400" />}
+              <span>تصدير صورة</span>
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold text-xs transition cursor-pointer"
+            >
+              خروج
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Detail Slide-out / Modal for Clicked Entity (Daylight / Light Mode) */}
       {selectedEntity && (() => {
         const occupiedAssets = getEntityOccupiedAssets(selectedEntity);
         return (
-          <div className="non-printable fixed bottom-6 left-6 z-50 w-96 max-w-[calc(100vw-2rem)] max-h-[85vh] overflow-y-auto p-5 rounded-2xl bg-white/95 border border-amber-500/40 text-slate-900 shadow-2xl shadow-slate-900/20 backdrop-blur-md animate-fade-in">
+          <div className="non-printable fixed inset-x-2 bottom-2 sm:inset-x-auto sm:bottom-6 sm:left-6 sm:w-96 max-h-[82vh] overflow-y-auto p-4 sm:p-5 rounded-2xl bg-white/95 border border-amber-500/40 text-slate-900 shadow-2xl shadow-slate-900/20 backdrop-blur-md animate-fade-in z-50">
             <div className="flex items-start justify-between gap-3 mb-3">
               <div className="flex items-center gap-2.5">
                 <div className="p-2 rounded-xl bg-amber-500/15 text-amber-700 border border-amber-500/30">

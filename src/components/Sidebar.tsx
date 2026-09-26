@@ -17,6 +17,7 @@ import {
   PanelLeftOpen,
   ClipboardCheck,
   QrCode,
+  X,
 } from 'lucide-react';
 
 import { SystemBranding } from '../types';
@@ -45,6 +46,8 @@ interface SidebarProps {
   onOpenQrScanner?: () => void;
   theme?: 'dark' | 'light';
   currentUserRole?: string;
+  isMobileOpen?: boolean;
+  onMobileClose?: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -59,6 +62,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onOpenQrScanner,
   theme = 'dark',
   currentUserRole = 'مدير النظام',
+  isMobileOpen = false,
+  onMobileClose,
 }) => {
   const [internalCollapsed, setInternalCollapsed] = useState(false);
   const isCollapsed = externalCollapsed !== undefined ? externalCollapsed : internalCollapsed;

@@ -41,6 +41,7 @@ import {
   Eye,
   EyeOff,
   KeyRound,
+  Clock,
 } from 'lucide-react';
 
 import {
@@ -1876,9 +1877,264 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 </div>
               )}
 
-              {/* Users Data Table */}
+              {/* Users Mobile Card View (md:hidden) */}
+              <div className="md:hidden space-y-3">
+                {users.map((usr) => {
+                  const isAdm = usr.role === 'مدير النظام' || usr.role === 'admin';
+                  const isOp = usr.role === 'مشغل النظام' || usr.role === 'operator';
+                  const isEditingThis = userFormEditingId === usr.id && showUserInlineForm;
+                  const isPrimaryAdmin = usr.id === 'USR-101' || usr.username === 'admin';
+                  const isCurrentAdmin = currentUser?.id === 'USR-101' || currentUser?.username === 'admin';
+
+                  return (
+                    <div
+                      key={usr.id}
+                      className={`p-3.5 rounded-2xl border transition shadow-sm space-y-3 ${
+                        isEditingThis
+                          ? isLight
+                            ? 'bg-emerald-50/70 border-emerald-300 ring-2 ring-emerald-500/20'
+                            : 'bg-emerald-950/30 border-emerald-500/50 ring-2 ring-emerald-500/20'
+                          : isLight
+                          ? 'bg-white border-slate-200 shadow-slate-200/50'
+                          : 'bg-slate-900 border-slate-800'
+                      }`}
+                    >
+                      {/* Top Header: Avatar + Name + Badges */}
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div
+                            className={`w-10 h-10 rounded-full font-bold flex items-center justify-center text-xs shrink-0 shadow-inner border ${
+                              isLight
+                                ? 'bg-amber-50 border-amber-300 text-amber-800'
+                                : 'bg-slate-800 border-slate-700 text-amber-400'
+                            }`}
+                          >
+                            {usr.name ? usr.name.slice(0, 2) : 'US'}
+                          </div>
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className={`font-bold text-sm truncate ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                                {usr.name}
+                              </span>
+                              {isPrimaryAdmin && (
+                                <span
+                                  className={`text-[9px] px-1.5 py-0.5 rounded-full border font-bold flex items-center gap-0.5 shrink-0 ${
+                                    isLight
+                                      ? 'bg-amber-100 text-amber-900 border-amber-300'
+                                      : 'bg-amber-500/20 text-amber-400 border-amber-500/40'
+                                  }`}
+                                  title="حساب مدير النظام الأساسي - محمي"
+                                >
+                                  <Lock className="w-2.5 h-2.5" />
+                                  <span>محمي</span>
+                                </span>
+                              )}
+                              {isEditingThis && (
+                                <span
+                                  className={`text-[9px] px-1.5 py-0.5 rounded border font-mono font-bold shrink-0 ${
+                                    isLight
+                                      ? 'bg-emerald-100 text-emerald-900 border-emerald-300'
+                                      : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                                  }`}
+                                >
+                                  قيد التعديل
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-1.5 text-[11px] text-slate-500 mt-0.5">
+                              <Clock className="w-3 h-3 shrink-0" />
+                              <span>آخر تواجد: {usr.lastActive || 'الآن'}</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Role Badge */}
+                        <div className="shrink-0 flex flex-col items-end gap-1">
+                          <span
+                            className={`px-2.5 py-1 rounded-full font-bold text-[10px] border inline-flex items-center gap-1 ${
+                              isAdm
+                                ? isLight
+                                  ? 'bg-amber-100 text-amber-900 border-amber-300'
+                                  : 'bg-amber-500/20 text-amber-400 border-amber-500/40'
+                                : isOp
+                                ? isLight
+                                  ? 'bg-sky-100 text-sky-900 border-sky-300'
+                                  : 'bg-sky-500/20 text-sky-400 border-sky-500/40'
+                                : usr.role === 'موظف الصيانة'
+                                ? isLight
+                                  ? 'bg-amber-100 text-amber-900 border-amber-300'
+                                  : 'bg-amber-500/20 text-amber-400 border-amber-500/40'
+                                : usr.role === 'موظف الكشف والصيانة'
+                                ? isLight
+                                  ? 'bg-orange-100 text-orange-900 border-orange-300'
+                                  : 'bg-orange-500/20 text-orange-400 border-orange-500/40'
+                                : isLight
+                                ? 'bg-emerald-100 text-emerald-900 border-emerald-300'
+                                : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40'
+                            }`}
+                          >
+                            <ShieldCheck className="w-3 h-3" />
+                            <span>{usr.role}</span>
+                          </span>
+                          {usr.role === 'موظف الصيانة' && usr.maintenanceDepartment && (
+                            <span
+                              className={`text-[9px] px-2 py-0.5 rounded-md border font-semibold flex items-center gap-1 ${
+                                isLight
+                                  ? 'bg-slate-100 text-amber-900 border-amber-200'
+                                  : 'bg-slate-950 text-amber-300 border-amber-500/30'
+                              }`}
+                            >
+                              <Wrench className="w-2.5 h-2.5" />
+                              <span>{usr.maintenanceDepartment}</span>
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Info Grid (Username, Password, Phone) */}
+                      <div className={`grid grid-cols-2 gap-2 p-2.5 rounded-xl text-xs border ${
+                        isLight ? 'bg-slate-50 border-slate-200/80' : 'bg-slate-950/60 border-slate-800/80'
+                      }`}>
+                        <div>
+                          <span className="text-[10px] text-slate-500 block mb-0.5">اسم الحساب (Login):</span>
+                          <span className={`font-mono font-bold px-1.5 py-0.5 rounded border inline-block text-[11px] ${
+                            isLight ? 'bg-amber-50 text-amber-900 border-amber-300' : 'bg-slate-900 text-amber-400 border-slate-800'
+                          }`}>
+                            {usr.username || usr.email?.split('@')[0] || 'user'}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-[10px] text-slate-500 block mb-0.5">كلمة المرور:</span>
+                          {isPrimaryAdmin && !isCurrentAdmin ? (
+                            <span className="font-mono text-[11px] text-amber-600 flex items-center gap-1 font-bold">
+                              <Lock className="w-3 h-3" />
+                              <span>محمية</span>
+                            </span>
+                          ) : showPasswordsTable ? (
+                            <span className={`font-mono font-bold px-1.5 py-0.5 rounded border inline-block text-[11px] ${
+                              isLight ? 'bg-amber-100 text-amber-900 border-amber-300' : 'bg-amber-500/10 text-amber-400 border-amber-500/30'
+                            }`}>
+                              {usr.password || '123'}
+                            </span>
+                          ) : (
+                            <span className="font-mono text-slate-500 font-bold tracking-widest text-[11px]">
+                              ••••••
+                            </span>
+                          )}
+                        </div>
+                        <div className="col-span-2 flex items-center justify-between pt-1 border-t border-slate-200/60 dark:border-slate-800/60">
+                          <span className="text-[10px] text-slate-500 flex items-center gap-1">
+                            <Phone className="w-3 h-3 text-slate-400" />
+                            <span>رقم الهاتف:</span>
+                          </span>
+                          <span className={`font-mono font-bold text-xs ${usr.phone ? (isLight ? 'text-slate-800' : 'text-slate-200') : 'text-slate-400'}`}>
+                            {usr.phone || 'غير مسجل'}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Action buttons */}
+                      <div className="flex items-center gap-2 pt-1 border-t border-slate-200/80 dark:border-slate-800/80">
+                        {isPrimaryAdmin ? (
+                          <div
+                            className={`flex-1 min-h-[38px] px-3 py-1.5 rounded-xl font-bold text-xs border inline-flex items-center justify-center gap-1.5 opacity-90 ${
+                              isLight
+                                ? 'bg-emerald-100 text-emerald-900 border-emerald-300'
+                                : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                            }`}
+                          >
+                            <Lock className={`w-3.5 h-3.5 ${isLight ? 'text-emerald-700' : 'text-emerald-400'}`} />
+                            <span>نشط دائم (محمي)</span>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => onToggleUserStatus(usr.id)}
+                            className={`flex-1 min-h-[38px] px-3 py-1.5 rounded-xl font-bold text-xs border inline-flex items-center justify-center gap-1.5 transition cursor-pointer shadow-xs ${
+                              usr.status === 'active'
+                                ? isLight
+                                  ? 'bg-emerald-100 text-emerald-900 border-emerald-300 hover:bg-emerald-200/80'
+                                  : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/30'
+                                : isLight
+                                ? 'bg-rose-100 text-rose-900 border-rose-300 hover:bg-rose-200/80'
+                                : 'bg-rose-500/20 text-rose-400 border-rose-500/30 hover:bg-rose-500/30'
+                            }`}
+                          >
+                            {usr.status === 'active' ? (
+                              <>
+                                <ToggleRight className={`w-4 h-4 ${isLight ? 'text-emerald-700' : 'text-emerald-400'}`} />
+                                <span>الحساب نشط</span>
+                              </>
+                            ) : (
+                              <>
+                                <ToggleLeft className={`w-4 h-4 ${isLight ? 'text-rose-700' : 'text-rose-400'}`} />
+                                <span>معطل وموقوف</span>
+                              </>
+                            )}
+                          </button>
+                        )}
+
+                        {isPrimaryAdmin && !isCurrentAdmin ? (
+                          <button
+                            disabled
+                            className={`min-h-[38px] px-3 py-1.5 rounded-xl border transition cursor-not-allowed opacity-50 flex items-center gap-1.5 text-xs ${
+                              isLight ? 'bg-slate-100 text-slate-400 border-slate-200' : 'bg-slate-800 text-slate-600 border-slate-700'
+                            }`}
+                          >
+                            <Lock className="w-3.5 h-3.5" />
+                            <span>تعديل</span>
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => handleOpenEditUserInline(usr)}
+                            className={`min-h-[38px] px-3.5 py-1.5 rounded-xl border font-bold text-xs transition cursor-pointer flex items-center gap-1.5 ${
+                              isLight
+                                ? 'bg-slate-100 hover:bg-amber-100 text-slate-700 hover:text-amber-900 border-slate-300 hover:border-amber-300'
+                                : 'bg-slate-800 hover:bg-amber-500/20 text-slate-300 hover:text-amber-400 border-slate-700 hover:border-amber-500/40'
+                            }`}
+                          >
+                            <Edit2 className="w-3.5 h-3.5" />
+                            <span>تعديل</span>
+                          </button>
+                        )}
+
+                        {isPrimaryAdmin ? (
+                          <button
+                            disabled
+                            className={`min-h-[38px] px-3 py-1.5 rounded-xl border transition cursor-not-allowed opacity-40 flex items-center gap-1.5 text-xs ${
+                              isLight ? 'bg-slate-100 text-slate-400 border-slate-200' : 'bg-slate-800 text-slate-600 border-slate-700'
+                            }`}
+                          >
+                            <Lock className="w-3.5 h-3.5" />
+                            <span>حذف</span>
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() =>
+                              setDeleteConfirm({
+                                type: 'user',
+                                id: usr.id,
+                                name: usr.name,
+                              })
+                            }
+                            className={`min-h-[38px] px-3.5 py-1.5 rounded-xl border font-bold text-xs transition cursor-pointer flex items-center gap-1.5 ${
+                              isLight
+                                ? 'bg-rose-50 hover:bg-rose-100 text-rose-700 hover:text-rose-900 border-rose-200 hover:border-rose-300'
+                                : 'bg-slate-800 hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 border-slate-700 hover:border-rose-500/40'
+                            }`}
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                            <span>حذف</span>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Desktop Users Data Table */}
               <div
-                className={`overflow-x-auto rounded-2xl border shadow-lg ${
+                className={`hidden md:block overflow-x-auto rounded-2xl border shadow-lg ${
                   isLight
                     ? 'bg-white border-slate-200 shadow-slate-200/50'
                     : 'bg-slate-950/60 border-slate-800/80'
@@ -2208,10 +2464,19 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           {/* TAB 2: Governorates Table */}
           {activeTab === 'governorates' && (
             <div className="space-y-3">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-800 gap-2">
+              <div className={`flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b gap-3 ${
+                isLight ? 'border-slate-200' : 'border-slate-800'
+              }`}>
                 <div>
-                  <h3 className="font-bold text-slate-100 text-sm">جدول المحافظات المعتمدة لدى الشركة</h3>
-                  <span className="text-[11px] text-slate-400">إمكانية الإضافة والتعديل والحذف والربط الحركي</span>
+                  <h3 className={`font-bold text-sm flex items-center gap-2 ${
+                    isLight ? 'text-slate-900' : 'text-slate-100'
+                  }`}>
+                    <MapPin className={`w-4 h-4 ${isLight ? 'text-sky-600' : 'text-sky-400'}`} />
+                    <span>جدول المحافظات المعتمدة لدى الشركة</span>
+                  </h3>
+                  <span className={`text-[11px] ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                    إمكانية الإضافة والتعديل والحذف والربط الحركي
+                  </span>
                 </div>
                 <button
                   type="button"
@@ -2222,17 +2487,136 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     setGovCode(`GOV-${Date.now().toString().slice(-4)}`);
                     setShowModal(true);
                   }}
-                  className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5 shadow self-start sm:self-auto"
+                  className={`min-h-[38px] px-3.5 py-1.5 font-bold rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5 shadow self-start sm:self-auto ${
+                    isLight
+                      ? 'bg-sky-600 hover:bg-sky-700 text-white shadow-sky-600/20'
+                      : 'bg-amber-500 hover:bg-amber-400 text-slate-950'
+                  }`}
                 >
                   <Plus className="w-4 h-4" />
                   <span>إضافة محافظة جديدة</span>
                 </button>
               </div>
 
-              <div className="overflow-x-auto">
+              {/* Mobile Card View (md:hidden) */}
+              <div className="md:hidden space-y-2.5">
+                {governorates.map((gov) => (
+                  <div
+                    key={gov.id}
+                    className={`p-3.5 rounded-2xl border transition shadow-sm space-y-3 ${
+                      isLight ? 'bg-white border-slate-200 shadow-slate-200/50' : 'bg-slate-900 border-slate-800'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="space-y-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className={`font-mono font-bold text-xs px-2 py-0.5 rounded border ${
+                            isLight ? 'bg-sky-50 text-sky-800 border-sky-300' : 'bg-slate-950 text-amber-400 border-slate-800'
+                          }`}>
+                            {gov.code}
+                          </span>
+                          <h4 className={`font-bold text-sm ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                            {gov.nameAr}
+                          </h4>
+                        </div>
+                        {gov.nameEn && (
+                          <div className={`font-mono text-xs ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                            {gov.nameEn}
+                          </div>
+                        )}
+                      </div>
+                      <span
+                        className={`px-2.5 py-1 rounded-full text-[10px] font-bold shrink-0 border ${
+                          gov.status === 'active'
+                            ? isLight
+                              ? 'bg-emerald-100 text-emerald-900 border-emerald-300'
+                              : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                            : isLight
+                            ? 'bg-slate-100 text-slate-600 border-slate-200'
+                            : 'bg-slate-800 text-slate-500 border-slate-700'
+                        }`}
+                      >
+                        {gov.status === 'active' ? 'نشط' : 'معطل'}
+                      </span>
+                    </div>
+
+                    {/* Actions row with touch targets */}
+                    <div className="flex items-center gap-2 pt-2 border-t border-slate-200/80 dark:border-slate-800/80">
+                      <button
+                        onClick={() => onToggleStatus('governorate', gov.id)}
+                        className={`flex-1 min-h-[38px] px-3 py-1.5 rounded-xl font-bold text-xs border inline-flex items-center justify-center gap-1.5 transition cursor-pointer shadow-xs ${
+                          gov.status === 'active'
+                            ? isLight
+                              ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-200'
+                              : 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                            : isLight
+                            ? 'bg-slate-100 hover:bg-slate-200 text-slate-600 border-slate-200'
+                            : 'bg-slate-800/60 hover:bg-slate-800 text-slate-400 border-slate-700'
+                        }`}
+                      >
+                        {gov.status === 'active' ? (
+                          <>
+                            <ToggleRight className="w-4 h-4 text-emerald-500" />
+                            <span>تعطيل</span>
+                          </>
+                        ) : (
+                          <>
+                            <ToggleLeft className="w-4 h-4 text-slate-400" />
+                            <span>تنشيط</span>
+                          </>
+                        )}
+                      </button>
+
+                      <button
+                        onClick={() => handleOpenEditModal(gov)}
+                        className={`min-h-[38px] px-3.5 py-1.5 rounded-xl font-bold text-xs border transition cursor-pointer flex items-center gap-1.5 ${
+                          isLight
+                            ? 'bg-slate-100 hover:bg-amber-100 text-slate-700 hover:text-amber-900 border-slate-300 hover:border-amber-300'
+                            : 'bg-slate-800 hover:bg-amber-500/20 text-slate-300 hover:text-amber-400 border-slate-700 hover:border-amber-500/40'
+                        }`}
+                      >
+                        <Edit2 className="w-3.5 h-3.5" />
+                        <span>تعديل</span>
+                      </button>
+
+                      <button
+                        onClick={() =>
+                          setDeleteConfirm({
+                            type: 'governorate',
+                            id: gov.id,
+                            name: gov.nameAr,
+                          })
+                        }
+                        className={`min-h-[38px] px-3.5 py-1.5 rounded-xl font-bold text-xs border transition cursor-pointer flex items-center gap-1.5 ${
+                          isLight
+                            ? 'bg-rose-50 hover:bg-rose-100 text-rose-700 hover:text-rose-900 border-rose-200 hover:border-rose-300'
+                            : 'bg-slate-800 hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 border-slate-700 hover:border-rose-500/40'
+                        }`}
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>حذف</span>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+                {governorates.length === 0 && (
+                  <div className={`p-6 rounded-2xl border text-center text-xs ${
+                    isLight ? 'bg-slate-50 border-slate-200 text-slate-500' : 'bg-slate-900 border-slate-800 text-slate-400'
+                  }`}>
+                    لا توجد محافظات مسجلة حالياً. اضغط على «إضافة محافظة جديدة».
+                  </div>
+                )}
+              </div>
+
+              {/* Desktop Table */}
+              <div className={`hidden md:block overflow-x-auto rounded-2xl border shadow-lg ${
+                isLight ? 'bg-white border-slate-200 shadow-slate-200/50' : 'bg-slate-950/60 border-slate-800/80'
+              }`}>
                 <table className="w-full text-right text-xs">
                   <thead>
-                    <tr className="bg-slate-950 text-slate-400 border-b border-slate-800">
+                    <tr className={`border-b ${
+                      isLight ? 'bg-slate-50 text-slate-700 border-slate-200 font-bold' : 'bg-slate-950 text-slate-400 border-slate-800'
+                    }`}>
                       <th className="p-3 font-semibold">الكود</th>
                       <th className="p-3 font-semibold">اسم المحافظة (عربي)</th>
                       <th className="p-3 font-semibold">اسم المحافظة (إنجليزي)</th>
@@ -2240,17 +2624,21 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       <th className="p-3 font-semibold text-center">إجراءات</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800 text-slate-300">
+                  <tbody className={`divide-y ${isLight ? 'divide-slate-200 text-slate-800' : 'divide-slate-800 text-slate-300'}`}>
                     {governorates.map((gov) => (
-                      <tr key={gov.id} className="hover:bg-slate-800/40 transition">
-                        <td className="p-3 font-mono font-bold text-amber-400">{gov.code}</td>
-                        <td className="p-3 font-bold text-slate-100">{gov.nameAr}</td>
+                      <tr key={gov.id} className={`transition ${isLight ? 'hover:bg-slate-50' : 'hover:bg-slate-800/40'}`}>
+                        <td className="p-3 font-mono font-bold text-amber-500">{gov.code}</td>
+                        <td className={`p-3 font-bold ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>{gov.nameAr}</td>
                         <td className="p-3 font-mono text-slate-400">{gov.nameEn || '--'}</td>
                         <td className="p-3 text-center">
                           <span
                             className={`px-2.5 py-0.5 rounded font-bold ${
                               gov.status === 'active'
-                                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                                ? isLight
+                                  ? 'bg-emerald-100 text-emerald-900 border border-emerald-300'
+                                  : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                                : isLight
+                                ? 'bg-slate-100 text-slate-600'
                                 : 'bg-slate-800 text-slate-500'
                             }`}
                           >
@@ -2303,10 +2691,19 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           {/* TAB 3: Oilfields Table */}
           {activeTab === 'oilfields' && (
             <div className="space-y-3">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-800 gap-2">
+              <div className={`flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b gap-3 ${
+                isLight ? 'border-slate-200' : 'border-slate-800'
+              }`}>
                 <div>
-                  <h3 className="font-bold text-slate-100 text-sm">جدول الحقول النفطية والامتيازات</h3>
-                  <span className="text-[11px] text-slate-400">إمكانية الإضافة والتعديل والحذف وتغيير المحافظة التابعة</span>
+                  <h3 className={`font-bold text-sm flex items-center gap-2 ${
+                    isLight ? 'text-slate-900' : 'text-slate-100'
+                  }`}>
+                    <Database className={`w-4 h-4 ${isLight ? 'text-amber-600' : 'text-amber-500'}`} />
+                    <span>جدول الحقول النفطية والامتيازات</span>
+                  </h3>
+                  <span className={`text-[11px] ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                    إمكانية الإضافة والتعديل والحذف وتغيير المحافظة التابعة
+                  </span>
                 </div>
                 <button
                   type="button"
@@ -2318,17 +2715,140 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     setFldCode(`FLD-${Date.now().toString().slice(-4)}`);
                     setShowModal(true);
                   }}
-                  className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5 shadow self-start sm:self-auto"
+                  className={`min-h-[38px] px-3.5 py-1.5 font-bold rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5 shadow self-start sm:self-auto ${
+                    isLight
+                      ? 'bg-amber-600 hover:bg-amber-700 text-white shadow-amber-600/20'
+                      : 'bg-amber-500 hover:bg-amber-400 text-slate-950'
+                  }`}
                 >
                   <Plus className="w-4 h-4" />
                   <span>إضافة حقل نفطي جديد</span>
                 </button>
               </div>
 
-              <div className="overflow-x-auto">
+              {/* Mobile Card View (md:hidden) */}
+              <div className="md:hidden space-y-2.5">
+                {oilfields.map((fld) => {
+                  const parentGov = governorates.find((g) => g.id === fld.governorateId);
+                  return (
+                    <div
+                      key={fld.id}
+                      className={`p-3.5 rounded-2xl border transition shadow-sm space-y-3 ${
+                        isLight ? 'bg-white border-slate-200 shadow-slate-200/50' : 'bg-slate-900 border-slate-800'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="space-y-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className={`font-mono font-bold text-xs px-2 py-0.5 rounded border ${
+                              isLight ? 'bg-amber-50 text-amber-800 border-amber-300' : 'bg-slate-950 text-amber-400 border-slate-800'
+                            }`}>
+                              {fld.code}
+                            </span>
+                            <h4 className={`font-bold text-sm ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                              {fld.nameAr}
+                            </h4>
+                          </div>
+                          <div className="flex items-center gap-1.5 text-xs text-slate-500">
+                            <MapPin className="w-3.5 h-3.5 text-sky-500 shrink-0" />
+                            <span className={isLight ? 'text-slate-700' : 'text-slate-300'}>
+                              {parentGov?.nameAr || 'غير محدد'}
+                            </span>
+                          </div>
+                        </div>
+                        <span
+                          className={`px-2.5 py-1 rounded-full text-[10px] font-bold shrink-0 border ${
+                            fld.status === 'active'
+                              ? isLight
+                                ? 'bg-emerald-100 text-emerald-900 border-emerald-300'
+                                : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                              : isLight
+                              ? 'bg-slate-100 text-slate-600 border-slate-200'
+                              : 'bg-slate-800 text-slate-500 border-slate-700'
+                          }`}
+                        >
+                          {fld.status === 'active' ? 'نشط' : 'معطل'}
+                        </span>
+                      </div>
+
+                      {/* Actions row with touch targets */}
+                      <div className="flex items-center gap-2 pt-2 border-t border-slate-200/80 dark:border-slate-800/80">
+                        <button
+                          onClick={() => onToggleStatus('oilfield', fld.id)}
+                          className={`flex-1 min-h-[38px] px-3 py-1.5 rounded-xl font-bold text-xs border inline-flex items-center justify-center gap-1.5 transition cursor-pointer shadow-xs ${
+                            fld.status === 'active'
+                              ? isLight
+                                ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-200'
+                                : 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                              : isLight
+                              ? 'bg-slate-100 hover:bg-slate-200 text-slate-600 border-slate-200'
+                              : 'bg-slate-800/60 hover:bg-slate-800 text-slate-400 border-slate-700'
+                          }`}
+                        >
+                          {fld.status === 'active' ? (
+                            <>
+                              <ToggleRight className="w-4 h-4 text-emerald-500" />
+                              <span>تعطيل</span>
+                            </>
+                          ) : (
+                            <>
+                              <ToggleLeft className="w-4 h-4 text-slate-400" />
+                              <span>تنشيط</span>
+                            </>
+                          )}
+                        </button>
+
+                        <button
+                          onClick={() => handleOpenEditModal(fld)}
+                          className={`min-h-[38px] px-3.5 py-1.5 rounded-xl font-bold text-xs border transition cursor-pointer flex items-center gap-1.5 ${
+                            isLight
+                              ? 'bg-slate-100 hover:bg-amber-100 text-slate-700 hover:text-amber-900 border-slate-300 hover:border-amber-300'
+                              : 'bg-slate-800 hover:bg-amber-500/20 text-slate-300 hover:text-amber-400 border-slate-700 hover:border-amber-500/40'
+                          }`}
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
+                          <span>تعديل</span>
+                        </button>
+
+                        <button
+                          onClick={() =>
+                            setDeleteConfirm({
+                              type: 'oilfield',
+                              id: fld.id,
+                              name: fld.nameAr,
+                            })
+                          }
+                          className={`min-h-[38px] px-3.5 py-1.5 rounded-xl font-bold text-xs border transition cursor-pointer flex items-center gap-1.5 ${
+                            isLight
+                              ? 'bg-rose-50 hover:bg-rose-100 text-rose-700 hover:text-rose-900 border-rose-200 hover:border-rose-300'
+                              : 'bg-slate-800 hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 border-slate-700 hover:border-rose-500/40'
+                          }`}
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                          <span>حذف</span>
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+                {oilfields.length === 0 && (
+                  <div className={`p-6 rounded-2xl border text-center text-xs ${
+                    isLight ? 'bg-slate-50 border-slate-200 text-slate-500' : 'bg-slate-900 border-slate-800 text-slate-400'
+                  }`}>
+                    لا توجد حقول نفطية مسجلة حالياً. اضغط على «إضافة حقل نفطي جديد».
+                  </div>
+                )}
+              </div>
+
+              {/* Desktop Table */}
+              <div className={`hidden md:block overflow-x-auto rounded-2xl border shadow-lg ${
+                isLight ? 'bg-white border-slate-200 shadow-slate-200/50' : 'bg-slate-950/60 border-slate-800/80'
+              }`}>
                 <table className="w-full text-right text-xs">
                   <thead>
-                    <tr className="bg-slate-950 text-slate-400 border-b border-slate-800">
+                    <tr className={`border-b ${
+                      isLight ? 'bg-slate-50 text-slate-700 border-slate-200 font-bold' : 'bg-slate-950 text-slate-400 border-slate-800'
+                    }`}>
                       <th className="p-3 font-semibold">الكود</th>
                       <th className="p-3 font-semibold">اسم الحقل النفطي</th>
                       <th className="p-3 font-semibold">المحافظة التابع لها</th>
@@ -2336,19 +2856,23 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       <th className="p-3 font-semibold text-center">إجراءات</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800 text-slate-300">
+                  <tbody className={`divide-y ${isLight ? 'divide-slate-200 text-slate-800' : 'divide-slate-800 text-slate-300'}`}>
                     {oilfields.map((fld) => {
                       const parentGov = governorates.find((g) => g.id === fld.governorateId);
                       return (
-                        <tr key={fld.id} className="hover:bg-slate-800/40 transition">
-                          <td className="p-3 font-mono font-bold text-amber-400">{fld.code}</td>
-                          <td className="p-3 font-bold text-slate-100">{fld.nameAr}</td>
-                          <td className="p-3 text-slate-300">{parentGov?.nameAr || 'غير محدد'}</td>
+                        <tr key={fld.id} className={`transition ${isLight ? 'hover:bg-slate-50' : 'hover:bg-slate-800/40'}`}>
+                          <td className="p-3 font-mono font-bold text-amber-500">{fld.code}</td>
+                          <td className={`p-3 font-bold ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>{fld.nameAr}</td>
+                          <td className="p-3 text-slate-400">{parentGov?.nameAr || 'غير محدد'}</td>
                           <td className="p-3 text-center">
                             <span
                               className={`px-2.5 py-0.5 rounded font-bold ${
                                 fld.status === 'active'
-                                  ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                                  ? isLight
+                                    ? 'bg-emerald-100 text-emerald-900 border border-emerald-300'
+                                    : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                                  : isLight
+                                  ? 'bg-slate-100 text-slate-600'
                                   : 'bg-slate-800 text-slate-500'
                               }`}
                             >
@@ -2399,10 +2923,19 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           {/* TAB 4: Unit Types Table */}
           {activeTab === 'unit_types' && (
             <div className="space-y-3">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-800 gap-2">
+              <div className={`flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b gap-3 ${
+                isLight ? 'border-slate-200' : 'border-slate-800'
+              }`}>
                 <div>
-                  <h3 className="font-bold text-slate-100 text-sm">أنواع المباني والأبنية المرجعية</h3>
-                  <span className="text-[11px] text-slate-400">إضافة وتعديل وحذف أنواع وفئات الأبنية الهندسية</span>
+                  <h3 className={`font-bold text-sm flex items-center gap-2 ${
+                    isLight ? 'text-slate-900' : 'text-slate-100'
+                  }`}>
+                    <Box className={`w-4 h-4 ${isLight ? 'text-purple-600' : 'text-purple-400'}`} />
+                    <span>أنواع المباني والأبنية المرجعية</span>
+                  </h3>
+                  <span className={`text-[11px] ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                    إضافة وتعديل وحذف أنواع وفئات الأبنية الهندسية
+                  </span>
                 </div>
                 <button
                   type="button"
@@ -2415,17 +2948,158 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     setUtDefaultRoof('خرسانة مسلحة');
                     setShowModal(true);
                   }}
-                  className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5 shadow self-start sm:self-auto"
+                  className={`min-h-[38px] px-3.5 py-1.5 font-bold rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5 shadow self-start sm:self-auto ${
+                    isLight
+                      ? 'bg-purple-600 hover:bg-purple-700 text-white shadow-purple-600/20'
+                      : 'bg-amber-500 hover:bg-amber-400 text-slate-950'
+                  }`}
                 >
                   <Plus className="w-4 h-4" />
                   <span>إضافة نوع مبنى جديد</span>
                 </button>
               </div>
 
-              <div className="overflow-x-auto">
+              {/* Mobile Card View (md:hidden) */}
+              <div className="md:hidden space-y-2.5">
+                {unitTypes.map((ut) => (
+                  <div
+                    key={ut.code}
+                    className={`p-3.5 rounded-2xl border transition shadow-sm space-y-3 ${
+                      isLight ? 'bg-white border-slate-200 shadow-slate-200/50' : 'bg-slate-900 border-slate-800'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="space-y-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className={`font-mono font-bold text-xs px-2 py-0.5 rounded border ${
+                            isLight ? 'bg-purple-50 text-purple-800 border-purple-300' : 'bg-slate-950 text-amber-400 border-slate-800'
+                          }`}>
+                            {ut.code}
+                          </span>
+                          <h4 className={`font-bold text-sm ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                            {ut.nameAr}
+                          </h4>
+                        </div>
+                        {ut.nameEn && (
+                          <div className={`font-mono text-xs ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                            {ut.nameEn}
+                          </div>
+                        )}
+                      </div>
+                      <span
+                        className={`px-2.5 py-1 rounded-full text-[10px] font-bold shrink-0 border ${
+                          ut.status === 'active'
+                            ? isLight
+                              ? 'bg-emerald-100 text-emerald-900 border-emerald-300'
+                              : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                            : isLight
+                            ? 'bg-slate-100 text-slate-600 border-slate-200'
+                            : 'bg-slate-800 text-slate-500 border-slate-700'
+                        }`}
+                      >
+                        {ut.status === 'active' ? 'نشط' : 'معطل'}
+                      </span>
+                    </div>
+
+                    {/* Multi-story & Roof badges */}
+                    <div className={`flex items-center justify-between gap-2 p-2 rounded-xl text-xs border ${
+                      isLight ? 'bg-slate-50 border-slate-200/80' : 'bg-slate-950/60 border-slate-800/80'
+                    }`}>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[10px] text-slate-500">الطوابق:</span>
+                        <span className={`font-bold text-[11px] px-1.5 py-0.5 rounded ${
+                          ut.multiStory
+                            ? isLight ? 'bg-emerald-100 text-emerald-800' : 'bg-emerald-500/20 text-emerald-400'
+                            : isLight ? 'bg-slate-200 text-slate-700' : 'bg-slate-800 text-slate-300'
+                        }`}>
+                          {ut.multiStory ? 'متعدد الطوابق' : 'طابق واحد'}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[10px] text-slate-500">العزل:</span>
+                        <span className={`font-medium text-[11px] ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                          {ut.defaultRoof}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Actions row */}
+                    <div className="flex items-center gap-2 pt-2 border-t border-slate-200/80 dark:border-slate-800/80">
+                      <button
+                        onClick={() => onToggleStatus('unitType', ut.code)}
+                        className={`flex-1 min-h-[38px] px-3 py-1.5 rounded-xl font-bold text-xs border inline-flex items-center justify-center gap-1.5 transition cursor-pointer shadow-xs ${
+                          ut.status === 'active'
+                            ? isLight
+                              ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-200'
+                              : 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                            : isLight
+                            ? 'bg-slate-100 hover:bg-slate-200 text-slate-600 border-slate-200'
+                            : 'bg-slate-800/60 hover:bg-slate-800 text-slate-400 border-slate-700'
+                        }`}
+                      >
+                        {ut.status === 'active' ? (
+                          <>
+                            <ToggleRight className="w-4 h-4 text-emerald-500" />
+                            <span>تعطيل</span>
+                          </>
+                        ) : (
+                          <>
+                            <ToggleLeft className="w-4 h-4 text-slate-400" />
+                            <span>تنشيط</span>
+                          </>
+                        )}
+                      </button>
+
+                      <button
+                        onClick={() => handleOpenEditModal(ut)}
+                        className={`min-h-[38px] px-3.5 py-1.5 rounded-xl font-bold text-xs border transition cursor-pointer flex items-center gap-1.5 ${
+                          isLight
+                            ? 'bg-slate-100 hover:bg-amber-100 text-slate-700 hover:text-amber-900 border-slate-300 hover:border-amber-300'
+                            : 'bg-slate-800 hover:bg-amber-500/20 text-slate-300 hover:text-amber-400 border-slate-700 hover:border-amber-500/40'
+                        }`}
+                      >
+                        <Edit2 className="w-3.5 h-3.5" />
+                        <span>تعديل</span>
+                      </button>
+
+                      <button
+                        onClick={() =>
+                          setDeleteConfirm({
+                            type: 'unitType',
+                            id: ut.code,
+                            name: ut.nameAr,
+                          })
+                        }
+                        className={`min-h-[38px] px-3.5 py-1.5 rounded-xl font-bold text-xs border transition cursor-pointer flex items-center gap-1.5 ${
+                          isLight
+                            ? 'bg-rose-50 hover:bg-rose-100 text-rose-700 hover:text-rose-900 border-rose-200 hover:border-rose-300'
+                            : 'bg-slate-800 hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 border-slate-700 hover:border-rose-500/40'
+                        }`}
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>حذف</span>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+                {unitTypes.length === 0 && (
+                  <div className={`p-6 rounded-2xl border text-center text-xs ${
+                    isLight ? 'bg-slate-50 border-slate-200 text-slate-500' : 'bg-slate-900 border-slate-800 text-slate-400'
+                  }`}>
+                    لا توجد أنواع مباني مسجلة حالياً. اضغط على «إضافة نوع مبنى جديد».
+                  </div>
+                )}
+              </div>
+
+              {/* Desktop Table */}
+              <div className={`hidden md:block overflow-x-auto rounded-2xl border shadow-lg ${
+                isLight ? 'bg-white border-slate-200 shadow-slate-200/50' : 'bg-slate-950/60 border-slate-800/80'
+              }`}>
                 <table className="w-full text-right text-xs">
                   <thead>
-                    <tr className="bg-slate-950 text-slate-400 border-b border-slate-800">
+                    <tr className={`border-b ${
+                      isLight ? 'bg-slate-50 text-slate-700 border-slate-200 font-bold' : 'bg-slate-950 text-slate-400 border-slate-800'
+                    }`}>
                       <th className="p-3 font-semibold">رمز الفئة</th>
                       <th className="p-3 font-semibold">نوع الوحدة بالعربية</th>
                       <th className="p-3 font-semibold">الاسم بالإنجليزي</th>
@@ -2435,11 +3109,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       <th className="p-3 font-semibold text-center">إجراءات</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800 text-slate-300">
+                  <tbody className={`divide-y ${isLight ? 'divide-slate-200 text-slate-800' : 'divide-slate-800 text-slate-300'}`}>
                     {unitTypes.map((ut) => (
-                      <tr key={ut.code} className="hover:bg-slate-800/40 transition">
-                        <td className="p-3 font-mono font-bold text-amber-400">{ut.code}</td>
-                        <td className="p-3 font-bold text-slate-100">{ut.nameAr}</td>
+                      <tr key={ut.code} className={`transition ${isLight ? 'hover:bg-slate-50' : 'hover:bg-slate-800/40'}`}>
+                        <td className="p-3 font-mono font-bold text-amber-500">{ut.code}</td>
+                        <td className={`p-3 font-bold ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>{ut.nameAr}</td>
                         <td className="p-3 font-mono text-slate-400">{ut.nameEn || '--'}</td>
                         <td className="p-3">{ut.multiStory ? 'نعم (متعدد)' : 'لا (طابق واحد)'}</td>
                         <td className="p-3 text-slate-400">{ut.defaultRoof}</td>
@@ -2447,7 +3121,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                           <span
                             className={`px-2.5 py-0.5 rounded font-bold ${
                               ut.status === 'active'
-                                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                                ? isLight
+                                  ? 'bg-emerald-100 text-emerald-900 border border-emerald-300'
+                                  : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                                : isLight
+                                ? 'bg-slate-100 text-slate-600'
                                 : 'bg-slate-800 text-slate-500'
                             }`}
                           >
@@ -2497,10 +3175,19 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           {/* TAB 6: Room Types Table */}
           {activeTab === 'rooms' && (
             <div className="space-y-3">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-800 gap-2">
+              <div className={`flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b gap-3 ${
+                isLight ? 'border-slate-200' : 'border-slate-800'
+              }`}>
                 <div>
-                  <h3 className="font-bold text-slate-100 text-sm">تصنيفات واستخدامات الغرف والقاعات 3D</h3>
-                  <span className="text-[11px] text-slate-400">إضافة تصنيفات جديدة، تعديل التمييز اللوني، وتعديل وحذف الاستخدامات</span>
+                  <h3 className={`font-bold text-sm flex items-center gap-2 ${
+                    isLight ? 'text-slate-900' : 'text-slate-100'
+                  }`}>
+                    <Layers className={`w-4 h-4 ${isLight ? 'text-pink-600' : 'text-pink-400'}`} />
+                    <span>تصنيفات واستخدامات الغرف والقاعات 3D</span>
+                  </h3>
+                  <span className={`text-[11px] ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                    إضافة تصنيفات جديدة، تعديل التمييز اللوني، وتعديل وحذف الاستخدامات
+                  </span>
                 </div>
                 <button
                   type="button"
@@ -2511,17 +3198,147 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     setRtColorHex('#38bdf8');
                     setShowModal(true);
                   }}
-                  className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5 shadow self-start sm:self-auto"
+                  className={`min-h-[38px] px-3.5 py-1.5 font-bold rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5 shadow self-start sm:self-auto ${
+                    isLight
+                      ? 'bg-pink-600 hover:bg-pink-700 text-white shadow-pink-600/20'
+                      : 'bg-amber-500 hover:bg-amber-400 text-slate-950'
+                  }`}
                 >
                   <Plus className="w-4 h-4" />
                   <span>إضافة تصنيف قاعة / غرفة</span>
                 </button>
               </div>
 
-              <div className="overflow-x-auto">
+              {/* Mobile Card View (md:hidden) */}
+              <div className="md:hidden space-y-2.5">
+                {roomTypes.map((rt) => (
+                  <div
+                    key={rt.id}
+                    className={`p-3.5 rounded-2xl border transition shadow-sm space-y-3 ${
+                      isLight ? 'bg-white border-slate-200 shadow-slate-200/50' : 'bg-slate-900 border-slate-800'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="space-y-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className={`font-mono font-bold text-xs px-2 py-0.5 rounded border ${
+                            isLight ? 'bg-pink-50 text-pink-800 border-pink-300' : 'bg-slate-950 text-amber-400 border-slate-800'
+                          }`}>
+                            {rt.code}
+                          </span>
+                          <h4 className={`font-bold text-sm ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                            {rt.nameAr}
+                          </h4>
+                        </div>
+                      </div>
+                      <span
+                        className={`px-2.5 py-1 rounded-full text-[10px] font-bold shrink-0 border ${
+                          rt.status === 'active'
+                            ? isLight
+                              ? 'bg-emerald-100 text-emerald-900 border-emerald-300'
+                              : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                            : isLight
+                            ? 'bg-slate-100 text-slate-600 border-slate-200'
+                            : 'bg-slate-800 text-slate-500 border-slate-700'
+                        }`}
+                      >
+                        {rt.status === 'active' ? 'نشط' : 'معطل'}
+                      </span>
+                    </div>
+
+                    {/* Color badge */}
+                    <div className={`flex items-center gap-2.5 p-2 rounded-xl text-xs border ${
+                      isLight ? 'bg-slate-50 border-slate-200/80' : 'bg-slate-950/60 border-slate-800/80'
+                    }`}>
+                      <span className="text-[10px] text-slate-500">الرمز اللوني 3D:</span>
+                      <div className="flex items-center gap-2">
+                        <span
+                          className="w-4 h-4 rounded-full border border-slate-700/60 shadow-xs"
+                          style={{ backgroundColor: rt.colorHex }}
+                        />
+                        <span className={`font-mono font-bold text-xs ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                          {rt.colorHex}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Actions row */}
+                    <div className="flex items-center gap-2 pt-2 border-t border-slate-200/80 dark:border-slate-800/80">
+                      <button
+                        onClick={() => onToggleStatus('roomType', rt.id)}
+                        className={`flex-1 min-h-[38px] px-3 py-1.5 rounded-xl font-bold text-xs border inline-flex items-center justify-center gap-1.5 transition cursor-pointer shadow-xs ${
+                          rt.status === 'active'
+                            ? isLight
+                              ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-200'
+                              : 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                            : isLight
+                            ? 'bg-slate-100 hover:bg-slate-200 text-slate-600 border-slate-200'
+                            : 'bg-slate-800/60 hover:bg-slate-800 text-slate-400 border-slate-700'
+                        }`}
+                      >
+                        {rt.status === 'active' ? (
+                          <>
+                            <ToggleRight className="w-4 h-4 text-emerald-500" />
+                            <span>تعطيل</span>
+                          </>
+                        ) : (
+                          <>
+                            <ToggleLeft className="w-4 h-4 text-slate-400" />
+                            <span>تنشيط</span>
+                          </>
+                        )}
+                      </button>
+
+                      <button
+                        onClick={() => handleOpenEditModal(rt)}
+                        className={`min-h-[38px] px-3.5 py-1.5 rounded-xl font-bold text-xs border transition cursor-pointer flex items-center gap-1.5 ${
+                          isLight
+                            ? 'bg-slate-100 hover:bg-amber-100 text-slate-700 hover:text-amber-900 border-slate-300 hover:border-amber-300'
+                            : 'bg-slate-800 hover:bg-amber-500/20 text-slate-300 hover:text-amber-400 border-slate-700 hover:border-amber-500/40'
+                        }`}
+                      >
+                        <Edit2 className="w-3.5 h-3.5" />
+                        <span>تعديل</span>
+                      </button>
+
+                      <button
+                        onClick={() =>
+                          setDeleteConfirm({
+                            type: 'roomType',
+                            id: rt.id,
+                            name: rt.nameAr,
+                          })
+                        }
+                        className={`min-h-[38px] px-3.5 py-1.5 rounded-xl font-bold text-xs border transition cursor-pointer flex items-center gap-1.5 ${
+                          isLight
+                            ? 'bg-rose-50 hover:bg-rose-100 text-rose-700 hover:text-rose-900 border-rose-200 hover:border-rose-300'
+                            : 'bg-slate-800 hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 border-slate-700 hover:border-rose-500/40'
+                        }`}
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>حذف</span>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+                {roomTypes.length === 0 && (
+                  <div className={`p-6 rounded-2xl border text-center text-xs ${
+                    isLight ? 'bg-slate-50 border-slate-200 text-slate-500' : 'bg-slate-900 border-slate-800 text-slate-400'
+                  }`}>
+                    لا توجد تصنيفات غرف مسجلة حالياً. اضغط على «إضافة تصنيف قاعة / غرفة».
+                  </div>
+                )}
+              </div>
+
+              {/* Desktop Table */}
+              <div className={`hidden md:block overflow-x-auto rounded-2xl border shadow-lg ${
+                isLight ? 'bg-white border-slate-200 shadow-slate-200/50' : 'bg-slate-950/60 border-slate-800/80'
+              }`}>
                 <table className="w-full text-right text-xs">
                   <thead>
-                    <tr className="bg-slate-950 text-slate-400 border-b border-slate-800">
+                    <tr className={`border-b ${
+                      isLight ? 'bg-slate-50 text-slate-700 border-slate-200 font-bold' : 'bg-slate-950 text-slate-400 border-slate-800'
+                    }`}>
                       <th className="p-3 font-semibold">الكود</th>
                       <th className="p-3 font-semibold">تصنيف الغرفة/القاعة</th>
                       <th className="p-3 font-semibold">الرمز اللوني 3D</th>
@@ -2529,15 +3346,15 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       <th className="p-3 font-semibold text-center">إجراءات</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800 text-slate-300">
+                  <tbody className={`divide-y ${isLight ? 'divide-slate-200 text-slate-800' : 'divide-slate-800 text-slate-300'}`}>
                     {roomTypes.map((rt) => (
-                      <tr key={rt.id} className="hover:bg-slate-800/40 transition">
-                        <td className="p-3 font-mono font-bold text-amber-400">{rt.code}</td>
-                        <td className="p-3 font-bold text-slate-100">{rt.nameAr}</td>
+                      <tr key={rt.id} className={`transition ${isLight ? 'hover:bg-slate-50' : 'hover:bg-slate-800/40'}`}>
+                        <td className="p-3 font-mono font-bold text-amber-500">{rt.code}</td>
+                        <td className={`p-3 font-bold ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>{rt.nameAr}</td>
                         <td className="p-3">
                           <div className="flex items-center gap-2">
                             <span
-                              className="w-4 h-4 rounded-full border border-slate-700 shadow"
+                              className="w-4 h-4 rounded-full border border-slate-700/60 shadow-xs"
                               style={{ backgroundColor: rt.colorHex }}
                             ></span>
                             <span className="font-mono text-slate-400">{rt.colorHex}</span>
@@ -2547,7 +3364,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                           <span
                             className={`px-2.5 py-0.5 rounded font-bold ${
                               rt.status === 'active'
-                                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                                ? isLight
+                                  ? 'bg-emerald-100 text-emerald-900 border border-emerald-300'
+                                  : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                                : isLight
+                                ? 'bg-slate-100 text-slate-600'
                                 : 'bg-slate-800 text-slate-500'
                             }`}
                           >
@@ -2617,7 +3438,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 </div>
                 <button
                   onClick={handleOpenCreateModal}
-                  className={`font-bold px-3.5 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow transition cursor-pointer ${
+                  className={`min-h-[38px] font-bold px-3.5 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow transition cursor-pointer self-start sm:self-auto ${
                     isLight
                       ? 'bg-amber-600 hover:bg-amber-700 text-white shadow-amber-600/20'
                       : 'bg-amber-500 hover:bg-amber-400 text-slate-950'
@@ -2628,8 +3449,126 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 </button>
               </div>
 
+              {/* Mobile Card View (md:hidden) */}
+              <div className="md:hidden space-y-2.5">
+                {maintenanceDepartments.map((dept) => (
+                  <div
+                    key={dept.id}
+                    className={`p-3.5 rounded-2xl border transition shadow-sm space-y-3 ${
+                      isLight ? 'bg-white border-slate-200 shadow-slate-200/50' : 'bg-slate-900 border-slate-800'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="space-y-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-mono font-bold text-xs px-2 py-0.5 rounded border bg-amber-500/10 text-amber-500 border-amber-500/20">
+                            {dept.code}
+                          </span>
+                          <h4 className={`font-bold text-sm flex items-center gap-1.5 ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                            <Wrench className={`w-3.5 h-3.5 ${isLight ? 'text-amber-600' : 'text-amber-400'}`} />
+                            <span>{dept.nameAr}</span>
+                          </h4>
+                        </div>
+                        {dept.nameEn && (
+                          <div className="font-mono text-xs text-slate-400">
+                            {dept.nameEn}
+                          </div>
+                        )}
+                      </div>
+                      <span
+                        className={`px-2.5 py-1 rounded-full text-[10px] font-bold shrink-0 border ${
+                          dept.status === 'active'
+                            ? isLight
+                              ? 'bg-emerald-100 text-emerald-900 border-emerald-300'
+                              : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                            : isLight
+                            ? 'bg-slate-100 text-slate-600 border-slate-200'
+                            : 'bg-slate-800 text-slate-500 border-slate-700'
+                        }`}
+                      >
+                        {dept.status === 'active' ? 'نشط' : 'معطل'}
+                      </span>
+                    </div>
+
+                    {dept.description && (
+                      <p className={`text-xs p-2 rounded-xl border leading-relaxed ${
+                        isLight ? 'bg-slate-50 text-slate-600 border-slate-200/70' : 'bg-slate-950/60 text-slate-400 border-slate-800/60'
+                      }`}>
+                        {dept.description}
+                      </p>
+                    )}
+
+                    {/* Actions row */}
+                    <div className="flex items-center gap-2 pt-2 border-t border-slate-200/80 dark:border-slate-800/80">
+                      <button
+                        onClick={() => onToggleMaintenanceDepartmentStatus?.(dept.id)}
+                        className={`flex-1 min-h-[38px] px-3 py-1.5 rounded-xl font-bold text-xs border inline-flex items-center justify-center gap-1.5 transition cursor-pointer shadow-xs ${
+                          dept.status === 'active'
+                            ? isLight
+                              ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-200'
+                              : 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                            : isLight
+                            ? 'bg-slate-100 hover:bg-slate-200 text-slate-600 border-slate-200'
+                            : 'bg-slate-800/60 hover:bg-slate-800 text-slate-400 border-slate-700'
+                        }`}
+                      >
+                        {dept.status === 'active' ? (
+                          <>
+                            <ToggleRight className="w-4 h-4 text-emerald-500" />
+                            <span>تعطيل</span>
+                          </>
+                        ) : (
+                          <>
+                            <ToggleLeft className="w-4 h-4 text-slate-400" />
+                            <span>تنشيط</span>
+                          </>
+                        )}
+                      </button>
+
+                      <button
+                        onClick={() => handleOpenEditModal(dept)}
+                        className={`min-h-[38px] px-3.5 py-1.5 rounded-xl font-bold text-xs border transition cursor-pointer flex items-center gap-1.5 ${
+                          isLight
+                            ? 'bg-slate-100 hover:bg-amber-100 text-slate-700 hover:text-amber-900 border-slate-300 hover:border-amber-300'
+                            : 'bg-slate-800 hover:bg-amber-500/20 text-slate-300 hover:text-amber-400 border-slate-700 hover:border-amber-500/40'
+                        }`}
+                      >
+                        <Edit2 className="w-3.5 h-3.5" />
+                        <span>تعديل</span>
+                      </button>
+
+                      <button
+                        onClick={() =>
+                          setDeleteConfirm({
+                            type: 'maintenanceDepartment',
+                            id: dept.id,
+                            name: dept.nameAr,
+                          })
+                        }
+                        className={`min-h-[38px] px-3.5 py-1.5 rounded-xl font-bold text-xs border transition cursor-pointer flex items-center gap-1.5 ${
+                          isLight
+                            ? 'bg-rose-50 hover:bg-rose-100 text-rose-700 hover:text-rose-900 border-rose-200 hover:border-rose-300'
+                            : 'bg-slate-800 hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 border-slate-700 hover:border-rose-500/40'
+                        }`}
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>حذف</span>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+                {maintenanceDepartments.length === 0 && (
+                  <div className={`p-6 rounded-2xl border text-center text-xs ${
+                    isLight ? 'bg-slate-50 border-slate-200 text-slate-500' : 'bg-slate-900 border-slate-800 text-slate-400'
+                  }`}>
+                    لا توجد جهات صيانة مسجلة حالياً. اضغط على «إضافة جهة صيانة جديدة» لإضافة أقسام الصيانة.
+                  </div>
+                )}
+              </div>
+
+              {/* Desktop Table */}
               <div
-                className={`overflow-x-auto rounded-2xl border shadow-lg ${
+                className={`hidden md:block overflow-x-auto rounded-2xl border shadow-lg ${
                   isLight
                     ? 'bg-white border-slate-200 shadow-slate-200/50'
                     : 'bg-slate-950/60 border-slate-800/80'
@@ -2741,28 +3680,36 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           {/* TAB 8: Audit Activity Logs */}
           {activeTab === 'audit' && (
             <div className="space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800">
+              <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b ${
+                isLight ? 'border-slate-200' : 'border-slate-800'
+              }`}>
                 <div>
-                  <h3 className="font-bold text-slate-100 text-sm flex items-center gap-2">
-                    <Activity className="w-4 h-4 text-teal-400" />
+                  <h3 className={`font-bold text-sm flex items-center gap-2 ${
+                    isLight ? 'text-slate-900' : 'text-slate-100'
+                  }`}>
+                    <Activity className={`w-4 h-4 ${isLight ? 'text-teal-600' : 'text-teal-400'}`} />
                     <span>سجل النشاطات وتغييرات الإعدادات المركزية</span>
                   </h3>
-                  <p className="text-slate-400 text-xs mt-0.5">
+                  <p className={`text-xs mt-0.5 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
                     توثيق حركية إضافة وتعديل وتقييم المباني، وإجراءات السلامة والصيانة بالنظام
                   </p>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <button
                     onClick={() => setShowAddLogModal(true)}
-                    className="bg-slate-800 hover:bg-slate-700 text-amber-400 border border-slate-700 font-bold px-3 py-1.5 rounded-xl text-xs flex items-center gap-1.5 cursor-pointer transition"
+                    className={`min-h-[38px] font-bold px-3 py-1.5 rounded-xl text-xs flex items-center gap-1.5 cursor-pointer transition border ${
+                      isLight
+                        ? 'bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-300'
+                        : 'bg-slate-800 hover:bg-slate-700 text-amber-400 border-slate-700'
+                    }`}
                   >
                     <PlusCircle className="w-3.5 h-3.5" />
                     <span>إضافة نشاط يدوي</span>
                   </button>
                   <button
                     onClick={onClearAuditLogs}
-                    className="bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 font-bold px-3 py-1.5 rounded-xl text-xs flex items-center gap-1.5 cursor-pointer transition"
+                    className="min-h-[38px] bg-red-500/10 hover:bg-red-500/20 text-red-500 dark:text-red-400 border border-red-500/30 font-bold px-3 py-1.5 rounded-xl text-xs flex items-center gap-1.5 cursor-pointer transition"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                     <span>تفريغ السجل</span>
@@ -2778,14 +3725,98 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   value={auditSearch}
                   onChange={(e) => setAuditSearch(e.target.value)}
                   placeholder="فلترة بالاسم، نوع الإجراء، أو رمز الأصل..."
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl pr-9 pl-3 py-2 text-xs text-slate-200"
+                  className={`w-full border rounded-xl pr-9 pl-3 py-2.5 text-xs transition ${
+                    isLight
+                      ? 'bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 focus:border-teal-500 focus:ring-1 focus:ring-teal-500'
+                      : 'bg-slate-950 border-slate-800 text-slate-200 placeholder:text-slate-600 focus:border-teal-500'
+                  }`}
                 />
               </div>
 
-              <div className="overflow-x-auto">
+              {/* Mobile Card View (md:hidden) */}
+              <div className="md:hidden space-y-2.5">
+                {filteredAuditLogs.map((log) => (
+                  <div
+                    key={log.id}
+                    className={`p-3.5 rounded-2xl border transition shadow-sm space-y-2.5 ${
+                      isLight ? 'bg-white border-slate-200 shadow-slate-200/50' : 'bg-slate-900 border-slate-800'
+                    }`}
+                  >
+                    {/* Header: Action badge & Timestamp */}
+                    <div className="flex items-center justify-between gap-2">
+                      <span className={`px-2.5 py-1 rounded-lg font-bold text-xs border ${
+                        isLight ? 'bg-amber-100 text-amber-900 border-amber-300' : 'bg-amber-500/15 text-amber-400 border-amber-500/30'
+                      }`}>
+                        {log.action}
+                      </span>
+                      <span className="font-mono text-slate-400 text-[11px] flex items-center gap-1">
+                        <Clock className="w-3 h-3" />
+                        <span>{log.timestamp}</span>
+                      </span>
+                    </div>
+
+                    {/* User and Unit Code */}
+                    <div className="flex items-center justify-between gap-2 pt-1">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="w-6 h-6 rounded-full bg-amber-500/20 text-amber-500 dark:text-amber-300 border border-amber-500/30 font-bold flex items-center justify-center text-[10px] shrink-0">
+                          {log.userInitials}
+                        </span>
+                        <span className={`font-bold text-xs truncate ${isLight ? 'text-slate-800' : 'text-slate-200'}`}>
+                          {log.user}
+                        </span>
+                      </div>
+                      {log.unitCode && (
+                        <span className={`font-mono font-bold text-[11px] px-2 py-0.5 rounded border shrink-0 ${
+                          isLight ? 'bg-slate-100 text-slate-700 border-slate-200' : 'bg-slate-950 text-slate-300 border-slate-800'
+                        }`}>
+                          {log.unitCode}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Field & Diff values */}
+                    {(log.affectedField || log.previousValue || log.newValue) && (
+                      <div className={`p-2.5 rounded-xl border text-xs space-y-1 ${
+                        isLight ? 'bg-slate-50 border-slate-200/80' : 'bg-slate-950/60 border-slate-800/80'
+                      }`}>
+                        {log.affectedField && (
+                          <div className="text-[10px] text-slate-500 font-bold">
+                            الحقل: {log.affectedField}
+                          </div>
+                        )}
+                        <div className="flex items-center gap-1.5 font-mono text-[11px] flex-wrap">
+                          {log.previousValue && (
+                            <span className="text-slate-500 line-through">{log.previousValue}</span>
+                          )}
+                          {log.previousValue && log.newValue && (
+                            <span className="text-slate-400">←</span>
+                          )}
+                          {log.newValue && (
+                            <span className="text-emerald-500 font-bold">{log.newValue}</span>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+                {filteredAuditLogs.length === 0 && (
+                  <div className={`p-6 rounded-2xl border text-center text-xs ${
+                    isLight ? 'bg-slate-50 border-slate-200 text-slate-500' : 'bg-slate-900 border-slate-800 text-slate-400'
+                  }`}>
+                    لا توجد سجلات نشاط مطابقة للبحث.
+                  </div>
+                )}
+              </div>
+
+              {/* Desktop Table */}
+              <div className={`hidden md:block overflow-x-auto rounded-2xl border shadow-lg ${
+                isLight ? 'bg-white border-slate-200 shadow-slate-200/50' : 'bg-slate-950/60 border-slate-800/80'
+              }`}>
                 <table className="w-full text-right text-xs">
                   <thead>
-                    <tr className="bg-slate-950 text-slate-400 border-b border-slate-800">
+                    <tr className={`border-b ${
+                      isLight ? 'bg-slate-50 text-slate-700 border-slate-200 font-bold' : 'bg-slate-950 text-slate-400 border-slate-800'
+                    }`}>
                       <th className="p-3 font-semibold">الطابع الزمني</th>
                       <th className="p-3 font-semibold">المستخدم</th>
                       <th className="p-3 font-semibold">نوع الإجراء</th>
@@ -2794,26 +3825,26 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       <th className="p-3 font-semibold">القيمة السابقة / الجديدة</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800 text-slate-300">
+                  <tbody className={`divide-y ${isLight ? 'divide-slate-200 text-slate-800' : 'divide-slate-800 text-slate-300'}`}>
                     {filteredAuditLogs.map((log) => (
-                      <tr key={log.id} className="hover:bg-slate-800/40 transition">
+                      <tr key={log.id} className={`transition ${isLight ? 'hover:bg-slate-50' : 'hover:bg-slate-800/40'}`}>
                         <td className="p-3 font-mono text-slate-400 text-[11px]">{log.timestamp}</td>
                         <td className="p-3">
                           <div className="flex items-center gap-2">
-                            <span className="w-6 h-6 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 font-bold flex items-center justify-center text-[10px]">
+                            <span className="w-6 h-6 rounded-full bg-amber-500/20 text-amber-500 dark:text-amber-300 border border-amber-500/30 font-bold flex items-center justify-center text-[10px]">
                               {log.userInitials}
                             </span>
-                            <span className="font-bold text-slate-200">{log.user}</span>
+                            <span className={`font-bold ${isLight ? 'text-slate-900' : 'text-slate-200'}`}>{log.user}</span>
                           </div>
                         </td>
-                        <td className="p-3 font-bold text-amber-400">{log.action}</td>
-                        <td className="p-3 font-mono text-slate-300">{log.unitCode}</td>
+                        <td className="p-3 font-bold text-amber-500">{log.action}</td>
+                        <td className="p-3 font-mono text-slate-400">{log.unitCode}</td>
                         <td className="p-3 text-slate-400">{log.affectedField}</td>
                         <td className="p-3">
                           <div className="flex items-center gap-1.5 font-mono text-[11px]">
                             <span className="text-slate-500 line-through">{log.previousValue}</span>
-                            <span className="text-slate-600">←</span>
-                            <span className="text-emerald-400 font-bold">{log.newValue}</span>
+                            <span className="text-slate-400">←</span>
+                            <span className="text-emerald-500 font-bold">{log.newValue}</span>
                           </div>
                         </td>
                       </tr>

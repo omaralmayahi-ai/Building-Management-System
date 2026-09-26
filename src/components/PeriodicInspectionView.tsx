@@ -871,32 +871,32 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
   return (
     <div className="space-y-6">
       {/* Top Banner Header */}
-      <div className={`rounded-3xl p-6 shadow-md relative overflow-hidden transition-colors ${isLight ? 'bg-gradient-to-r from-amber-500/10 via-amber-50/60 to-white border border-amber-200/80' : 'bg-slate-900 border border-slate-800 shadow-xl'}`}>
+      <div className={`rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-md relative overflow-hidden transition-colors ${isLight ? 'bg-gradient-to-r from-amber-500/10 via-amber-50/60 to-white border border-amber-200/80' : 'bg-slate-900 border border-slate-800 shadow-xl'}`}>
         <div className="absolute top-0 left-0 w-96 h-96 bg-amber-500/5 rounded-full blur-3xl -ml-20 -mt-20 pointer-events-none" />
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
-          <div className="flex items-center gap-4">
-            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center font-bold shadow-inner ${isLight ? 'bg-amber-500/15 border border-amber-300 text-amber-700' : 'bg-amber-500/10 border border-amber-500/30 text-amber-400'}`}>
-              <CalendarCheck className="w-8 h-8" />
+          <div className="flex items-center gap-3 sm:gap-4">
+            <div className={`w-11 h-11 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl flex items-center justify-center font-bold shrink-0 shadow-inner ${isLight ? 'bg-amber-500/15 border border-amber-300 text-amber-700' : 'bg-amber-500/10 border border-amber-500/30 text-amber-400'}`}>
+              <CalendarCheck className="w-6 h-6 sm:w-8 sm:h-8" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <h1 className={`text-xl font-black ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className={`text-lg sm:text-xl font-black ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
                   سجل الكشوفات الدورية
                 </h1>
-                <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold border ${isLight ? 'bg-amber-100 text-amber-800 border-amber-300' : 'bg-amber-500/20 text-amber-400 border-amber-500/30'}`}>
+                <span className={`px-2.5 py-0.5 rounded-full text-[11px] sm:text-xs font-bold border ${isLight ? 'bg-amber-100 text-amber-800 border-amber-300' : 'bg-amber-500/20 text-amber-400 border-amber-500/30'}`}>
                   شركة نفط الوسط
                 </span>
               </div>
-              <p className={`text-xs mt-1 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+              <p className={`text-[11px] sm:text-xs mt-1 leading-relaxed ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
                 متابعة وحدات الحقول والمحافظات، تحديد تواريخ وتكرار الكشف الدوري، إنجاز المعاينات وترفيع التقارير، وتوثيق طلبات الصيانة في أرشيف الأصل
               </p>
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
             <button
               onClick={() => setShowAddModal(true)}
-              className="px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black rounded-xl text-xs flex items-center gap-2 shadow-md shadow-amber-500/20 transition cursor-pointer"
+              className="w-full sm:w-auto px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black rounded-xl text-xs flex items-center justify-center gap-2 shadow-md shadow-amber-500/20 transition cursor-pointer min-h-[42px]"
             >
               <Plus className="w-4 h-4" />
               <span>جدولة كشف جديد</span>
@@ -905,10 +905,10 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
         </div>
 
         {/* View Toggle Tabs */}
-        <div className="flex flex-wrap items-center gap-2 mt-5 border-t border-slate-800/40 pt-4">
+        <div className="flex items-center gap-2 mt-4 sm:mt-5 border-t border-slate-800/40 pt-3 sm:pt-4 overflow-x-auto scrollbar-none flex-nowrap sm:flex-wrap">
           <button
             onClick={() => setActiveSubTab('schedules')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
+            className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer shrink-0 min-h-[38px] ${
               activeSubTab === 'schedules'
                 ? 'bg-amber-500 text-slate-950 shadow-md font-black'
                 : isLight
@@ -922,7 +922,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
 
           <button
             onClick={() => setActiveSubTab('hierarchy')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
+            className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer shrink-0 min-h-[38px] ${
               activeSubTab === 'hierarchy'
                 ? 'bg-amber-500 text-slate-950 shadow-md font-black'
                 : isLight
@@ -937,64 +937,64 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
       </div>
 
       {/* KPI Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className={`rounded-2xl p-4 flex items-center justify-between shadow-sm transition-colors ${isLight ? 'bg-white border border-slate-200' : 'bg-slate-900 border border-slate-800'}`}>
-          <div>
-            <p className={`text-xs font-bold ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>إجمالي الكشوفات المجدولة</p>
-            <h3 className={`text-2xl font-black mt-1 ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>{toArabicDigits(totalCount)}</h3>
-            <p className={`text-[11px] mt-0.5 ${isLight ? 'text-slate-500' : 'text-slate-500'}`}>جدول متابعة معتمد للنظام</p>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
+        <div className={`rounded-xl sm:rounded-2xl p-3 sm:p-4 flex items-center justify-between shadow-sm transition-colors ${isLight ? 'bg-white border border-slate-200' : 'bg-slate-900 border border-slate-800'}`}>
+          <div className="min-w-0">
+            <p className={`text-[11px] sm:text-xs font-bold truncate ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>إجمالي الكشوفات المجدولة</p>
+            <h3 className={`text-xl sm:text-2xl font-black mt-0.5 sm:mt-1 ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>{toArabicDigits(totalCount)}</h3>
+            <p className={`text-[10px] sm:text-[11px] mt-0.5 truncate ${isLight ? 'text-slate-500' : 'text-slate-500'}`}>جدول متابعة معتمد للنظام</p>
           </div>
-          <div className={`w-12 h-12 rounded-xl flex items-center justify-center border ${isLight ? 'bg-slate-100 border-slate-200 text-slate-700' : 'bg-slate-800 border-slate-700 text-slate-300'}`}>
-            <CalendarDays className="w-6 h-6" />
-          </div>
-        </div>
-
-        <div className={`rounded-2xl p-4 flex items-center justify-between shadow-sm transition-colors ${isLight ? 'bg-red-50/70 border border-red-200' : 'bg-slate-900 border border-red-500/30'}`}>
-          <div>
-            <p className={`text-xs font-bold ${isLight ? 'text-red-800' : 'text-red-400'}`}>غير مكتملة (مستحقة فوراً)</p>
-            <h3 className={`text-2xl font-black mt-1 ${isLight ? 'text-red-700' : 'text-red-400'}`}>{toArabicDigits(overdueCount)}</h3>
-            <p className={`text-[11px] mt-0.5 ${isLight ? 'text-red-600/80' : 'text-slate-500'}`}>تتطلب معالجة وإنجاز كشف عاجل</p>
-          </div>
-          <div className={`w-12 h-12 rounded-xl flex items-center justify-center border ${isLight ? 'bg-red-100 border-red-200 text-red-600' : 'bg-red-500/10 border-red-500/20 text-red-400'}`}>
-            <AlertTriangle className="w-6 h-6" />
+          <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center shrink-0 border mr-2 ${isLight ? 'bg-slate-100 border-slate-200 text-slate-700' : 'bg-slate-800 border-slate-700 text-slate-300'}`}>
+            <CalendarDays className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
         </div>
 
-        <div className={`rounded-2xl p-4 flex items-center justify-between shadow-sm transition-colors ${isLight ? 'bg-amber-50/70 border border-amber-200' : 'bg-slate-900 border border-amber-500/30'}`}>
-          <div>
-            <p className={`text-xs font-bold ${isLight ? 'text-amber-800' : 'text-amber-400'}`}>غير مكتملة (مجدولة قادمة)</p>
-            <h3 className={`text-2xl font-black mt-1 ${isLight ? 'text-amber-700' : 'text-amber-400'}`}>{toArabicDigits(scheduledCount)}</h3>
-            <p className={`text-[11px] mt-0.5 ${isLight ? 'text-amber-700/80' : 'text-slate-500'}`}>بانتظار تاريخ الاستحقاق</p>
+        <div className={`rounded-xl sm:rounded-2xl p-3 sm:p-4 flex items-center justify-between shadow-sm transition-colors ${isLight ? 'bg-red-50/70 border border-red-200' : 'bg-slate-900 border border-red-500/30'}`}>
+          <div className="min-w-0">
+            <p className={`text-[11px] sm:text-xs font-bold truncate ${isLight ? 'text-red-800' : 'text-red-400'}`}>غير مكتملة (مستحقة فوراً)</p>
+            <h3 className={`text-xl sm:text-2xl font-black mt-0.5 sm:mt-1 ${isLight ? 'text-red-700' : 'text-red-400'}`}>{toArabicDigits(overdueCount)}</h3>
+            <p className={`text-[10px] sm:text-[11px] mt-0.5 truncate ${isLight ? 'text-red-600/80' : 'text-slate-500'}`}>تتطلب معالجة وإنجاز كشف عاجل</p>
           </div>
-          <div className={`w-12 h-12 rounded-xl flex items-center justify-center border ${isLight ? 'bg-amber-100 border-amber-200 text-amber-700' : 'bg-amber-500/10 border-amber-500/20 text-amber-400'}`}>
-            <Clock className="w-6 h-6" />
+          <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center shrink-0 border mr-2 ${isLight ? 'bg-red-100 border-red-200 text-red-600' : 'bg-red-500/10 border-red-500/20 text-red-400'}`}>
+            <AlertTriangle className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
         </div>
 
-        <div className={`rounded-2xl p-4 flex items-center justify-between shadow-sm transition-colors ${isLight ? 'bg-emerald-50/70 border border-emerald-200' : 'bg-slate-900 border border-emerald-500/30'}`}>
-          <div>
-            <p className={`text-xs font-bold ${isLight ? 'text-emerald-800' : 'text-emerald-400'}`}>كشوفات مكتملة وموثقة</p>
-            <h3 className={`text-2xl font-black mt-1 ${isLight ? 'text-emerald-700' : 'text-emerald-400'}`}>{toArabicDigits(completedCount)}</h3>
-            <p className={`text-[11px] mt-0.5 ${isLight ? 'text-emerald-700/80' : 'text-slate-500'}`}>تم ترفيع تقاريرها وتحديث الدرجة</p>
+        <div className={`rounded-xl sm:rounded-2xl p-3 sm:p-4 flex items-center justify-between shadow-sm transition-colors ${isLight ? 'bg-amber-50/70 border border-amber-200' : 'bg-slate-900 border border-amber-500/30'}`}>
+          <div className="min-w-0">
+            <p className={`text-[11px] sm:text-xs font-bold truncate ${isLight ? 'text-amber-800' : 'text-amber-400'}`}>غير مكتملة (مجدولة قادمة)</p>
+            <h3 className={`text-xl sm:text-2xl font-black mt-0.5 sm:mt-1 ${isLight ? 'text-amber-700' : 'text-amber-400'}`}>{toArabicDigits(scheduledCount)}</h3>
+            <p className={`text-[10px] sm:text-[11px] mt-0.5 truncate ${isLight ? 'text-amber-700/80' : 'text-slate-500'}`}>بانتظار تاريخ الاستحقاق</p>
           </div>
-          <div className={`w-12 h-12 rounded-xl flex items-center justify-center border ${isLight ? 'bg-emerald-100 border-emerald-200 text-emerald-700' : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'}`}>
-            <CheckCircle2 className="w-6 h-6" />
+          <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center shrink-0 border mr-2 ${isLight ? 'bg-amber-100 border-amber-200 text-amber-700' : 'bg-amber-500/10 border-amber-500/20 text-amber-400'}`}>
+            <Clock className="w-5 h-5 sm:w-6 sm:h-6" />
+          </div>
+        </div>
+
+        <div className={`rounded-xl sm:rounded-2xl p-3 sm:p-4 flex items-center justify-between shadow-sm transition-colors ${isLight ? 'bg-emerald-50/70 border border-emerald-200' : 'bg-slate-900 border border-emerald-500/30'}`}>
+          <div className="min-w-0">
+            <p className={`text-[11px] sm:text-xs font-bold truncate ${isLight ? 'text-emerald-800' : 'text-emerald-400'}`}>كشوفات مكتملة وموثقة</p>
+            <h3 className={`text-xl sm:text-2xl font-black mt-0.5 sm:mt-1 ${isLight ? 'text-emerald-700' : 'text-emerald-400'}`}>{toArabicDigits(completedCount)}</h3>
+            <p className={`text-[10px] sm:text-[11px] mt-0.5 truncate ${isLight ? 'text-emerald-700/80' : 'text-slate-500'}`}>تم ترفيع تقاريرها وتحديث الدرجة</p>
+          </div>
+          <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center shrink-0 border mr-2 ${isLight ? 'bg-emerald-100 border-emerald-200 text-emerald-700' : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'}`}>
+            <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
         </div>
       </div>
 
       {/* Filter and Search Bar */}
-      <div className={`rounded-2xl p-4 space-y-4 transition-colors ${isLight ? 'bg-white border border-slate-200 shadow-sm' : 'bg-slate-900 border border-slate-800'}`}>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 text-xs">
+      <div className={`rounded-2xl p-3.5 sm:p-4 space-y-3 transition-colors ${isLight ? 'bg-white border border-slate-200 shadow-sm' : 'bg-slate-900 border border-slate-800'}`}>
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-6 gap-2.5 sm:gap-3 text-xs">
           {/* Search Input */}
-          <div className="relative sm:col-span-2">
+          <div className="relative col-span-2 sm:col-span-2 lg:col-span-2">
             <Search className={`w-4 h-4 absolute right-3 top-3 ${isLight ? 'text-slate-400' : 'text-slate-500'}`} />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="بحث باسم المبنى، الرمز، الفريق، المفتش..."
-              className={`w-full rounded-xl pr-9 pl-3 py-2.5 outline-none font-medium transition ${
+              className={`w-full rounded-xl pr-9 pl-3 py-2.5 outline-none font-medium transition min-h-[42px] ${
                 isLight ? 'bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 focus:border-amber-500' : 'bg-slate-950 border border-slate-800 text-slate-100 placeholder-slate-500 focus:border-amber-500'
               }`}
             />
@@ -1005,7 +1005,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
             <select
               value={selectedGovernorate}
               onChange={(e) => handleGovernorateChange(e.target.value)}
-              className={`w-full rounded-xl p-2.5 font-bold outline-none cursor-pointer transition ${
+              className={`w-full rounded-xl p-2.5 font-bold outline-none cursor-pointer transition min-h-[42px] ${
                 isLight ? 'bg-slate-50 border border-slate-200 text-slate-800 focus:border-amber-500' : 'bg-slate-950 border border-slate-800 text-slate-200 focus:border-amber-500'
               }`}
             >
@@ -1025,7 +1025,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
             <select
               value={selectedOilfield}
               onChange={(e) => setSelectedOilfield(e.target.value)}
-              className={`w-full rounded-xl p-2.5 font-bold outline-none cursor-pointer transition ${
+              className={`w-full rounded-xl p-2.5 font-bold outline-none cursor-pointer transition min-h-[42px] ${
                 isLight ? 'bg-slate-50 border border-slate-200 text-slate-800 focus:border-amber-500' : 'bg-slate-950 border border-slate-800 text-slate-200 focus:border-amber-500'
               }`}
             >
@@ -1043,7 +1043,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
             <select
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
-              className={`w-full rounded-xl p-2.5 font-bold outline-none cursor-pointer transition ${
+              className={`w-full rounded-xl p-2.5 font-bold outline-none cursor-pointer transition min-h-[42px] ${
                 isLight ? 'bg-slate-50 border border-slate-200 text-slate-800 focus:border-amber-500' : 'bg-slate-950 border border-slate-800 text-slate-200 focus:border-amber-500'
               }`}
             >
@@ -1060,7 +1060,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
             <select
               value={selectedFrequency}
               onChange={(e) => setSelectedFrequency(e.target.value)}
-              className={`w-full rounded-xl p-2.5 font-bold outline-none cursor-pointer transition ${
+              className={`w-full rounded-xl p-2.5 font-bold outline-none cursor-pointer transition min-h-[42px] ${
                 isLight ? 'bg-slate-50 border border-slate-200 text-slate-800 focus:border-amber-500' : 'bg-slate-950 border border-slate-800 text-slate-200 focus:border-amber-500'
               }`}
             >
@@ -1073,6 +1073,29 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
             </select>
           </div>
         </div>
+
+        {/* Active Filters Clear Indicator */}
+        {(searchTerm || selectedGovernorate !== 'all' || selectedOilfield !== 'all' || selectedStatus !== 'all' || selectedFrequency !== 'all') && (
+          <div className="flex items-center justify-between pt-1 border-t border-slate-200/60 dark:border-slate-800/60 text-xs">
+            <span className="text-[11px] text-amber-500 font-bold">
+              يتم تطبيق معايير التصفية والبحث
+            </span>
+            <button
+              onClick={() => {
+                setSearchTerm('');
+                setSelectedGovernorate('all');
+                setSelectedOilfield('all');
+                setSelectedStatus('all');
+                setSelectedFrequency('all');
+              }}
+              className={`text-[11px] font-bold underline transition cursor-pointer ${
+                isLight ? 'text-slate-600 hover:text-slate-900' : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              إلغاء وإعادة ضبط الفلاتر
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Main Content Areas */}
@@ -1128,8 +1151,184 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
               )}
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-right text-xs">
+            <div>
+              {/* Mobile Stacked Schedules Cards (md:hidden) */}
+              <div className="md:hidden p-3 space-y-3">
+                {filteredSchedules.map((sch) => {
+                  const matchedUnit = units.find((u) => u.code === sch.unitCode);
+                  const occupyingEntity = matchedUnit
+                    ? (matchedUnit.departments && matchedUnit.departments.length > 0
+                        ? Array.from(new Set(matchedUnit.departments.filter(Boolean))).join(' ، ')
+                        : matchedUnit.department ||
+                          (matchedUnit.rooms && matchedUnit.rooms.length > 0
+                            ? Array.from(new Set(matchedUnit.rooms.map((r) => r.occupiedBy).filter(Boolean))).join(' ، ')
+                            : '')) || 'عام / غير محدد'
+                    : 'عام / غير محدد';
+
+                  const p = (sch.performedByName || (sch.status === 'completed' && sch.inspectorName))
+                    ? getPerformerDisplay(sch.performedByName, sch.inspectorName, users, sch.status === 'completed')
+                    : null;
+
+                  return (
+                    <div
+                      key={sch.id}
+                      className={`p-3.5 rounded-2xl border space-y-2.5 transition ${
+                        isLight ? 'bg-slate-50 border-slate-200 shadow-xs' : 'bg-slate-950/70 border-slate-800 shadow-xs'
+                      }`}
+                    >
+                      {/* Top: Code, Grade & Status */}
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-1.5">
+                          <span className={`font-mono font-black text-xs px-2 py-0.5 rounded-lg border ${
+                            isLight ? 'bg-amber-100 text-amber-900 border-amber-300' : 'bg-amber-500/20 text-amber-400 border-amber-500/30'
+                          }`}>
+                            {toArabicDigits(sch.unitCode)}
+                          </span>
+                          {matchedUnit && getConditionGradeBadge(sch.conditionGradeGiven || matchedUnit.conditionGrade)}
+                        </div>
+                        <div>{getStatusBadge(sch.status)}</div>
+                      </div>
+
+                      {/* Title & Facility */}
+                      <div>
+                        <h4 className={`font-extrabold text-sm ${isLight ? 'text-slate-900' : 'text-white'}`}>
+                          {sch.title}
+                        </h4>
+                        <p className={`text-xs mt-0.5 font-bold ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                          {occupyingEntity}
+                        </p>
+                        {sch.unitName && sch.unitName !== sch.unitCode && (
+                          <p className={`text-[11px] ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                            {sch.unitName}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Location & Frequency */}
+                      <div className="grid grid-cols-2 gap-2 text-[11px] pt-2 border-t border-slate-200/60 dark:border-slate-800/60">
+                        <div>
+                          <span className="text-slate-400 font-medium">الموقع: </span>
+                          <span className="font-bold">{sch.governorate} - {sch.field}</span>
+                        </div>
+                        <div>
+                          <span className="text-slate-400 font-medium">التكرار: </span>
+                          <span className="font-bold text-amber-500">{getFrequencyLabel(sch.frequency, sch.customIntervalDays)}</span>
+                        </div>
+                        <div>
+                          <span className="text-slate-400 font-medium">تاريخ البدء: </span>
+                          <span className="font-mono font-bold">{toArabicDigits(sch.lastInspectionDate)}</span>
+                        </div>
+                        <div>
+                          <span className="text-slate-400 font-medium">الموعد القادم: </span>
+                          <span className={`font-mono font-bold ${sch.status === 'overdue' ? 'text-rose-500 font-black' : 'text-slate-200'}`}>
+                            {toArabicDigits(sch.nextDueDate)}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Performer & Report */}
+                      <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-200/60 dark:border-slate-800/60 text-[11px]">
+                        <div>
+                          {p ? (
+                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold border ${p.roleBadgeClass}`}>
+                              <UserCheck className="w-3 h-3" />
+                              <span>{p.userName || p.roleBadgeText}</span>
+                            </span>
+                          ) : (
+                            <span className="text-slate-400 text-[10px]">
+                              {sch.inspectorName ? `المكلف: ${sch.inspectorName.replace(/\s*\([^)]*\)/g, '').trim()}` : 'لم يُنجز بعد'}
+                            </span>
+                          )}
+                        </div>
+
+                        <div>
+                          {sch.reportFileName || sch.reportFileUrl ? (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const ext = sch.reportFileName?.split('.').pop() || 'pdf';
+                                setPreviewAttachment({
+                                  id: 'insp-main-' + sch.id,
+                                  name: sch.reportFileName || 'تقرير_الكشف.pdf',
+                                  type: ext,
+                                  url: sch.reportFileUrl || '#',
+                                  uploadedAt: sch.lastInspectionDate || new Date().toISOString().split('T')[0],
+                                  size: '1.5 MB',
+                                });
+                              }}
+                              className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10.5px] font-bold border cursor-pointer ${
+                                isLight ? 'bg-emerald-50 text-emerald-800 border-emerald-300' : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                              }`}
+                            >
+                              <Eye className="w-3 h-3" />
+                              <span>تقرير</span>
+                            </button>
+                          ) : null}
+                        </div>
+                      </div>
+
+                      {/* Actions Bar */}
+                      <div className="flex flex-wrap items-center justify-end gap-1.5 pt-2 border-t border-slate-200/60 dark:border-slate-800/60">
+                        {sch.status !== 'completed' && (
+                          <button
+                            onClick={() => {
+                              const todayStr = new Date().toISOString().split('T')[0];
+                              setShowCompleteModal(sch);
+                              setCompleteDate(todayStr);
+                              setMaintDate(todayStr);
+                              setCompletePerformedByName(sch.performedByName || '');
+                              if (matchedUnit) {
+                                setCompleteGrade(matchedUnit.conditionGrade);
+                              }
+                            }}
+                            className="bg-emerald-600 hover:bg-emerald-500 text-white font-black px-3 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow cursor-pointer min-h-[38px]"
+                          >
+                            <CheckSquare className="w-3.5 h-3.5" />
+                            <span>إنجاز الكشف</span>
+                          </button>
+                        )}
+                        {matchedUnit && (
+                          <button
+                            onClick={() => {
+                              setShowUnitArchiveModal(matchedUnit);
+                              setArchiveModalTab('inspections');
+                            }}
+                            className={`px-3 py-2 rounded-xl border text-xs font-bold flex items-center gap-1.5 transition cursor-pointer min-h-[38px] ${
+                              isLight ? 'bg-amber-50 text-amber-900 border-amber-200 hover:bg-amber-100' : 'bg-slate-800 text-amber-400 border-slate-700 hover:bg-slate-700'
+                            }`}
+                            title="الأرشيف"
+                          >
+                            <Archive className="w-3.5 h-3.5" />
+                            <span>الأرشيف</span>
+                          </button>
+                        )}
+                        <button
+                          onClick={() => handleOpenEdit(sch)}
+                          className={`p-2 rounded-xl border transition cursor-pointer min-h-[38px] min-w-[38px] flex items-center justify-center ${
+                            isLight ? 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200' : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-700'
+                          }`}
+                          title="تعديل الموعد والتكرار"
+                        >
+                          <Edit3 className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => setDeleteConfirmSchedule(sch)}
+                          className={`p-2 rounded-xl border transition cursor-pointer min-h-[38px] min-w-[38px] flex items-center justify-center ${
+                            isLight ? 'bg-red-50 hover:bg-red-100 text-red-600 border-red-200' : 'bg-red-500/10 hover:bg-red-500/20 text-red-400 border-red-500/20'
+                          }`}
+                          title="حذف جدول الكشف الدوري"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Desktop Table View (hidden md:block) */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full text-right text-xs">
                 <thead className={`font-bold border-b ${isLight ? 'bg-slate-100 text-slate-700 border-slate-200' : 'bg-slate-950 text-slate-400 border-slate-800'}`}>
                   <tr>
                     <th className="p-3.5">رمز المنشأة والجهة الشاغلة</th>
@@ -1413,7 +1612,8 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                 </tbody>
               </table>
             </div>
-          )}
+          </div>
+        )}
         </div>
       ) : (
         /* 2. HIERARCHY TREE VIEW BY GOVERNORATE & OILFIELD */
@@ -1469,13 +1669,13 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                               const latestSchedule = unitSchedules[0];
 
                               return (
-                                <div key={unit.code} className="py-2.5 flex items-center justify-between gap-2">
+                                <div key={unit.code} className="py-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                                   <div>
-                                    <div className="flex items-center gap-2">
+                                    <div className="flex items-center gap-2 flex-wrap">
                                       <span className="font-mono font-bold text-amber-400">{toArabicDigits(unit.code)}</span>
                                       <span className={`font-bold ${isLight ? 'text-slate-800' : 'text-slate-200'}`}>{unit.name}</span>
                                     </div>
-                                    <div className="flex items-center gap-2 mt-1">
+                                    <div className="flex items-center gap-2 mt-1 flex-wrap">
                                       {getConditionGradeBadge(unit.conditionGrade)}
                                       {latestSchedule && (
                                         <span className="text-[10px] text-slate-400">
@@ -1485,17 +1685,18 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                                     </div>
                                   </div>
 
-                                  <div className="flex items-center gap-2">
+                                  <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
                                     <button
                                       onClick={() => {
                                         setNewUnitCode(unit.code);
                                         setShowAddModal(true);
                                       }}
-                                      className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border transition cursor-pointer ${
+                                      className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition cursor-pointer min-h-[36px] flex items-center gap-1 ${
                                         isLight ? 'bg-amber-100 text-amber-900 border-amber-300 hover:bg-amber-200' : 'bg-amber-500/20 text-amber-400 border-amber-500/30 hover:bg-amber-500/30'
                                       }`}
                                     >
-                                      + جدولة كشف
+                                      <Plus className="w-3.5 h-3.5" />
+                                      <span>جدولة كشف</span>
                                     </button>
 
                                     <button
@@ -1503,11 +1704,12 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                                         setShowUnitArchiveModal(unit);
                                         setArchiveModalTab('inspections');
                                       }}
-                                      className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border transition cursor-pointer ${
+                                      className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition cursor-pointer min-h-[36px] flex items-center gap-1 ${
                                         isLight ? 'bg-slate-200 text-slate-800 border-slate-300 hover:bg-slate-300' : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700'
                                       }`}
                                     >
-                                      الأرشيف
+                                      <Archive className="w-3.5 h-3.5" />
+                                      <span>الأرشيف</span>
                                     </button>
                                   </div>
                                 </div>
@@ -1527,32 +1729,32 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
 
       {/* MODAL 1: ADD NEW PERIODIC INSPECTION */}
       {showAddModal && (
-        <div className={`fixed inset-0 z-50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto ${isLight ? 'bg-slate-900/40' : 'bg-slate-950/80'}`}>
-          <div className={`rounded-3xl p-6 w-full max-w-5xl space-y-5 shadow-2xl relative my-6 border max-h-[92vh] flex flex-col ${isLight ? 'bg-white border-slate-200 text-slate-900' : 'bg-slate-900 border-slate-800 text-slate-100'}`}>
+        <div className={`fixed inset-0 z-50 backdrop-blur-sm flex items-center justify-center p-2.5 sm:p-4 overflow-y-auto ${isLight ? 'bg-slate-900/40' : 'bg-slate-950/80'}`}>
+          <div className={`rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 w-full max-w-5xl space-y-4 sm:space-y-5 shadow-2xl relative my-2 sm:my-6 border max-h-[94vh] flex flex-col ${isLight ? 'bg-white border-slate-200 text-slate-900' : 'bg-slate-900 border-slate-800 text-slate-100'}`}>
             <div className={`flex items-center justify-between border-b pb-3 shrink-0 ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
-              <div className="flex items-center gap-3">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold ${isLight ? 'bg-amber-100 border border-amber-300 text-amber-700' : 'bg-amber-500/10 border border-amber-500/30 text-amber-400'}`}>
+              <div className="flex items-center gap-2.5 sm:gap-3">
+                <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center font-bold shrink-0 ${isLight ? 'bg-amber-100 border border-amber-300 text-amber-700' : 'bg-amber-500/10 border border-amber-500/30 text-amber-400'}`}>
                   <CalendarCheck className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className={`font-bold text-base ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                  <h3 className={`font-bold text-sm sm:text-base ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
                     جدولة وتثبيت موعد كشف دوري جديد
                   </h3>
-                  <p className={`text-xs ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                  <p className={`text-[11px] sm:text-xs ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
                     تحديد تاريخ البدء بالتكرار وحساب تاريخ الاستحقاق القادم تلقائياً
                   </p>
                 </div>
               </div>
-              <button onClick={() => setShowAddModal(false)} className={`p-1 cursor-pointer ${isLight ? 'text-slate-400 hover:text-slate-700' : 'text-slate-400 hover:text-slate-200'}`}>
+              <button onClick={() => setShowAddModal(false)} className={`p-1.5 rounded-lg cursor-pointer ${isLight ? 'text-slate-400 hover:text-slate-700 hover:bg-slate-100' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'}`}>
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleCreateScheduleSubmit} className="space-y-4 text-xs overflow-y-auto pr-1 flex-1">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 items-start">
                 
                 {/* RIGHT COLUMN: UNIT PICKER */}
-                <div className={`p-4 rounded-2xl border space-y-3.5 ${isLight ? 'bg-slate-50/80 border-slate-200' : 'bg-slate-950/60 border-slate-800'}`}>
+                <div className={`p-3.5 sm:p-4 rounded-xl sm:rounded-2xl border space-y-3.5 ${isLight ? 'bg-slate-50/80 border-slate-200' : 'bg-slate-950/60 border-slate-800'}`}>
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b pb-2 border-slate-200 dark:border-slate-800">
                     <label className={`block font-extrabold text-xs ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
                       1. اختيار الوحدة الهندسية:
@@ -2089,11 +2291,11 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
 
               </div>
 
-              <div className={`flex items-center justify-end gap-3 pt-3 border-t shrink-0 ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
+              <div className={`flex flex-col-reverse sm:flex-row items-center justify-end gap-2.5 sm:gap-3 pt-3 border-t shrink-0 ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className={`px-4 py-2.5 rounded-xl font-bold transition cursor-pointer ${
+                  className={`w-full sm:w-auto px-4 py-2.5 rounded-xl font-bold transition cursor-pointer min-h-[42px] flex items-center justify-center ${
                     isLight ? 'bg-slate-100 text-slate-700 hover:bg-slate-200' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
                   }`}
                 >
@@ -2101,9 +2303,10 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2.5 bg-amber-500 text-slate-950 rounded-xl font-black hover:bg-amber-600 shadow-md shadow-amber-500/20 transition cursor-pointer"
+                  className="w-full sm:w-auto px-6 py-2.5 bg-amber-500 text-slate-950 rounded-xl font-black hover:bg-amber-600 shadow-md shadow-amber-500/20 transition cursor-pointer min-h-[42px] flex items-center justify-center gap-2"
                 >
-                  حفظ وتثبيت جدول الكشف الدوري
+                  <CalendarCheck className="w-4 h-4" />
+                  <span>حفظ وتثبيت جدول الكشف الدوري</span>
                 </button>
               </div>
             </form>
@@ -2113,33 +2316,33 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
 
       {/* MODAL 2: COMPLETE INSPECTION & UPLOAD REPORT & GRADE A-B-C-D & MAINTENANCE TRIGGER */}
       {showCompleteModal && (
-        <div className={`fixed inset-0 z-50 backdrop-blur-sm flex items-center justify-center p-3 sm:p-5 overflow-hidden ${isLight ? 'bg-slate-900/40' : 'bg-slate-950/80'}`}>
-          <div className={`rounded-3xl p-5 w-full max-w-6xl space-y-3.5 shadow-2xl relative border max-h-[96vh] flex flex-col justify-between ${isLight ? 'bg-white border-slate-200 text-slate-900' : 'bg-slate-900 border-slate-800 text-slate-100'}`}>
+        <div className={`fixed inset-0 z-50 backdrop-blur-sm flex items-center justify-center p-2.5 sm:p-5 overflow-y-auto ${isLight ? 'bg-slate-900/40' : 'bg-slate-950/80'}`}>
+          <div className={`rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 w-full max-w-6xl space-y-3.5 shadow-2xl relative border max-h-[96vh] flex flex-col justify-between my-auto ${isLight ? 'bg-white border-slate-200 text-slate-900' : 'bg-slate-900 border-slate-800 text-slate-100'}`}>
             {/* Header */}
             <div className={`flex items-center justify-between border-b pb-2.5 shrink-0 ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2.5 sm:gap-3">
                 <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold shrink-0 ${isLight ? 'bg-emerald-100 border border-emerald-300 text-emerald-700' : 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400'}`}>
                   <CheckSquare className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className={`font-bold text-base leading-tight ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                  <h3 className={`font-bold text-sm sm:text-base leading-tight ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
                     توثيق وإنجاز الكشف المعاين
                   </h3>
-                  <p className={`text-xs ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                  <p className={`text-[11px] sm:text-xs ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
                     {showCompleteModal.unitCode} - {showCompleteModal.title}
                   </p>
                 </div>
               </div>
-              <button onClick={() => setShowCompleteModal(null)} className={`p-1 cursor-pointer rounded-lg transition ${isLight ? 'text-slate-400 hover:text-slate-700 hover:bg-slate-100' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'}`}>
+              <button onClick={() => setShowCompleteModal(null)} className={`p-1.5 cursor-pointer rounded-lg transition ${isLight ? 'text-slate-400 hover:text-slate-700 hover:bg-slate-100' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'}`}>
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleCompleteSubmit} className="space-y-3 text-xs overflow-hidden">
+            <form onSubmit={handleCompleteSubmit} className="space-y-3.5 text-xs overflow-y-auto max-h-[calc(90vh-110px)] pr-1 pl-1 flex-1">
               {/* ROW 1: HORIZONTAL TOP PARAMETERS GRID (4 COLUMNS) */}
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-stretch">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-3 items-stretch">
                 {/* Column 1: Date */}
-                <div className="md:col-span-3">
+                <div className="sm:col-span-1 md:col-span-3">
                   <label className={`block font-bold mb-1 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
                     تاريخ المعاينة الفعلي:
                   </label>
@@ -2147,7 +2350,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                     type="date"
                     value={completeDate}
                     onChange={(e) => setCompleteDate(e.target.value)}
-                    className={`w-full rounded-xl px-3 py-2 font-bold outline-none border ${
+                    className={`w-full rounded-xl px-3 py-2 font-bold outline-none border min-h-[42px] ${
                       isLight ? 'bg-slate-50 border-slate-200 text-slate-900 focus:border-emerald-500' : 'bg-slate-950 border-slate-800 text-slate-100 focus:border-emerald-500'
                     }`}
                     required
@@ -2155,14 +2358,14 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                 </div>
 
                 {/* Column 2: Condition Grade Selection (A-B-C-D) */}
-                <div className="md:col-span-3">
+                <div className="sm:col-span-1 md:col-span-3">
                   <label className={`block font-bold mb-1 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
                     التقييم الهندسي (Grade):
                   </label>
                   <select
                     value={completeGrade}
                     onChange={(e) => setCompleteGrade(e.target.value as ConditionGrade)}
-                    className={`w-full rounded-xl px-3 py-2 font-bold outline-none cursor-pointer border ${
+                    className={`w-full rounded-xl px-3 py-2 font-bold outline-none cursor-pointer border min-h-[42px] ${
                       isLight ? 'bg-slate-50 border-slate-200 text-slate-900 focus:border-emerald-500' : 'bg-slate-950 border-slate-800 text-slate-100 focus:border-emerald-500'
                     }`}
                   >
@@ -2174,7 +2377,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                 </div>
 
                 {/* Column 3: Performed By (System user selector or custom) */}
-                <div className="md:col-span-3">
+                <div className="sm:col-span-2 md:col-span-3">
                   <label className={`block font-bold mb-1 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
                     مُنفِّذ الكشف (المعتمد في النظام):
                   </label>
@@ -2182,7 +2385,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                     <select
                       value={completePerformedByName}
                       onChange={(e) => setCompletePerformedByName(e.target.value)}
-                      className={`w-full rounded-xl px-3 py-2 font-bold outline-none border cursor-pointer text-xs ${
+                      className={`w-full rounded-xl px-3 py-2 font-bold outline-none border cursor-pointer text-xs min-h-[42px] ${
                         isLight ? 'bg-slate-50 border-slate-200 text-slate-900 focus:border-emerald-500' : 'bg-slate-950 border-slate-800 text-slate-100 focus:border-emerald-500'
                       }`}
                     >
@@ -2205,7 +2408,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                       value={completePerformedByName}
                       onChange={(e) => setCompletePerformedByName(e.target.value)}
                       placeholder="أو اكتب اسم مخصص لمُنفّذ الكشف..."
-                      className={`w-full rounded-lg px-2.5 py-1 text-[11px] font-bold outline-none border ${
+                      className={`w-full rounded-lg px-2.5 py-1.5 text-[11px] font-bold outline-none border min-h-[38px] ${
                         isLight ? 'bg-white border-slate-200 text-slate-900 focus:border-emerald-500' : 'bg-slate-900 border-slate-800 text-slate-100 focus:border-emerald-500'
                       }`}
                     />
@@ -2213,7 +2416,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                 </div>
 
                 {/* Column 4: Upload Report File Section */}
-                <div className={`md:col-span-3 p-2 rounded-xl border flex flex-col justify-center ${isLight ? 'bg-emerald-50/50 border-emerald-200' : 'bg-slate-950 border-slate-800'}`}>
+                <div className={`sm:col-span-2 md:col-span-3 p-2.5 rounded-xl border flex flex-col justify-center ${isLight ? 'bg-emerald-50/50 border-emerald-200' : 'bg-slate-950 border-slate-800'}`}>
                   <div className="flex items-center justify-between mb-1">
                     <label className={`font-bold flex items-center gap-1.5 text-xs ${isLight ? 'text-emerald-900' : 'text-emerald-400'}`}>
                       <Upload className="w-3.5 h-3.5 shrink-0" />
@@ -2238,7 +2441,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                     <button
                       type="button"
                       onClick={() => reportFileInputRef.current?.click()}
-                      className={`px-2.5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition cursor-pointer shrink-0 ${
+                      className={`px-3 py-2 rounded-lg text-xs font-bold flex items-center gap-1.5 transition cursor-pointer shrink-0 min-h-[38px] ${
                         isLight
                           ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm'
                           : 'bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/40'
@@ -2448,11 +2651,11 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
               </div>
 
               {/* ROW 4: ACTION BUTTONS (FOOTER) */}
-              <div className={`flex items-center justify-end gap-3 pt-2.5 border-t ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
+              <div className={`flex flex-col-reverse sm:flex-row items-center justify-end gap-2.5 sm:gap-3 pt-3 border-t shrink-0 ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
                 <button
                   type="button"
                   onClick={() => setShowCompleteModal(null)}
-                  className={`px-4 py-2 rounded-xl font-bold transition cursor-pointer ${
+                  className={`w-full sm:w-auto px-4 py-2.5 rounded-xl font-bold transition cursor-pointer min-h-[42px] flex items-center justify-center ${
                     isLight ? 'bg-slate-100 text-slate-700 hover:bg-slate-200' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
                   }`}
                 >
@@ -2460,10 +2663,10 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2 bg-emerald-600 text-white rounded-xl font-black hover:bg-emerald-700 shadow-md shadow-emerald-600/20 transition cursor-pointer flex items-center gap-2"
+                  className="w-full sm:w-auto px-6 py-2.5 bg-emerald-600 text-white rounded-xl font-black hover:bg-emerald-700 shadow-md shadow-emerald-600/20 transition cursor-pointer flex items-center justify-center gap-2 min-h-[42px]"
                 >
                   <CheckSquare className="w-4 h-4" />
-                  <span>حفظ وإنجاز الكشف وثبت النتائج</span>
+                  <span>حفظ وإنجاز الكشف وتثبيت النتائج</span>
                 </button>
               </div>
             </form>
@@ -2473,32 +2676,32 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
 
       {/* MODAL 3: EDIT SCHEDULE */}
       {showEditModal && (
-        <div className={`fixed inset-0 z-50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto ${isLight ? 'bg-slate-900/40' : 'bg-slate-950/80'}`}>
-          <div className={`rounded-3xl p-6 w-full max-w-5xl space-y-5 shadow-2xl relative my-6 border max-h-[92vh] flex flex-col ${isLight ? 'bg-white border-slate-200 text-slate-900' : 'bg-slate-900 border-slate-800 text-slate-100'}`}>
+        <div className={`fixed inset-0 z-50 backdrop-blur-sm flex items-center justify-center p-2.5 sm:p-4 overflow-y-auto ${isLight ? 'bg-slate-900/40' : 'bg-slate-950/80'}`}>
+          <div className={`rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 w-full max-w-5xl space-y-4 sm:space-y-5 shadow-2xl relative my-2 sm:my-6 border max-h-[94vh] flex flex-col ${isLight ? 'bg-white border-slate-200 text-slate-900' : 'bg-slate-900 border-slate-800 text-slate-100'}`}>
             <div className={`flex items-center justify-between border-b pb-3 shrink-0 ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
-              <div className="flex items-center gap-3">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold ${isLight ? 'bg-amber-100 border border-amber-300 text-amber-700' : 'bg-amber-500/10 border border-amber-500/30 text-amber-400'}`}>
+              <div className="flex items-center gap-2.5 sm:gap-3">
+                <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center font-bold shrink-0 ${isLight ? 'bg-amber-100 border border-amber-300 text-amber-700' : 'bg-amber-500/10 border border-amber-500/30 text-amber-400'}`}>
                   <Edit3 className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className={`font-bold text-base ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                  <h3 className={`font-bold text-sm sm:text-base ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
                     تعديل معلومات وتفاصيل جدولة الكشف الدوري
                   </h3>
-                  <p className={`text-xs ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                  <p className={`text-[11px] sm:text-xs ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
                     رمز السجل: {showEditModal.id}
                   </p>
                 </div>
               </div>
-              <button onClick={() => setShowEditModal(null)} className={`p-1 cursor-pointer ${isLight ? 'text-slate-400 hover:text-slate-700' : 'text-slate-400 hover:text-slate-200'}`}>
+              <button onClick={() => setShowEditModal(null)} className={`p-1.5 rounded-lg cursor-pointer ${isLight ? 'text-slate-400 hover:text-slate-700 hover:bg-slate-100' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'}`}>
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleEditSubmit} className="space-y-4 text-xs overflow-y-auto pr-1 flex-1">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 items-start">
 
                 {/* RIGHT COLUMN: LOCKED UNIT INFORMATION */}
-                <div className={`p-4 rounded-2xl border space-y-4 ${isLight ? 'bg-slate-50/80 border-slate-200' : 'bg-slate-950/60 border-slate-800'}`}>
+                <div className={`p-3.5 sm:p-4 rounded-xl sm:rounded-2xl border space-y-3.5 ${isLight ? 'bg-slate-50/80 border-slate-200' : 'bg-slate-950/60 border-slate-800'}`}>
                   <label className={`block font-extrabold text-xs border-b pb-2 ${isLight ? 'text-slate-900 border-slate-200' : 'text-slate-100 border-slate-800'}`}>
                     1. بيانات الوحدة الهندسية (مغلقة):
                   </label>
@@ -2710,11 +2913,11 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
 
               </div>
 
-              <div className={`flex items-center justify-end gap-3 pt-3 border-t shrink-0 ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
+              <div className={`flex flex-col-reverse sm:flex-row items-center justify-end gap-2.5 sm:gap-3 pt-3 border-t shrink-0 ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
                 <button
                   type="button"
                   onClick={() => setShowEditModal(null)}
-                  className={`px-4 py-2.5 rounded-xl font-bold transition cursor-pointer ${
+                  className={`w-full sm:w-auto px-4 py-2.5 rounded-xl font-bold transition cursor-pointer min-h-[42px] flex items-center justify-center ${
                     isLight ? 'bg-slate-100 text-slate-700 hover:bg-slate-200' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
                   }`}
                 >
@@ -2722,9 +2925,10 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2.5 bg-amber-500 text-slate-950 rounded-xl font-black hover:bg-amber-600 shadow-md shadow-amber-500/20 transition cursor-pointer"
+                  className="w-full sm:w-auto px-6 py-2.5 bg-amber-500 text-slate-950 rounded-xl font-black hover:bg-amber-600 shadow-md shadow-amber-500/20 transition cursor-pointer min-h-[42px] flex items-center justify-center gap-2"
                 >
-                  حفظ وتحديث معلومات الجدول
+                  <Edit3 className="w-4 h-4" />
+                  <span>حفظ وتحديث معلومات الجدول</span>
                 </button>
               </div>
             </form>
@@ -2734,38 +2938,38 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
 
       {/* MODAL 4: FULL UNIT ARCHIVE MODAL (ARCHIVE OF ALL INSPECTIONS & MAINTENANCE FOR A UNIT) */}
       {showUnitArchiveModal && (
-        <div className={`fixed inset-0 z-50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto ${isLight ? 'bg-slate-900/40' : 'bg-slate-950/80'}`}>
-          <div className={`rounded-3xl p-6 w-full max-w-[96vw] xl:max-w-7xl space-y-5 shadow-2xl relative my-8 border ${isLight ? 'bg-white border-slate-200 text-slate-900' : 'bg-slate-900 border-slate-800 text-slate-100'}`}>
+        <div className={`fixed inset-0 z-50 backdrop-blur-sm flex items-center justify-center p-2.5 sm:p-4 overflow-y-auto ${isLight ? 'bg-slate-900/40' : 'bg-slate-950/80'}`}>
+          <div className={`rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 w-full max-w-[98vw] xl:max-w-7xl space-y-3.5 sm:space-y-5 shadow-2xl relative my-2 sm:my-6 border max-h-[96vh] flex flex-col ${isLight ? 'bg-white border-slate-200 text-slate-900' : 'bg-slate-900 border-slate-800 text-slate-100'}`}>
             {/* Header */}
-            <div className={`flex items-center justify-between border-b pb-4 ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
-              <div className="flex items-center gap-3">
-                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-bold ${isLight ? 'bg-amber-100 border border-amber-300 text-amber-800' : 'bg-amber-500/10 border border-amber-500/30 text-amber-400'}`}>
-                  <Archive className="w-6 h-6" />
+            <div className={`flex items-center justify-between border-b pb-3 sm:pb-4 shrink-0 gap-2 ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
+              <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl flex items-center justify-center font-bold shrink-0 ${isLight ? 'bg-amber-100 border border-amber-300 text-amber-800' : 'bg-amber-500/10 border border-amber-500/30 text-amber-400'}`}>
+                  <Archive className="w-5 h-5 sm:w-6 sm:h-6" />
                 </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-mono font-bold text-amber-500 text-sm">{toArabicDigits(showUnitArchiveModal.code)}</span>
-                    <h3 className={`font-black text-lg ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>{showUnitArchiveModal.name}</h3>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-mono font-bold text-amber-500 text-xs sm:text-sm">{toArabicDigits(showUnitArchiveModal.code)}</span>
+                    <h3 className={`font-black text-sm sm:text-lg truncate ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>{showUnitArchiveModal.name}</h3>
                   </div>
-                  <p className={`text-xs mt-0.5 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                  <p className={`text-[10.5px] sm:text-xs mt-0.5 truncate ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
                     محافظة {showUnitArchiveModal.governorate} | حقل {showUnitArchiveModal.field} | {showUnitArchiveModal.sectorAddress}
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 shrink-0">
                 {getConditionGradeBadge(showUnitArchiveModal.conditionGrade)}
-                <button onClick={() => setShowUnitArchiveModal(null)} className={`p-1 cursor-pointer ${isLight ? 'text-slate-400 hover:text-slate-700' : 'text-slate-400 hover:text-slate-200'}`}>
+                <button onClick={() => setShowUnitArchiveModal(null)} className={`p-1.5 rounded-lg cursor-pointer ${isLight ? 'text-slate-400 hover:text-slate-700 hover:bg-slate-100' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'}`}>
                   <X className="w-5 h-5" />
                 </button>
               </div>
             </div>
 
             {/* Modal Tabs & Layout Toggle */}
-            <div className="flex items-center gap-2 border-b border-slate-800/40 pb-2">
+            <div className="flex items-center gap-1.5 sm:gap-2 border-b border-slate-800/40 pb-2 overflow-x-auto scrollbar-none flex-nowrap shrink-0">
               <button
                 onClick={() => setArchiveModalTab('both')}
-                className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
+                className={`px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shrink-0 min-h-[38px] ${
                   archiveModalTab === 'both'
                     ? 'bg-amber-500 text-slate-950 font-black shadow-md'
                     : isLight
@@ -2774,12 +2978,12 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                 }`}
               >
                 <LayoutGrid className="w-4 h-4" />
-                <span>العرض الأفقي المتجاور (الأرشيفين معاً)</span>
+                <span>الأرشيفين معاً</span>
               </button>
 
               <button
                 onClick={() => setArchiveModalTab('inspections')}
-                className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
+                className={`px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shrink-0 min-h-[38px] ${
                   archiveModalTab === 'inspections'
                     ? 'bg-amber-500 text-slate-950 font-black shadow-md'
                     : isLight
@@ -2788,12 +2992,12 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                 }`}
               >
                 <CalendarCheck className="w-4 h-4" />
-                <span>أرشيف المعاينات والكشوفات الدورية ({toArabicDigits(schedules.filter((s) => s.unitCode === showUnitArchiveModal.code).length)})</span>
+                <span>أرشيف المعاينات والكشوفات ({toArabicDigits(schedules.filter((s) => s.unitCode === showUnitArchiveModal.code).length)})</span>
               </button>
 
               <button
                 onClick={() => setArchiveModalTab('maintenance')}
-                className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
+                className={`px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shrink-0 min-h-[38px] ${
                   archiveModalTab === 'maintenance'
                     ? 'bg-amber-500 text-slate-950 font-black shadow-md'
                     : isLight
@@ -2802,17 +3006,17 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                 }`}
               >
                 <Wrench className="w-4 h-4" />
-                <span>أرشيف أعمال وطلبات الصيانة ({toArabicDigits(maintenanceRequests.filter((r) => r.unitCode === showUnitArchiveModal.code).length)})</span>
+                <span>أرشيف أعمال الصيانة ({toArabicDigits(maintenanceRequests.filter((r) => r.unitCode === showUnitArchiveModal.code).length)})</span>
               </button>
             </div>
 
             {/* HORIZONTAL / GRID ARCHIVE CONTENT */}
-            <div className={`grid grid-cols-1 ${archiveModalTab === 'both' ? 'xl:grid-cols-2' : 'grid-cols-1'} gap-6`}>
+            <div className={`grid grid-cols-1 ${archiveModalTab === 'both' ? 'xl:grid-cols-2' : 'grid-cols-1'} gap-4 sm:gap-6 overflow-y-auto max-h-[calc(90vh-140px)] pr-1 pl-1 flex-1`}>
               {/* ARCHIVE 1: INSPECTIONS & PERIODIC CHECKS */}
               {(archiveModalTab === 'both' || archiveModalTab === 'inspections') && (
-                <div className={`p-4 rounded-2xl border space-y-3 ${isLight ? 'bg-slate-50/80 border-slate-200' : 'bg-slate-950/60 border-slate-800/80'}`}>
+                <div className={`p-3.5 sm:p-4 rounded-2xl border space-y-3 ${isLight ? 'bg-slate-50/80 border-slate-200' : 'bg-slate-950/60 border-slate-800/80'}`}>
                   <div className="flex items-center justify-between pb-2 border-b border-slate-800/30">
-                    <h4 className="font-bold text-sm text-amber-500 flex items-center gap-2">
+                    <h4 className="font-bold text-xs sm:text-sm text-amber-500 flex items-center gap-2">
                       <CalendarCheck className="w-4 h-4" />
                       <span>أرشيف المعاينات والكشوفات الدورية</span>
                     </h4>
@@ -2824,154 +3028,306 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                   {schedules.filter((s) => s.unitCode === showUnitArchiveModal.code).length === 0 ? (
                     <div className="p-8 text-center text-slate-500 text-xs">لا توجد سجلات كشف دوري مسجلة لهذه الوحدة حتى الآن.</div>
                   ) : (
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-right text-xs">
-                        <thead className={`font-bold border-b ${isLight ? 'bg-slate-100 text-slate-700' : 'bg-slate-950 text-slate-400'}`}>
-                          <tr>
-                            <th className="p-2">عنوان الكشف</th>
-                            <th className="p-2">التكرار</th>
-                            <th className="p-2">آخر كشف</th>
-                            <th className="p-2">الموعد المستحق</th>
-                            <th className="p-2">الحالة والدرجة</th>
-                            <th className="p-2">مُنفِّذ الكشف</th>
-                            <th className="p-2">الملاحظات والنتائج</th>
-                            <th className="p-2">التوصيات والإجراءات</th>
-                            <th className="p-2 text-center">المرفقات / الصور</th>
-                            <th className="p-2 text-center">تحديث الكشف</th>
-                          </tr>
-                        </thead>
-                        <tbody className={`divide-y ${isLight ? 'divide-slate-200' : 'divide-slate-800/40'}`}>
-                          {schedules
-                            .filter((s) => s.unitCode === showUnitArchiveModal.code)
-                            .map((sch) => (
-                              <tr key={sch.id} className={isLight ? 'hover:bg-slate-100/80' : 'hover:bg-slate-800/30'}>
-                                <td className="p-2 font-bold">
-                                  <div className={isLight ? 'text-slate-900' : 'text-slate-100'}>{sch.title}</div>
-                                </td>
-                                <td className={`p-2 text-[11px] ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>{getFrequencyLabel(sch.frequency, sch.customIntervalDays)}</td>
-                                <td className={`p-2 font-mono text-[11px] ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>{toArabicDigits(sch.lastInspectionDate)}</td>
-                                <td className={`p-2 font-mono font-bold text-[11px] ${isLight ? 'text-amber-700' : 'text-amber-400'}`}>{toArabicDigits(sch.nextDueDate)}</td>
-                                <td className="p-2">
-                                  <div className="space-y-1">
-                                    <div>{getStatusBadge(sch.status)}</div>
-                                    {sch.conditionGradeGiven && <div>{getConditionGradeBadge(sch.conditionGradeGiven)}</div>}
-                                  </div>
-                                </td>
-                                <td className="p-2 text-[11px] whitespace-nowrap">
-                                  {sch.performedByName || (sch.status === 'completed' && sch.inspectorName) ? (
-                                    (() => {
-                                      const p = getPerformerDisplay(sch.performedByName, sch.inspectorName, users, sch.status === 'completed');
-                                      const isGenericRole = !p.userName || p.userName === p.roleBadgeText || p.userName === 'مشغل النظام' || p.userName === 'موظف الكشف' || p.userName === 'مدير النظام' || p.userName === 'مستخدم';
-                                      
-                                      if (isGenericRole) {
-                                        return (
-                                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold border ${p.roleBadgeClass}`}>
-                                            <UserCheck className={`w-3 h-3 ${p.isOperator ? 'text-amber-500' : p.isAdmin ? 'text-purple-500' : 'text-emerald-500'}`} />
-                                            {p.roleBadgeText}
-                                          </span>
-                                        );
-                                      }
+                    <div>
+                      {/* Mobile Cards View for Inspection Archive (md:hidden) */}
+                      <div className="md:hidden space-y-3">
+                        {schedules
+                          .filter((s) => s.unitCode === showUnitArchiveModal.code)
+                          .map((sch) => {
+                            const p = (sch.performedByName || (sch.status === 'completed' && sch.inspectorName))
+                              ? getPerformerDisplay(sch.performedByName, sch.inspectorName, users, sch.status === 'completed')
+                              : null;
 
-                                      return (
-                                        <div className="space-y-0.5">
-                                          <div className="flex items-center gap-1 font-bold">
-                                            <UserCheck className={`w-3 h-3 ${p.isOperator ? 'text-amber-500' : p.isAdmin ? 'text-purple-500' : 'text-emerald-500'}`} />
-                                            <span className={isLight ? 'text-slate-800' : 'text-slate-200'}>{p.userName}</span>
-                                          </div>
-                                          <span className={`inline-block px-1.5 py-0.2 rounded text-[9px] font-bold border ${p.roleBadgeClass}`}>
-                                            {p.roleBadgeText}
-                                          </span>
-                                        </div>
-                                      );
-                                    })()
+                            return (
+                              <div
+                                key={sch.id}
+                                className={`p-3 rounded-xl border space-y-2.5 transition ${
+                                  isLight ? 'bg-white border-slate-200 shadow-xs' : 'bg-slate-900/90 border-slate-800 shadow-xs'
+                                }`}
+                              >
+                                {/* Top Title & Badges */}
+                                <div className="flex items-start justify-between gap-2">
+                                  <div className="min-w-0">
+                                    <h5 className={`font-extrabold text-xs sm:text-sm leading-snug ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                                      {sch.title}
+                                    </h5>
+                                    <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                                      <span className={`px-2 py-0.5 rounded-lg text-[10px] font-bold border ${
+                                        isLight ? 'bg-amber-50 text-amber-900 border-amber-200' : 'bg-amber-500/10 text-amber-400 border-amber-500/30'
+                                      }`}>
+                                        {getFrequencyLabel(sch.frequency, sch.customIntervalDays)}
+                                      </span>
+                                      {sch.conditionGradeGiven && getConditionGradeBadge(sch.conditionGradeGiven)}
+                                    </div>
+                                  </div>
+                                  <div className="shrink-0">
+                                    {getStatusBadge(sch.status)}
+                                  </div>
+                                </div>
+
+                                {/* Dates Grid */}
+                                <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-slate-200/60 dark:border-slate-800/60">
+                                  <div>
+                                    <span className="text-slate-400 text-[10px] block">آخر كشف:</span>
+                                    <span className="font-mono font-bold text-[11px]">{toArabicDigits(sch.lastInspectionDate)}</span>
+                                  </div>
+                                  <div>
+                                    <span className="text-slate-400 text-[10px] block">الموعد المستحق:</span>
+                                    <span className={`font-mono font-bold text-[11px] ${sch.status === 'overdue' ? 'text-rose-500 font-black' : isLight ? 'text-amber-800' : 'text-amber-400'}`}>
+                                      {toArabicDigits(sch.nextDueDate)}
+                                    </span>
+                                  </div>
+                                </div>
+
+                                {/* Performer */}
+                                <div className="flex items-center justify-between text-xs pt-2 border-t border-slate-200/60 dark:border-slate-800/60">
+                                  <span className="text-slate-400 text-[10px]">المُنفِّذ:</span>
+                                  {p ? (
+                                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold border ${p.roleBadgeClass}`}>
+                                      <UserCheck className="w-3 h-3" />
+                                      <span>{p.userName || p.roleBadgeText}</span>
+                                    </span>
                                   ) : (
-                                    <span className="text-slate-400">{sch.status === 'completed' ? '—' : 'لم يُنجز بعد'}</span>
+                                    <span className="text-slate-400 text-[10px]">{sch.status === 'completed' ? '—' : 'لم يُنجز بعد'}</span>
                                   )}
-                                </td>
-                                <td className="p-2 max-w-[160px]">
-                                  {sch.findings || sch.notes ? (
-                                    <span className={`text-[11px] line-clamp-2 ${isLight ? 'text-slate-700' : 'text-slate-300'}`} title={sch.findings || sch.notes}>
+                                </div>
+
+                                {/* Findings & Notes if available */}
+                                {(sch.findings || sch.notes) && (
+                                  <div className={`p-2.5 rounded-xl text-xs space-y-1 ${isLight ? 'bg-slate-50 border border-slate-200' : 'bg-slate-950 border border-slate-800'}`}>
+                                    <span className="font-bold text-[10px] text-slate-400 block">الملاحظات والنتائج:</span>
+                                    <p className={`text-[11px] leading-relaxed ${isLight ? 'text-slate-800' : 'text-slate-200'}`}>
                                       {sch.findings || sch.notes}
-                                    </span>
-                                  ) : (
-                                    <span className="text-slate-400 text-[10px]">لا توجد ملاحظات</span>
-                                  )}
-                                </td>
-                                <td className="p-2 max-w-[160px]">
-                                  {sch.recommendations ? (
-                                    <span className={`text-[11px] line-clamp-2 font-semibold ${isLight ? 'text-amber-900' : 'text-amber-300'}`} title={sch.recommendations}>
+                                    </p>
+                                  </div>
+                                )}
+
+                                {/* Recommendations if available */}
+                                {sch.recommendations && (
+                                  <div className={`p-2.5 rounded-xl text-xs space-y-1 ${isLight ? 'bg-amber-50/70 border border-amber-200 text-amber-900' : 'bg-amber-500/10 border border-amber-500/30 text-amber-300'}`}>
+                                    <span className="font-bold text-[10px] opacity-80 block">التوصيات والإجراءات:</span>
+                                    <p className="text-[11px] leading-relaxed font-semibold">
                                       {sch.recommendations}
-                                    </span>
-                                  ) : (
-                                    <span className="text-slate-400 text-[10px]">لا توجد توصيات</span>
-                                  )}
-                                </td>
-                                <td className="p-2 text-center whitespace-nowrap">
-                                  {sch.reportFileName || sch.reportFileUrl ? (
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        const ext = sch.reportFileName?.split('.').pop() || 'pdf';
-                                        setPreviewAttachment({
-                                          id: 'insp-arch-' + sch.id,
-                                          name: sch.reportFileName || 'تقرير_الكشف.pdf',
-                                          type: ext,
-                                          url: sch.reportFileUrl || '#',
-                                          uploadedAt: sch.lastInspectionDate || new Date().toISOString().split('T')[0],
-                                          size: '1.5 MB',
-                                        });
-                                      }}
-                                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold transition cursor-pointer border shadow-sm ${
-                                        isLight
-                                          ? 'bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100'
-                                          : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 hover:bg-emerald-500/30'
-                                      }`}
-                                      title="معاينة المرفق أو الصورة الملتقطة"
-                                    >
-                                      <Eye className="w-3.5 h-3.5" />
-                                      <span className="truncate max-w-[90px]">{sch.reportFileName || 'معاينة المرفق'}</span>
-                                    </button>
-                                  ) : (
-                                    <span className="text-slate-400 text-[10px]">لا يوجد مرفق</span>
-                                  )}
-                                </td>
-                                <td className="p-2 text-center">
-                                  {sch.status !== 'completed' ? (
-                                    <button
-                                      onClick={() => {
-                                        const matchedUnit = units.find((u) => u.code === sch.unitCode);
-                                        setShowCompleteModal(sch);
-                                        setCompleteDate(sch.lastInspectionDate || new Date().toISOString().split('T')[0]);
-                                        setMaintDate(sch.lastInspectionDate || new Date().toISOString().split('T')[0]);
-                                        setCompletePerformedByName(sch.performedByName || '');
-                                        if (matchedUnit) {
-                                          setCompleteGrade(sch.conditionGradeGiven || matchedUnit.conditionGrade);
+                                    </p>
+                                  </div>
+                                )}
+
+                                {/* Report Attachment & Actions */}
+                                <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-200/60 dark:border-slate-800/60">
+                                  <div>
+                                    {sch.reportFileName || sch.reportFileUrl ? (
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          const ext = sch.reportFileName?.split('.').pop() || 'pdf';
+                                          setPreviewAttachment({
+                                            id: 'insp-arch-mob-' + sch.id,
+                                            name: sch.reportFileName || 'تقرير_الكشف.pdf',
+                                            type: ext,
+                                            url: sch.reportFileUrl || '#',
+                                            uploadedAt: sch.lastInspectionDate || new Date().toISOString().split('T')[0],
+                                            size: '1.5 MB',
+                                          });
+                                        }}
+                                        className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer border min-h-[34px] ${
+                                          isLight ? 'bg-emerald-50 text-emerald-800 border-emerald-300' : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                                        }`}
+                                      >
+                                        <Eye className="w-3.5 h-3.5" />
+                                        <span>معاينة التقرير</span>
+                                      </button>
+                                    ) : (
+                                      <span className="text-slate-400 text-[10px]">لا يوجد مرفق</span>
+                                    )}
+                                  </div>
+
+                                  <div>
+                                    {sch.status !== 'completed' ? (
+                                      <button
+                                        onClick={() => {
+                                          const matchedUnit = units.find((u) => u.code === sch.unitCode);
+                                          setShowCompleteModal(sch);
+                                          setCompleteDate(sch.lastInspectionDate || new Date().toISOString().split('T')[0]);
+                                          setMaintDate(sch.lastInspectionDate || new Date().toISOString().split('T')[0]);
+                                          setCompletePerformedByName(sch.performedByName || '');
+                                          if (matchedUnit) {
+                                            setCompleteGrade(sch.conditionGradeGiven || matchedUnit.conditionGrade);
+                                          }
+                                        }}
+                                        className={`px-3 py-1.5 rounded-lg text-xs font-bold cursor-pointer transition flex items-center gap-1.5 min-h-[34px] ${
+                                          isLight
+                                            ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm'
+                                            : 'bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/30'
+                                        }`}
+                                      >
+                                        <RefreshCw className="w-3.5 h-3.5" />
+                                        <span>تحديث وإنجاز</span>
+                                      </button>
+                                    ) : (
+                                      <span className={`px-2.5 py-1 rounded-lg text-[11px] font-bold inline-flex items-center gap-1 ${
+                                        isLight ? 'bg-emerald-100 text-emerald-800' : 'bg-emerald-500/15 text-emerald-400'
+                                      }`}>
+                                        <CheckCircle2 className="w-3.5 h-3.5" />
+                                        <span>مكتمل وموثق</span>
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                      </div>
+
+                      {/* Desktop Table View (hidden md:block) */}
+                      <div className="hidden md:block overflow-x-auto">
+                        <table className="w-full text-right text-xs">
+                          <thead className={`font-bold border-b ${isLight ? 'bg-slate-100 text-slate-700' : 'bg-slate-950 text-slate-400'}`}>
+                            <tr>
+                              <th className="p-2">عنوان الكشف</th>
+                              <th className="p-2">التكرار</th>
+                              <th className="p-2">آخر كشف</th>
+                              <th className="p-2">الموعد المستحق</th>
+                              <th className="p-2">الحالة والدرجة</th>
+                              <th className="p-2">مُنفِّذ الكشف</th>
+                              <th className="p-2">الملاحظات والنتائج</th>
+                              <th className="p-2">التوصيات والإجراءات</th>
+                              <th className="p-2 text-center">المرفقات / الصور</th>
+                              <th className="p-2 text-center">تحديث الكشف</th>
+                            </tr>
+                          </thead>
+                          <tbody className={`divide-y ${isLight ? 'divide-slate-200' : 'divide-slate-800/40'}`}>
+                            {schedules
+                              .filter((s) => s.unitCode === showUnitArchiveModal.code)
+                              .map((sch) => (
+                                <tr key={sch.id} className={isLight ? 'hover:bg-slate-100/80' : 'hover:bg-slate-800/30'}>
+                                  <td className="p-2 font-bold">
+                                    <div className={isLight ? 'text-slate-900' : 'text-slate-100'}>{sch.title}</div>
+                                  </td>
+                                  <td className={`p-2 text-[11px] ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>{getFrequencyLabel(sch.frequency, sch.customIntervalDays)}</td>
+                                  <td className={`p-2 font-mono text-[11px] ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>{toArabicDigits(sch.lastInspectionDate)}</td>
+                                  <td className={`p-2 font-mono font-bold text-[11px] ${isLight ? 'text-amber-700' : 'text-amber-400'}`}>{toArabicDigits(sch.nextDueDate)}</td>
+                                  <td className="p-2">
+                                    <div className="space-y-1">
+                                      <div>{getStatusBadge(sch.status)}</div>
+                                      {sch.conditionGradeGiven && <div>{getConditionGradeBadge(sch.conditionGradeGiven)}</div>}
+                                    </div>
+                                  </td>
+                                  <td className="p-2 text-[11px] whitespace-nowrap">
+                                    {sch.performedByName || (sch.status === 'completed' && sch.inspectorName) ? (
+                                      (() => {
+                                        const p = getPerformerDisplay(sch.performedByName, sch.inspectorName, users, sch.status === 'completed');
+                                        const isGenericRole = !p.userName || p.userName === p.roleBadgeText || p.userName === 'مشغل النظام' || p.userName === 'موظف الكشف' || p.userName === 'مدير النظام' || p.userName === 'مستخدم';
+                                        
+                                        if (isGenericRole) {
+                                          return (
+                                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold border ${p.roleBadgeClass}`}>
+                                              <UserCheck className={`w-3 h-3 ${p.isOperator ? 'text-amber-500' : p.isAdmin ? 'text-purple-500' : 'text-emerald-500'}`} />
+                                              {p.roleBadgeText}
+                                            </span>
+                                          );
                                         }
-                                      }}
-                                      className={`px-2.5 py-1.5 rounded-lg text-[10px] font-bold cursor-pointer transition flex items-center gap-1.5 mx-auto whitespace-nowrap ${
+
+                                        return (
+                                          <div className="space-y-0.5">
+                                            <div className="flex items-center gap-1 font-bold">
+                                              <UserCheck className={`w-3 h-3 ${p.isOperator ? 'text-amber-500' : p.isAdmin ? 'text-purple-500' : 'text-emerald-500'}`} />
+                                              <span className={isLight ? 'text-slate-800' : 'text-slate-200'}>{p.userName}</span>
+                                            </div>
+                                            <span className={`inline-block px-1.5 py-0.2 rounded text-[9px] font-bold border ${p.roleBadgeClass}`}>
+                                              {p.roleBadgeText}
+                                            </span>
+                                          </div>
+                                        );
+                                      })()
+                                    ) : (
+                                      <span className="text-slate-400">{sch.status === 'completed' ? '—' : 'لم يُنجز بعد'}</span>
+                                    )}
+                                  </td>
+                                  <td className="p-2 max-w-[160px]">
+                                    {sch.findings || sch.notes ? (
+                                      <span className={`text-[11px] line-clamp-2 ${isLight ? 'text-slate-700' : 'text-slate-300'}`} title={sch.findings || sch.notes}>
+                                        {sch.findings || sch.notes}
+                                      </span>
+                                    ) : (
+                                      <span className="text-slate-400 text-[10px]">لا توجد ملاحظات</span>
+                                    )}
+                                  </td>
+                                  <td className="p-2 max-w-[160px]">
+                                    {sch.recommendations ? (
+                                      <span className={`text-[11px] line-clamp-2 font-semibold ${isLight ? 'text-amber-900' : 'text-amber-300'}`} title={sch.recommendations}>
+                                        {sch.recommendations}
+                                      </span>
+                                    ) : (
+                                      <span className="text-slate-400 text-[10px]">لا توجد توصيات</span>
+                                    )}
+                                  </td>
+                                  <td className="p-2 text-center whitespace-nowrap">
+                                    {sch.reportFileName || sch.reportFileUrl ? (
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          const ext = sch.reportFileName?.split('.').pop() || 'pdf';
+                                          setPreviewAttachment({
+                                            id: 'insp-arch-' + sch.id,
+                                            name: sch.reportFileName || 'تقرير_الكشف.pdf',
+                                            type: ext,
+                                            url: sch.reportFileUrl || '#',
+                                            uploadedAt: sch.lastInspectionDate || new Date().toISOString().split('T')[0],
+                                            size: '1.5 MB',
+                                          });
+                                        }}
+                                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold transition cursor-pointer border shadow-sm ${
+                                          isLight
+                                            ? 'bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100'
+                                            : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 hover:bg-emerald-500/30'
+                                        }`}
+                                        title="معاينة المرفق أو الصورة الملتقطة"
+                                      >
+                                        <Eye className="w-3.5 h-3.5" />
+                                        <span className="truncate max-w-[90px]">{sch.reportFileName || 'معاينة المرفق'}</span>
+                                      </button>
+                                    ) : (
+                                      <span className="text-slate-400 text-[10px]">لا يوجد مرفق</span>
+                                    )}
+                                  </td>
+                                  <td className="p-2 text-center">
+                                    {sch.status !== 'completed' ? (
+                                      <button
+                                        onClick={() => {
+                                          const matchedUnit = units.find((u) => u.code === sch.unitCode);
+                                          setShowCompleteModal(sch);
+                                          setCompleteDate(sch.lastInspectionDate || new Date().toISOString().split('T')[0]);
+                                          setMaintDate(sch.lastInspectionDate || new Date().toISOString().split('T')[0]);
+                                          setCompletePerformedByName(sch.performedByName || '');
+                                          if (matchedUnit) {
+                                            setCompleteGrade(sch.conditionGradeGiven || matchedUnit.conditionGrade);
+                                          }
+                                        }}
+                                        className={`px-2.5 py-1.5 rounded-lg text-[10px] font-bold cursor-pointer transition flex items-center gap-1.5 mx-auto whitespace-nowrap ${
+                                          isLight
+                                            ? 'bg-emerald-100 hover:bg-emerald-200 text-emerald-800 border border-emerald-300'
+                                            : 'bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/30'
+                                        }`}
+                                        title="تحديث وإنجاز نتائج الكشف الدوري"
+                                      >
+                                        <RefreshCw className="w-3 h-3" />
+                                        <span>تحديث الكشف</span>
+                                      </button>
+                                    ) : (
+                                      <span className={`px-2 py-0.5 rounded-lg text-[10px] font-bold inline-block whitespace-nowrap ${
                                         isLight
-                                          ? 'bg-emerald-100 hover:bg-emerald-200 text-emerald-800 border border-emerald-300'
-                                          : 'bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/30'
-                                      }`}
-                                      title="تحديث وإنجاز نتائج الكشف الدوري"
-                                    >
-                                      <RefreshCw className="w-3 h-3" />
-                                      <span>تحديث الكشف</span>
-                                    </button>
-                                  ) : (
-                                    <span className={`px-2 py-0.5 rounded-lg text-[10px] font-bold inline-block whitespace-nowrap ${
-                                      isLight
-                                        ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
-                                        : 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20'
-                                    }`}>
-                                      مكتمل وموثق
-                                    </span>
-                                  )}
-                                </td>
-                              </tr>
-                            ))}
-                        </tbody>
-                      </table>
+                                          ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                                          : 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20'
+                                      }`}>
+                                        مكتمل وموثق
+                                      </span>
+                                    )}
+                                  </td>
+                                </tr>
+                              ))}
+                          </tbody>
+                        </table>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -2979,9 +3335,9 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
 
               {/* ARCHIVE 2: MAINTENANCE WORK & REQUESTS */}
               {(archiveModalTab === 'both' || archiveModalTab === 'maintenance') && (
-                <div className={`p-4 rounded-2xl border space-y-3 ${isLight ? 'bg-slate-50/80 border-slate-200' : 'bg-slate-950/60 border-slate-800/80'}`}>
+                <div className={`p-3.5 sm:p-4 rounded-2xl border space-y-3 ${isLight ? 'bg-slate-50/80 border-slate-200' : 'bg-slate-950/60 border-slate-800/80'}`}>
                   <div className="flex items-center justify-between pb-2 border-b border-slate-800/30">
-                    <h4 className="font-bold text-sm text-amber-500 flex items-center gap-2">
+                    <h4 className="font-bold text-xs sm:text-sm text-amber-500 flex items-center gap-2">
                       <Wrench className="w-4 h-4" />
                       <span>أرشيف أعمال وطلبات الصيانة</span>
                     </h4>
@@ -2993,90 +3349,114 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                   {maintenanceRequests.filter((r) => r.unitCode === showUnitArchiveModal.code).length === 0 ? (
                     <div className="p-8 text-center text-slate-500 text-xs">لا توجد بلاغات صيانة سابقة لهذه الوحدة.</div>
                   ) : (
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-right text-xs">
-                        <thead className={`font-bold border-b ${isLight ? 'bg-slate-100 text-slate-700' : 'bg-slate-950 text-slate-400'}`}>
-                          <tr>
-                            <th className="p-2 whitespace-nowrap">رقم الطلب</th>
-                            <th className="p-2 min-w-[130px] max-w-[180px]">العطل</th>
-                            <th className="p-2 whitespace-nowrap">جهة الصيانة</th>
-                            <th className="p-2 whitespace-nowrap">حالة الطلب</th>
-                            <th className="p-2 whitespace-nowrap">تاريخ الإنجاز / الإلغاء</th>
-                            <th className="p-2 whitespace-nowrap text-center">المدة (بالأيام)</th>
-                            <th className="p-2 text-center whitespace-nowrap">المرفقات</th>
-                            <th className="p-2 min-w-[110px] max-w-[150px]">النتائج</th>
-                            <th className="p-2 text-center whitespace-nowrap">الإجراءات</th>
-                          </tr>
-                        </thead>
-                        <tbody className={`divide-y ${isLight ? 'divide-slate-200' : 'divide-slate-800/40'}`}>
-                          {maintenanceRequests
-                            .filter((r) => r.unitCode === showUnitArchiveModal.code)
-                            .map((req) => (
-                              <tr key={req.id} className={isLight ? 'hover:bg-slate-100/80' : 'hover:bg-slate-800/30'}>
-                                <td className="p-2 whitespace-nowrap">
-                                  <div className="space-y-0.5">
-                                    <div className={`font-mono font-bold text-[11px] ${isLight ? 'text-amber-700' : 'text-amber-400'}`}>
-                                      {toArabicDigits(req.id)}
-                                    </div>
-                                    <div className={`text-[10px] font-mono ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
-                                      {formatDateOnly(req.createdAt)}
-                                    </div>
-                                  </div>
-                                </td>
-                                <td className="p-2 max-w-[180px]">
-                                  <div className={`font-bold text-xs line-clamp-2 ${isLight ? 'text-slate-900' : 'text-slate-100'}`} title={req.issue}>{req.issue}</div>
-                                  <div className="mt-0.5">
-                                    <span className={`px-1.5 py-0.2 rounded text-[9px] ${
-                                      req.priority === 'critical'
-                                        ? isLight ? 'bg-red-100 text-red-800' : 'bg-red-500/20 text-red-400'
-                                        : isLight ? 'bg-blue-100 text-blue-800' : 'bg-blue-500/20 text-blue-400'
-                                    }`}>
-                                      {req.priority === 'critical' ? 'حرج' : 'عادي'}
-                                    </span>
-                                  </div>
-                                </td>
-                                <td className="p-2 whitespace-nowrap">
-                                  <span className={`px-2 py-0.5 rounded-lg text-[10px] font-bold ${isLight ? 'bg-amber-100 text-amber-900 border border-amber-300' : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'}`}>
-                                    {req.maintenanceDepartment || 'الصيانة العامة'}
+                    <div>
+                      {/* Mobile Cards View for Maintenance Archive (md:hidden) */}
+                      <div className="md:hidden space-y-3">
+                        {maintenanceRequests
+                          .filter((r) => r.unitCode === showUnitArchiveModal.code)
+                          .map((req) => (
+                            <div
+                              key={req.id}
+                              className={`p-3 rounded-xl border space-y-2.5 transition ${
+                                isLight ? 'bg-white border-slate-200 shadow-xs' : 'bg-slate-900/90 border-slate-800 shadow-xs'
+                              }`}
+                            >
+                              {/* Top: ID, Priority, Status */}
+                              <div className="flex items-center justify-between gap-2">
+                                <div className="flex items-center gap-2">
+                                  <span className={`font-mono font-bold text-xs ${isLight ? 'text-amber-700' : 'text-amber-400'}`}>
+                                    #{toArabicDigits(req.id)}
                                   </span>
-                                </td>
-                                <td className="p-2 whitespace-nowrap">
+                                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                                    req.priority === 'critical'
+                                      ? isLight ? 'bg-red-100 text-red-800' : 'bg-red-500/20 text-red-400'
+                                      : isLight ? 'bg-blue-100 text-blue-800' : 'bg-blue-500/20 text-blue-400'
+                                  }`}>
+                                    {req.priority === 'critical' ? 'حرج' : 'عادي'}
+                                  </span>
+                                </div>
+
+                                <div>
                                   {req.status === 'completed' ? (
-                                    <span className={`px-2 py-0.5 rounded font-bold border text-[10px] ${
+                                    <span className={`px-2 py-0.5 rounded-md font-bold border text-[10px] ${
                                       isLight ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
                                     }`}>
                                       منجز
                                     </span>
                                   ) : req.status === 'rejected' ? (
-                                    <span className={`px-2 py-0.5 rounded font-bold border text-[10px] ${
+                                    <span className={`px-2 py-0.5 rounded-md font-bold border text-[10px] ${
                                       isLight ? 'bg-rose-100 text-rose-800 border-rose-300' : 'bg-rose-500/20 text-rose-400 border-rose-500/30'
                                     }`}>
                                       مرفوض
                                     </span>
                                   ) : req.status === 'cancelled' ? (
-                                    <span className={`px-2 py-0.5 rounded font-bold border text-[10px] ${
+                                    <span className={`px-2 py-0.5 rounded-md font-bold border text-[10px] ${
                                       isLight ? 'bg-slate-200 text-slate-700 border-slate-300' : 'bg-slate-500/20 text-slate-400 border-slate-500/30'
                                     }`}>
                                       ملغى
                                     </span>
                                   ) : (
-                                    <span className={`px-2 py-0.5 rounded font-bold border text-[10px] ${
+                                    <span className={`px-2 py-0.5 rounded-md font-bold border text-[10px] ${
                                       isLight ? 'bg-amber-100 text-amber-800 border-amber-300' : 'bg-amber-500/20 text-amber-400 border-amber-500/30'
                                     }`}>
                                       قيد المعالجة
                                     </span>
                                   )}
-                                </td>
-                                <td className={`p-2 font-mono text-[11px] font-semibold whitespace-nowrap ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>{getCompletionOrCancellationDate(req.completedAt, req.status)}</td>
-                                <td className={`p-2 font-bold text-[11px] text-center whitespace-nowrap ${isLight ? 'text-amber-700' : 'text-amber-400'}`}>{calculateMaintenanceDurationDays(req.createdAt, req.completedAt, req.status)}</td>
-                                <td className="p-2 text-center whitespace-nowrap">
+                                </div>
+                              </div>
+
+                              {/* Issue Description */}
+                              <div>
+                                <h5 className={`font-bold text-xs leading-relaxed ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                                  {req.issue}
+                                </h5>
+                                <div className="flex items-center gap-2 mt-1">
+                                  <span className={`px-2 py-0.5 rounded-lg text-[10px] font-bold border ${
+                                    isLight ? 'bg-amber-50 text-amber-900 border-amber-200' : 'bg-amber-500/10 text-amber-400 border-amber-500/30'
+                                  }`}>
+                                    {req.maintenanceDepartment || 'الصيانة العامة'}
+                                  </span>
+                                </div>
+                              </div>
+
+                              {/* Dates Grid */}
+                              <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-slate-200/60 dark:border-slate-800/60">
+                                <div>
+                                  <span className="text-slate-400 text-[10px] block">تاريخ البلاغ:</span>
+                                  <span className="font-mono text-[11px] font-medium">{formatDateOnly(req.createdAt)}</span>
+                                </div>
+                                <div>
+                                  <span className="text-slate-400 text-[10px] block">الإنجاز / الإلغاء:</span>
+                                  <span className="font-mono text-[11px] font-medium">{getCompletionOrCancellationDate(req.completedAt, req.status)}</span>
+                                </div>
+                                <div>
+                                  <span className="text-slate-400 text-[10px] block">مدة الإنجاز:</span>
+                                  <span className={`font-bold text-[11px] ${isLight ? 'text-amber-800' : 'text-amber-400'}`}>
+                                    {calculateMaintenanceDurationDays(req.createdAt, req.completedAt, req.status)}
+                                  </span>
+                                </div>
+                              </div>
+
+                              {/* Resolution Notes if available */}
+                              {req.resolutionNotes && (
+                                <div className={`p-2.5 rounded-xl text-xs space-y-1 ${isLight ? 'bg-slate-50 border border-slate-200' : 'bg-slate-950 border border-slate-800'}`}>
+                                  <span className="font-bold text-[10px] text-slate-400 block">ملاحظات ونتائج المعالجة:</span>
+                                  <p className={`text-[11px] leading-relaxed ${isLight ? 'text-slate-800' : 'text-slate-200'}`}>
+                                    {req.resolutionNotes}
+                                  </p>
+                                </div>
+                              )}
+
+                              {/* Attachment & Action button */}
+                              <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-200/60 dark:border-slate-800/60">
+                                <div>
                                   {req.attachmentUrl || req.attachmentName ? (
                                     <button
                                       type="button"
                                       onClick={() => {
                                         const ext = req.attachmentName?.split('.').pop() || 'jpg';
                                         setPreviewAttachment({
-                                          id: 'maint-arch-' + req.id,
+                                          id: 'maint-arch-mob-' + req.id,
                                           name: req.attachmentName || 'صورة_البلاغ.jpg',
                                           type: ext,
                                           url: req.attachmentUrl || '#',
@@ -3084,48 +3464,174 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                                           size: '1.2 MB',
                                         });
                                       }}
-                                      className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-[10px] font-bold transition cursor-pointer border shadow-sm ${
-                                        isLight
-                                          ? 'bg-amber-50 text-amber-800 border-amber-300 hover:bg-amber-100'
-                                          : 'bg-amber-500/20 text-amber-300 border-amber-500/40 hover:bg-amber-500/30'
+                                      className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer border min-h-[34px] ${
+                                        isLight ? 'bg-amber-50 text-amber-800 border-amber-300' : 'bg-amber-500/20 text-amber-300 border-amber-500/40'
                                       }`}
-                                      title="معاينة صورة أو مرفق طلب الصيانة"
                                     >
                                       <Eye className="w-3.5 h-3.5" />
-                                      <span className="truncate max-w-[80px]">{req.attachmentName || 'معاينة'}</span>
+                                      <span>معاينة المرفق</span>
                                     </button>
                                   ) : (
                                     <span className="text-slate-400 text-[10px]">لا يوجد مرفق</span>
                                   )}
-                                </td>
-                                <td className="p-2 max-w-[150px]">
-                                  {req.resolutionNotes ? (
-                                    <span className={`text-[10px] line-clamp-2 block ${isLight ? 'text-slate-700' : 'text-slate-300'}`} title={req.resolutionNotes}>{req.resolutionNotes}</span>
-                                  ) : (
-                                    <span className="text-slate-400 text-[10px]">لا توجد ملاحظات</span>
-                                  )}
-                                </td>
-                                <td className="p-2 text-center whitespace-nowrap">
-                                  <button
-                                    onClick={() => {
-                                      setEditMaintenanceReq(req);
-                                      setMaintNewStatus(req.status === 'cancelled' ? 'cancelled' : 'completed');
-                                      setMaintResolutionNotes(req.resolutionNotes || '');
-                                      setMaintCompletedDate(req.completedAt?.split(' ')[0] || new Date().toISOString().split('T')[0]);
-                                    }}
-                                    className={`px-2.5 py-1 rounded-lg text-[10px] font-bold cursor-pointer transition whitespace-nowrap border ${
-                                      isLight
-                                        ? 'bg-amber-100 hover:bg-amber-200 text-amber-900 border-amber-300'
-                                        : 'bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 border-amber-500/30'
-                                    }`}
-                                  >
-                                    تحديث الحالة
-                                  </button>
-                                </td>
-                              </tr>
-                            ))}
-                        </tbody>
-                      </table>
+                                </div>
+
+                                <button
+                                  onClick={() => {
+                                    setEditMaintenanceReq(req);
+                                    setMaintNewStatus(req.status === 'cancelled' ? 'cancelled' : 'completed');
+                                    setMaintResolutionNotes(req.resolutionNotes || '');
+                                    setMaintCompletedDate(req.completedAt?.split(' ')[0] || new Date().toISOString().split('T')[0]);
+                                  }}
+                                  className={`px-3 py-1.5 rounded-lg text-xs font-bold cursor-pointer transition whitespace-nowrap border flex items-center gap-1 min-h-[34px] ${
+                                    isLight
+                                      ? 'bg-amber-100 hover:bg-amber-200 text-amber-900 border-amber-300'
+                                      : 'bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 border-amber-500/30'
+                                  }`}
+                                >
+                                  <Edit3 className="w-3.5 h-3.5" />
+                                  <span>تحديث الحالة</span>
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                      </div>
+
+                      {/* Desktop Table View (hidden md:block) */}
+                      <div className="hidden md:block overflow-x-auto">
+                        <table className="w-full text-right text-xs">
+                          <thead className={`font-bold border-b ${isLight ? 'bg-slate-100 text-slate-700' : 'bg-slate-950 text-slate-400'}`}>
+                            <tr>
+                              <th className="p-2 whitespace-nowrap">رقم الطلب</th>
+                              <th className="p-2 min-w-[130px] max-w-[180px]">العطل</th>
+                              <th className="p-2 whitespace-nowrap">جهة الصيانة</th>
+                              <th className="p-2 whitespace-nowrap">حالة الطلب</th>
+                              <th className="p-2 whitespace-nowrap">تاريخ الإنجاز / الإلغاء</th>
+                              <th className="p-2 whitespace-nowrap text-center">المدة (بالأيام)</th>
+                              <th className="p-2 text-center whitespace-nowrap">المرفقات</th>
+                              <th className="p-2 min-w-[110px] max-w-[150px]">النتائج</th>
+                              <th className="p-2 text-center whitespace-nowrap">الإجراءات</th>
+                            </tr>
+                          </thead>
+                          <tbody className={`divide-y ${isLight ? 'divide-slate-200' : 'divide-slate-800/40'}`}>
+                            {maintenanceRequests
+                              .filter((r) => r.unitCode === showUnitArchiveModal.code)
+                              .map((req) => (
+                                <tr key={req.id} className={isLight ? 'hover:bg-slate-100/80' : 'hover:bg-slate-800/30'}>
+                                  <td className="p-2 whitespace-nowrap">
+                                    <div className="space-y-0.5">
+                                      <div className={`font-mono font-bold text-[11px] ${isLight ? 'text-amber-700' : 'text-amber-400'}`}>
+                                        {toArabicDigits(req.id)}
+                                      </div>
+                                      <div className={`text-[10px] font-mono ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                                        {formatDateOnly(req.createdAt)}
+                                      </div>
+                                    </div>
+                                  </td>
+                                  <td className="p-2 max-w-[180px]">
+                                    <div className={`font-bold text-xs line-clamp-2 ${isLight ? 'text-slate-900' : 'text-slate-100'}`} title={req.issue}>{req.issue}</div>
+                                    <div className="mt-0.5">
+                                      <span className={`px-1.5 py-0.2 rounded text-[9px] ${
+                                        req.priority === 'critical'
+                                          ? isLight ? 'bg-red-100 text-red-800' : 'bg-red-500/20 text-red-400'
+                                          : isLight ? 'bg-blue-100 text-blue-800' : 'bg-blue-500/20 text-blue-400'
+                                      }`}>
+                                        {req.priority === 'critical' ? 'حرج' : 'عادي'}
+                                      </span>
+                                    </div>
+                                  </td>
+                                  <td className="p-2 whitespace-nowrap">
+                                    <span className={`px-2 py-0.5 rounded-lg text-[10px] font-bold ${isLight ? 'bg-amber-100 text-amber-900 border border-amber-300' : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'}`}>
+                                      {req.maintenanceDepartment || 'الصيانة العامة'}
+                                    </span>
+                                  </td>
+                                  <td className="p-2 whitespace-nowrap">
+                                    {req.status === 'completed' ? (
+                                      <span className={`px-2 py-0.5 rounded font-bold border text-[10px] ${
+                                        isLight ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                                      }`}>
+                                        منجز
+                                      </span>
+                                    ) : req.status === 'rejected' ? (
+                                      <span className={`px-2 py-0.5 rounded font-bold border text-[10px] ${
+                                        isLight ? 'bg-rose-100 text-rose-800 border-rose-300' : 'bg-rose-500/20 text-rose-400 border-rose-500/30'
+                                      }`}>
+                                        مرفوض
+                                      </span>
+                                    ) : req.status === 'cancelled' ? (
+                                      <span className={`px-2 py-0.5 rounded font-bold border text-[10px] ${
+                                        isLight ? 'bg-slate-200 text-slate-700 border-slate-300' : 'bg-slate-500/20 text-slate-400 border-slate-500/30'
+                                      }`}>
+                                        ملغى
+                                      </span>
+                                    ) : (
+                                      <span className={`px-2 py-0.5 rounded font-bold border text-[10px] ${
+                                        isLight ? 'bg-amber-100 text-amber-800 border-amber-300' : 'bg-amber-500/20 text-amber-400 border-amber-500/30'
+                                      }`}>
+                                        قيد المعالجة
+                                      </span>
+                                    )}
+                                  </td>
+                                  <td className={`p-2 font-mono text-[11px] font-semibold whitespace-nowrap ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>{getCompletionOrCancellationDate(req.completedAt, req.status)}</td>
+                                  <td className={`p-2 font-bold text-[11px] text-center whitespace-nowrap ${isLight ? 'text-amber-700' : 'text-amber-400'}`}>{calculateMaintenanceDurationDays(req.createdAt, req.completedAt, req.status)}</td>
+                                  <td className="p-2 text-center whitespace-nowrap">
+                                    {req.attachmentUrl || req.attachmentName ? (
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          const ext = req.attachmentName?.split('.').pop() || 'jpg';
+                                          setPreviewAttachment({
+                                            id: 'maint-arch-' + req.id,
+                                            name: req.attachmentName || 'صورة_البلاغ.jpg',
+                                            type: ext,
+                                            url: req.attachmentUrl || '#',
+                                            uploadedAt: formatDateOnly(req.createdAt),
+                                            size: '1.2 MB',
+                                          });
+                                        }}
+                                        className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-[10px] font-bold transition cursor-pointer border shadow-sm ${
+                                          isLight
+                                            ? 'bg-amber-50 text-amber-800 border-amber-300 hover:bg-amber-100'
+                                            : 'bg-amber-500/20 text-amber-300 border-amber-500/40 hover:bg-amber-500/30'
+                                        }`}
+                                        title="معاينة صورة أو مرفق طلب الصيانة"
+                                      >
+                                        <Eye className="w-3.5 h-3.5" />
+                                        <span className="truncate max-w-[80px]">{req.attachmentName || 'معاينة'}</span>
+                                      </button>
+                                    ) : (
+                                      <span className="text-slate-400 text-[10px]">لا يوجد مرفق</span>
+                                    )}
+                                  </td>
+                                  <td className="p-2 max-w-[150px]">
+                                    {req.resolutionNotes ? (
+                                      <span className={`text-[10px] line-clamp-2 block ${isLight ? 'text-slate-700' : 'text-slate-300'}`} title={req.resolutionNotes}>{req.resolutionNotes}</span>
+                                    ) : (
+                                      <span className="text-slate-400 text-[10px]">لا توجد ملاحظات</span>
+                                    )}
+                                  </td>
+                                  <td className="p-2 text-center whitespace-nowrap">
+                                    <button
+                                      onClick={() => {
+                                        setEditMaintenanceReq(req);
+                                        setMaintNewStatus(req.status === 'cancelled' ? 'cancelled' : 'completed');
+                                        setMaintResolutionNotes(req.resolutionNotes || '');
+                                        setMaintCompletedDate(req.completedAt?.split(' ')[0] || new Date().toISOString().split('T')[0]);
+                                      }}
+                                      className={`px-2.5 py-1 rounded-lg text-[10px] font-bold cursor-pointer transition whitespace-nowrap border ${
+                                        isLight
+                                          ? 'bg-amber-100 hover:bg-amber-200 text-amber-900 border-amber-300'
+                                          : 'bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 border-amber-500/30'
+                                      }`}
+                                    >
+                                      تحديث الحالة
+                                    </button>
+                                  </td>
+                                </tr>
+                              ))}
+                          </tbody>
+                        </table>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -3133,10 +3639,10 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
             </div>
 
             {/* Footer with Actions */}
-            <div className={`flex flex-wrap items-center justify-between gap-3 pt-3 border-t ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
+            <div className={`flex flex-col sm:flex-row items-center justify-between gap-2.5 sm:gap-3 pt-3 border-t shrink-0 ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
               <button
                 onClick={() => window.print()}
-                className={`px-4 py-2 rounded-xl text-xs font-bold border flex items-center gap-1.5 transition cursor-pointer ${
+                className={`w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs font-bold border flex items-center justify-center gap-1.5 transition cursor-pointer min-h-[40px] ${
                   isLight ? 'bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-300' : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700'
                 }`}
               >
@@ -3144,14 +3650,14 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                 <span>طباعة أرشيف الوحدة الشامل</span>
               </button>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 w-full sm:w-auto">
                 {onNavigateTab && (
                   <button
                     onClick={() => {
                       setShowUnitArchiveModal(null);
                       onNavigateTab('reports');
                     }}
-                    className="px-4 py-2 bg-amber-500 text-slate-950 rounded-xl text-xs font-black hover:bg-amber-400 flex items-center gap-1.5 transition cursor-pointer"
+                    className="flex-1 sm:flex-initial px-4 py-2.5 bg-amber-500 text-slate-950 rounded-xl text-xs font-black hover:bg-amber-400 flex items-center justify-center gap-1.5 transition cursor-pointer min-h-[40px]"
                   >
                     <ExternalLink className="w-4 h-4" />
                     <span>الاطلاع عبر التقارير</span>
@@ -3160,7 +3666,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
 
                 <button
                   onClick={() => setShowUnitArchiveModal(null)}
-                  className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+                  className={`flex-1 sm:flex-initial px-4 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer min-h-[40px] flex items-center justify-center ${
                     isLight ? 'bg-slate-200 text-slate-800 hover:bg-slate-300' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
                   }`}
                 >
@@ -3174,19 +3680,19 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
 
       {/* MODAL 5: DATA ENTRY MAINTENANCE EDIT MODAL */}
       {editMaintenanceReq && (
-        <div className={`fixed inset-0 z-50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto ${isLight ? 'bg-slate-900/40' : 'bg-slate-950/80'}`}>
-          <div className={`rounded-3xl p-6 w-full max-w-lg space-y-4 shadow-2xl relative border ${isLight ? 'bg-white border-slate-200 text-slate-900' : 'bg-slate-900 border-slate-800 text-slate-100'}`}>
+        <div className={`fixed inset-0 z-50 backdrop-blur-sm flex items-center justify-center p-2.5 sm:p-4 overflow-y-auto ${isLight ? 'bg-slate-900/40' : 'bg-slate-950/80'}`}>
+          <div className={`rounded-2xl sm:rounded-3xl p-4 sm:p-6 w-full max-w-lg space-y-3.5 sm:space-y-4 shadow-2xl relative my-2 sm:my-8 border ${isLight ? 'bg-white border-slate-200 text-slate-900' : 'bg-slate-900 border-slate-800 text-slate-100'}`}>
             <div className={`flex items-center justify-between border-b pb-3 ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
-              <h3 className={`font-bold text-base ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+              <h3 className={`font-bold text-sm sm:text-base ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
                 معالجة وتغيير حالة طلب الصيانة ({toArabicDigits(editMaintenanceReq.id)})
               </h3>
-              <button onClick={() => setEditMaintenanceReq(null)} className={`p-1 cursor-pointer ${isLight ? 'text-slate-400 hover:text-slate-700' : 'text-slate-400 hover:text-slate-200'}`}>
+              <button onClick={() => setEditMaintenanceReq(null)} className={`p-1.5 rounded-lg cursor-pointer ${isLight ? 'text-slate-400 hover:text-slate-700 hover:bg-slate-100' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'}`}>
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleSaveMaintenanceResolution} className="space-y-3 text-xs">
-              <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl text-amber-400 font-bold">
+              <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl text-amber-400 font-bold leading-relaxed">
                 الوحدة: {toArabicDigits(editMaintenanceReq.unitCode)} | المشكلة: {editMaintenanceReq.issue}
               </div>
 
@@ -3197,7 +3703,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                 <select
                   value={maintNewStatus}
                   onChange={(e) => setMaintNewStatus(e.target.value as MaintenanceStatus)}
-                  className={`w-full rounded-xl p-2.5 font-bold outline-none border ${
+                  className={`w-full rounded-xl p-2.5 font-bold outline-none border text-xs sm:text-sm ${
                     isLight ? 'bg-slate-50 border-slate-200 text-slate-900' : 'bg-slate-950 border-slate-800 text-slate-100'
                   }`}
                 >
@@ -3215,7 +3721,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                   type="date"
                   value={maintCompletedDate}
                   onChange={(e) => setMaintCompletedDate(e.target.value)}
-                  className={`w-full rounded-xl p-2.5 font-mono font-bold outline-none border ${
+                  className={`w-full rounded-xl p-2.5 font-mono font-bold outline-none border text-xs sm:text-sm ${
                     isLight ? 'bg-slate-50 border-slate-200 text-slate-900' : 'bg-slate-950 border-slate-800 text-slate-100'
                   }`}
                 />
@@ -3230,25 +3736,25 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                   onChange={(e) => setMaintResolutionNotes(e.target.value)}
                   placeholder="سجل التفاصيل الفنية لأعمال الإصلاح والصيانة المنفذة..."
                   rows={3}
-                  className={`w-full rounded-xl p-2.5 outline-none border ${
+                  className={`w-full rounded-xl p-2.5 outline-none border text-xs sm:text-sm leading-relaxed ${
                     isLight ? 'bg-slate-50 border-slate-200 text-slate-900' : 'bg-slate-950 border-slate-800 text-slate-100'
                   }`}
                 />
               </div>
 
-              <div className={`flex items-center justify-end gap-2 pt-3 border-t ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
+              <div className={`flex flex-col-reverse sm:flex-row items-center justify-end gap-2.5 sm:gap-3 pt-3 border-t ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
                 <button
                   type="button"
                   onClick={() => setEditMaintenanceReq(null)}
-                  className={`px-3 py-2 rounded-xl font-bold transition cursor-pointer ${
-                    isLight ? 'bg-slate-100 text-slate-700' : 'bg-slate-800 text-slate-300'
+                  className={`w-full sm:w-auto px-4 py-2.5 rounded-xl font-bold transition cursor-pointer min-h-[40px] flex items-center justify-center ${
+                    isLight ? 'bg-slate-100 text-slate-700 hover:bg-slate-200' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
                   }`}
                 >
                   إلغاء
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-amber-500 text-slate-950 font-black rounded-xl hover:bg-amber-400 transition cursor-pointer"
+                  className="w-full sm:w-auto px-5 py-2.5 bg-amber-500 text-slate-950 font-black rounded-xl hover:bg-amber-400 transition cursor-pointer min-h-[40px] flex items-center justify-center shadow-md shadow-amber-500/20"
                 >
                   حفظ وتحديث حالة الصيانة
                 </button>
@@ -3260,54 +3766,54 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
 
       {/* MODAL 5: DELETE CONFIRMATION MODAL */}
       {deleteConfirmSchedule && (
-        <div className={`fixed inset-0 z-50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto ${isLight ? 'bg-slate-900/40' : 'bg-slate-950/80'}`}>
-          <div className={`rounded-3xl p-6 w-full max-w-md space-y-5 shadow-2xl relative my-8 border ${
+        <div className={`fixed inset-0 z-50 backdrop-blur-sm flex items-center justify-center p-2.5 sm:p-4 overflow-y-auto ${isLight ? 'bg-slate-900/40' : 'bg-slate-950/80'}`}>
+          <div className={`rounded-2xl sm:rounded-3xl p-4 sm:p-6 w-full max-w-md space-y-4 sm:space-y-5 shadow-2xl relative my-2 sm:my-8 border ${
             isLight ? 'bg-white border-red-200 text-slate-900' : 'bg-slate-900 border-red-500/30 text-slate-100'
           }`}>
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-2xl bg-red-500/10 border border-red-500/30 text-red-500 flex items-center justify-center shrink-0 font-bold">
-                <AlertTriangle className="w-6 h-6" />
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-red-500/10 border border-red-500/30 text-red-500 flex items-center justify-center shrink-0 font-bold">
+                <AlertTriangle className="w-5 h-5 sm:w-6 sm:h-6" />
               </div>
               <div>
-                <h3 className={`font-black text-base ${isLight ? 'text-red-900' : 'text-red-400'}`}>
+                <h3 className={`font-black text-sm sm:text-base ${isLight ? 'text-red-900' : 'text-red-400'}`}>
                   تأكيد حذف جدول الكشف الدوري
                 </h3>
-                <p className={`text-xs ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                <p className={`text-[11px] sm:text-xs ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
                   تنبيه: إجراء الحذف نهائي
                 </p>
               </div>
             </div>
 
-            <div className={`p-3.5 rounded-2xl border space-y-2 text-xs ${
+            <div className={`p-3 sm:p-3.5 rounded-xl sm:rounded-2xl border space-y-2 text-xs ${
               isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-950 border-slate-800'
             }`}>
-              <div className="flex items-center justify-between">
-                <span className="text-slate-400 font-bold">الوحدة الهندسية:</span>
-                <span className="font-extrabold">{deleteConfirmSchedule.unitCode} - {deleteConfirmSchedule.unitName}</span>
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-slate-400 font-bold shrink-0">الوحدة الهندسية:</span>
+                <span className="font-extrabold truncate text-left">{deleteConfirmSchedule.unitCode} - {deleteConfirmSchedule.unitName}</span>
               </div>
-              <div className="flex items-center justify-between border-t border-slate-800/30 pt-1.5">
-                <span className="text-slate-400 font-bold">عنوان الكشف:</span>
-                <span className="font-bold">{deleteConfirmSchedule.title}</span>
+              <div className="flex items-center justify-between gap-2 border-t border-slate-800/30 pt-1.5">
+                <span className="text-slate-400 font-bold shrink-0">عنوان الكشف:</span>
+                <span className="font-bold truncate text-left">{deleteConfirmSchedule.title}</span>
               </div>
-              <div className="flex items-center justify-between border-t border-slate-800/30 pt-1.5">
-                <span className="text-slate-400 font-bold">الموقع:</span>
-                <span className="font-bold">محافظة {deleteConfirmSchedule.governorate} | حقل {deleteConfirmSchedule.field}</span>
+              <div className="flex items-center justify-between gap-2 border-t border-slate-800/30 pt-1.5">
+                <span className="text-slate-400 font-bold shrink-0">الموقع:</span>
+                <span className="font-bold truncate text-left">محافظة {deleteConfirmSchedule.governorate} | حقل {deleteConfirmSchedule.field}</span>
               </div>
-              <div className="flex items-center justify-between border-t border-slate-800/30 pt-1.5">
-                <span className="text-slate-400 font-bold">الموعد القادم:</span>
+              <div className="flex items-center justify-between gap-2 border-t border-slate-800/30 pt-1.5">
+                <span className="text-slate-400 font-bold shrink-0">الموعد القادم:</span>
                 <span className="font-mono font-bold text-amber-500">{toArabicDigits(deleteConfirmSchedule.nextDueDate)}</span>
               </div>
             </div>
 
-            <p className={`text-xs ${isLight ? 'text-slate-600' : 'text-slate-300'}`}>
+            <p className={`text-xs leading-relaxed ${isLight ? 'text-slate-600' : 'text-slate-300'}`}>
               هل أنت متأكد من رغبتك في حذف هذا الجدول من قائمة المعاينات الدوريّة؟ لن تتمكن من التراجع عن هذا الإجراء.
             </p>
 
-            <div className={`flex items-center justify-end gap-3 pt-3 border-t ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
+            <div className={`flex flex-col-reverse sm:flex-row items-center justify-end gap-2.5 sm:gap-3 pt-3 border-t ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
               <button
                 type="button"
                 onClick={() => setDeleteConfirmSchedule(null)}
-                className={`px-4 py-2 rounded-xl font-bold text-xs transition cursor-pointer ${
+                className={`w-full sm:w-auto px-4 py-2.5 rounded-xl font-bold text-xs transition cursor-pointer min-h-[40px] flex items-center justify-center ${
                   isLight ? 'bg-slate-100 text-slate-700 hover:bg-slate-200' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
                 }`}
               >
@@ -3316,7 +3822,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
               <button
                 type="button"
                 onClick={handleDeleteConfirm}
-                className="px-5 py-2 bg-red-600 text-white rounded-xl font-bold text-xs hover:bg-red-700 shadow-md shadow-red-600/20 transition cursor-pointer flex items-center gap-1.5"
+                className="w-full sm:w-auto px-5 py-2.5 bg-red-600 text-white rounded-xl font-bold text-xs hover:bg-red-700 shadow-md shadow-red-600/20 transition cursor-pointer flex items-center justify-center gap-1.5 min-h-[40px]"
               >
                 <Trash2 className="w-4 h-4" />
                 <span>تأكيد الحذف النهائي</span>

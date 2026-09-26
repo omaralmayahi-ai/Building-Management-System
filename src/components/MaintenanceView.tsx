@@ -322,13 +322,13 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
       )}
 
       {/* Header Banner */}
-      <div className={`rounded-2xl p-5 shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4 border ${isLight ? 'bg-white border-slate-200' : 'bg-slate-900 border-slate-800'}`}>
+      <div className={`rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 border ${isLight ? 'bg-white border-slate-200' : 'bg-slate-900 border-slate-800'}`}>
         <div>
-          <h2 className={`text-lg font-bold flex items-center gap-2 ${isLight ? 'text-slate-900' : 'text-white'}`}>
-            <Wrench className="w-5 h-5 text-amber-400" />
+          <h2 className={`text-base sm:text-lg font-bold flex items-center gap-2 ${isLight ? 'text-slate-900' : 'text-white'}`}>
+            <Wrench className="w-5 h-5 text-amber-400 shrink-0" />
             <span>إدارة طلبات الصيانة</span>
           </h2>
-          <p className={`text-xs mt-0.5 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+          <p className={`text-[11px] sm:text-xs mt-0.5 leading-relaxed ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
             {isMaintenanceEmployee
               ? `متابعة وإنجاز أو رفض طلبات ${employeeDept || 'الصيانة'} الموجهة لحسابك وتوثيق الملاحظات`
               : 'متابعة بلاغات الأعطال، معالجة وتعديل حالة الطلب، وتوجيهها لجهات الصيانة المختصة'}
@@ -338,7 +338,7 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
         {!isMaintenanceEmployee && (
           <button
             onClick={onOpenNewMaintenanceModal}
-            className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow-lg shadow-amber-500/10 transition cursor-pointer"
+            className="w-full sm:w-auto bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-4 py-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-lg shadow-amber-500/10 transition cursor-pointer min-h-[40px]"
           >
             <Plus className="w-4 h-4" />
             <span>+ طلب صيانة جديد</span>
@@ -409,7 +409,7 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
       </div>
 
       {/* Main Table Data */}
-      <div className={`rounded-2xl p-5 shadow-lg space-y-4 border ${isLight ? 'bg-white border-slate-200' : 'bg-slate-900 border-slate-800'}`}>
+      <div className={`rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 shadow-lg space-y-4 border ${isLight ? 'bg-white border-slate-200' : 'bg-slate-900 border-slate-800'}`}>
         <div className="flex flex-col gap-3 pb-3 border-b border-slate-800/40">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div className="flex items-center gap-2">
@@ -549,8 +549,336 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
           </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-right text-[11px] table-fixed">
+        {filteredRequests.length === 0 ? (
+          <div className="p-8 text-center text-slate-500 text-xs font-semibold">
+            لا توجد طلبات أو بلاغات صيانة تطابق معايير الفلترة المحددة.
+          </div>
+        ) : (
+          <div>
+            {/* Mobile Cards View (md:hidden) */}
+            <div className="md:hidden space-y-3">
+              {filteredRequests.map((req) => {
+                const matchedUnit = units.find((u) => u.code === req.unitCode || u.id === req.unitCode);
+                const unitName = req.unitName || matchedUnit?.name || 'غير محدد';
+                const unitOccupant = matchedUnit
+                  ? (matchedUnit.departments && matchedUnit.departments.length > 0
+                      ? Array.from(new Set(matchedUnit.departments.filter(Boolean))).join(' ، ')
+                      : matchedUnit.department ||
+                        (matchedUnit.rooms && matchedUnit.rooms.length > 0
+                          ? Array.from(new Set(matchedUnit.rooms.map((r) => r.occupiedBy).filter(Boolean))).join(' ، ')
+                          : '')) || 'عام / غير محدد'
+                  : 'عام / غير محدد';
+
+                const matchedRoom = req.roomCode && matchedUnit?.rooms
+                  ? matchedUnit.rooms.find((r) => r.code === req.roomCode || r.id === req.roomCode)
+                  : undefined;
+                const roomOccupant = req.roomCode
+                  ? (req.occupyingEntity || matchedRoom?.occupiedBy || 'غير محدد')
+                  : undefined;
+
+                const hasNotes = Boolean(
+                  req.resolutionNotes?.trim() ||
+                  req.rejectionReason?.trim() ||
+                  req.status === 'completed' ||
+                  req.status === 'rejected'
+                );
+
+                const reqAttachments: ReportAttachment[] =
+                  req.attachments && req.attachments.length > 0
+                    ? req.attachments
+                    : req.attachmentUrl || req.attachmentName
+                    ? [
+                        {
+                          id: `maint-att-${req.id}`,
+                          name: req.attachmentName || 'صورة_البلاغ.jpg',
+                          url: req.attachmentUrl,
+                          type: 'image/jpeg',
+                        },
+                      ]
+                    : [];
+
+                const itemsToPreview: AttachmentViewerItem[] = reqAttachments.map((a, i) => ({
+                  id: a.id || `maint-att-${req.id}-${i}`,
+                  name: a.name || `مرفق_طلب_صيانة_${toArabicDigits(i + 1)}.jpg`,
+                  type: a.type || 'image/jpeg',
+                  url: a.url || req.attachmentUrl || '#',
+                  uploadDate: formatDateOnly(req.createdAt),
+                  category: `مرفق طلب صيانة (${toArabicDigits(i + 1)} من ${toArabicDigits(reqAttachments.length)})`,
+                }));
+
+                return (
+                  <div
+                    key={req.id}
+                    className={`p-3.5 rounded-2xl border space-y-3 transition-all ${
+                      isLight
+                        ? 'bg-white border-slate-200/90 shadow-xs'
+                        : 'bg-slate-950/70 border-slate-800 shadow-xs'
+                    }`}
+                  >
+                    {/* Top Row: Request ID & Date + Priority & Status */}
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="space-y-0.5">
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-mono font-black text-amber-500 text-sm">
+                            #{toArabicDigits(req.id)}
+                          </span>
+                          <span className={`text-[10px] font-mono flex items-center gap-1 ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                            <Calendar className="w-3 h-3 text-slate-400 shrink-0" />
+                            <span>{formatDateOnly(req.createdAt)}</span>
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-1.5 shrink-0 flex-wrap justify-end">
+                        {/* Priority Badge */}
+                        <span
+                          className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${
+                            req.priority === 'critical'
+                              ? 'bg-red-500/20 text-red-400 border border-red-500/30'
+                              : req.priority === 'low'
+                              ? 'bg-slate-500/20 text-slate-400 border border-slate-500/30'
+                              : 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
+                          }`}
+                        >
+                          {req.priority === 'critical' ? 'حرج جداً' : req.priority === 'low' ? 'منخفض' : 'عادي'}
+                        </span>
+
+                        {/* Status Badge */}
+                        {req.status === 'completed' ? (
+                          <span className="bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-md text-[10.5px] font-bold inline-flex items-center gap-1">
+                            <CheckCircle2 className="w-3 h-3 shrink-0" />
+                            <span>منجز</span>
+                          </span>
+                        ) : req.status === 'rejected' ? (
+                          <span className="bg-rose-500/15 text-rose-400 border border-rose-500/30 px-2 py-0.5 rounded-md text-[10.5px] font-bold inline-flex items-center gap-1">
+                            <Ban className="w-3 h-3 shrink-0" />
+                            <span>مرفوض</span>
+                          </span>
+                        ) : req.status === 'cancelled' ? (
+                          <span className="bg-slate-500/15 text-slate-400 border border-slate-500/30 px-2 py-0.5 rounded-md text-[10.5px] font-bold inline-flex items-center gap-1">
+                            <XCircle className="w-3 h-3 shrink-0" />
+                            <span>ملغى</span>
+                          </span>
+                        ) : (
+                          <span className="bg-amber-500/15 text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded-md text-[10.5px] font-bold inline-flex items-center gap-1">
+                            <Clock className="w-3 h-3 shrink-0" />
+                            <span>قيد المعالجة</span>
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Facility and Room Info */}
+                    <div className="space-y-1 pt-2 border-t border-slate-200/60 dark:border-slate-800/60">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <div className="font-mono font-black text-amber-500 dark:text-amber-400 text-xs flex items-center gap-1">
+                          <Building2 className="w-3.5 h-3.5 shrink-0 opacity-80" />
+                          <span>{toArabicDigits(req.unitCode)}</span>
+                        </div>
+                        <span className="opacity-40">•</span>
+                        <h4 className={`font-black text-xs sm:text-sm leading-snug break-words ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                          {unitName}
+                        </h4>
+                      </div>
+
+                      <div className={`text-[10.5px] flex items-center gap-1 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                        <UserCheck className="w-3 h-3 text-sky-500 shrink-0" />
+                        <span className="opacity-75">الجهة الشاغلة:</span>
+                        <span className="font-bold truncate">{unitOccupant}</span>
+                      </div>
+
+                      {req.roomCode && (
+                        <div className="pt-1 mt-1 border-t border-slate-200/70 dark:border-slate-800/70 space-y-0.5">
+                          <div className="font-bold text-[10.5px] text-emerald-600 dark:text-emerald-400 flex items-center gap-1 bg-emerald-500/10 dark:bg-emerald-500/15 border border-emerald-500/25 px-2 py-0.5 rounded-md w-fit">
+                            <DoorClosed className="w-3 h-3 text-emerald-500 shrink-0" />
+                            <span className="font-mono font-bold">غرفة: {toArabicDigits(req.roomCode)}</span>
+                            {req.roomName && <span>• {req.roomName}</span>}
+                            {req.roomFloor && <span className="text-[9.5px] opacity-80 font-sans">({req.roomFloor})</span>}
+                          </div>
+                          <div className="text-[10px] leading-tight flex items-center gap-1 text-emerald-700 dark:text-emerald-400 pr-0.5">
+                            <span className="opacity-75">شاغل الغرفة:</span>
+                            <span className="font-bold truncate">{roomOccupant}</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Defect / Issue Box */}
+                    <div className={`p-2.5 rounded-xl border text-xs leading-relaxed space-y-1.5 ${
+                      isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-900/90 border-slate-800'
+                    }`}>
+                      <div className="flex items-center justify-between gap-1.5 flex-wrap">
+                        <span className="font-bold text-[10px] text-slate-400 flex items-center gap-1">
+                          <Wrench className="w-3 h-3 text-amber-500" />
+                          <span>وصف العطل / البلاغ:</span>
+                        </span>
+                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                          {req.maintenanceDepartment || 'الصيانة العامة'}
+                        </span>
+                      </div>
+                      <p className={`font-semibold text-xs leading-relaxed ${isLight ? 'text-slate-800' : 'text-slate-200'}`}>
+                        {req.issue}
+                      </p>
+                    </div>
+
+                    {/* Details Grid: Reporter, Completion Date, Duration */}
+                    <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-slate-200/60 dark:border-slate-800/60">
+                      <div>
+                        <span className="text-slate-400 text-[10px] block">مقدّم الطلب:</span>
+                        <span className="font-bold text-[11px] truncate block">{req.reportedBy || 'غير معروف'}</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 text-[10px] block">تاريخ الإنجاز / الإلغاء:</span>
+                        <span className="font-mono text-[11px] font-medium block">{getCompletionOrCancellationDate(req.completedAt, req.status)}</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 text-[10px] block">مدة الاستجابة:</span>
+                        <span className="font-bold text-[11px] text-amber-500 block">
+                          {calculateMaintenanceDurationDays(req.createdAt, req.completedAt, req.status)}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Attachments & Results Buttons */}
+                    <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-200/60 dark:border-slate-800/60">
+                      <div>
+                        {reqAttachments.length > 0 ? (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setPreviewAttachment({
+                                attachments: itemsToPreview,
+                                initialIndex: 0,
+                                unitCode: req.unitCode,
+                              });
+                            }}
+                            className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer border min-h-[34px] ${
+                              isLight
+                                ? 'bg-amber-50 text-amber-900 border-amber-300 hover:bg-amber-100'
+                                : 'bg-amber-500/15 text-amber-300 border-amber-500/35 hover:bg-amber-500/25'
+                            }`}
+                          >
+                            <Paperclip className="w-3.5 h-3.5 text-amber-500" />
+                            <span>المرفقات ({toArabicDigits(reqAttachments.length)})</span>
+                          </button>
+                        ) : (
+                          <span className="text-slate-400 text-[10.5px]">لا توجد مرفقات</span>
+                        )}
+                      </div>
+
+                      <div>
+                        {hasNotes && (
+                          <button
+                            type="button"
+                            onClick={() => setViewNotesReq(req)}
+                            className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer border min-h-[34px] ${
+                              req.status === 'rejected'
+                                ? 'bg-rose-500/15 text-rose-400 border-rose-500/30 hover:bg-rose-500/25'
+                                : req.status === 'completed'
+                                ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/25'
+                                : 'bg-amber-500/15 text-amber-400 border-amber-500/30 hover:bg-amber-500/25'
+                            }`}
+                          >
+                            {req.status === 'rejected' ? (
+                              <Ban className="w-3.5 h-3.5" />
+                            ) : req.status === 'completed' ? (
+                              <CheckCircle2 className="w-3.5 h-3.5" />
+                            ) : (
+                              <FileText className="w-3.5 h-3.5" />
+                            )}
+                            <span>{req.status === 'rejected' ? 'سبب الرفض' : req.status === 'completed' ? 'تقرير الإنجاز' : 'الملاحظات'}</span>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Actions Bar */}
+                    <div className="flex items-center gap-2 pt-2 border-t border-slate-200/60 dark:border-slate-800/60">
+                      {isMaintenanceEmployee ? (
+                        <>
+                          {req.status !== 'completed' && req.status !== 'rejected' && req.status !== 'cancelled' ? (
+                            <>
+                              <button
+                                type="button"
+                                onClick={() => handleOpenCompleteModal(req)}
+                                className="flex-1 px-3 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs transition cursor-pointer flex items-center justify-center gap-1.5 min-h-[40px] shadow-sm shadow-emerald-500/20"
+                              >
+                                <CheckCircle2 className="w-4 h-4" />
+                                <span>إنجاز وتوثيق</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleOpenRejectModal(req)}
+                                className="px-3 py-2 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 border border-rose-500/30 font-bold text-xs transition cursor-pointer flex items-center justify-center gap-1.5 min-h-[40px]"
+                              >
+                                <Ban className="w-4 h-4" />
+                                <span>رفض</span>
+                              </button>
+                            </>
+                          ) : req.status === 'completed' ? (
+                            <button
+                              type="button"
+                              onClick={() => handleOpenCompleteModal(req)}
+                              className="w-full px-3 py-2 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/30 font-bold text-xs transition cursor-pointer flex items-center justify-center gap-1.5 min-h-[40px]"
+                            >
+                              <CheckCircle2 className="w-4 h-4" />
+                              <span>تعديل تقرير الإنجاز</span>
+                            </button>
+                          ) : req.status === 'rejected' ? (
+                            <button
+                              type="button"
+                              onClick={() => handleOpenRejectModal(req)}
+                              className="w-full px-3 py-2 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 border border-rose-500/30 font-bold text-xs transition cursor-pointer flex items-center justify-center gap-1.5 min-h-[40px]"
+                            >
+                              <Ban className="w-4 h-4" />
+                              <span>تعديل سبب الرفض</span>
+                            </button>
+                          ) : (
+                            <div className="w-full text-center text-slate-500 text-xs py-1.5">طلب مغلق</div>
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => handleOpenEditModal(req)}
+                            className={`flex-1 px-3 py-2 rounded-xl font-bold text-xs transition cursor-pointer flex items-center justify-center gap-1.5 min-h-[40px] ${
+                              req.status === 'completed'
+                                ? 'bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/30'
+                                : req.status === 'rejected'
+                                ? 'bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 border border-rose-500/30'
+                                : 'bg-amber-500 text-slate-950 hover:bg-amber-400 shadow-md shadow-amber-500/20 font-black'
+                            }`}
+                          >
+                            <CheckCircle2 className="w-4 h-4" />
+                            <span>
+                              {req.status === 'completed'
+                                ? 'تعديل حالة الإنجاز'
+                                : req.status === 'rejected'
+                                ? 'تعديل سبب الرفض'
+                                : 'معالجة وتحديث الحالة'}
+                            </span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => setDeleteConfirmReq(req)}
+                            className="p-2.5 bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 border border-rose-500/30 rounded-xl transition cursor-pointer flex items-center justify-center min-h-[40px] shrink-0"
+                            title="حذف طلب الصيانة"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Desktop Table View (hidden md:block) */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-right text-[11px] table-fixed">
             <thead className={`border-b ${isLight ? 'bg-slate-50 border-slate-200 text-slate-700' : 'bg-slate-950/50 border-slate-800 text-slate-400'}`}>
               <tr>
                 <th className="py-2.5 px-2.5 font-semibold w-[12%]">رقم وتاريخ الطلب</th>
@@ -922,11 +1250,13 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
           </table>
         </div>
       </div>
+    )}
+  </div>
 
       {/* UPDATE / COMPLETE / REJECT MAINTENANCE REQUEST MODAL */}
       {selectedReq && (
-        <div className={`fixed inset-0 z-50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto ${isLight ? 'bg-slate-900/40' : 'bg-slate-950/80'}`}>
-          <div className={`rounded-3xl p-6 w-full max-w-lg space-y-4 shadow-2xl relative border ${isLight ? 'bg-white border-slate-200 text-slate-900' : 'bg-slate-900 border-slate-800 text-slate-100'}`}>
+        <div className={`fixed inset-0 z-50 backdrop-blur-sm flex items-center justify-center p-2.5 sm:p-4 overflow-y-auto ${isLight ? 'bg-slate-900/40' : 'bg-slate-950/80'}`}>
+          <div className={`rounded-2xl sm:rounded-3xl p-4 sm:p-6 w-full max-w-lg space-y-3.5 sm:space-y-4 shadow-2xl relative my-2 sm:my-8 border ${isLight ? 'bg-white border-slate-200 text-slate-900' : 'bg-slate-900 border-slate-800 text-slate-100'}`}>
             <div className={`flex items-center justify-between border-b pb-3 ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
               <div className="flex items-center gap-2">
                 {actionModalType === 'reject' ? (
@@ -939,7 +1269,7 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
                   </div>
                 )}
                 <div>
-                  <h3 className={`font-bold text-base ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                  <h3 className={`font-bold text-sm sm:text-base ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
                     {actionModalType === 'reject'
                       ? 'توثيق رفض طلب الصيانة'
                       : isMaintenanceEmployee
@@ -1061,7 +1391,7 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
                 </div>
               )}
 
-              <div className={`flex items-center justify-end gap-2 pt-3 border-t ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
+              <div className={`flex flex-col-reverse sm:flex-row items-center justify-end gap-2.5 sm:gap-3 pt-3 border-t ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
                 <button
                   type="button"
                   onClick={() => {
@@ -1069,7 +1399,7 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
                     setActionModalType(null);
                     setFormError(null);
                   }}
-                  className={`px-4 py-2 rounded-xl font-bold transition cursor-pointer ${
+                  className={`w-full sm:w-auto px-4 py-2.5 rounded-xl font-bold transition cursor-pointer min-h-[40px] flex items-center justify-center ${
                     isLight ? 'bg-slate-100 text-slate-700 hover:bg-slate-200' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
                   }`}
                 >
@@ -1077,7 +1407,7 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
                 </button>
                 <button
                   type="submit"
-                  className={`px-5 py-2 font-black rounded-xl transition cursor-pointer shadow-lg ${
+                  className={`w-full sm:w-auto px-5 py-2.5 font-black rounded-xl transition cursor-pointer shadow-lg min-h-[40px] flex items-center justify-center ${
                     actionModalType === 'reject' || status === 'rejected'
                       ? 'bg-rose-600 hover:bg-rose-500 text-white shadow-rose-600/30'
                       : 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-emerald-500/20'
@@ -1097,13 +1427,13 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
 
       {/* FULL EDIT MAINTENANCE REQUEST MODAL */}
       {fullEditReq && (
-        <div className={`fixed inset-0 z-50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto ${isLight ? 'bg-slate-900/40' : 'bg-slate-950/80'}`}>
-          <div className={`rounded-3xl p-6 w-full max-w-md space-y-4 shadow-2xl relative border ${isLight ? 'bg-white border-slate-200 text-slate-900' : 'bg-slate-900 border-slate-800 text-slate-100'}`}>
+        <div className={`fixed inset-0 z-50 backdrop-blur-sm flex items-center justify-center p-2.5 sm:p-4 overflow-y-auto ${isLight ? 'bg-slate-900/40' : 'bg-slate-950/80'}`}>
+          <div className={`rounded-2xl sm:rounded-3xl p-4 sm:p-6 w-full max-w-md space-y-3.5 sm:space-y-4 shadow-2xl relative border ${isLight ? 'bg-white border-slate-200 text-slate-900' : 'bg-slate-900 border-slate-800 text-slate-100'}`}>
             <div className={`flex items-center justify-between border-b pb-3 ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
-              <h3 className={`font-bold text-base ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+              <h3 className={`font-bold text-sm sm:text-base ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
                 تحرير طلب صيانة ({toArabicDigits(fullEditReq.id)})
               </h3>
-              <button onClick={() => setFullEditReq(null)} className={`p-1 cursor-pointer ${isLight ? 'text-slate-400 hover:text-slate-700' : 'text-slate-400 hover:text-slate-200'}`}>
+              <button onClick={() => setFullEditReq(null)} className={`p-1.5 rounded-xl cursor-pointer ${isLight ? 'text-slate-400 hover:text-slate-700 bg-slate-100' : 'text-slate-400 hover:text-slate-200 bg-slate-800'}`}>
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -1208,30 +1538,31 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
                 </select>
               </div>
 
-              <div className={`flex items-center justify-between gap-2 pt-3 border-t ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
+              <div className={`flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-2.5 pt-3 border-t ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
                 {onDeleteMaintenanceRequest ? (
                   <button
                     type="button"
                     onClick={() => setDeleteConfirmReq(fullEditReq)}
-                    className="px-3 py-2 bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 border border-rose-500/30 rounded-xl font-bold transition cursor-pointer"
+                    className="w-full sm:w-auto px-3.5 py-2.5 bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 border border-rose-500/30 rounded-xl font-bold transition cursor-pointer min-h-[40px] flex items-center justify-center gap-1.5"
                   >
-                    حذف الطلب
+                    <Trash2 className="w-4 h-4" />
+                    <span>حذف الطلب</span>
                   </button>
                 ) : <div />}
                 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 w-full sm:w-auto">
                   <button
                     type="button"
                     onClick={() => setFullEditReq(null)}
-                    className={`px-3 py-2 rounded-xl font-bold transition cursor-pointer ${
-                      isLight ? 'bg-slate-100 text-slate-700' : 'bg-slate-800 text-slate-300'
+                    className={`flex-1 sm:flex-none px-4 py-2.5 rounded-xl font-bold transition cursor-pointer min-h-[40px] flex items-center justify-center ${
+                      isLight ? 'bg-slate-100 text-slate-700 hover:bg-slate-200' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
                     }`}
                   >
                     إلغاء
                   </button>
                   <button
                     type="submit"
-                    className="px-5 py-2 bg-sky-500 text-white font-black rounded-xl hover:bg-sky-400 transition cursor-pointer"
+                    className="flex-1 sm:flex-none px-5 py-2.5 bg-sky-500 text-white font-black rounded-xl hover:bg-sky-400 transition cursor-pointer min-h-[40px] flex items-center justify-center"
                   >
                     حفظ التعديلات
                   </button>
@@ -1244,22 +1575,24 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
 
       {/* Delete Confirmation Modal */}
       {deleteConfirmReq && (
-        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-[100]">
-          <div className={`max-w-md w-full p-6 rounded-2xl border shadow-2xl ${
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 z-[100] overflow-y-auto">
+          <div className={`max-w-md w-full p-4 sm:p-6 rounded-2xl sm:rounded-3xl border shadow-2xl ${
             isLight ? 'bg-white border-slate-200 text-slate-900' : 'bg-slate-900 border-slate-800 text-slate-100'
           }`}>
-            <div className="flex items-center gap-3 text-rose-500 mb-3">
-              <AlertTriangle className="w-6 h-6" />
-              <h3 className="font-bold text-lg">تأكيد حذف طلب الصيانة</h3>
+            <div className="flex items-center gap-2.5 text-rose-500 mb-3">
+              <div className="p-2 rounded-xl bg-rose-500/10 border border-rose-500/20">
+                <AlertTriangle className="w-5 h-5 sm:w-6 sm:h-6" />
+              </div>
+              <h3 className="font-bold text-base sm:text-lg">تأكيد حذف طلب الصيانة</h3>
             </div>
-            <p className={`text-sm mb-5 leading-relaxed ${isLight ? 'text-slate-600' : 'text-slate-300'}`}>
-              هل أنت تأكد من رغبتك بحذف طلب الصيانة رقم <strong className="font-mono text-amber-400">({deleteConfirmReq.id})</strong> الخاص بالمنشأة <strong className="font-mono text-sky-400">({deleteConfirmReq.unitCode})</strong> بشكل نهائي؟
+            <p className={`text-xs sm:text-sm mb-5 leading-relaxed ${isLight ? 'text-slate-600' : 'text-slate-300'}`}>
+              هل أنت متأكد من رغبتك بحذف طلب الصيانة رقم <strong className="font-mono text-amber-400">({deleteConfirmReq.id})</strong> الخاص بالمنشأة <strong className="font-mono text-sky-400">({deleteConfirmReq.unitCode})</strong> بشكل نهائي؟
             </p>
-            <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-800/20">
+            <div className="flex flex-col-reverse sm:flex-row items-center justify-end gap-2.5 sm:gap-3 pt-3 border-t border-slate-200 dark:border-slate-800/60">
               <button
                 type="button"
                 onClick={() => setDeleteConfirmReq(null)}
-                className={`px-4 py-2 rounded-xl font-bold text-xs transition cursor-pointer ${
+                className={`w-full sm:w-auto px-4 py-2.5 rounded-xl font-bold text-xs transition cursor-pointer min-h-[40px] flex items-center justify-center ${
                   isLight ? 'bg-slate-100 text-slate-700 hover:bg-slate-200' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
                 }`}
               >
@@ -1276,7 +1609,7 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
                   }
                   setDeleteConfirmReq(null);
                 }}
-                className="px-5 py-2 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs rounded-xl transition cursor-pointer shadow-lg shadow-rose-600/30 flex items-center gap-1.5"
+                className="w-full sm:w-auto px-5 py-2.5 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs rounded-xl transition cursor-pointer shadow-lg shadow-rose-600/30 flex items-center justify-center gap-1.5 min-h-[40px]"
               >
                 <Trash2 className="w-4 h-4" />
                 <span>تأكيد الحذف النهائي</span>
@@ -1288,16 +1621,16 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
 
       {/* RESULTS / NOTES POPUP MODAL CARD */}
       {viewNotesReq && (
-        <div className={`fixed inset-0 z-50 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto ${
+        <div className={`fixed inset-0 z-50 backdrop-blur-md flex items-center justify-center p-2.5 sm:p-4 overflow-y-auto ${
           isLight ? 'bg-slate-900/50' : 'bg-slate-950/85'
         }`}>
-          <div className={`rounded-3xl p-6 w-full max-w-xl space-y-4 shadow-2xl relative border animate-in fade-in zoom-in-95 duration-150 ${
+          <div className={`rounded-2xl sm:rounded-3xl p-4 sm:p-6 w-full max-w-xl space-y-3.5 sm:space-y-4 shadow-2xl relative border animate-in fade-in zoom-in-95 duration-150 ${
             isLight ? 'bg-white border-slate-200 text-slate-900' : 'bg-slate-900 border-slate-800 text-slate-100'
           }`}>
             {/* Header */}
             <div className={`flex items-start justify-between border-b pb-3.5 ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
-              <div className="flex items-center gap-3">
-                <div className={`p-2.5 rounded-2xl border ${
+              <div className="flex items-center gap-2.5 sm:gap-3">
+                <div className={`p-2 sm:p-2.5 rounded-xl sm:rounded-2xl border shrink-0 ${
                   viewNotesReq.status === 'rejected'
                     ? 'bg-rose-500/20 text-rose-400 border-rose-500/30'
                     : viewNotesReq.status === 'completed'
@@ -1305,23 +1638,23 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
                     : 'bg-amber-500/20 text-amber-400 border-amber-500/30'
                 }`}>
                   {viewNotesReq.status === 'rejected' ? (
-                    <Ban className="w-6 h-6" />
+                    <Ban className="w-5 h-5 sm:w-6 sm:h-6" />
                   ) : viewNotesReq.status === 'completed' ? (
-                    <CheckCircle2 className="w-6 h-6" />
+                    <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6" />
                   ) : (
-                    <FileText className="w-6 h-6" />
+                    <FileText className="w-5 h-5 sm:w-6 sm:h-6" />
                   )}
                 </div>
                 <div>
-                  <div className="flex items-center gap-2">
-                    <h3 className={`font-black text-base ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                  <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                    <h3 className={`font-black text-sm sm:text-base ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
                       {viewNotesReq.status === 'rejected'
                         ? 'بطاقة سبب الرفض والملاحظات الفنية'
                         : viewNotesReq.status === 'completed'
                         ? 'بطاقة نتائج الإنجاز والتقرير الفني'
                         : 'بطاقة نتائج وملاحظات طلب الصيانة'}
                     </h3>
-                    <span className={`px-2 py-0.5 rounded-md font-bold text-[10.5px] border ${
+                    <span className={`px-2 py-0.5 rounded-md font-bold text-[10px] sm:text-[10.5px] border ${
                       viewNotesReq.status === 'rejected'
                         ? 'bg-rose-500/20 text-rose-400 border-rose-500/30'
                         : viewNotesReq.status === 'completed'
@@ -1337,7 +1670,7 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
                         : 'قيد المعالجة'}
                     </span>
                   </div>
-                  <p className={`text-xs font-mono mt-0.5 ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                  <p className={`text-[10.5px] sm:text-xs font-mono mt-0.5 ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
                     طلب صيانة رقم: <span className="text-amber-500 font-bold">{toArabicDigits(viewNotesReq.id)}</span> • تاريخ الطلب: {formatDateOnly(viewNotesReq.createdAt)}
                   </p>
                 </div>
@@ -1348,7 +1681,7 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
                   setViewNotesReq(null);
                   setCopiedNotes(false);
                 }}
-                className={`p-2 rounded-xl transition cursor-pointer ${
+                className={`p-1.5 sm:p-2 rounded-xl transition cursor-pointer shrink-0 ${
                   isLight ? 'text-slate-400 hover:text-slate-700 bg-slate-100' : 'text-slate-400 hover:text-slate-200 bg-slate-800'
                 }`}
               >
@@ -1363,11 +1696,11 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
               const occupyingEntity = viewNotesReq.occupyingEntity || matchedUnit?.department || 'هيئة التشغيل الميدانية';
 
               return (
-                <div className={`p-3.5 rounded-2xl border grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs ${
+                <div className={`p-3 sm:p-3.5 rounded-2xl border grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3 text-xs ${
                   isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-950/60 border-slate-800'
                 }`}>
                   <div className="space-y-1">
-                    <div className="text-[11px] text-slate-400 font-semibold flex items-center gap-1">
+                    <div className="text-[10.5px] sm:text-[11px] text-slate-400 font-semibold flex items-center gap-1">
                       <Building2 className="w-3.5 h-3.5 text-amber-500" />
                       <span>المنشأة والوحدة:</span>
                     </div>
@@ -1376,7 +1709,7 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
                   </div>
 
                   <div className="space-y-1">
-                    <div className="text-[11px] text-slate-400 font-semibold flex items-center gap-1">
+                    <div className="text-[10.5px] sm:text-[11px] text-slate-400 font-semibold flex items-center gap-1">
                       <UserCheck className="w-3.5 h-3.5 text-sky-500" />
                       <span>الجهة الشاغلة / الغرفة:</span>
                     </div>
@@ -1392,11 +1725,11 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
                   </div>
 
                   <div className="sm:col-span-2 pt-2 border-t border-slate-200 dark:border-slate-800/80 space-y-1">
-                    <div className="text-[11px] text-slate-400 font-semibold flex items-center gap-1">
+                    <div className="text-[10.5px] sm:text-[11px] text-slate-400 font-semibold flex items-center gap-1">
                       <Wrench className="w-3.5 h-3.5 text-amber-500" />
                       <span>العطل المطلوب معالجته:</span>
                     </div>
-                    <div className="font-bold text-slate-800 dark:text-slate-200 leading-relaxed bg-white dark:bg-slate-900/80 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800">
+                    <div className="font-bold text-slate-800 dark:text-slate-200 leading-relaxed bg-white dark:bg-slate-900/80 p-2 sm:p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 text-xs">
                       {viewNotesReq.issue}
                     </div>
                   </div>
@@ -1450,7 +1783,7 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
                 )}
               </div>
 
-              <div className={`p-4 rounded-2xl border leading-relaxed text-xs shadow-inner min-h-[90px] whitespace-pre-wrap font-medium ${
+              <div className={`p-3.5 sm:p-4 rounded-2xl border leading-relaxed text-xs shadow-inner min-h-[90px] whitespace-pre-wrap font-medium ${
                 viewNotesReq.status === 'rejected'
                   ? isLight
                     ? 'bg-rose-50/80 border-rose-200 text-rose-950'
@@ -1468,7 +1801,7 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
             </div>
 
             {/* Date, Duration & Department Indicators */}
-            <div className={`p-3 rounded-xl border flex flex-wrap items-center justify-between gap-2 text-[11px] ${
+            <div className={`p-2.5 sm:p-3 rounded-xl border flex flex-wrap items-center justify-between gap-2 text-[10.5px] sm:text-[11px] ${
               isLight ? 'bg-slate-50 border-slate-200 text-slate-600' : 'bg-slate-950/40 border-slate-800 text-slate-400'
             }`}>
               <div className="flex items-center gap-1.5 font-bold">
@@ -1497,12 +1830,12 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
             </div>
 
             {/* Footer Buttons */}
-            <div className={`flex items-center justify-between pt-3 border-t ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
+            <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
               <div className="text-[11px] text-slate-400">
                 مسؤول الإجراء: <strong className="text-slate-300">{viewNotesReq.reportedBy || currentUser?.name || 'فريق الصيانة'}</strong>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 w-full sm:w-auto">
                 <button
                   type="button"
                   onClick={() => {
@@ -1518,7 +1851,7 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
                       handleOpenEditModal(reqToEdit);
                     }
                   }}
-                  className={`px-3 py-1.5 rounded-xl font-bold text-xs flex items-center gap-1 transition ${
+                  className={`flex-1 sm:flex-none px-3.5 py-2 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition min-h-[38px] ${
                     isLight ? 'bg-slate-100 hover:bg-slate-200 text-slate-700' : 'bg-slate-800 hover:bg-slate-700 text-slate-300'
                   }`}
                 >
@@ -1532,7 +1865,7 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
                     setViewNotesReq(null);
                     setCopiedNotes(false);
                   }}
-                  className="px-5 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-xl text-xs transition cursor-pointer shadow-md shadow-amber-500/20"
+                  className="flex-1 sm:flex-none px-5 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-xl text-xs transition cursor-pointer shadow-md shadow-amber-500/20 min-h-[38px] flex items-center justify-center"
                 >
                   إغلاق
                 </button>

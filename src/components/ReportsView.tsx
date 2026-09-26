@@ -2726,7 +2726,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
           </div>
 
           {/* Action Buttons */}
-          <div className="flex flex-wrap items-center gap-2 print:hidden relative">
+          <div className="flex flex-wrap items-center gap-2 print:hidden relative w-full sm:w-auto">
             {printSuccessFeedback && (
               <div className="absolute -top-9 left-0 sm:left-auto sm:right-0 bg-amber-500 text-slate-950 text-[11px] font-black px-3 py-1 rounded-lg shadow-lg flex items-center gap-1.5 animate-bounce z-20 border border-amber-400">
                 <Printer className="w-3.5 h-3.5" />
@@ -2736,35 +2736,35 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
 
             <button
               onClick={handleExportCSV}
-              className={`font-bold px-3.5 py-2 rounded-xl text-xs flex items-center gap-1.5 transition border cursor-pointer ${
+              className={`flex-1 sm:flex-initial justify-center font-bold px-3.5 py-2.5 rounded-xl text-xs flex items-center gap-1.5 transition border cursor-pointer min-h-[40px] ${
                 isLight
                   ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
                   : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20'
               }`}
               title="تصدير جدول السجلات الحالية كملف Excel / CSV"
             >
-              <Download className="w-4 h-4" />
+              <Download className="w-4 h-4 shrink-0" />
               <span>تصدير ملف إكسل</span>
             </button>
 
             {/* Preview Pages Button Group */}
-            <div className="relative inline-flex items-stretch rounded-xl shadow-sm">
+            <div className="relative inline-flex items-stretch rounded-xl shadow-sm flex-1 sm:flex-initial">
               {/* Primary Preview Button */}
               <button
                 type="button"
                 onClick={() => handlePrintAction('preview')}
-                className="font-black px-4 py-2 rounded-r-xl text-xs flex items-center gap-2 transition border border-l-0 cursor-pointer bg-amber-500 text-slate-950 border-amber-400 hover:bg-amber-400 active:scale-95 shadow-sm select-none"
+                className="w-full justify-center font-black px-3.5 sm:px-4 py-2.5 rounded-r-xl text-xs flex items-center gap-2 transition border border-l-0 cursor-pointer bg-amber-500 text-slate-950 border-amber-400 hover:bg-amber-400 active:scale-95 shadow-sm select-none min-h-[40px]"
                 title="معاينة الصفحات والتحقق من التنسيق الرسمي قبل الطباعة"
               >
-                <Eye className="w-4 h-4" />
-                <span>معاينة الصفحات</span>
+                <Eye className="w-4 h-4 shrink-0" />
+                <span className="truncate">معاينة الصفحات</span>
               </button>
 
               {/* Options Dropdown Trigger */}
               <button
                 type="button"
                 onClick={() => setShowPrintDropdown((prev) => !prev)}
-                className="px-2.5 py-2 rounded-l-xl text-xs font-bold transition border border-r-0 border-amber-400 bg-amber-500 hover:bg-amber-400 text-slate-950 cursor-pointer flex items-center justify-center"
+                className="px-2.5 py-2.5 rounded-l-xl text-xs font-bold transition border border-r-0 border-amber-400 bg-amber-500 hover:bg-amber-400 text-slate-950 cursor-pointer flex items-center justify-center min-h-[40px]"
                 title="خيارات إضافية"
               >
                 <ChevronDown className={`w-3.5 h-3.5 transition-transform ${showPrintDropdown ? 'rotate-180' : ''}`} />
@@ -2817,7 +2817,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
             <button
               onClick={handleResetFilters}
               title="إعادة ضبط الفلاتر"
-              className={`p-2 rounded-xl text-xs flex items-center justify-center transition border cursor-pointer ${
+              className={`p-2.5 rounded-xl text-xs flex items-center justify-center transition border cursor-pointer min-h-[40px] shrink-0 ${
                 isLight
                   ? 'bg-slate-100 text-slate-600 border-slate-300 hover:bg-slate-200'
                   : 'bg-slate-800 text-slate-400 border-slate-700 hover:text-white'
@@ -2946,10 +2946,10 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
 
           {/* Quick Presets Bar */}
           <div className="flex items-center gap-1.5 flex-wrap text-xs">
-            <span className={`text-[11px] font-semibold ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>فلاتر سريعة:</span>
+            <span className={`text-[11px] font-semibold ${isLight ? 'text-slate-500' : 'text-slate-400'} shrink-0`}>فلاتر سريعة:</span>
             <button
               onClick={() => setPresetFilter('all')}
-              className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition cursor-pointer ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer min-h-[34px] ${
                 presetFilter === 'all'
                   ? 'bg-slate-800 text-amber-400 border border-amber-500/40'
                   : 'bg-slate-800/40 text-slate-400 hover:text-white'
@@ -2959,7 +2959,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
             </button>
             <button
               onClick={() => setPresetFilter('current_month')}
-              className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition cursor-pointer ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer min-h-[34px] ${
                 presetFilter === 'current_month'
                   ? 'bg-amber-500 text-slate-950 font-bold'
                   : 'bg-slate-800/40 text-slate-400 hover:text-white'
@@ -2969,7 +2969,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
             </button>
             <button
               onClick={() => setPresetFilter('current_quarter')}
-              className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition cursor-pointer ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer min-h-[34px] ${
                 presetFilter === 'current_quarter'
                   ? 'bg-amber-500 text-slate-950 font-bold'
                   : 'bg-slate-800/40 text-slate-400 hover:text-white'
@@ -2979,7 +2979,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
             </button>
             <button
               onClick={() => setPresetFilter('current_year')}
-              className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition cursor-pointer ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer min-h-[34px] ${
                 presetFilter === 'current_year'
                   ? 'bg-amber-500 text-slate-950 font-bold'
                   : 'bg-slate-800/40 text-slate-400 hover:text-white'
@@ -2997,7 +2997,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                   setSelectedOccupancyFilter('has_vacant');
                 }
               }}
-              className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition cursor-pointer flex items-center gap-1 ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer flex items-center gap-1 min-h-[34px] ${
                 presetFilter === 'vacant_rooms_only'
                   ? 'bg-amber-500 text-slate-950 font-bold shadow'
                   : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20 border border-amber-500/30'
@@ -3013,13 +3013,13 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
             <div className="space-y-1 sm:col-span-2">
               <label className={`text-[11px] font-bold ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>بحث بالنص / الكود / التشكيل:</label>
               <div className="relative">
-                <Search className="w-3.5 h-3.5 absolute right-2.5 top-2.5 text-slate-500" />
+                <Search className="w-3.5 h-3.5 absolute right-2.5 top-3 text-slate-500" />
                 <input
                   type="text"
                   value={searchKeyword}
                   onChange={(e) => setSearchKeyword(e.target.value)}
                   placeholder="ابحث بالرمز، الاسم، التشكيل، الفحص، المقاول..."
-                  className={`w-full pr-8 pl-3 py-1.5 text-xs rounded-lg border outline-none transition ${
+                  className={`w-full pr-8 pl-3 py-2 text-xs rounded-lg border outline-none transition min-h-[38px] ${
                     isLight ? 'bg-white border-slate-300 text-slate-800 focus:border-amber-500' : 'bg-slate-900 border-slate-800 text-slate-200 focus:border-amber-500'
                   }`}
                 />
@@ -3033,7 +3033,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                 <button
                   type="button"
                   onClick={() => setShowOrgPickerModal(true)}
-                  className={`w-full px-3 py-1.5 text-xs rounded-lg border font-bold transition flex items-center justify-between gap-2 cursor-pointer shadow-sm ${
+                  className={`w-full px-3 py-2 text-xs rounded-lg border font-bold transition flex items-center justify-between gap-2 cursor-pointer shadow-sm min-h-[38px] ${
                     selectedOrgEntity !== 'all'
                       ? 'bg-amber-500 text-slate-950 border-amber-400 font-black ring-1 ring-amber-400'
                       : isLight
@@ -3055,7 +3055,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                   <button
                     type="button"
                     onClick={() => setSelectedOrgEntity('all')}
-                    className="p-1.5 rounded-lg border border-red-500/30 text-red-500 hover:bg-red-500/10 transition cursor-pointer shrink-0"
+                    className="p-2 rounded-lg border border-red-500/30 text-red-500 hover:bg-red-500/10 transition cursor-pointer shrink-0 min-h-[38px] flex items-center justify-center"
                     title="إلغاء تصفية التشكيل"
                   >
                     <X className="w-3.5 h-3.5" />
@@ -3070,7 +3070,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
               <select
                 value={selectedGovernorate}
                 onChange={(e) => handleGovernorateChange(e.target.value)}
-                className={`w-full px-2.5 py-1.5 text-xs rounded-lg border outline-none transition ${
+                className={`w-full px-2.5 py-2 text-xs rounded-lg border outline-none transition min-h-[38px] ${
                   isLight ? 'bg-white border-slate-300 text-slate-800' : 'bg-slate-900 border-slate-800 text-slate-200'
                 }`}
               >
@@ -3089,7 +3089,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
               <select
                 value={selectedField}
                 onChange={(e) => setSelectedField(e.target.value)}
-                className={`w-full px-2.5 py-1.5 text-xs rounded-lg border outline-none transition ${
+                className={`w-full px-2.5 py-2 text-xs rounded-lg border outline-none transition min-h-[38px] ${
                   isLight ? 'bg-white border-slate-300 text-slate-800' : 'bg-slate-900 border-slate-800 text-slate-200'
                 }`}
               >
@@ -3109,7 +3109,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                 <select
                   value={selectedOccupancyFilter}
                   onChange={(e) => setSelectedOccupancyFilter(e.target.value as any)}
-                  className={`w-full px-2.5 py-1.5 text-xs rounded-lg border outline-none transition font-semibold ${
+                  className={`w-full px-2.5 py-2 text-xs rounded-lg border outline-none transition font-semibold min-h-[38px] ${
                     selectedOccupancyFilter !== 'all'
                       ? isLight ? 'bg-amber-50 border-amber-400 text-amber-900' : 'bg-amber-950/40 border-amber-500 text-amber-300'
                       : isLight ? 'bg-white border-slate-300 text-slate-800' : 'bg-slate-900 border-slate-800 text-slate-200'
@@ -3130,7 +3130,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                 <select
                   value={selectedGrade}
                   onChange={(e) => setSelectedGrade(e.target.value)}
-                  className={`w-full px-2.5 py-1.5 text-xs rounded-lg border outline-none transition ${
+                  className={`w-full px-2.5 py-2 text-xs rounded-lg border outline-none transition min-h-[38px] ${
                     isLight ? 'bg-white border-slate-300 text-slate-800' : 'bg-slate-900 border-slate-800 text-slate-200'
                   }`}
                 >
@@ -3150,7 +3150,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                 <select
                   value={selectedInspectionStatus}
                   onChange={(e) => setSelectedInspectionStatus(e.target.value)}
-                  className={`w-full px-2.5 py-1.5 text-xs rounded-lg border outline-none transition ${
+                  className={`w-full px-2.5 py-2 text-xs rounded-lg border outline-none transition min-h-[38px] ${
                     isLight ? 'bg-white border-slate-300 text-slate-800' : 'bg-slate-900 border-slate-800 text-slate-200'
                   }`}
                 >
@@ -3169,7 +3169,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                 <select
                   value={selectedMaintenanceStatus}
                   onChange={(e) => setSelectedMaintenanceStatus(e.target.value)}
-                  className={`w-full px-2.5 py-1.5 text-xs rounded-lg border outline-none transition ${
+                  className={`w-full px-2.5 py-2 text-xs rounded-lg border outline-none transition min-h-[38px] ${
                     isLight ? 'bg-white border-slate-300 text-slate-800' : 'bg-slate-900 border-slate-800 text-slate-200'
                   }`}
                 >
@@ -3189,7 +3189,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                 type="date"
                 value={dateFrom}
                 onChange={(e) => setDateFrom(e.target.value)}
-                className={`w-full px-2 py-1.5 text-xs rounded-lg border outline-none transition ${
+                className={`w-full px-2 py-2 text-xs rounded-lg border outline-none transition min-h-[38px] ${
                   isLight ? 'bg-white border-slate-300 text-slate-800' : 'bg-slate-900 border-slate-800 text-slate-200'
                 }`}
               />
@@ -3202,7 +3202,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                 type="date"
                 value={dateTo}
                 onChange={(e) => setDateTo(e.target.value)}
-                className={`w-full px-2 py-1.5 text-xs rounded-lg border outline-none transition ${
+                className={`w-full px-2 py-2 text-xs rounded-lg border outline-none transition min-h-[38px] ${
                   isLight ? 'bg-white border-slate-300 text-slate-800' : 'bg-slate-900 border-slate-800 text-slate-200'
                 }`}
               />
@@ -3248,61 +3248,61 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
 
       {/* SECTION 1: Periodic Inspections Table */}
       {(activeTab === 'all' || activeTab === 'inspections') && (
-        <div className={`p-4 rounded-2xl border ${isLight ? 'bg-white border-slate-200 shadow-sm' : 'bg-slate-900 border-slate-800'} space-y-3`}>
-          <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
+        <div className={`p-3.5 sm:p-4 rounded-2xl border ${isLight ? 'bg-white border-slate-200 shadow-sm' : 'bg-slate-900 border-slate-800'} space-y-3`}>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-800/80 pb-3 gap-1.5">
             <div className="flex items-center gap-2">
-              <CalendarCheck className="w-5 h-5 text-amber-500" />
-              <h3 className={`font-bold text-sm ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+              <CalendarCheck className="w-5 h-5 text-amber-500 shrink-0" />
+              <h3 className={`font-bold text-xs sm:text-sm ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
                 1. تقرير وتاريخ الكشوفات والمعاينة الدورية ({toArabicDigits(filteredInspections.length)} سجل)
               </h3>
             </div>
-            <span className="text-[11px] text-amber-500 font-mono font-bold">الكشوفات الدورية للاصول</span>
+            <span className="text-[11px] text-amber-500 font-mono font-bold self-start sm:self-auto">الكشوفات الدورية للاصول</span>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-right text-xs">
-              <thead className={`border-b ${isLight ? 'bg-slate-100 border-slate-200 text-slate-700' : 'bg-slate-950 border-slate-800 text-slate-400'} font-bold`}>
-                <tr>
-                  <th className="p-2.5 min-w-[140px]">بيانات المنشأة والموقع</th>
-                  <th className="p-2.5">نوع ودورية الكشف</th>
-                  <th className="p-2.5">تاريخ الكشف السابق</th>
-                  <th className="p-2.5">التاريخ القادم</th>
-                  <th className="p-2.5">القائم بالكشف</th>
-                  <th className="p-2.5">الحالة والتصنيف</th>
-                  <th className="p-2.5">الملاحظات والنتائج</th>
-                  <th className="p-2.5">التوصيات والإجراءات</th>
-                  <th className="p-2.5 text-center">المرفقات / الصور</th>
-                </tr>
-              </thead>
-              <tbody className={`divide-y ${isLight ? 'divide-slate-200 text-slate-800' : 'divide-slate-800 text-slate-300'}`}>
-                {filteredInspections.length === 0 ? (
-                  <tr>
-                    <td colSpan={9} className="p-6 text-center text-slate-500 font-semibold">
-                      لا توجد سجلات كشف تطابق معايير الفلترة المحددة.
-                    </td>
-                  </tr>
-                ) : (
-                  filteredInspections.map((item) => (
-                    <tr key={item.id} className={isLight ? 'hover:bg-slate-50' : 'hover:bg-slate-800/40'}>
-                      <td className="p-2.5 leading-snug whitespace-nowrap">
-                        <div className="font-mono font-bold text-amber-500">{toArabicDigits(item.unitCode)}</div>
-                        <div className={`font-bold ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>{item.unitName || 'غير مسمى'}</div>
-                        <div className={`text-[11px] ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
-                          {translateField(item.field)} / {translateGovernorate(item.governorate)}
+          {filteredInspections.length === 0 ? (
+            <div className="p-6 text-center text-slate-500 text-xs font-semibold">
+              لا توجد سجلات كشف تطابق معايير الفلترة المحددة.
+            </div>
+          ) : (
+            <div>
+              {/* Mobile Cards for Periodic Inspections */}
+              <div className="md:hidden space-y-3">
+                {filteredInspections.map((item) => (
+                  <div
+                    key={item.id}
+                    className={`p-3 rounded-xl border space-y-2.5 transition ${
+                      isLight ? 'bg-white border-slate-200 shadow-xs' : 'bg-slate-950/70 border-slate-800 shadow-xs'
+                    }`}
+                  >
+                    {/* Header */}
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono font-bold text-xs text-amber-500">{toArabicDigits(item.unitCode)}</span>
+                          <span className={`text-[10px] ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                            {translateField(item.field)} / {translateGovernorate(item.governorate)}
+                          </span>
                         </div>
-                      </td>
-                      <td className="p-2.5 whitespace-nowrap">
-                        <span className="font-semibold">{item.title}</span>
-                        <div className="text-[10px] text-slate-500">{item.frequency === 'monthly' ? 'شهري' : item.frequency === 'quarterly' ? 'ربع سنوي' : 'سنوي'}</div>
-                      </td>
-                      <td className="p-2.5 font-mono whitespace-nowrap">{toArabicDigits(item.lastInspectionDate || 'غير مسجل')}</td>
-                      <td className="p-2.5 font-mono whitespace-nowrap font-bold text-sky-400">{toArabicDigits(item.nextDueDate)}</td>
-                      <td className="p-2.5 whitespace-nowrap font-semibold">
-                        {getCleanInspectorName(item.inspectorName, item.performedByName, users)}
-                      </td>
-                      <td className="p-2.5 whitespace-nowrap">
+                        <h4 className={`font-extrabold text-xs sm:text-sm mt-0.5 ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                          {item.unitName || 'غير مسمى'}
+                        </h4>
+                        <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                            isLight ? 'bg-amber-50 text-amber-900 border border-amber-200' : 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
+                          }`}>
+                            {item.title} ({item.frequency === 'monthly' ? 'شهري' : item.frequency === 'quarterly' ? 'ربع سنوي' : 'سنوي'})
+                          </span>
+                          {item.conditionGradeGiven && (
+                            <span className="font-mono font-bold text-[10px] px-1.5 py-0.5 bg-slate-800 text-amber-400 border border-slate-700 rounded">
+                              الدرجة {item.conditionGradeGiven}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="shrink-0">
                         <span
-                          className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                          className={`px-2 py-0.5 rounded text-[10px] font-bold inline-block ${
                             item.status === 'completed'
                               ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
                               : item.status === 'overdue'
@@ -3312,95 +3312,349 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                         >
                           {item.status === 'completed' ? 'مكتمل وموثق' : item.status === 'overdue' ? 'متأخر' : 'مجدول'}
                         </span>
-                        {item.conditionGradeGiven && (
-                          <span className="mr-1 font-mono font-bold text-[10px] px-1.5 py-0.5 bg-slate-800 text-amber-400 border border-slate-700 rounded">
-                            الدرجة {item.conditionGradeGiven}
-                          </span>
-                        )}
-                      </td>
-                      <td className="p-2.5 max-w-xs text-[11px] text-slate-300 truncate" title={item.findings || item.notes}>
-                        {item.findings || item.notes || 'لا توجد ملاحظات'}
-                      </td>
-                      <td className="p-2.5 max-w-xs text-[11px] font-semibold text-amber-400 truncate" title={item.recommendations}>
-                        {item.recommendations || 'لا توجد توصيات'}
-                      </td>
-                      <td className="p-2.5 text-center whitespace-nowrap">
-                        {item.reportFileName || item.reportFileUrl ? (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const ext = item.reportFileName?.split('.').pop() || 'pdf';
-                              setPreviewAttachment({
-                                id: 'rep-live-insp-' + item.id,
-                                name: item.reportFileName || 'تقرير_الكشف.pdf',
-                                type: ext,
-                                url: item.reportFileUrl || '#',
-                                uploadedAt: item.lastInspectionDate || new Date().toISOString().split('T')[0],
-                                size: '1.5 MB',
-                              });
-                            }}
-                            className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold transition cursor-pointer border shadow-sm ${
-                              isLight
-                                ? 'bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100'
-                                : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 hover:bg-emerald-500/30'
-                            }`}
-                            title="معاينة الملف المرفق أو الصورة"
-                          >
-                            <Eye className="w-3.5 h-3.5" />
-                            <span className="truncate max-w-[80px]">{item.reportFileName || 'معاينة'}</span>
-                          </button>
-                        ) : (
-                          <span className="text-slate-500 text-[10px]">لا يوجد</span>
-                        )}
-                      </td>
+                      </div>
+                    </div>
+
+                    {/* Dates Grid */}
+                    <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-slate-200/60 dark:border-slate-800/60">
+                      <div>
+                        <span className="text-slate-400 text-[10px] block">الكشف السابق:</span>
+                        <span className="font-mono text-[11px] font-medium">{toArabicDigits(item.lastInspectionDate || 'غير مسجل')}</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 text-[10px] block">الموعد القادم:</span>
+                        <span className="font-mono text-[11px] font-bold text-sky-400">{toArabicDigits(item.nextDueDate)}</span>
+                      </div>
+                    </div>
+
+                    {/* Inspector */}
+                    <div className="flex items-center justify-between text-xs pt-2 border-t border-slate-200/60 dark:border-slate-800/60">
+                      <span className="text-slate-400 text-[10px]">القائم بالكشف:</span>
+                      <span className="font-semibold text-xs">
+                        {getCleanInspectorName(item.inspectorName, item.performedByName, users)}
+                      </span>
+                    </div>
+
+                    {/* Findings & Notes */}
+                    {(item.findings || item.notes) && (
+                      <div className={`p-2.5 rounded-xl text-xs space-y-1 ${isLight ? 'bg-slate-50 border border-slate-200' : 'bg-slate-950 border border-slate-800'}`}>
+                        <span className="font-bold text-[10px] text-slate-400 block">الملاحظات والنتائج:</span>
+                        <p className={`text-[11px] leading-relaxed ${isLight ? 'text-slate-800' : 'text-slate-200'}`}>
+                          {item.findings || item.notes}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Recommendations */}
+                    {item.recommendations && (
+                      <div className={`p-2.5 rounded-xl text-xs space-y-1 ${isLight ? 'bg-amber-50/70 border border-amber-200 text-amber-900' : 'bg-amber-500/10 border border-amber-500/30 text-amber-300'}`}>
+                        <span className="font-bold text-[10px] opacity-80 block">التوصيات والإجراءات:</span>
+                        <p className="text-[11px] leading-relaxed font-semibold">
+                          {item.recommendations}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Attachment Preview */}
+                    <div className="pt-2 border-t border-slate-200/60 dark:border-slate-800/60 flex items-center justify-between">
+                      <span className="text-slate-400 text-[10px]">المرفق:</span>
+                      {item.reportFileName || item.reportFileUrl ? (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const ext = item.reportFileName?.split('.').pop() || 'pdf';
+                            setPreviewAttachment({
+                              id: 'rep-live-insp-' + item.id,
+                              name: item.reportFileName || 'تقرير_الكشف.pdf',
+                              type: ext,
+                              url: item.reportFileUrl || '#',
+                              uploadedAt: item.lastInspectionDate || new Date().toISOString().split('T')[0],
+                              size: '1.5 MB',
+                            });
+                          }}
+                          className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition cursor-pointer border min-h-[38px] ${
+                            isLight
+                              ? 'bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100'
+                              : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 hover:bg-emerald-500/30'
+                          }`}
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                          <span>معاينة التقرير المرفق</span>
+                        </button>
+                      ) : (
+                        <span className="text-slate-500 text-[10px]">لا يوجد مرفق</span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Desktop Table View */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full text-right text-xs">
+                  <thead className={`border-b ${isLight ? 'bg-slate-100 border-slate-200 text-slate-700' : 'bg-slate-950 border-slate-800 text-slate-400'} font-bold`}>
+                    <tr>
+                      <th className="p-2.5 min-w-[140px]">بيانات المنشأة والموقع</th>
+                      <th className="p-2.5">نوع ودورية الكشف</th>
+                      <th className="p-2.5">تاريخ الكشف السابق</th>
+                      <th className="p-2.5">التاريخ القادم</th>
+                      <th className="p-2.5">القائم بالكشف</th>
+                      <th className="p-2.5">الحالة والتصنيف</th>
+                      <th className="p-2.5">الملاحظات والنتائج</th>
+                      <th className="p-2.5">التوصيات والإجراءات</th>
+                      <th className="p-2.5 text-center">المرفقات / الصور</th>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+                  </thead>
+                  <tbody className={`divide-y ${isLight ? 'divide-slate-200 text-slate-800' : 'divide-slate-800 text-slate-300'}`}>
+                    {filteredInspections.map((item) => (
+                      <tr key={item.id} className={isLight ? 'hover:bg-slate-50' : 'hover:bg-slate-800/40'}>
+                        <td className="p-2.5 leading-snug whitespace-nowrap">
+                          <div className="font-mono font-bold text-amber-500">{toArabicDigits(item.unitCode)}</div>
+                          <div className={`font-bold ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>{item.unitName || 'غير مسمى'}</div>
+                          <div className={`text-[11px] ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                            {translateField(item.field)} / {translateGovernorate(item.governorate)}
+                          </div>
+                        </td>
+                        <td className="p-2.5 whitespace-nowrap">
+                          <span className="font-semibold">{item.title}</span>
+                          <div className="text-[10px] text-slate-500">{item.frequency === 'monthly' ? 'شهري' : item.frequency === 'quarterly' ? 'ربع سنوي' : 'سنوي'}</div>
+                        </td>
+                        <td className="p-2.5 font-mono whitespace-nowrap">{toArabicDigits(item.lastInspectionDate || 'غير مسجل')}</td>
+                        <td className="p-2.5 font-mono whitespace-nowrap font-bold text-sky-400">{toArabicDigits(item.nextDueDate)}</td>
+                        <td className="p-2.5 whitespace-nowrap font-semibold">
+                          {getCleanInspectorName(item.inspectorName, item.performedByName, users)}
+                        </td>
+                        <td className="p-2.5 whitespace-nowrap">
+                          <span
+                            className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                              item.status === 'completed'
+                                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                                : item.status === 'overdue'
+                                ? 'bg-red-500/20 text-red-400 border border-red-500/30'
+                                : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                            }`}
+                          >
+                            {item.status === 'completed' ? 'مكتمل وموثق' : item.status === 'overdue' ? 'متأخر' : 'مجدول'}
+                          </span>
+                          {item.conditionGradeGiven && (
+                            <span className="mr-1 font-mono font-bold text-[10px] px-1.5 py-0.5 bg-slate-800 text-amber-400 border border-slate-700 rounded">
+                              الدرجة {item.conditionGradeGiven}
+                            </span>
+                          )}
+                        </td>
+                        <td className="p-2.5 max-w-xs text-[11px] text-slate-300 truncate" title={item.findings || item.notes}>
+                          {item.findings || item.notes || 'لا توجد ملاحظات'}
+                        </td>
+                        <td className="p-2.5 max-w-xs text-[11px] font-semibold text-amber-400 truncate" title={item.recommendations}>
+                          {item.recommendations || 'لا توجد توصيات'}
+                        </td>
+                        <td className="p-2.5 text-center whitespace-nowrap">
+                          {item.reportFileName || item.reportFileUrl ? (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const ext = item.reportFileName?.split('.').pop() || 'pdf';
+                                setPreviewAttachment({
+                                  id: 'rep-live-insp-' + item.id,
+                                  name: item.reportFileName || 'تقرير_الكشف.pdf',
+                                  type: ext,
+                                  url: item.reportFileUrl || '#',
+                                  uploadedAt: item.lastInspectionDate || new Date().toISOString().split('T')[0],
+                                  size: '1.5 MB',
+                                });
+                              }}
+                              className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold transition cursor-pointer border shadow-sm ${
+                                isLight
+                                  ? 'bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100'
+                                  : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 hover:bg-emerald-500/30'
+                              }`}
+                              title="معاينة الملف المرفق أو الصورة"
+                            >
+                              <Eye className="w-3.5 h-3.5" />
+                              <span className="truncate max-w-[80px]">{item.reportFileName || 'معاينة'}</span>
+                            </button>
+                          ) : (
+                            <span className="text-slate-500 text-[10px]">لا يوجد</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
       {/* SECTION 2: Maintenance Request & SLA History Table */}
       {(activeTab === 'all' || activeTab === 'maintenance') && (
-        <div className={`p-4 rounded-2xl border ${isLight ? 'bg-white border-slate-200 shadow-sm' : 'bg-slate-900 border-slate-800'} space-y-3`}>
-          <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
+        <div className={`p-3.5 sm:p-4 rounded-2xl border ${isLight ? 'bg-white border-slate-200 shadow-sm' : 'bg-slate-900 border-slate-800'} space-y-3`}>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-800/80 pb-3 gap-1.5">
             <div className="flex items-center gap-2">
-              <Wrench className="w-5 h-5 text-amber-500" />
-              <h3 className={`font-bold text-sm ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+              <Wrench className="w-5 h-5 text-amber-500 shrink-0" />
+              <h3 className={`font-bold text-xs sm:text-sm ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
                 2. تقرير بلاغات الصيانة ومتابعتها ({toArabicDigits(filteredMaintenance.length)} طلب)
               </h3>
             </div>
-            <span className="text-[11px] text-amber-500 font-mono font-bold">إدارة الصيانة والتشغيل</span>
+            <span className="text-[11px] text-amber-500 font-mono font-bold self-start sm:self-auto">إدارة الصيانة والتشغيل</span>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-right text-xs">
-              <thead className={`border-b ${isLight ? 'bg-slate-100 border-slate-200 text-slate-700' : 'bg-slate-950 border-slate-800 text-slate-400'} font-bold`}>
-                <tr>
-                  <th className="p-2.5">رقم الطلب</th>
-                  <th className="p-2.5">رمز المنشأة</th>
-                  <th className="p-2.5">جهة الصيانة</th>
-                  <th className="p-2.5">وصف العطل / البلاغ</th>
-                  <th className="p-2.5">درجة الأهمية</th>
-                  <th className="p-2.5">محرر الطلب</th>
-                  <th className="p-2.5">تاريخ البلاغ</th>
-                  <th className="p-2.5">تاريخ الإنجاز / الإلغاء</th>
-                  <th className="p-2.5">المدة (بالأيام)</th>
-                  <th className="p-2.5 text-center">المرفق / الصورة</th>
-                  <th className="p-2.5">الحالة الحالية</th>
-                </tr>
-              </thead>
-              <tbody className={`divide-y ${isLight ? 'divide-slate-200 text-slate-800' : 'divide-slate-800 text-slate-300'}`}>
-                {filteredMaintenance.length === 0 ? (
-                  <tr>
-                    <td colSpan={11} className="p-6 text-center text-slate-500 font-semibold">
-                      لا توجد بلاغات صيانة تطابق معايير الفلترة المحددة.
-                    </td>
-                  </tr>
-                ) : (
-                  filteredMaintenance.map((req) => (
+          {filteredMaintenance.length === 0 ? (
+            <div className="p-6 text-center text-slate-500 text-xs font-semibold">
+              لا توجد بلاغات صيانة تطابق معايير الفلترة المحددة.
+            </div>
+          ) : (
+            <div>
+              {/* Mobile Cards View for Maintenance */}
+              <div className="md:hidden space-y-3">
+                {filteredMaintenance.map((req) => {
+                  const reqAttachments: ReportAttachment[] =
+                    req.attachments && req.attachments.length > 0
+                      ? req.attachments
+                      : req.attachmentUrl || req.attachmentName
+                      ? [
+                          {
+                            id: `rep-live-maint-${req.id}`,
+                            name: req.attachmentName || 'صورة_البلاغ.jpg',
+                            url: req.attachmentUrl,
+                            type: 'image/jpeg',
+                          },
+                        ]
+                      : [];
+
+                  return (
+                    <div
+                      key={req.id}
+                      className={`p-3 rounded-xl border space-y-2.5 transition ${
+                        isLight ? 'bg-white border-slate-200 shadow-xs' : 'bg-slate-950/70 border-slate-800 shadow-xs'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-mono font-bold text-xs text-amber-500">#{toArabicDigits(req.id)}</span>
+                          <span className="font-mono font-bold text-xs text-slate-400">({toArabicDigits(req.unitCode)})</span>
+                          {req.roomCode && (
+                            <span className="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-[9px] font-mono font-bold">
+                              غرفة: {toArabicDigits(req.roomCode)}
+                            </span>
+                          )}
+                        </div>
+                        <span
+                          className={`px-2 py-0.5 rounded text-[10px] font-bold shrink-0 ${
+                            req.priority === 'critical'
+                              ? 'bg-red-500/20 text-red-400 border border-red-500/30'
+                              : req.priority === 'normal'
+                              ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                              : 'bg-slate-800 text-slate-300'
+                          }`}
+                        >
+                          {req.priority === 'critical' ? 'حرج جدًا' : req.priority === 'normal' ? 'متوسط' : 'منخفض'}
+                        </span>
+                      </div>
+
+                      <div>
+                        <h4 className={`font-bold text-xs leading-relaxed ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                          {req.issue}
+                        </h4>
+                        <span className={`inline-block mt-1 px-2 py-0.5 rounded-lg text-[10px] font-bold border ${
+                          isLight ? 'bg-amber-50 text-amber-900 border-amber-200' : 'bg-amber-500/10 text-amber-400 border-amber-500/30'
+                        }`}>
+                          {req.maintenanceDepartment || 'الصيانة العامة'}
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-slate-200/60 dark:border-slate-800/60">
+                        <div>
+                          <span className="text-slate-400 text-[10px] block">محرر الطلب:</span>
+                          <span className="font-semibold text-[11px]">{getCleanReporterName(req.reportedBy)}</span>
+                        </div>
+                        <div>
+                          <span className="text-slate-400 text-[10px] block">تاريخ البلاغ:</span>
+                          <span className="font-mono text-[11px]">{formatDateOnly(req.createdAt)}</span>
+                        </div>
+                        <div>
+                          <span className="text-slate-400 text-[10px] block">الإنجاز / الإلغاء:</span>
+                          <span className="font-mono text-[11px]">{getCompletionOrCancellationDate(req.completedAt, req.status)}</span>
+                        </div>
+                        <div>
+                          <span className="text-slate-400 text-[10px] block">المدة:</span>
+                          <span className="font-bold text-[11px] text-amber-400">{calculateMaintenanceDurationDays(req.createdAt, req.completedAt, req.status)}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-200/60 dark:border-slate-800/60">
+                        <div>
+                          {reqAttachments.length > 0 ? (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setPreviewAttachment({
+                                  attachments: reqAttachments.map((a, i) => ({
+                                    id: a.id || `rep-live-maint-${req.id}-${i}`,
+                                    name: a.name || `صورة_${i + 1}.jpg`,
+                                    type: a.type || 'image/jpeg',
+                                    url: a.url || req.attachmentUrl || '#',
+                                    uploadDate: formatDateOnly(req.createdAt),
+                                    category: `صورة بلاغ صيانة`,
+                                  })),
+                                  initialIndex: 0,
+                                  unitCode: req.unitCode,
+                                });
+                              }}
+                              className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition cursor-pointer border min-h-[38px] ${
+                                isLight
+                                  ? 'bg-amber-50 text-amber-800 border-amber-300 hover:bg-amber-100'
+                                  : 'bg-amber-500/20 text-amber-300 border-amber-500/40 hover:bg-amber-500/30'
+                              }`}
+                            >
+                              <Eye className="w-3.5 h-3.5" />
+                              <span>معاينة المرفق ({toArabicDigits(reqAttachments.length)})</span>
+                            </button>
+                          ) : (
+                            <span className="text-slate-500 text-[10px]">لا يوجد مرفق</span>
+                          )}
+                        </div>
+
+                        <div>
+                          {req.status === 'completed' ? (
+                            <span className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">منجز</span>
+                          ) : req.status === 'rejected' ? (
+                            <span className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-rose-500/20 text-rose-400 border border-rose-500/30">مرفوض</span>
+                          ) : req.status === 'cancelled' ? (
+                            <span className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-slate-500/20 text-slate-400 border border-slate-500/30">ملغى</span>
+                          ) : req.status === 'overdue' ? (
+                            <span className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-red-500/20 text-red-400 border border-red-500/30">متأخر</span>
+                          ) : (
+                            <span className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">قيد المعالجة</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Desktop Table View */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full text-right text-xs">
+                  <thead className={`border-b ${isLight ? 'bg-slate-100 border-slate-200 text-slate-700' : 'bg-slate-950 border-slate-800 text-slate-400'} font-bold`}>
+                    <tr>
+                      <th className="p-2.5">رقم الطلب</th>
+                      <th className="p-2.5">رمز المنشأة</th>
+                      <th className="p-2.5">جهة الصيانة</th>
+                      <th className="p-2.5">وصف العطل / البلاغ</th>
+                      <th className="p-2.5">درجة الأهمية</th>
+                      <th className="p-2.5">محرر الطلب</th>
+                      <th className="p-2.5">تاريخ البلاغ</th>
+                      <th className="p-2.5">تاريخ الإنجاز / الإلغاء</th>
+                      <th className="p-2.5">المدة (بالأيام)</th>
+                      <th className="p-2.5 text-center">المرفق / الصورة</th>
+                      <th className="p-2.5">الحالة الحالية</th>
+                    </tr>
+                  </thead>
+                  <tbody className={`divide-y ${isLight ? 'divide-slate-200 text-slate-800' : 'divide-slate-800 text-slate-300'}`}>
+                    {filteredMaintenance.map((req) => (
                     <tr key={req.id} className={isLight ? 'hover:bg-slate-50' : 'hover:bg-slate-800/40'}>
                       <td className="p-2.5 font-mono font-bold text-amber-500 whitespace-nowrap">{toArabicDigits(req.id)}</td>
                       <td className="p-2.5 leading-snug whitespace-nowrap">
@@ -3567,25 +3821,26 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                         )}
                       </td>
                     </tr>
-                  ))
-                )}
+                  ))}
               </tbody>
             </table>
           </div>
         </div>
       )}
+    </div>
+  )}
 
       {/* SECTION 3: Units & Infrastructure Inventory Table */}
       {(activeTab === 'all' || activeTab === 'units') && (
-        <div className={`p-4 rounded-2xl border ${isLight ? 'bg-white border-slate-200 shadow-sm' : 'bg-slate-900 border-slate-800'} space-y-3`}>
-          <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
+        <div className={`p-3.5 sm:p-4 rounded-2xl border ${isLight ? 'bg-white border-slate-200 shadow-sm' : 'bg-slate-900 border-slate-800'} space-y-3`}>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-800/80 pb-3 gap-1.5">
             <div className="flex items-center gap-2">
-              <Box className="w-5 h-5 text-amber-500" />
-              <h3 className={`font-bold text-sm ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+              <Box className="w-5 h-5 text-amber-500 shrink-0" />
+              <h3 className={`font-bold text-xs sm:text-sm ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
                 3. تقرير حصر الأصول والمنشآت ({toArabicDigits(filteredUnits.length)} منشأة)
               </h3>
             </div>
-            <span className="text-[11px] text-amber-500 font-mono font-bold">السجل العام للاصول</span>
+            <span className="text-[11px] text-amber-500 font-mono font-bold self-start sm:self-auto">السجل العام للاصول</span>
           </div>
 
           {/* Org Entity Filter Highlight Banner */}
@@ -3612,7 +3867,161 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
             </div>
           )}
 
-          <div className="overflow-x-auto">
+          {/* Mobile Cards for Units & Infrastructure Inventory */}
+          <div className="md:hidden space-y-3">
+            {filteredUnits.length === 0 ? (
+              <div className="p-6 text-center text-slate-500 text-xs font-semibold">
+                لا توجد وحدات هندسية تطابق معايير الفلترة المحددة.
+              </div>
+            ) : (
+              filteredUnits.map((u) => {
+                const stats = getUnitOccupancyStats(u, selectedOrgEntity);
+                return (
+                  <div
+                    key={u.id}
+                    className={`p-3.5 rounded-xl border space-y-3 transition ${
+                      isLight ? 'bg-white border-slate-200 shadow-xs' : 'bg-slate-950/70 border-slate-800 shadow-xs'
+                    }`}
+                  >
+                    {/* Header: Code + Asset + Type + Condition Grade */}
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="font-mono font-bold text-xs text-amber-500">
+                            {toArabicDigits(u.code)}
+                          </span>
+                          {u.fixedAssetCode && (
+                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${
+                              isLight ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-indigo-950/40 text-indigo-300 border-indigo-800/60'
+                            }`}>
+                              أصل: {u.fixedAssetCode}
+                            </span>
+                          )}
+                          <span className={`text-[10px] px-1.5 py-0.5 rounded ${
+                            isLight ? 'bg-slate-100 text-slate-600' : 'bg-slate-800 text-slate-400'
+                          }`}>
+                            {translateUnitType(u.type)}
+                          </span>
+                        </div>
+                        <h4 className={`font-black text-sm mt-1 leading-snug ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                          {u.name}
+                        </h4>
+                      </div>
+
+                      <span
+                        className={`px-2.5 py-1 rounded-lg text-[10px] font-black shrink-0 ${
+                          u.conditionGrade === 'A'
+                            ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                            : u.conditionGrade === 'B'
+                            ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
+                            : u.conditionGrade === 'C'
+                            ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                            : 'bg-red-500/20 text-red-400 border border-red-500/30'
+                        }`}
+                      >
+                        الدرجة {u.conditionGrade}
+                      </span>
+                    </div>
+
+                    {/* Location & Occupants Grid */}
+                    <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-slate-200/60 dark:border-slate-800/60">
+                      <div>
+                        <span className="text-slate-400 text-[10px] block">المحافظة والحقل:</span>
+                        <span className={`font-bold text-[11px] block mt-0.5 ${isLight ? 'text-slate-800' : 'text-slate-200'}`}>
+                          {translateGovernorate(u.governorate) || u.governorate}
+                        </span>
+                        <span className="text-[10px] text-slate-400 block">
+                          {translateField(u.field) || u.field}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 text-[10px] block">الجهة الشاغلة:</span>
+                        {selectedOrgEntity !== 'all' ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 mt-0.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
+                            <span className="truncate">{selectedOrgEntity}</span>
+                          </span>
+                        ) : stats.allOccupants && stats.allOccupants.length > 0 ? (
+                          <div className="space-y-0.5 mt-0.5">
+                            {stats.allOccupants.slice(0, 2).map((occ: string, oIdx: number) => (
+                              <div key={oIdx} className="text-[11px] font-semibold truncate flex items-center gap-1">
+                                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
+                                <span className="truncate">{occ}</span>
+                              </div>
+                            ))}
+                            {stats.allOccupants.length > 2 && (
+                              <span className="text-[10px] text-slate-400 block font-mono">
+                                +{toArabicDigits(stats.allOccupants.length - 2)} تشكيلات أخرى
+                              </span>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="font-semibold text-slate-400 text-[11px] block mt-0.5">
+                            {stats.entity || 'عام / غير محدد'}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Occupancy Stats 3-Box Grid */}
+                    <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-200/60 dark:border-slate-800/60 text-center">
+                      <div className={`p-2 rounded-lg border ${
+                        selectedOrgEntity !== 'all'
+                          ? 'bg-amber-500/10 border-amber-500/30'
+                          : 'bg-emerald-500/10 border-emerald-500/20'
+                      }`}>
+                        <span className="text-[10px] text-slate-400 block font-bold">
+                          {selectedOrgEntity !== 'all' ? 'غرف التشكيل' : 'المشغولة'}
+                        </span>
+                        <span className="text-xs font-black font-mono text-emerald-500 dark:text-emerald-400">
+                          {toArabicDigits(stats.occupiedRoomsCount)} غرفة
+                        </span>
+                      </div>
+
+                      <div className={`p-2 rounded-lg border ${
+                        stats.vacantRoomsCount > 0
+                          ? isLight
+                            ? 'bg-amber-100 text-amber-950 border-amber-300 font-bold'
+                            : 'bg-amber-950/60 text-amber-300 border-amber-500/40 font-bold'
+                          : 'bg-slate-100 dark:bg-slate-800/40 text-slate-400 border-slate-200 dark:border-slate-800'
+                      }`}>
+                        <span className="text-[10px] opacity-80 block font-bold">الشاغرة (فارغة)</span>
+                        <span className="text-xs font-black font-mono">
+                          {stats.vacantRoomsCount > 0 ? `${toArabicDigits(stats.vacantRoomsCount)} فارغة` : '0'}
+                        </span>
+                      </div>
+
+                      <div className="p-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60">
+                        <span className="text-[10px] text-slate-400 block font-bold">إجمالي الغرف</span>
+                        <span className="text-xs font-black font-mono text-slate-700 dark:text-slate-300">
+                          {toArabicDigits(stats.totalRooms)} غرفة
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Specs: Year, Area, Equipment */}
+                    <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-200/60 dark:border-slate-800/60 text-[11px] font-mono">
+                      <div>
+                        <span className="text-slate-400 text-[10px] block">سنة الإنشاء:</span>
+                        <span className="font-bold text-slate-700 dark:text-slate-300">{toArabicDigits(u.constructionYear)}</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 text-[10px] block">المساحة:</span>
+                        <span className="font-bold text-slate-700 dark:text-slate-300">{toArabicDigits(u.totalAreaSqM)} م²</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 text-[10px] block">المعدات:</span>
+                        <span className="font-bold text-slate-700 dark:text-slate-300">{toArabicDigits(u.equipment.length)} معدة</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+
+          {/* Desktop Table View */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-right text-xs">
               <thead className={`border-b ${isLight ? 'bg-slate-100 border-slate-200 text-slate-700' : 'bg-slate-950 border-slate-800 text-slate-400'} font-bold`}>
                 <tr>
@@ -3775,18 +4184,97 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
 
       {/* SECTION 4: Decommissioned Units Table */}
       {(activeTab === 'all' || activeTab === 'decommissioned') && (
-        <div className={`p-4 rounded-2xl border ${isLight ? 'bg-white border-slate-200 shadow-sm' : 'bg-slate-900 border-slate-800'} space-y-3`}>
-          <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
+        <div className={`p-3.5 sm:p-4 rounded-2xl border ${isLight ? 'bg-white border-slate-200 shadow-sm' : 'bg-slate-900 border-slate-800'} space-y-3`}>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-800/80 pb-3 gap-1.5">
             <div className="flex items-center gap-2">
-              <Archive className="w-5 h-5 text-rose-500" />
-              <h3 className={`font-bold text-sm ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+              <Archive className="w-5 h-5 text-rose-500 shrink-0" />
+              <h3 className={`font-bold text-xs sm:text-sm ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
                 4. سجل وتقارير الوحدات والمنشآت المشطوبة والمجمدة عن الخدمة ({toArabicDigits(decommissionedUnits.length)} منشأة)
               </h3>
             </div>
-            <span className="text-[11px] text-rose-500 font-mono font-bold">الاصول المشطوبة و المجمدة</span>
+            <span className="text-[11px] text-rose-500 font-mono font-bold self-start sm:self-auto">الاصول المشطوبة و المجمدة</span>
           </div>
 
-          <div className="overflow-x-auto">
+          {/* Mobile Cards for Decommissioned Units */}
+          <div className="md:hidden space-y-3">
+            {decommissionedUnits.length === 0 ? (
+              <div className="p-6 text-center text-slate-500 text-xs font-semibold">
+                لا توجد منشآت مشطوبة أو مجمدة حالياً بالنظام.
+              </div>
+            ) : (
+              decommissionedUnits.map((u) => (
+                <div
+                  key={u.id}
+                  className={`p-3.5 rounded-xl border space-y-2.5 transition ${
+                    isLight ? 'bg-rose-50/40 border-rose-200 shadow-xs' : 'bg-rose-950/20 border-rose-900/40 shadow-xs'
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="font-mono font-bold text-xs text-rose-500">
+                          {toArabicDigits(u.code)}
+                        </span>
+                        {u.fixedAssetCode && (
+                          <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${
+                            isLight ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-indigo-950/40 text-indigo-300 border-indigo-800/60'
+                          }`}>
+                            أصل: {u.fixedAssetCode}
+                          </span>
+                        )}
+                      </div>
+                      <h4 className={`font-black text-sm mt-1 leading-snug ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                        {u.name}
+                      </h4>
+                    </div>
+
+                    <span className="px-2.5 py-1 rounded-lg text-[10px] font-black bg-rose-600 text-white flex items-center gap-1 shrink-0">
+                      <Archive className="w-3 h-3" />
+                      <span>مشطوبة ومجمدة</span>
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-rose-200/60 dark:border-rose-900/40">
+                    <div>
+                      <span className="text-slate-400 text-[10px] block">الحقل / المحافظة:</span>
+                      <span className={`font-bold text-[11px] block mt-0.5 ${isLight ? 'text-slate-800' : 'text-slate-200'}`}>
+                        {translateField(u.field)} / {translateGovernorate(u.governorate)}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 text-[10px] block">الجهة السابقة:</span>
+                      <span className={`font-bold text-[11px] block mt-0.5 ${isLight ? 'text-slate-800' : 'text-slate-200'}`}>
+                        {u.department || '-'}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-rose-200/60 dark:border-rose-900/40">
+                    <div>
+                      <span className="text-slate-400 text-[10px] block">سنة الإنشاء:</span>
+                      <span className="font-mono text-[11px] font-bold">{toArabicDigits(u.constructionYear)}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 text-[10px] block">تاريخ الشطب والتجميد:</span>
+                      <span className="font-mono text-[11px] font-black text-amber-500">{toArabicDigits(u.decommissionedAt || '2026')}</span>
+                    </div>
+                  </div>
+
+                  <div className={`p-2.5 rounded-xl text-xs space-y-1 ${
+                    isLight ? 'bg-white border border-rose-200 text-slate-800' : 'bg-slate-950 border border-rose-900/50 text-slate-200'
+                  }`}>
+                    <span className="font-bold text-[10px] text-rose-500 block">سبب الشطب والتجميد التوثيقي:</span>
+                    <p className="text-[11px] leading-relaxed font-semibold">
+                      {u.decommissionReason || 'تم الشطب بموجب محضر الفحص الفني والإنشائي ولجان الجرد'}
+                    </p>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Desktop Table View */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-right text-xs">
               <thead className={`border-b ${isLight ? 'bg-slate-100 border-slate-200 text-slate-700' : 'bg-slate-950 border-slate-800 text-slate-400'} font-bold`}>
                 <tr>
@@ -3848,34 +4336,48 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
           >
             {/* Modal Header Bar (Hidden in Print) */}
             <div
-              className={`flex items-center justify-between gap-3 px-5 py-3.5 border-b print:hidden shrink-0 print-modal-header ${
+              className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 sm:px-5 sm:py-3.5 border-b print:hidden shrink-0 print-modal-header ${
                 isLight ? 'bg-white border-slate-200 text-slate-900' : 'bg-slate-950 border-slate-800 text-slate-100'
               }`}
             >
-              <div className="flex items-center gap-3">
+              {/* Top row: Title and Mobile Close button */}
+              <div className="flex items-center justify-between gap-2 w-full sm:w-auto">
                 <div className="flex items-center gap-2">
-                  <FileText className={`w-5 h-5 ${isLight ? 'text-amber-600' : 'text-amber-500'}`} />
-                  <h3 className={`font-black text-sm ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                  <FileText className={`w-5 h-5 shrink-0 ${isLight ? 'text-amber-600' : 'text-amber-500'}`} />
+                  <h3 className={`font-black text-xs sm:text-sm ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
                     معاينة وثيقة التقرير الرسمي المعتمد
                   </h3>
                 </div>
 
+                <button
+                  type="button"
+                  onClick={() => setShowPrintModal(false)}
+                  className={`p-1.5 rounded-xl transition cursor-pointer sm:hidden ${
+                    isLight
+                      ? 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
+                      : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                  }`}
+                  title="إغلاق المعاينة"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Action and Navigation Row */}
+              <div className="flex flex-wrap sm:flex-nowrap items-center justify-between sm:justify-end gap-2 w-full sm:w-auto">
                 {/* Page Indicator Badge */}
-                <div className={`px-2.5 py-1 rounded-lg text-xs font-bold border flex items-center gap-1.5 ${
+                <div className={`px-2.5 py-1.5 rounded-lg text-xs font-bold border flex items-center gap-1 shrink-0 ${
                   isLight ? 'bg-amber-50 text-amber-900 border-amber-200' : 'bg-amber-950/40 text-amber-400 border-amber-800/60'
                 }`}>
-                  <span>الصفحة</span>
+                  <span>صفحة</span>
                   <span className="font-mono">{toArabicDigits(previewPage)}</span>
                   <span>من</span>
                   <span className="font-mono">{toArabicDigits(totalPages)}</span>
-                  <span className="text-[10px] opacity-75 font-sans">(ورقة A4 أفقية)</span>
+                  <span className="hidden md:inline text-[10px] opacity-75 font-sans">(A4 أفقي)</span>
                 </div>
-              </div>
 
-              {/* Navigation & Actions */}
-              <div className="flex items-center gap-2">
                 {/* Pagination Controls */}
-                <div className={`flex items-center rounded-xl border p-0.5 ${
+                <div className={`flex items-center rounded-xl border p-0.5 shrink-0 ${
                   isLight ? 'bg-slate-100 border-slate-300' : 'bg-slate-800 border-slate-700'
                 }`}>
                   <button
@@ -3892,11 +4394,11 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                     title="الصفحة السابقة"
                   >
                     <ChevronRight className="w-4 h-4" />
-                    <span className="hidden sm:inline">السابق</span>
+                    <span className="hidden md:inline">السابق</span>
                   </button>
 
                   <div className="px-2 font-mono text-xs font-bold select-none text-slate-700 dark:text-slate-300">
-                    {toArabicDigits(previewPage)} / {toArabicDigits(totalPages)}
+                    {toArabicDigits(previewPage)}
                   </div>
 
                   <button
@@ -3912,7 +4414,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                     }`}
                     title="الصفحة التالية"
                   >
-                    <span className="hidden sm:inline">التالي</span>
+                    <span className="hidden md:inline">التالي</span>
                     <ChevronLeft className="w-4 h-4" />
                   </button>
                 </div>
@@ -3920,7 +4422,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                 <button
                   type="button"
                   onClick={() => handlePrintAction('window')}
-                  className="px-4 py-2 bg-amber-500 hover:bg-amber-400 active:scale-95 text-slate-950 font-black text-xs rounded-xl flex items-center gap-1.5 transition shadow cursor-pointer select-none border border-amber-400"
+                  className="px-3 sm:px-4 py-1.5 sm:py-2 bg-amber-500 hover:bg-amber-400 active:scale-95 text-slate-950 font-black text-xs rounded-xl flex items-center gap-1.5 transition shadow cursor-pointer select-none border border-amber-400 shrink-0 min-h-[36px]"
                   title="معاينة الطباعة في نافذة مخصصة للطباعة وتصدير PDF"
                 >
                   <Printer className="w-4 h-4" />
@@ -3930,7 +4432,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                 <button
                   type="button"
                   onClick={() => setShowPrintModal(false)}
-                  className={`p-2 rounded-xl transition cursor-pointer ${
+                  className={`hidden sm:flex p-2 rounded-xl transition cursor-pointer shrink-0 ${
                     isLight
                       ? 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
                       : 'text-slate-400 hover:text-white hover:bg-slate-800'
@@ -3944,18 +4446,24 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
 
             {/* Printable Document Body - A4 Landscape Formatted */}
             <div
-              className={`p-4 sm:p-6 overflow-y-auto flex flex-col items-center print-modal-scroll ${
+              className={`p-2 sm:p-6 overflow-y-auto flex flex-col items-center print-modal-scroll w-full ${
                 isLight ? 'bg-slate-200/80' : 'bg-slate-950/60'
               }`}
             >
-              {/* Single A4 Landscape Page Container */}
-              <div
-                id="printable-report-area"
-                className="w-full max-w-5xl bg-white text-slate-900 p-6 sm:p-8 rounded-lg shadow-xl border border-slate-300 font-sans text-xs space-y-4 min-h-[580px] flex flex-col justify-between"
-                style={{
-                  aspectRatio: '297 / 210', // A4 Landscape ratio
-                }}
-              >
+              {/* Mobile Scroll Hint */}
+              <div className="sm:hidden w-full max-w-5xl mb-2 text-center text-[10px] font-semibold text-slate-500 flex items-center justify-center gap-1 bg-white/60 dark:bg-slate-900/60 py-1 px-2 rounded-lg border border-slate-300 dark:border-slate-800">
+                <span>💡 يمكنك التمرير أفقياً لمعاينة ورقة A4 الرسمية بالكامل أو الضغط على معاينة الطباعة</span>
+              </div>
+
+              {/* Horizontal Scroll Wrapper for mobile to preserve exact A4 Landscape typography */}
+              <div className="w-full overflow-x-auto flex justify-center pb-4">
+                <div
+                  id="printable-report-area"
+                  className="min-w-[700px] sm:min-w-0 w-full max-w-5xl bg-white text-slate-900 p-4 sm:p-8 rounded-lg shadow-xl border border-slate-300 font-sans text-xs space-y-4 min-h-[580px] flex flex-col justify-between"
+                  style={{
+                    aspectRatio: '297 / 210', // A4 Landscape ratio
+                  }}
+                >
                 <div className="space-y-4 flex-1">
                   {/* Page 1 Official Full Header (Logo, Ministry, Company, System, Type, Date) */}
                   {previewPage === 1 ? (
@@ -4059,6 +4567,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                     وثيقة إلكترونية معتمدة - {companyName}
                   </div>
                 </div>
+              </div>
               </div>
             </div>
           </div>

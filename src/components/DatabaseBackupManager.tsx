@@ -1352,119 +1352,255 @@ export const DatabaseBackupManager: React.FC<DatabaseBackupManagerProps> = ({
                 </button>
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-right text-xs">
-                  <thead>
-                    <tr className={`border-b ${isLight ? 'border-slate-200 text-slate-500' : 'border-slate-800 text-slate-400'}`}>
-                      <th className="pb-2.5 font-bold">اسم الملف</th>
-                      <th className="pb-2.5 font-bold">تاريخ ووقت التصدير</th>
-                      <th className="pb-2.5 font-bold">حجم الملف</th>
-                      <th className="pb-2.5 font-bold">المباني والسجلات</th>
-                      <th className="pb-2.5 font-bold">مسار الحفظ</th>
-                      <th className="pb-2.5 font-bold">النوع</th>
-                      <th className="pb-2.5 font-bold text-center">إجراءات</th>
-                    </tr>
-                  </thead>
-                  <tbody className={`divide-y ${isLight ? 'divide-slate-200' : 'divide-slate-900'}`}>
-                    {backupHistory.map((item) => (
-                      <tr key={item.id} className={`transition ${isLight ? 'hover:bg-slate-50' : 'hover:bg-slate-900/50'}`}>
-                        <td className={`py-3 font-mono font-bold ${isLight ? 'text-slate-900' : 'text-slate-200'}`}>{item.filename}</td>
-                        <td className={`py-3 font-mono ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>{item.timestampFormatted}</td>
-                        <td className={`py-3 font-mono font-bold ${isLight ? 'text-amber-700' : 'text-amber-400'}`}>{item.sizeFormatted}</td>
-                        <td className={`py-3 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
-                          <span className={`font-bold ${isLight ? 'text-emerald-700' : 'text-emerald-400'}`}>{toArabicDigits(item.unitsCount)}</span> مبنى (
-                          <span className={`font-bold ${isLight ? 'text-cyan-700' : 'text-cyan-400'}`}>{toArabicDigits(item.totalRecords)}</span> سجل)
-                        </td>
-                        <td className={`py-3 font-mono text-[11px] ${isLight ? 'text-slate-600' : 'text-slate-400'}`} dir="ltr">
-                          {item.storagePath}
-                        </td>
-                        <td className="py-3">
-                          <span
-                            className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
-                              item.triggerType === 'scheduled'
-                                ? isLight
-                                  ? 'bg-purple-100 text-purple-800 border-purple-200'
-                                  : 'bg-purple-500/20 text-purple-400 border border-purple-500/30'
-                                : isLight
-                                ? 'bg-blue-100 text-blue-800 border-blue-200'
-                                : 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
-                            }`}
-                          >
-                            {item.triggerType === 'scheduled' ? 'مجدول تلقائي' : 'تصدير يدوي'}
-                          </span>
-                        </td>
-                        <td className="py-3 text-center">
-                          <div className="flex items-center justify-center gap-1.5">
-                            {item.payloadSnapshot && (
-                              <>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    const jsonContent = JSON.stringify(item.payloadSnapshot, null, 2);
-                                    const blob = new Blob([jsonContent], { type: 'application/json' });
-                                    const url = URL.createObjectURL(blob);
-                                    const link = document.createElement('a');
-                                    link.href = url;
-                                    link.download = item.filename;
-                                    document.body.appendChild(link);
-                                    link.click();
-                                    document.body.removeChild(link);
-                                    URL.revokeObjectURL(url);
-                                    triggerSaveToast('تم تنزيل النسخة الاحتياطية مجدداً');
-                                  }}
-                                  className={`p-1.5 rounded-lg transition cursor-pointer border ${
-                                    isLight
-                                      ? 'bg-slate-100 hover:bg-slate-200 text-amber-700 border-slate-200'
-                                      : 'bg-slate-800 hover:bg-slate-700 text-amber-400 border-transparent'
-                                  }`}
-                                  title="تحميل الملف مجدداً"
-                                >
-                                  <Download className="w-3.5 h-3.5" />
-                                </button>
+              <>
+                {/* Mobile Backup Cards View (md:hidden) */}
+                <div className="md:hidden space-y-3">
+                  {backupHistory.map((item) => (
+                    <div
+                      key={item.id}
+                      className={`p-3.5 rounded-2xl border transition shadow-sm space-y-3 ${
+                        isLight ? 'bg-white border-slate-200 shadow-slate-200/50' : 'bg-slate-900 border-slate-800'
+                      }`}
+                    >
+                      {/* Header: Filename & Trigger Type Badge */}
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0 space-y-1">
+                          <div className="flex items-center gap-1.5">
+                            <HardDrive className={`w-3.5 h-3.5 shrink-0 ${isLight ? 'text-amber-600' : 'text-amber-400'}`} />
+                            <span className={`font-mono font-bold text-xs truncate ${isLight ? 'text-slate-900' : 'text-slate-100'}`} title={item.filename}>
+                              {item.filename}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1.5 text-[11px] text-slate-500 font-mono">
+                            <Clock className="w-3 h-3 shrink-0" />
+                            <span>{item.timestampFormatted}</span>
+                          </div>
+                        </div>
+                        <span
+                          className={`px-2 py-0.5 rounded-full text-[10px] font-bold border shrink-0 ${
+                            item.triggerType === 'scheduled'
+                              ? isLight
+                                ? 'bg-purple-100 text-purple-800 border-purple-200'
+                                : 'bg-purple-500/20 text-purple-400 border border-purple-500/30'
+                              : isLight
+                              ? 'bg-blue-100 text-blue-800 border-blue-200'
+                              : 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
+                          }`}
+                        >
+                          {item.triggerType === 'scheduled' ? 'مجدول تلقائي' : 'تصدير يدوي'}
+                        </span>
+                      </div>
 
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setParsedBackupData(item.payloadSnapshot || null);
-                                    setActiveSubTab('import');
-                                    triggerSaveToast('تم تحميل بيانات النسخة في تبويب الاستيراد');
-                                  }}
-                                  className={`p-1.5 rounded-lg transition cursor-pointer border ${
-                                    isLight
-                                      ? 'bg-slate-100 hover:bg-slate-200 text-emerald-700 border-slate-200'
-                                      : 'bg-slate-800 hover:bg-slate-700 text-emerald-400 border-transparent'
-                                  }`}
-                                  title="استعادة هذه النسخة"
-                                >
-                                  <RotateCcw className="w-3.5 h-3.5" />
-                                </button>
-                              </>
-                            )}
+                      {/* Meta Specs Grid */}
+                      <div className={`grid grid-cols-2 gap-2 p-2.5 rounded-xl text-xs border ${
+                        isLight ? 'bg-slate-50 border-slate-200/80' : 'bg-slate-950/60 border-slate-800/80'
+                      }`}>
+                        <div>
+                          <span className="text-[10px] text-slate-500 block mb-0.5">حجم الملف</span>
+                          <span className={`font-mono font-bold text-xs ${isLight ? 'text-amber-700' : 'text-amber-400'}`}>
+                            {item.sizeFormatted}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-[10px] text-slate-500 block mb-0.5">المحتوى</span>
+                          <span className={isLight ? 'text-slate-700' : 'text-slate-300'}>
+                            <span className={`font-bold ${isLight ? 'text-emerald-700' : 'text-emerald-400'}`}>{toArabicDigits(item.unitsCount)}</span> مبنى (
+                            <span className={`font-bold ${isLight ? 'text-cyan-700' : 'text-cyan-400'}`}>{toArabicDigits(item.totalRecords)}</span> سجل)
+                          </span>
+                        </div>
+                        <div className="col-span-2 pt-1 border-t border-slate-200/60 dark:border-slate-800/60">
+                          <span className="text-[10px] text-slate-500 block mb-0.5">مسار الحفظ</span>
+                          <span className={`font-mono text-[11px] truncate block ${isLight ? 'text-slate-600' : 'text-slate-400'}`} dir="ltr">
+                            {item.storagePath}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Actions row */}
+                      <div className="flex items-center gap-2 pt-1 border-t border-slate-200/80 dark:border-slate-800/80">
+                        {item.payloadSnapshot && (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const jsonContent = JSON.stringify(item.payloadSnapshot, null, 2);
+                                const blob = new Blob([jsonContent], { type: 'application/json' });
+                                const url = URL.createObjectURL(blob);
+                                const link = document.createElement('a');
+                                link.href = url;
+                                link.download = item.filename;
+                                document.body.appendChild(link);
+                                link.click();
+                                document.body.removeChild(link);
+                                URL.revokeObjectURL(url);
+                                triggerSaveToast('تم تنزيل النسخة الاحتياطية مجدداً');
+                              }}
+                              className={`flex-1 min-h-[38px] px-3 py-1.5 rounded-xl font-bold text-xs border transition cursor-pointer flex items-center justify-center gap-1.5 ${
+                                isLight
+                                  ? 'bg-amber-50 hover:bg-amber-100 text-amber-900 border-amber-300'
+                                  : 'bg-slate-800 hover:bg-slate-700 text-amber-400 border-slate-700'
+                              }`}
+                            >
+                              <Download className="w-3.5 h-3.5" />
+                              <span>تحميل</span>
+                            </button>
 
                             <button
                               type="button"
                               onClick={() => {
-                                const filtered = backupHistory.filter((b) => b.id !== item.id);
-                                setBackupHistory(filtered);
-                                safeSetItem('app_backup_history', filtered);
-                                triggerSaveToast('تم حذف النسخة من الأرشيف');
+                                setParsedBackupData(item.payloadSnapshot || null);
+                                setActiveSubTab('import');
+                                triggerSaveToast('تم تحميل بيانات النسخة في تبويب الاستيراد');
                               }}
-                              className={`p-1.5 rounded-lg transition cursor-pointer border ${
+                              className={`flex-1 min-h-[38px] px-3 py-1.5 rounded-xl font-bold text-xs border transition cursor-pointer flex items-center justify-center gap-1.5 ${
                                 isLight
-                                  ? 'bg-slate-100 hover:bg-red-50 text-slate-500 hover:text-red-600 border-slate-200'
-                                  : 'bg-slate-800 hover:bg-red-500/20 text-slate-400 hover:text-red-400 border-transparent'
+                                  ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border-emerald-300'
+                                  : 'bg-slate-800 hover:bg-slate-700 text-emerald-400 border-slate-700'
                               }`}
-                              title="حذف من الأرشيف"
                             >
-                              <Trash2 className="w-3.5 h-3.5" />
+                              <RotateCcw className="w-3.5 h-3.5" />
+                              <span>استعادة</span>
                             </button>
-                          </div>
-                        </td>
+                          </>
+                        )}
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const filtered = backupHistory.filter((b) => b.id !== item.id);
+                            setBackupHistory(filtered);
+                            safeSetItem('app_backup_history', filtered);
+                            triggerSaveToast('تم حذف النسخة من الأرشيف');
+                          }}
+                          className={`min-h-[38px] px-3 py-1.5 rounded-xl font-bold text-xs border transition cursor-pointer flex items-center justify-center gap-1.5 ${
+                            isLight
+                              ? 'bg-rose-50 hover:bg-rose-100 text-rose-700 border-rose-200'
+                              : 'bg-slate-800 hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 border-slate-700'
+                          }`}
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                          <span>حذف</span>
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Desktop Table (hidden md:block) */}
+                <div className="hidden md:block overflow-x-auto">
+                  <table className="w-full text-right text-xs">
+                    <thead>
+                      <tr className={`border-b ${isLight ? 'border-slate-200 text-slate-500' : 'border-slate-800 text-slate-400'}`}>
+                        <th className="pb-2.5 font-bold">اسم الملف</th>
+                        <th className="pb-2.5 font-bold">تاريخ ووقت التصدير</th>
+                        <th className="pb-2.5 font-bold">حجم الملف</th>
+                        <th className="pb-2.5 font-bold">المباني والسجلات</th>
+                        <th className="pb-2.5 font-bold">مسار الحفظ</th>
+                        <th className="pb-2.5 font-bold">النوع</th>
+                        <th className="pb-2.5 font-bold text-center">إجراءات</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody className={`divide-y ${isLight ? 'divide-slate-200' : 'divide-slate-900'}`}>
+                      {backupHistory.map((item) => (
+                        <tr key={item.id} className={`transition ${isLight ? 'hover:bg-slate-50' : 'hover:bg-slate-900/50'}`}>
+                          <td className={`py-3 font-mono font-bold ${isLight ? 'text-slate-900' : 'text-slate-200'}`}>{item.filename}</td>
+                          <td className={`py-3 font-mono ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>{item.timestampFormatted}</td>
+                          <td className={`py-3 font-mono font-bold ${isLight ? 'text-amber-700' : 'text-amber-400'}`}>{item.sizeFormatted}</td>
+                          <td className={`py-3 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                            <span className={`font-bold ${isLight ? 'text-emerald-700' : 'text-emerald-400'}`}>{toArabicDigits(item.unitsCount)}</span> مبنى (
+                            <span className={`font-bold ${isLight ? 'text-cyan-700' : 'text-cyan-400'}`}>{toArabicDigits(item.totalRecords)}</span> سجل)
+                          </td>
+                          <td className={`py-3 font-mono text-[11px] ${isLight ? 'text-slate-600' : 'text-slate-400'}`} dir="ltr">
+                            {item.storagePath}
+                          </td>
+                          <td className="py-3">
+                            <span
+                              className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
+                                item.triggerType === 'scheduled'
+                                  ? isLight
+                                    ? 'bg-purple-100 text-purple-800 border-purple-200'
+                                    : 'bg-purple-500/20 text-purple-400 border border-purple-500/30'
+                                  : isLight
+                                  ? 'bg-blue-100 text-blue-800 border-blue-200'
+                                  : 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
+                              }`}
+                            >
+                              {item.triggerType === 'scheduled' ? 'مجدول تلقائي' : 'تصدير يدوي'}
+                            </span>
+                          </td>
+                          <td className="py-3 text-center">
+                            <div className="flex items-center justify-center gap-1.5">
+                              {item.payloadSnapshot && (
+                                <>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      const jsonContent = JSON.stringify(item.payloadSnapshot, null, 2);
+                                      const blob = new Blob([jsonContent], { type: 'application/json' });
+                                      const url = URL.createObjectURL(blob);
+                                      const link = document.createElement('a');
+                                      link.href = url;
+                                      link.download = item.filename;
+                                      document.body.appendChild(link);
+                                      link.click();
+                                      document.body.removeChild(link);
+                                      URL.revokeObjectURL(url);
+                                      triggerSaveToast('تم تنزيل النسخة الاحتياطية مجدداً');
+                                    }}
+                                    className={`p-1.5 rounded-lg transition cursor-pointer border ${
+                                      isLight
+                                        ? 'bg-slate-100 hover:bg-slate-200 text-amber-700 border-slate-200'
+                                        : 'bg-slate-800 hover:bg-slate-700 text-amber-400 border-transparent'
+                                    }`}
+                                    title="تحميل الملف مجدداً"
+                                  >
+                                    <Download className="w-3.5 h-3.5" />
+                                  </button>
+
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setParsedBackupData(item.payloadSnapshot || null);
+                                      setActiveSubTab('import');
+                                      triggerSaveToast('تم تحميل بيانات النسخة في تبويب الاستيراد');
+                                    }}
+                                    className={`p-1.5 rounded-lg transition cursor-pointer border ${
+                                      isLight
+                                        ? 'bg-slate-100 hover:bg-slate-200 text-emerald-700 border-slate-200'
+                                        : 'bg-slate-800 hover:bg-slate-700 text-emerald-400 border-transparent'
+                                    }`}
+                                    title="استعادة هذه النسخة"
+                                  >
+                                    <RotateCcw className="w-3.5 h-3.5" />
+                                  </button>
+                                </>
+                              )}
+
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const filtered = backupHistory.filter((b) => b.id !== item.id);
+                                  setBackupHistory(filtered);
+                                  safeSetItem('app_backup_history', filtered);
+                                  triggerSaveToast('تم حذف النسخة من الأرشيف');
+                                }}
+                                className={`p-1.5 rounded-lg transition cursor-pointer border ${
+                                  isLight
+                                    ? 'bg-slate-100 hover:bg-red-50 text-slate-500 hover:text-red-600 border-slate-200'
+                                    : 'bg-slate-800 hover:bg-red-500/20 text-slate-400 hover:text-red-400 border-transparent'
+                                }`}
+                                title="حذف من الأرشيف"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </>
             )}
           </div>
         </div>

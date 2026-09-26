@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import QRCode from 'qrcode';
 import {
   Building2,
@@ -27,6 +27,10 @@ import {
   QrCode,
   Printer,
   Network,
+  RefreshCw,
+  LayoutGrid,
+  Table as TableIcon,
+  Search,
 } from 'lucide-react';
 import {
   UnitAsset,
@@ -38,11 +42,13 @@ import {
   ReferenceUnitType,
   EquipmentTypeRef,
   OrgEntity,
+  Room,
 } from '../types';
 import { QuickAddOrgEntityModal } from './QuickAddOrgEntityModal';
 import { OrgChartModal } from './OrgChartModal';
 import { LocationPickerMap } from './LocationPickerMap';
 import { AttachmentViewerModal } from './AttachmentViewerModal';
+import { RoomQrCardModal } from './RoomQrCardModal';
 import { toArabicDigits, getServerDateFormatted, getServerIsoDateOnly } from '../utils/arabicUtils';
 import {
   cleanFixedAssetCodeInput,
@@ -53,7 +59,17 @@ import {
 } from '../utils/assetCodeUtils';
 import {
   generateUnitCode,
+  generateRoomCode,
+  getRoomTypeCode,
+  isOccupantsBasedRoom,
+  isCapacityBasedRoom,
+  isNonOccupancyRoom,
+  isRoomVacant,
+  formatRoomOccupancyDisplay,
+  getStandardRoomCode,
   normalizeUnitRoomsSequence,
+  extractFloorNumber,
+  calculateRoomSequenceNumber,
 } from '../utils/unitAndRoomCodeUtils';
 
 export interface BuildingShapeOption {
@@ -233,142 +249,216 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
     setDepartment(selectedNames.join(' ، '));
   };
 
-  // Floor Occupancy Counts & Custom Rooms
-  const DEFAULT_FLOOR_ROOM_COUNTS = {
-    standardRooms: 0,
-    meetingHalls: 0,
-    trainingHalls: 0,
-    workshops: 0,
-    equipmentRooms: 0,
-    serviceRooms: 0,
-    storageRooms: 0,
-    restrooms: 0,
-    kitchens: 0,
-    diningHalls: 0,
-    bedrooms: 0,
-  };
+  // =========================================================================
+  // ROOMS & HALLS DETAILED STATE (Full parity with EditUnitModal)
+  // =========================================================================
+  const [rooms, setRooms] = useState<Room[]>([]);
+  const [roomsViewMode, setRoomsViewMode] = useState<'cards' | 'table'>('cards');
+  const [roomSearchQuery, setRoomSearchQuery] = useState<string>('');
+  const [roomFloorFilter, setRoomFloorFilter] = useState<string>('all');
+  const [selectedRoomForQr, setSelectedRoomForQr] = useState<Room | null>(null);
+  const [roomCodeChangeWarning, setRoomCodeChangeWarning] = useState<string | null>(null);
 
-  const [floorsRoomCountsMap, setFloorsRoomCountsMap] = useState<{ [floorNum: number]: any }>({});
+  // Derived available floors for filter chips & selectors
+  const availableFloors = useMemo(() => {
+    const set = new Set<string>();
+    const fCount = typeof floorsCount === 'number' && floorsCount > 0 ? floorsCount : 1;
+    for (let i = 1; i <= fCount; i++) {
+      set.add(`الطابق ${i}`);
+    }
+    rooms.forEach((r) => {
+      if (r.floor && r.floor.trim()) set.add(r.floor.trim());
+    });
+    return Array.from(set);
+  }, [floorsCount, rooms]);
 
-  const generateRoomsForFloor = (floorNum: number, counts: any, deptOwner: string) => {
-    const list: any[] = [];
-    let seq = 1;
-
-    const addCat = (cnt: number, key: string, label: string, prefix: string, area: number) => {
-      for (let i = 1; i <= cnt; i++) {
-        const numStr = `${floorNum}${seq.toString().padStart(2, '0')}`;
-        list.push({
-          id: `RM-F${floorNum}-${numStr}-${Math.random().toString(36).substr(2, 4)}`,
-          floorNumber: floorNum,
-          roomNumber: numStr,
-          name: cnt === 1 ? prefix : `${prefix} (${i})`,
-          categoryKey: key,
-          categoryLabel: label,
-          areaSqM: area,
-          occupiedBy: deptOwner,
-          capacity: key === 'meetingHalls' || key === 'diningHalls' || key === 'trainingHalls' ? 12 : 2,
-        });
-        seq++;
+  // Filtered rooms for display
+  const filteredRooms = useMemo(() => {
+    return rooms.filter((r) => {
+      if (roomFloorFilter !== 'all' && r.floor?.trim() !== roomFloorFilter) return false;
+      if (roomSearchQuery.trim()) {
+        const q = roomSearchQuery.trim().toLowerCase();
+        const code = (r.code || '').toLowerCase();
+        const name = (r.name || '').toLowerCase();
+        const type = (r.type || '').toLowerCase();
+        const occupiedBy = (r.occupiedBy || '').toLowerCase();
+        const floor = (r.floor || '').toLowerCase();
+        return (
+          code.includes(q) ||
+          name.includes(q) ||
+          type.includes(q) ||
+          occupiedBy.includes(q) ||
+          floor.includes(q)
+        );
       }
-    };
+      return true;
+    });
+  }, [rooms, roomSearchQuery, roomFloorFilter]);
 
-    addCat(counts.standardRooms || 0, 'standardRooms', 'غرفة / مكتب', 'مكتب إداري', 25);
-    addCat(counts.meetingHalls || 0, 'meetingHalls', 'قاعة اجتماعات', 'قاعة اجتماعات', 40);
-    addCat(counts.trainingHalls || 0, 'trainingHalls', 'قاعة تدريب', 'قاعة تدريب', 50);
-    addCat(counts.workshops || 0, 'workshops', 'ورشة فنية', 'ورشة عمل', 45);
-    addCat(counts.equipmentRooms || 0, 'equipmentRooms', 'غرفة معدات', 'غرفة معدات وسيرفرات', 20);
-    addCat(counts.serviceRooms || 0, 'serviceRooms', 'غرفة خدمات', 'غرفة خدمات صيانة', 15);
-    addCat(counts.storageRooms || 0, 'storageRooms', 'غرفة مخزن', 'مخزن أصول', 30);
-    addCat(counts.restrooms || 0, 'restrooms', 'دورة مياه صحية', 'دورة مياه صحية', 10);
-    addCat(counts.kitchens || 0, 'kitchens', 'مطبخ / بوفيه', 'مطبخ / بوفيه', 18);
-    addCat(counts.diningHalls || 0, 'diningHalls', 'قاعة طعام', 'قاعة طعام', 60);
-    addCat(counts.bedrooms || 0, 'bedrooms', 'غرفة نوم / سكن', 'غرفة نوم سكنية', 22);
+  // Room Handlers
+  const handleUpdateRoom = (roomId: string, key: keyof Room, value: any) => {
+    setRooms((prev) =>
+      prev.map((rm) => {
+        if (rm.id === roomId) {
+          const updated = { ...rm, [key]: value };
+          if (key === 'status') {
+            const isReactivating = value === 'Active' || value === 'فعالة' || value === 'نشطة';
+            updated.status = isReactivating ? 'Active' : value;
+            updated.notes = isReactivating ? '' : rm.notes;
+          }
+          if (key === 'floor' || key === 'type') {
+            const oldFloorNum = extractFloorNumber(rm.floor);
+            const newFloorNum = parseInt(String(key === 'floor' ? value : rm.floor || '').replace(/\D/g, ''), 10) || 1;
+            const roomType = key === 'type' ? value : rm.type;
+            const typeCode = getRoomTypeCode(roomType);
+            updated.roomTypeCode = typeCode;
 
-    return list;
+            const activePrefix = code || 'UNIT';
+
+            // When moving to a new floor, recalculate sequence number correctly for that floor
+            if (key === 'floor' && newFloorNum !== oldFloorNum) {
+              const sameFloorRooms = prev.filter(
+                (r) => r.id !== roomId && extractFloorNumber(r.floor) === newFloorNum
+              );
+              const newSeqInFloor = sameFloorRooms.length + 1;
+              const newFullSeq = calculateRoomSequenceNumber(newFloorNum, newSeqInFloor);
+              updated.sequenceNumber = newFullSeq;
+              updated.code = generateRoomCode(activePrefix, newFloorNum, typeCode, newFullSeq, true);
+              setRoomCodeChangeWarning(
+                `تنبيه: تم تغيير طابق الغرفة "${rm.name}" من (${rm.floor}) إلى (${value}). تم تحديث الرمز القياسي للغرفة تلقائياً إلى [${updated.code}].`
+              );
+            } else if (key === 'type') {
+              const currentFloorNum = extractFloorNumber(rm.floor);
+              const fullSeq =
+                rm.sequenceNumber &&
+                rm.sequenceNumber >= currentFloorNum * 100 &&
+                rm.sequenceNumber < (currentFloorNum + 1) * 100
+                  ? rm.sequenceNumber
+                  : calculateRoomSequenceNumber(currentFloorNum, 1);
+              updated.sequenceNumber = fullSeq;
+              updated.code = generateRoomCode(activePrefix, currentFloorNum, typeCode, fullSeq, true);
+            }
+          }
+          return updated;
+        }
+        return rm;
+      })
+    );
   };
 
-  const [detailedRoomsMap, setDetailedRoomsMap] = useState<{ [floorNum: number]: any[] }>({});
+  const handleRegenerateSingleRoomCode = (roomId: string) => {
+    const targetRoom = rooms.find((r) => r.id === roomId);
+    if (!targetRoom) return;
+    const floorNum = extractFloorNumber(targetRoom.floor);
+    const sameFloorRooms = rooms.filter(
+      (r) => r.id !== roomId && extractFloorNumber(r.floor) === floorNum
+    );
+    const newSeqInFloor = sameFloorRooms.length + 1;
+    const newFullSeq = calculateRoomSequenceNumber(floorNum, newSeqInFloor);
+    const typeCode = getRoomTypeCode(targetRoom.type);
+    const activePrefix = code || 'UNIT';
+    const newCode = generateRoomCode(activePrefix, floorNum, typeCode, newFullSeq, true);
+    setRooms((prev) =>
+      prev.map((rm) =>
+        rm.id === roomId
+          ? { ...rm, sequenceNumber: newFullSeq, roomTypeCode: typeCode, code: newCode }
+          : rm
+      )
+    );
+    setRoomCodeChangeWarning(
+      `تمت إعادة توليد الرمز القياسي للغرفة "${targetRoom.name}" إلى [${newCode}].`
+    );
+  };
 
-  // Keep floors state in sync when floorsCount changes
-  useEffect(() => {
-    const fCount = typeof floorsCount === 'number' ? floorsCount : 0;
-    if (fCount > 0) {
-      setFloorsRoomCountsMap((prev) => {
-        const next = { ...prev };
-        for (let f = 1; f <= fCount; f++) {
-          if (!next[f]) {
-            next[f] = { ...DEFAULT_FLOOR_ROOM_COUNTS };
-          }
-        }
-        return next;
-      });
+  const handleRegenerateAllRoomCodes = () => {
+    const activePrefix = code || 'UNIT';
+    const updated = normalizeUnitRoomsSequence(activePrefix, rooms);
+    setRooms(updated);
+    setRoomCodeChangeWarning('تمت إعادة ترقيم وتوليد جميع رموز الغرف القياسية بنجاح.');
+  };
 
-      setDetailedRoomsMap((prev) => {
-        const next = { ...prev };
-        for (let f = 1; f <= fCount; f++) {
-          if (!next[f]) {
-            const counts = floorsRoomCountsMap[f] || DEFAULT_FLOOR_ROOM_COUNTS;
-            next[f] = generateRoomsForFloor(f, counts, department);
-          }
-        }
-        return next;
+  const handleDeleteRoom = (roomId: string) => {
+    setRooms((prev) => prev.filter((rm) => rm.id !== roomId));
+  };
+
+  const handleAddRoom = (floorNumParam?: number) => {
+    const fNum = floorNumParam || (typeof floorsCount === 'number' && floorsCount > 0 ? 1 : 1);
+    const sameFloorRooms = rooms.filter((r) => extractFloorNumber(r.floor) === fNum);
+    const nextSeqInFloor = sameFloorRooms.length + 1;
+    const fullSeq = calculateRoomSequenceNumber(fNum, nextSeqInFloor);
+    const typeCode = getRoomTypeCode('مكتب إداري');
+    const activePrefix = code || 'UNIT';
+    const roomCode = generateRoomCode(activePrefix, fNum, typeCode, fullSeq, true);
+
+    const newRm: Room = {
+      id: `RM-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      name: `غرفة مخصصة جديدة ${rooms.length + 1}`,
+      type: 'مكتب إداري',
+      floor: `الطابق ${fNum}`,
+      areaSqM: 25,
+      status: 'Active',
+      occupiedBy: selectedDepartments[0] || department || '',
+      code: roomCode,
+      roomTypeCode: typeCode,
+      sequenceNumber: fullSeq,
+      occupantsCount: 2,
+      capacity: 10,
+      notes: '',
+    };
+    setRooms((prev) => [...prev, newRm]);
+  };
+
+  const handleGenerateRecommendedRooms = () => {
+    const fCount = typeof floorsCount === 'number' && floorsCount > 0 ? floorsCount : 1;
+    const primaryDept = selectedDepartments[0] || department || '';
+    const activePrefix = code || 'UNIT';
+    const newRooms: Room[] = [];
+
+    for (let f = 1; f <= fCount; f++) {
+      const floorLabel = `الطابق ${f}`;
+      const floorTemplates = [
+        { name: f === 1 ? 'مكتب الإدارة الرئيسي' : `مكتب إداري ${f}01`, type: 'مكتب إداري', area: 28, occ: 2, cap: 4, occBy: primaryDept },
+        { name: f === 1 ? 'قاعة اجتماعات كبرى' : `قاعة اجتماعات ${f}02`, type: 'قاعة اجتماعات', area: 42, occ: 0, cap: 14, occBy: primaryDept },
+        { name: `مكتب شعبة العمليات ${f}03`, type: 'مكتب إداري', area: 24, occ: 2, cap: 4, occBy: selectedDepartments[1] || primaryDept },
+        { name: `دورة مياه صحية ${f}04`, type: 'دورة مياه صحية', area: 12, occ: 0, cap: 3, occBy: '' },
+        { name: `غرفة سيرفرات وخدمات ${f}05`, type: 'غرفة معدات وسيرفرات', area: 18, occ: 0, cap: 2, occBy: '' },
+      ];
+
+      floorTemplates.forEach((tmpl, idx) => {
+        const seqInFloor = idx + 1;
+        const fullSeq = calculateRoomSequenceNumber(f, seqInFloor);
+        const typeCode = getRoomTypeCode(tmpl.type);
+        const roomCode = generateRoomCode(activePrefix, f, typeCode, fullSeq, true);
+
+        newRooms.push({
+          id: `RM-F${f}-${fullSeq}-${Date.now().toString(36)}-${idx}`,
+          name: tmpl.name,
+          type: tmpl.type,
+          roomTypeCode: typeCode,
+          sequenceNumber: fullSeq,
+          floor: floorLabel,
+          areaSqM: tmpl.area,
+          status: 'Active',
+          occupiedBy: tmpl.occBy,
+          occupantsCount: tmpl.occ,
+          capacity: tmpl.cap,
+          code: roomCode,
+          notes: '',
+        });
       });
     }
+
+    setRooms(newRooms);
+    setRoomCodeChangeWarning(`تم توليد ${newRooms.length} غرفة مقترحة موزعة على ${fCount} طوابق بنجاح.`);
+  };
+
+  // Seed default rooms when floors count is set if rooms is currently empty
+  useEffect(() => {
+    const fCount = typeof floorsCount === 'number' ? floorsCount : 0;
+    if (fCount > 0 && rooms.length === 0) {
+      handleGenerateRecommendedRooms();
+    }
   }, [floorsCount]);
-
-  const handleUpdateFloorRoomCount = (floorNum: number, categoryKey: string, newVal: number) => {
-    const validVal = Math.max(0, newVal);
-    const updatedCounts = {
-      ...(floorsRoomCountsMap[floorNum] || DEFAULT_FLOOR_ROOM_COUNTS),
-      [categoryKey]: validVal,
-    };
-
-    setFloorsRoomCountsMap((prev) => ({
-      ...prev,
-      [floorNum]: updatedCounts,
-    }));
-
-    const regenerated = generateRoomsForFloor(floorNum, updatedCounts, department);
-    setDetailedRoomsMap((prev) => ({
-      ...prev,
-      [floorNum]: regenerated,
-    }));
-  };
-
-  const handleUpdateRoomField = (floorNum: number, roomId: string, fieldName: string, val: any) => {
-    setDetailedRoomsMap((prev) => {
-      const currentList = prev[floorNum] || [];
-      const updatedList = currentList.map((rm) => (rm.id === roomId ? { ...rm, [fieldName]: val } : rm));
-      return { ...prev, [floorNum]: updatedList };
-    });
-  };
-
-  const handleDeleteRoom = (floorNum: number, roomId: string) => {
-    setDetailedRoomsMap((prev) => {
-      const currentList = prev[floorNum] || [];
-      return { ...prev, [floorNum]: currentList.filter((rm) => rm.id !== roomId) };
-    });
-  };
-
-  const handleAddCustomRoom = (floorNum: number) => {
-    setDetailedRoomsMap((prev) => {
-      const currentList = prev[floorNum] || [];
-      const seq = currentList.length + 1;
-      const numStr = `${floorNum}${seq.toString().padStart(2, '0')}`;
-      const newRoom = {
-        id: `RM-F${floorNum}-${numStr}-${Math.random().toString(36).substr(2, 4)}`,
-        floorNumber: floorNum,
-        roomNumber: numStr,
-        name: `غرفة مخصصة ${numStr}`,
-        categoryKey: 'standardRooms',
-        categoryLabel: 'غرفة / مكتب',
-        areaSqM: 20,
-        occupiedBy: selectedDepartments[0] || department || '',
-        capacity: 2,
-      };
-      return { ...prev, [floorNum]: [...currentList, newRoom] };
-    });
-  };
 
   // Form State - Evaluation & Condition
   const [conditionGrade, setConditionGrade] = useState<ConditionGrade | ''>('');
@@ -636,26 +726,8 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
 
     const selectedEquipmentList: any[] = [];
 
-    // Aggregate rooms from all floors and normalize room sequences and standard room codes
-    const rawRoomsList = Object.values(detailedRoomsMap)
-      .flat()
-      .map((r: any) => {
-        const isOccupied = !!(r.occupiedBy && r.occupiedBy.trim().length > 0);
-        return {
-          id: r.id,
-          name: r.name,
-          type: r.categoryLabel,
-          areaSqM: r.areaSqM,
-          floor: `الطابق ${r.floorNumber}`,
-          status: isOccupied ? ('Active' as const) : ('Vacant' as const),
-          occupiedBy: isOccupied ? r.occupiedBy.trim() : '',
-          occupantsCount: r.occupantsCount !== undefined ? r.occupantsCount : (isOccupied ? 2 : 0),
-          capacity: r.capacity !== undefined ? r.capacity : 10,
-          notes: `رمز/رقم الغرفة: ${r.roomNumber}`,
-        };
-      });
-
-    const aggregatedRoomsList = normalizeUnitRoomsSequence(generatedCode, rawRoomsList);
+    // Aggregate and normalize room sequences and standard room codes using the generated unit code
+    const aggregatedRoomsList = normalizeUnitRoomsSequence(generatedCode, rooms);
 
     const finalDept = selectedDepartments.length > 0 ? selectedDepartments.join(' ، ') : (department || 'غير محدد');
 
@@ -914,37 +986,54 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
   };
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden space-y-6 pb-8">
+    <div
+      className={`border rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden space-y-4 sm:space-y-6 pb-8 transition-colors ${
+        isLight ? 'bg-slate-50 border-slate-200 text-slate-900' : 'bg-slate-900 border-slate-800 text-slate-100'
+      }`}
+    >
       {/* Page Header Window Toolbar */}
-      <div className="bg-slate-950 border-b border-slate-800 p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 sticky top-0 z-30 shadow-md">
+      <div
+        className={`p-3.5 sm:p-6 border-b flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4 sticky top-0 z-30 shadow-md transition-colors ${
+          isLight ? 'bg-white border-slate-200' : 'bg-slate-950 border-slate-800'
+        }`}
+      >
         <div>
           <div className="flex items-center gap-2">
-            <span className="bg-amber-500/20 text-amber-400 border border-amber-500/30 text-xs px-3 py-1 rounded-full font-black flex items-center gap-1.5">
+            <span className="bg-amber-500/20 text-amber-500 dark:text-amber-400 border border-amber-500/30 text-xs px-3 py-1 rounded-full font-black flex items-center gap-1.5">
               <Building2 className="w-3.5 h-3.5" />
               <span>تسجيل أصل جديد - نظام حركي ديناميكي</span>
             </span>
           </div>
-          <h2 className="text-2xl font-black text-slate-100 mt-2 flex items-center gap-2">
+          <h2 className={`text-lg sm:text-2xl font-black mt-2 flex items-center gap-2 ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
             استمارة إدخال وحدة / مبنى / كرفان جديد
           </h2>
-          <p className="text-slate-400 text-xs mt-1">
+          <p className={`text-xs mt-1 ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
             نافذة تسجيل موحدة تضم كافة البيانات التعريفية والموقع الجغرافي والمواصفات الإنشائية والتقييم
           </p>
         </div>
       </div>
 
       {/* Main Single Form Body */}
-      <form onSubmit={handleSubmit} className="px-6 space-y-8">
+      <form onSubmit={handleSubmit} className="px-3 sm:px-6 space-y-5 sm:space-y-8">
         {/* ==================== SECTION 1 ==================== */}
-        <div ref={section1Ref} className="bg-slate-950 border border-slate-800 rounded-3xl p-6 space-y-5 scroll-mt-24">
-          <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-xl bg-amber-500 text-slate-950 font-black flex items-center justify-center text-sm shadow">
+        <div
+          ref={section1Ref}
+          className={`border rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 space-y-4 sm:space-y-5 scroll-mt-24 transition-colors ${
+            isLight ? 'bg-white border-slate-200 text-slate-900 shadow-xs' : 'bg-slate-950 border-slate-800 text-slate-100'
+          }`}
+        >
+          <div className={`flex items-center justify-between border-b pb-3 ${isLight ? 'border-slate-200' : 'border-slate-800/80'}`}>
+            <div className="flex items-center gap-2.5 sm:gap-3">
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-amber-500 text-slate-950 font-black flex items-center justify-center text-xs sm:text-sm shadow">
                 {toArabicDigits(1)}
               </div>
               <div>
-                <h3 className="text-base font-bold text-slate-100">البيانات التعريفية والرمز والهوية القياسية</h3>
-                <p className="text-xs text-slate-400">تحديد نوع المنشأة والاسم والرمز الموحد وسنة الإنشاء</p>
+                <h3 className={`text-sm sm:text-base font-bold ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                  البيانات التعريفية والرمز والهوية القياسية
+                </h3>
+                <p className={`text-[11px] sm:text-xs ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                  تحديد نوع المنشأة والاسم والرمز الموحد وسنة الإنشاء
+                </p>
               </div>
             </div>
             <span className="text-[11px] font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-3 py-1 rounded-full">
@@ -1196,15 +1285,24 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
         </div>
 
         {/* ==================== SECTION 2 ==================== */}
-        <div ref={section2Ref} className="bg-slate-950 border border-slate-800 rounded-3xl p-6 space-y-5 scroll-mt-24">
-          <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-xl bg-amber-500 text-slate-950 font-black flex items-center justify-center text-sm shadow">
+        <div
+          ref={section2Ref}
+          className={`border rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 space-y-4 sm:space-y-5 scroll-mt-24 transition-colors ${
+            isLight ? 'bg-white border-slate-200 text-slate-900 shadow-xs' : 'bg-slate-950 border-slate-800 text-slate-100'
+          }`}
+        >
+          <div className={`flex items-center justify-between border-b pb-3 ${isLight ? 'border-slate-200' : 'border-slate-800/80'}`}>
+            <div className="flex items-center gap-2.5 sm:gap-3">
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-amber-500 text-slate-950 font-black flex items-center justify-center text-xs sm:text-sm shadow">
                 {toArabicDigits(2)}
               </div>
               <div>
-                <h3 className="text-base font-bold text-slate-100">الموقع والإحداثيات الجغرافية والخريطة التفاعلية</h3>
-                <p className="text-xs text-slate-400">تحديد المحافظة، الحقل النفطي، وإحداثيات الموقع عبر خريطة حية أو إدخال يدوي</p>
+                <h3 className={`text-sm sm:text-base font-bold ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                  الموقع والإحداثيات الجغرافية والخريطة التفاعلية
+                </h3>
+                <p className={`text-[11px] sm:text-xs ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                  تحديد المحافظة، الحقل النفطي، وإحداثيات الموقع عبر خريطة حية أو إدخال يدوي
+                </p>
               </div>
             </div>
             <span className="text-[11px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-full">
@@ -1661,230 +1759,798 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
           </div>
 
           {/* Floor-by-Floor Rooms & Halls Breakdown Section */}
-          <div className="space-y-6 pt-2">
-            <div className={`flex items-center justify-between p-3.5 border rounded-2xl ${isLight ? 'bg-amber-500/10 border-amber-300 text-slate-900' : 'bg-slate-900/80 border-slate-800 text-slate-200'}`}>
-              <div className="flex items-center gap-2">
-                <Layers className={`w-4 h-4 ${isLight ? 'text-amber-700' : 'text-amber-400'}`} />
-                <h4 className={`font-bold text-xs ${isLight ? 'text-slate-900' : 'text-slate-200'}`}>
-                  تفاصيل وحصر غرف وقاعات كل طابق (إجمالي الطوابق: {floorsCount})
-                </h4>
-              </div>
-              <span className={`text-[11px] ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
-                تترك الخانات فارغة لإدخال البيانات عند التسجيل كطلب المستخدم
-              </span>
-            </div>
-
-            {Array.from({ length: floorsCount }, (_, i) => i + 1).map((floorNum) => {
-              const counts = floorsRoomCountsMap[floorNum] || DEFAULT_FLOOR_ROOM_COUNTS;
-              const roomsList = detailedRoomsMap[floorNum] || [];
-
-              const roomCategories: { key: string; label: string; icon: string }[] = [
-                { key: 'standardRooms', label: 'الغرف (المكاتب)', icon: '🏢' },
-                { key: 'meetingHalls', label: 'قاعات الاجتماعات', icon: '👥' },
-                { key: 'trainingHalls', label: 'قاعات التدريب', icon: '🎓' },
-                { key: 'workshops', label: 'الورش الفنية', icon: '🛠️' },
-                { key: 'equipmentRooms', label: 'غرف المعدات', icon: '⚡' },
-                { key: 'serviceRooms', label: 'غرف الخدمات', icon: '🧹' },
-                { key: 'storageRooms', label: 'غرف المخزن', icon: '📦' },
-                { key: 'restrooms', label: 'دورات المياه الصحية', icon: '🚽' },
-                { key: 'kitchens', label: 'المطابخ / البوفيه', icon: '🍳' },
-                { key: 'diningHalls', label: 'قاعات الطعام', icon: '🍽️' },
-                { key: 'bedrooms', label: 'غرف النوم / السكن', icon: '🛏️' },
-              ];
-
-              return (
-                <div key={floorNum} className={`border rounded-2xl p-4 sm:p-5 space-y-4 shadow-sm transition-colors ${isLight ? 'bg-slate-50/90 border-slate-200 text-slate-900' : 'bg-slate-900 border-slate-800 text-slate-100'}`}>
-                  {/* Floor Header */}
-                  <div className={`flex items-center justify-between border-b pb-3 ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
-                    <div className="flex items-center gap-2.5">
-                      <span className={`px-2.5 py-1 border font-black rounded-lg text-xs ${isLight ? 'bg-amber-100 text-amber-900 border-amber-300' : 'bg-amber-500/20 text-amber-400 border-amber-500/30'}`}>
-                        الطابق {floorNum}
-                      </span>
-                      <h5 className={`font-bold text-sm ${isLight ? 'text-slate-900' : 'text-slate-200'}`}>
-                        توزيع أعداد الغرف والقاعات المخصصة للطابق {floorNum}
-                      </h5>
-                    </div>
-                    <span className={`text-xs font-mono font-bold ${isLight ? 'text-amber-800' : 'text-amber-400'}`}>
-                      إجمالي المخصص: {roomsList.length} وحدة / غرفة
+          <div className="space-y-4 pt-2">
+            {/* Header: Title, View Switcher & Action Buttons */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3">
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-500 flex items-center justify-center shrink-0">
+                  <Layers className="w-4 h-4" />
+                </div>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <h4 className={`text-sm sm:text-base font-black truncate ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                      تفاصيل وحصر غرف وقاعات المبنى
+                    </h4>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30">
+                      {toArabicDigits(rooms.length)} غرفة مسجلة
                     </span>
                   </div>
+                  <p className={`text-[11px] truncate ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                    تقسيم داخلي تفصيلي، أرقام الغرف، الرموز القياسية، وتخصيص الجهات الشاغلة
+                  </p>
+                </div>
+              </div>
 
-                  {/* 11 Categories Counters Grid */}
-                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 text-xs">
-                    {roomCategories.map((cat) => (
-                      <div
-                        key={cat.key}
-                        className={`border rounded-xl p-2.5 flex flex-col justify-between transition ${isLight ? 'bg-white border-slate-200 hover:border-amber-400 text-slate-900' : 'bg-slate-950 border-slate-800 hover:border-slate-700 text-slate-300'}`}
+              {/* Right controls: View Mode Switcher + Action Buttons */}
+              <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap sm:flex-nowrap">
+                {/* View Mode Switcher */}
+                <div className={`flex items-center p-1 rounded-xl border shrink-0 ${isLight ? 'bg-slate-100 border-slate-200' : 'bg-slate-950 border-slate-800'}`}>
+                  <button
+                    type="button"
+                    onClick={() => setRoomsViewMode('cards')}
+                    className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${
+                      roomsViewMode === 'cards'
+                        ? 'bg-amber-500 text-slate-950 shadow-xs'
+                        : isLight ? 'text-slate-600 hover:text-slate-900' : 'text-slate-400 hover:text-slate-100'
+                    }`}
+                  >
+                    <LayoutGrid className="w-3.5 h-3.5" />
+                    <span>بطاقات</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setRoomsViewMode('table')}
+                    className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${
+                      roomsViewMode === 'table'
+                        ? 'bg-amber-500 text-slate-950 shadow-xs'
+                        : isLight ? 'text-slate-600 hover:text-slate-900' : 'text-slate-400 hover:text-slate-100'
+                    }`}
+                  >
+                    <TableIcon className="w-3.5 h-3.5" />
+                    <span>جدول</span>
+                  </button>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleRegenerateAllRoomCodes}
+                  className={`px-2.5 py-1.5 rounded-xl border text-xs font-bold flex items-center gap-1.5 transition cursor-pointer shrink-0 ${
+                    isLight
+                      ? 'bg-white hover:bg-slate-100 text-slate-700 border-slate-300'
+                      : 'bg-slate-900 hover:bg-slate-800 text-slate-300 border-slate-800'
+                  }`}
+                  title="إعادة ترقيم وتسلسل جميع رموز الغرف القياسية وفق الطوابق"
+                >
+                  <RefreshCw className="w-3.5 h-3.5 text-amber-500" />
+                  <span className="hidden sm:inline">ترقيم الرموز</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleGenerateRecommendedRooms}
+                  className={`px-2.5 py-1.5 rounded-xl border text-xs font-bold flex items-center gap-1.5 transition cursor-pointer shrink-0 ${
+                    isLight
+                      ? 'bg-white hover:bg-slate-100 text-indigo-700 border-indigo-200'
+                      : 'bg-slate-900 hover:bg-slate-800 text-indigo-300 border-slate-800'
+                  }`}
+                  title="توليد توزيع مقترح تلقائياً لغرف المبنى وفق الطوابق"
+                >
+                  <Layers className="w-3.5 h-3.5 text-indigo-400" />
+                  <span className="hidden sm:inline">توليد مقترح</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleAddRoom()}
+                  className="bg-amber-500 hover:bg-amber-400 text-slate-950 px-3 py-1.5 rounded-xl text-xs font-black flex items-center gap-1.5 transition cursor-pointer shadow-sm shrink-0"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>إضافة غرفة</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Quick Metrics Summary Bar (5 Stat Cards) */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 text-xs">
+              <div className={`p-2.5 rounded-xl border ${isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-900/60 border-slate-800'}`}>
+                <span className="text-[10px] text-slate-400 block font-bold">إجمالي الغرف</span>
+                <span className="text-base font-black text-amber-500 font-mono">
+                  {toArabicDigits(rooms.length)}
+                </span>
+              </div>
+              <div className={`p-2.5 rounded-xl border ${isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-900/60 border-slate-800'}`}>
+                <span className="text-[10px] text-slate-400 block font-bold">المساحة المحصورة</span>
+                <span className={`text-base font-black font-mono ${isLight ? 'text-slate-900' : 'text-slate-200'}`}>
+                  {toArabicDigits(rooms.reduce((acc, r) => acc + (Number(r.areaSqM) || 0), 0))} م²
+                </span>
+              </div>
+              <div className={`p-2.5 rounded-xl border ${isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-900/60 border-slate-800'}`}>
+                <span className="text-[10px] text-slate-400 block font-bold">إجمالي الطاقة الاستيعابية</span>
+                <span className="text-base font-black text-sky-500 dark:text-sky-400 font-mono">
+                  {toArabicDigits(rooms.reduce((acc, r) => acc + (Number(r.capacity) || Number(r.occupantsCount) || 0), 0))} فرد
+                </span>
+              </div>
+              <div className={`p-2.5 rounded-xl border ${isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-900/60 border-slate-800'}`}>
+                <span className="text-[10px] text-slate-400 block font-bold">الغرف المشغولة</span>
+                <span className="text-base font-black text-emerald-500 dark:text-emerald-400 font-mono">
+                  {toArabicDigits(rooms.filter((r) => r.status === 'Active' && !isRoomVacant(r.occupiedBy)).length)}
+                </span>
+              </div>
+              <div className={`p-2.5 rounded-xl border ${isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-900/60 border-slate-800'} col-span-2 sm:col-span-1`}>
+                <span className="text-[10px] text-slate-400 block font-bold">الغرف المتوقفة</span>
+                <span className="text-base font-black text-rose-500 dark:text-rose-400 font-mono">
+                  {toArabicDigits(rooms.filter((r) => r.status === 'Stopped').length)}
+                </span>
+              </div>
+            </div>
+
+            {/* Search & Floor Filters Toolbar */}
+            {rooms.length > 0 && (
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 pt-1">
+                {/* Search Input */}
+                <div className="relative flex-1 max-w-full sm:max-w-xs">
+                  <input
+                    type="text"
+                    value={roomSearchQuery}
+                    onChange={(e) => setRoomSearchQuery(e.target.value)}
+                    placeholder="ابحث بالاسم، الرمز، أو الجهة..."
+                    className={`w-full text-xs rounded-xl py-2 pl-7 pr-8 border outline-none font-medium transition ${
+                      isLight
+                        ? 'bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:border-amber-500'
+                        : 'bg-slate-950 border-slate-800 text-slate-100 placeholder-slate-500 focus:border-amber-500'
+                    }`}
+                  />
+                  <Search className="w-3.5 h-3.5 absolute right-2.5 top-3 text-slate-400 pointer-events-none" />
+                  {roomSearchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => setRoomSearchQuery('')}
+                      className="absolute left-2.5 top-2.5 text-slate-400 hover:text-rose-400 cursor-pointer"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+
+                {/* Floor Filters (Horizontal scrolling chips) */}
+                {availableFloors.length > 1 && (
+                  <div className="flex items-center gap-1 overflow-x-auto scrollbar-none py-0.5">
+                    <span className="text-[10px] text-slate-400 font-bold shrink-0 ml-1">الطابق:</span>
+                    <button
+                      type="button"
+                      onClick={() => setRoomFloorFilter('all')}
+                      className={`px-2 py-0.5 rounded-lg text-[10px] font-bold shrink-0 transition cursor-pointer ${
+                        roomFloorFilter === 'all'
+                          ? 'bg-amber-500 text-slate-950 font-black'
+                          : isLight
+                          ? 'bg-white text-slate-600 border border-slate-200'
+                          : 'bg-slate-950 text-slate-400 border border-slate-800'
+                      }`}
+                    >
+                      الكل
+                    </button>
+                    {availableFloors.map((flr) => (
+                      <button
+                        key={flr}
+                        type="button"
+                        onClick={() => setRoomFloorFilter(flr)}
+                        className={`px-2 py-0.5 rounded-lg text-[10px] font-bold shrink-0 transition cursor-pointer ${
+                          roomFloorFilter === flr
+                            ? 'bg-amber-500 text-slate-950 font-black'
+                            : isLight
+                            ? 'bg-white text-slate-600 border border-slate-200'
+                            : 'bg-slate-950 text-slate-400 border border-slate-800'
+                        }`}
                       >
-                        <span className={`text-[11px] font-bold flex items-center gap-1.5 truncate mb-1.5 ${isLight ? 'text-slate-800' : 'text-slate-300'}`}>
-                          <span>{cat.icon}</span>
-                          <span className="truncate">{cat.label}</span>
-                        </span>
+                        {flr}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
 
-                        <div className={`flex items-center justify-between border rounded-lg p-1 ${isLight ? 'bg-slate-100 border-slate-200' : 'bg-slate-900 border-slate-800'}`}>
-                          <button
-                            type="button"
-                            onClick={() =>
-                              handleUpdateFloorRoomCount(floorNum, cat.key, (counts[cat.key] || 0) - 1)
-                            }
-                            className={`w-6 h-6 rounded font-bold flex items-center justify-center transition cursor-pointer ${isLight ? 'bg-white border border-slate-300 hover:bg-slate-200 text-slate-800 shadow-xs' : 'bg-slate-800 hover:bg-slate-700 text-slate-300'}`}
+            {/* Warning Banner after re-generating codes */}
+            {roomCodeChangeWarning && (
+              <div className="p-3 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-700 dark:text-amber-300 flex items-start justify-between gap-2 text-xs font-bold animate-fadeIn">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 shrink-0 text-amber-500" />
+                  <span>{roomCodeChangeWarning}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setRoomCodeChangeWarning(null)}
+                  className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-0.5 cursor-pointer"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
+
+            {/* Empty States */}
+            {rooms.length === 0 ? (
+              <div
+                className={`p-6 sm:p-8 text-center text-xs border border-dashed rounded-2xl flex flex-col items-center justify-center gap-2.5 ${
+                  isLight ? 'border-slate-300 text-slate-500 bg-white' : 'border-slate-800 text-slate-400 bg-slate-950/60'
+                }`}
+              >
+                <div className="w-10 h-10 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-500 flex items-center justify-center">
+                  <Layers className="w-5 h-5" />
+                </div>
+                <div className={`font-bold text-sm ${isLight ? 'text-slate-900' : 'text-slate-200'}`}>لا توجد غرف مخصصة لهذه المنشأة حالياً</div>
+                <p className="max-w-sm text-xs opacity-80">
+                  يمكنك توليد التوزيع القياسي المقترح تلقائياً لجميع الطوابق أو الضغط على "إضافة غرفة جديدة".
+                </p>
+                <div className="flex items-center gap-2 mt-1 flex-wrap justify-center">
+                  <button
+                    type="button"
+                    onClick={handleGenerateRecommendedRooms}
+                    className="bg-indigo-600 hover:bg-indigo-500 text-white px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition cursor-pointer shadow-md"
+                  >
+                    <Layers className="w-4 h-4" />
+                    <span>توليد غرف مقترحة تلقائياً</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleAddRoom()}
+                    className="bg-amber-500 hover:bg-amber-400 text-slate-950 px-3.5 py-2 rounded-xl text-xs font-black flex items-center gap-1.5 transition cursor-pointer shadow-md"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>إضافة غرفة جديدة الآن</span>
+                  </button>
+                </div>
+              </div>
+            ) : filteredRooms.length === 0 ? (
+              <div
+                className={`p-6 text-center text-xs border border-dashed rounded-xl ${
+                  isLight ? 'border-slate-300 text-slate-500 bg-white' : 'border-slate-800 text-slate-400 bg-slate-950'
+                }`}
+              >
+                <p className="font-bold">لا توجد غرف تطابق البحث أو الفلتر المحدد</p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setRoomSearchQuery('');
+                    setRoomFloorFilter('all');
+                  }}
+                  className="mt-2 text-amber-500 font-bold underline cursor-pointer"
+                >
+                  إلغاء الفلتر وعرض الكل
+                </button>
+              </div>
+            ) : roomsViewMode === 'cards' ? (
+              /* ========================================================================= */
+              /* VIEW 1: RESPONSIVE CARDS VIEW (Full Parity with EditUnitModal)            */
+              /* ========================================================================= */
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
+                {filteredRooms.map((rm, idx) => {
+                  const isStopped = rm.status === 'Stopped' || rm.status === 'متوقفة';
+                  const roomComputedCode = (rm.code && rm.code.trim()) ? rm.code.trim() : generateRoomCode(code || 'UNIT', extractFloorNumber(rm.floor), getRoomTypeCode(rm.type), rm.sequenceNumber || 101, true);
+                  const isNonOcc = isNonOccupancyRoom(rm.type);
+                  const isCap = isCapacityBasedRoom(rm.type);
+                  const isVacant = isRoomVacant(rm.occupiedBy);
+
+                  return (
+                    <div
+                      key={rm.id}
+                      className={`rounded-2xl border p-3 sm:p-4 space-y-2.5 transition shadow-xs hover:shadow-sm relative ${
+                        isStopped
+                          ? isLight
+                            ? 'bg-rose-50/50 border-rose-300 ring-1 ring-rose-200'
+                            : 'bg-rose-950/20 border-rose-800/80 ring-1 ring-rose-500/20'
+                          : isLight
+                          ? 'bg-white border-slate-200 hover:border-slate-300'
+                          : 'bg-slate-950/80 border-slate-800 hover:border-slate-700'
+                      }`}
+                    >
+                      {/* Card Header: Room Index, Standard Code, QR, Regenerate, Status toggle & Delete */}
+                      <div className="flex items-center justify-between gap-1.5 pb-2 border-b border-slate-200 dark:border-slate-800/80">
+                        {/* Right side: Code Badge & Actions */}
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <span className="w-5 h-5 rounded-md bg-amber-500 text-slate-950 text-[10px] font-black flex items-center justify-center shrink-0">
+                            {toArabicDigits(idx + 1)}
+                          </span>
+                          <span
+                            className="font-mono font-black text-[11px] text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-lg border border-amber-500/25 shrink-0"
+                            dir="ltr"
+                            title={`رمز الغرفة القياسي: ${roomComputedCode}`}
                           >
-                            -
-                          </button>
-                          <span className={`font-mono font-black text-xs px-2 ${isLight ? 'text-slate-900' : 'text-amber-400'}`}>
-                            {counts[cat.key] || 0}
+                            {roomComputedCode}
                           </span>
                           <button
                             type="button"
-                            onClick={() =>
-                              handleUpdateFloorRoomCount(floorNum, cat.key, (counts[cat.key] || 0) + 1)
-                            }
-                            className={`w-6 h-6 rounded font-bold flex items-center justify-center transition cursor-pointer ${isLight ? 'bg-white border border-slate-300 hover:bg-slate-200 text-slate-800 shadow-xs' : 'bg-slate-800 hover:bg-slate-700 text-slate-300'}`}
+                            onClick={() => setSelectedRoomForQr({ ...rm, code: roomComputedCode })}
+                            className="p-1 rounded-lg bg-amber-500/10 hover:bg-amber-500 text-amber-500 hover:text-slate-950 transition cursor-pointer shrink-0"
+                            title="استعراض وطباعة بطاقة QR للغرفة"
                           >
-                            +
+                            <QrCode className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleRegenerateSingleRoomCode(rm.id)}
+                            className="p-1 rounded-lg bg-slate-500/10 hover:bg-slate-700 text-slate-400 hover:text-white transition cursor-pointer shrink-0"
+                            title="إعادة توليد الرمز القياسي لهذه الغرفة"
+                          >
+                            <RefreshCw className="w-3 h-3" />
+                          </button>
+                        </div>
+
+                        {/* Left side: Operational Status & Delete */}
+                        <div className="flex items-center gap-1 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => handleUpdateRoom(rm.id, 'status', isStopped ? 'Active' : 'Stopped')}
+                            className={`text-[10.5px] px-2 py-0.5 rounded-full font-bold border transition cursor-pointer shrink-0 ${
+                              isStopped
+                                ? 'bg-rose-500/20 text-rose-500 border-rose-500/40 hover:bg-rose-500/30'
+                                : 'bg-emerald-500/20 text-emerald-500 border-emerald-500/40 hover:bg-emerald-500/30'
+                            }`}
+                            title={isStopped ? 'انقر لتفعيل الغرفة' : 'انقر لإيقاف الغرفة'}
+                          >
+                            {isStopped ? 'متوقفة 🔴' : 'فعالة 🟢'}
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteRoom(rm.id)}
+                            className="p-1 text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 rounded-lg transition cursor-pointer shrink-0"
+                            title="حذف هذه الغرفة"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         </div>
                       </div>
-                    ))}
-                  </div>
 
-                  {/* Room Customization Table */}
-                  <div className="pt-2 space-y-3">
-                    <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-2 border rounded-xl p-3 ${isLight ? 'bg-amber-50/80 border-amber-200 text-slate-900' : 'bg-slate-950 border-slate-800/80'}`}>
+                      {/* Room Name Input */}
                       <div>
-                        <h6 className={`font-bold text-xs flex items-center gap-2 ${isLight ? 'text-slate-900' : 'text-slate-200'}`}>
-                          <CheckCircle2 className={`w-4 h-4 ${isLight ? 'text-emerald-600' : 'text-emerald-400'}`} />
-                          <span>قائمة ترقيم وتخصيص الغرف للطابق {floorNum}</span>
-                        </h6>
-                        <p className={`text-[11px] mt-0.5 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
-                          يمكنك تعديل أرقام الغرف، أسماء التخصيص، وتعيين جهة شاغلة مستقلة لكل غرفة
-                        </p>
+                        <label className={`block text-[10px] font-bold mb-1 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                          اسم الغرفة / القاعة:
+                        </label>
+                        <input
+                          type="text"
+                          value={rm.name}
+                          onChange={(e) => handleUpdateRoom(rm.id, 'name', e.target.value)}
+                          placeholder="مثال: مكتب المهندس المقيم / غرفة الاجتماعات"
+                          className={`w-full border rounded-xl px-2.5 py-1.5 text-xs font-bold outline-none transition focus:border-amber-500 ${
+                            isLight
+                              ? 'bg-slate-50 border-slate-300 text-slate-900 focus:bg-white'
+                              : 'bg-slate-900 border-slate-800 text-slate-100 focus:bg-slate-950'
+                          }`}
+                        />
                       </div>
 
-                      <button
-                        type="button"
-                        onClick={() => handleAddCustomRoom(floorNum)}
-                        className={`border px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 self-start sm:self-auto cursor-pointer transition ${isLight ? 'bg-white hover:bg-slate-100 text-amber-800 border-amber-300 shadow-sm' : 'bg-slate-800 hover:bg-slate-700 text-amber-400 border-slate-700'}`}
-                      >
-                        <Plus className="w-3.5 h-3.5" />
-                        <span>إضافة غرفة مخصصة للطابق</span>
-                      </button>
+                      {/* 3-Field Specifications Grid: Type, Floor, Area */}
+                      <div className="grid grid-cols-3 gap-1.5 sm:gap-2 text-xs">
+                        <div>
+                          <label className={`block text-[9.5px] font-bold mb-0.5 truncate ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                            نوع الاستخدام:
+                          </label>
+                          <input
+                            type="text"
+                            value={rm.type}
+                            onChange={(e) => handleUpdateRoom(rm.id, 'type', e.target.value)}
+                            className={`w-full border rounded-lg px-2 py-1 text-xs outline-none transition focus:border-amber-500 ${
+                              isLight ? 'bg-slate-50 border-slate-300 text-slate-900 focus:bg-white' : 'bg-slate-900 border-slate-800 text-slate-100 focus:bg-slate-950'
+                            }`}
+                          />
+                        </div>
+
+                        <div>
+                          <label className={`block text-[9.5px] font-bold mb-0.5 truncate ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                            الطابق:
+                          </label>
+                          <select
+                            value={rm.floor}
+                            onChange={(e) => handleUpdateRoom(rm.id, 'floor', e.target.value)}
+                            className={`w-full border rounded-lg px-2 py-1 text-xs font-bold outline-none transition focus:border-amber-500 cursor-pointer ${
+                              isLight ? 'bg-slate-50 border-slate-300 text-slate-900 focus:bg-white' : 'bg-slate-900 border-slate-800 text-slate-100 focus:bg-slate-950'
+                            }`}
+                          >
+                            {Array.from({ length: Math.max(1, Number(floorsCount) || 1) }, (_, i) => `الطابق ${i + 1}`).map((flr) => (
+                              <option key={flr} value={flr}>{flr}</option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className={`block text-[9.5px] font-bold mb-0.5 truncate ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                            المساحة (م²):
+                          </label>
+                          <input
+                            type="number"
+                            min="1"
+                            value={rm.areaSqM}
+                            onChange={(e) => handleUpdateRoom(rm.id, 'areaSqM', Number(e.target.value))}
+                            className={`w-full border rounded-lg px-2 py-1 text-xs font-bold outline-none transition focus:border-amber-500 ${
+                              isLight ? 'bg-slate-50 border-slate-300 text-slate-900 focus:bg-white' : 'bg-slate-900 border-slate-800 text-amber-400 focus:bg-slate-950'
+                            }`}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Occupancy / Capacity & Department Selection */}
+                      <div className="space-y-1.5 pt-1.5 border-t border-slate-200/80 dark:border-slate-800/60">
+                        {/* Occupancy or Capacity Row */}
+                        <div className="flex items-center justify-between text-xs gap-2">
+                          <span className={`text-[10px] font-bold shrink-0 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                            الإشغال والسعة:
+                          </span>
+
+                          {isNonOcc ? (
+                            <span className="text-slate-400 text-[10px] px-2 py-0.5 bg-slate-500/10 rounded-lg border border-slate-500/20 truncate">
+                              — (غير مخصص للإشغال البشري)
+                            </span>
+                          ) : isCap ? (
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              <input
+                                type="number"
+                                min="0"
+                                placeholder="السعة"
+                                value={rm.capacity ?? ''}
+                                onChange={(e) => handleUpdateRoom(rm.id, 'capacity', Number(e.target.value) || 0)}
+                                className={`w-14 sm:w-16 border rounded-lg px-2 py-0.5 text-xs font-bold outline-none text-center ${
+                                  isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-slate-900 border-slate-800 text-slate-100'
+                                }`}
+                              />
+                              <span className="text-[10px] text-sky-500 font-bold whitespace-nowrap">طاقة استيعابية</span>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              <input
+                                type="number"
+                                min="0"
+                                placeholder="الشاغلين"
+                                value={rm.occupantsCount ?? ''}
+                                onChange={(e) => handleUpdateRoom(rm.id, 'occupantsCount', Number(e.target.value) || 0)}
+                                className={`w-14 sm:w-16 border rounded-lg px-2 py-0.5 text-xs font-bold outline-none text-center ${
+                                  isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-slate-900 border-slate-800 text-slate-100'
+                                }`}
+                              />
+                              <span className="text-[10px] text-emerald-500 font-bold whitespace-nowrap">شاغل</span>
+                              {isVacant && (
+                                <span className="text-[9.5px] text-amber-500 font-bold mr-1">(شاغرة)</span>
+                              )}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Occupying Department Selector */}
+                        <div>
+                          <label className={`block text-[10px] font-bold mb-0.5 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                            الجهة الشاغلة المخصصة للغرفة:
+                          </label>
+                          <select
+                            value={rm.occupiedBy ?? ''}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              handleUpdateRoom(rm.id, 'occupiedBy', val);
+                              if (!val) {
+                                handleUpdateRoom(rm.id, 'status', 'Vacant');
+                              } else if (rm.status === 'Vacant') {
+                                handleUpdateRoom(rm.id, 'status', 'Active');
+                              }
+                            }}
+                            className={`w-full border rounded-xl px-2.5 py-1.5 text-xs outline-none cursor-pointer transition font-medium ${
+                              isLight
+                                ? 'bg-slate-50 border-slate-300 text-slate-900 focus:border-amber-500'
+                                : 'bg-slate-900 border-slate-800 text-slate-100 focus:border-amber-500'
+                            }`}
+                          >
+                            <option value="">🏢 شاغرة (بدون إشغال / فارغة)</option>
+                            {selectedDepartments.length > 0 ? (
+                              selectedDepartments.map((deptName, deptIdx) => (
+                                <option key={deptName} value={deptName}>
+                                  {deptIdx === 0 ? `★ ${deptName} (الجهة الرئيسية)` : `• ${deptName}`}
+                                </option>
+                              ))
+                            ) : (
+                              <option value="" disabled>
+                                ⚠️ حدد التشكيلات الشاغلة من الهيكل التنظيمي أعلاه أولاً
+                              </option>
+                            )}
+                            {rm.occupiedBy && !selectedDepartments.includes(rm.occupiedBy) && (
+                              <option value={rm.occupiedBy}>{rm.occupiedBy} (مخصص)</option>
+                            )}
+                          </select>
+                        </div>
+                      </div>
+
+                      {/* Stopped Reason Box (Only if stopped) */}
+                      {isStopped && (
+                        <div className={`p-2 rounded-xl border text-xs space-y-1 animate-in fade-in duration-150 ${
+                          isLight ? 'bg-rose-100/60 border-rose-300' : 'bg-rose-950/40 border-rose-900/60'
+                        }`}>
+                          <label className="block text-[10px] font-black text-rose-600 dark:text-rose-400">
+                            سبب التوقف وملاحظات العطل:
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="أدخل سبب التوقف أو متطلبات الصيانة..."
+                            value={rm.notes || ''}
+                            onChange={(e) => handleUpdateRoom(rm.id, 'notes', e.target.value)}
+                            className={`w-full border rounded-lg px-2 py-1 text-xs outline-none font-bold transition ${
+                              isLight
+                                ? 'bg-white border-rose-300 text-rose-900 placeholder-rose-400 focus:border-rose-500'
+                                : 'bg-slate-950 border-rose-800 text-rose-200 placeholder-rose-500/50 focus:border-rose-500'
+                            }`}
+                          />
+                        </div>
+                      )}
                     </div>
+                  );
+                })}
+              </div>
+            ) : (
+              /* ========================================================================= */
+              /* VIEW 2: HIGH-DENSITY TABLE VIEW (Optimized for Desktop & Scrollable Phone) */
+              /* ========================================================================= */
+              <div className="space-y-2">
+                {/* Subtle helper banner on mobile */}
+                <div className="md:hidden p-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-500 text-[11px] font-medium flex items-center justify-between gap-1.5">
+                  <span>💡 مرّر الجدول أفقياً لتعديل كافة الأعمدة، أو بدّل إلى وضع "بطاقات" لتحكم أسهل باللمس.</span>
+                  <button
+                    type="button"
+                    onClick={() => setRoomsViewMode('cards')}
+                    className="text-xs font-black underline shrink-0 px-1 py-0.5 rounded cursor-pointer"
+                  >
+                    عرض بطاقات
+                  </button>
+                </div>
 
-                    {roomsList.length === 0 ? (
-                      <div className={`p-6 text-center text-xs border border-dashed rounded-xl font-medium ${isLight ? 'bg-white text-slate-500 border-slate-300' : 'bg-slate-950/50 text-slate-500 border-slate-800'}`}>
-                        لم يتم إضافة أو تحديد أي غرف لهذا الطابق بعد. يمكنك زيادة العدد أعلاه أو الضغط على "إضافة غرفة مخصصة".
-                      </div>
-                    ) : (
-                      <div className={`overflow-x-auto border rounded-xl shadow-sm ${isLight ? 'border-slate-200 bg-white' : 'border-slate-800 bg-slate-900/50'}`}>
-                        <table className="w-full text-right text-xs">
-                          <thead className={`font-bold border-b ${isLight ? 'bg-slate-100 text-slate-700 border-slate-200' : 'bg-slate-950 text-slate-400 border-slate-800'}`}>
-                            <tr>
-                              <th className="p-2.5">رمز/رقم الغرفة</th>
-                              <th className="p-2.5">تسمية وتخصيص الغرفة</th>
-                              <th className="p-2.5">الفئة</th>
-                              <th className="p-2.5">الجهة الشاغلة للغرفة</th>
-                              <th className="p-2.5">الطاقة (أفراد)</th>
-                              <th className="p-2.5 text-center">حذف</th>
-                            </tr>
-                          </thead>
-                          <tbody className={`divide-y ${isLight ? 'divide-slate-200 text-slate-800' : 'divide-slate-800/60 text-slate-300'}`}>
-                            {roomsList.map((rm: any) => (
-                              <tr key={rm.id} className={`transition ${isLight ? 'hover:bg-amber-50/50' : 'hover:bg-slate-800/30'}`}>
-                                <td className="p-2 w-28">
-                                  <input
-                                    type="text"
-                                    value={rm.roomNumber}
-                                    onChange={(e) =>
-                                      handleUpdateRoomField(floorNum, rm.id, 'roomNumber', e.target.value)
-                                    }
-                                    className={`w-full border rounded-lg px-2 py-1 font-mono font-bold text-xs outline-none ${isLight ? 'bg-white border-slate-300 text-amber-700 focus:border-amber-500' : 'bg-slate-950 border-slate-800 text-amber-400 focus:border-amber-500'}`}
-                                  />
-                                </td>
-                                <td className="p-2">
-                                  <input
-                                    type="text"
-                                    value={rm.name}
-                                    onChange={(e) =>
-                                      handleUpdateRoomField(floorNum, rm.id, 'name', e.target.value)
-                                    }
-                                    className={`w-full border rounded-lg px-2.5 py-1 text-xs outline-none ${isLight ? 'bg-white border-slate-300 text-slate-900 font-medium focus:border-amber-500' : 'bg-slate-950 border-slate-800 text-slate-200 focus:border-amber-500'}`}
-                                  />
-                                </td>
-                                <td className="p-2 whitespace-nowrap">
-                                  <span className={`px-2 py-1 rounded text-[11px] font-semibold border ${isLight ? 'bg-slate-100 text-slate-800 border-slate-300' : 'bg-slate-800 text-slate-300 border-slate-700'}`}>
-                                    {rm.categoryLabel}
-                                  </span>
-                                </td>
-                                <td className="p-2">
-                                  <select
-                                    value={rm.occupiedBy ?? ''}
-                                    onChange={(e) =>
-                                      handleUpdateRoomField(floorNum, rm.id, 'occupiedBy', e.target.value)
-                                    }
-                                    className={`w-full border rounded-lg px-2 py-1 text-xs cursor-pointer outline-none transition ${isLight ? 'bg-white border-slate-300 text-slate-900 font-medium focus:border-amber-500' : 'bg-slate-950 border-slate-800 text-slate-200 focus:border-amber-500'}`}
-                                  >
-                                    <option value="">🏢 شاغرة (بدون إشغال / فارغة)</option>
-                                    {selectedDepartments.length > 0 ? (
-                                      selectedDepartments.map((deptName, idx) => (
-                                        <option key={deptName} value={deptName}>
-                                          {idx === 0 ? `★ ${deptName} (الجهة الرئيسية)` : `• ${deptName}`}
-                                        </option>
-                                      ))
-                                    ) : (
-                                      <option value="" disabled>
-                                        ⚠️ يرجى تحديد الجهات الشاغلة للمنشأة أولاً من الهيكل التنظيمي أعلاه
-                                      </option>
-                                    )}
-                                    {rm.occupiedBy && !selectedDepartments.includes(rm.occupiedBy) && (
-                                      <option value={rm.occupiedBy}>{rm.occupiedBy} (سابق)</option>
-                                    )}
-                                  </select>
-                                </td>
-                                <td className="p-2 w-20">
+                <div
+                  className={`overflow-x-auto border rounded-2xl shadow-xs scrollbar-thin ${
+                    isLight ? 'border-slate-200 bg-white' : 'border-slate-800 bg-slate-950'
+                  }`}
+                >
+                  <table className="w-full text-right text-xs min-w-[850px]">
+                    <thead
+                      className={`font-black border-b sticky top-0 z-10 ${
+                        isLight ? 'bg-slate-100 text-slate-700 border-slate-200' : 'bg-slate-900 text-slate-300 border-slate-800'
+                      }`}
+                    >
+                      <tr>
+                        <th className="p-2.5 w-10 text-center">#</th>
+                        <th className="p-2.5 min-w-[150px]">اسم الغرفة / القاعة</th>
+                        <th className="p-2.5 min-w-[145px]">رمز الغرفة القياسي</th>
+                        <th className="p-2.5 w-28">نوع الاستخدام</th>
+                        <th className="p-2.5 w-20">الطابق</th>
+                        <th className="p-2.5 w-20">المساحة (م²)</th>
+                        <th className="p-2.5 w-32">عدد الشاغلين</th>
+                        <th className="p-2.5 min-w-[170px]">الجهة الشاغلة</th>
+                        <th className="p-2.5 w-28">الحالة</th>
+                        <th className="p-2.5 min-w-[140px]">سبب التوقف / ملاحظات</th>
+                        <th className="p-2.5 text-center w-12">حذف</th>
+                      </tr>
+                    </thead>
+                    <tbody className={`divide-y ${isLight ? 'divide-slate-200' : 'divide-slate-800/60'}`}>
+                      {filteredRooms.map((rm, idx) => {
+                        const isStopped = rm.status === 'Stopped' || rm.status === 'متوقفة';
+                        const roomComputedCode = (rm.code && rm.code.trim()) ? rm.code.trim() : generateRoomCode(code || 'UNIT', extractFloorNumber(rm.floor), getRoomTypeCode(rm.type), rm.sequenceNumber || 101, true);
+                        const isNonOcc = isNonOccupancyRoom(rm.type);
+                        const isCap = isCapacityBasedRoom(rm.type);
+                        const isVacant = isRoomVacant(rm.occupiedBy);
+
+                        return (
+                          <tr
+                            key={rm.id}
+                            className={`transition ${
+                              isStopped
+                                ? isLight ? 'bg-rose-50/60' : 'bg-rose-950/20'
+                                : isLight ? 'hover:bg-slate-50' : 'hover:bg-slate-900/40'
+                            }`}
+                          >
+                            <td className="p-2 text-center font-bold text-slate-400 font-mono text-[11px]">
+                              {toArabicDigits(idx + 1)}
+                            </td>
+
+                            <td className="p-2">
+                              <input
+                                type="text"
+                                value={rm.name}
+                                onChange={(e) => handleUpdateRoom(rm.id, 'name', e.target.value)}
+                                className={`w-full border rounded-lg px-2.5 py-1 text-xs outline-none font-bold ${
+                                  isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-slate-900 border-slate-800 text-slate-100'
+                                }`}
+                              />
+                            </td>
+
+                            <td className="p-2">
+                              <div className="flex items-center gap-1.5 whitespace-nowrap">
+                                <span className="font-mono font-black text-[11px] text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-lg border border-amber-500/20 shrink-0" dir="ltr">
+                                  {roomComputedCode}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => setSelectedRoomForQr({ ...rm, code: roomComputedCode })}
+                                  className="p-1 rounded-lg bg-amber-500/10 hover:bg-amber-500 text-amber-500 hover:text-slate-950 transition cursor-pointer shrink-0"
+                                  title="استعراض وطباعة بطاقة QR للغرفة"
+                                >
+                                  <QrCode className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleRegenerateSingleRoomCode(rm.id)}
+                                  className="p-1 rounded-lg bg-slate-500/10 hover:bg-slate-700 text-slate-400 hover:text-white transition cursor-pointer shrink-0"
+                                  title="إعادة توليد الرمز القياسي لهذه الغرفة"
+                                >
+                                  <RefreshCw className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </td>
+
+                            <td className="p-2">
+                              <input
+                                type="text"
+                                value={rm.type}
+                                onChange={(e) => handleUpdateRoom(rm.id, 'type', e.target.value)}
+                                className={`w-full border rounded-lg px-2 py-1 text-xs outline-none ${
+                                  isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-slate-900 border-slate-800 text-slate-100'
+                                }`}
+                              />
+                            </td>
+
+                            <td className="p-2">
+                              <select
+                                value={rm.floor}
+                                onChange={(e) => handleUpdateRoom(rm.id, 'floor', e.target.value)}
+                                className={`w-full border rounded-lg px-2 py-1 text-xs font-bold outline-none cursor-pointer ${
+                                  isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-slate-900 border-slate-800 text-slate-100'
+                                }`}
+                              >
+                                {Array.from({ length: Math.max(1, Number(floorsCount) || 1) }, (_, i) => `الطابق ${i + 1}`).map((flr) => (
+                                  <option key={flr} value={flr}>{flr}</option>
+                                ))}
+                              </select>
+                            </td>
+
+                            <td className="p-2">
+                              <input
+                                type="number"
+                                value={rm.areaSqM}
+                                onChange={(e) => handleUpdateRoom(rm.id, 'areaSqM', Number(e.target.value))}
+                                className={`w-full border rounded-lg px-2 py-1 text-xs font-bold outline-none ${
+                                  isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-slate-900 border-slate-800 text-amber-400'
+                                }`}
+                              />
+                            </td>
+
+                            <td className="p-2">
+                              {isNonOcc ? (
+                                <span className="text-slate-400 text-[11px] font-normal px-2 py-1 bg-slate-500/5 rounded-lg border border-slate-500/10 block text-center">
+                                  — (غير مخصص)
+                                </span>
+                              ) : isCap ? (
+                                <div className="flex items-center gap-1">
                                   <input
                                     type="number"
-                                    min={1}
-                                    value={rm.capacity || 1}
-                                    onChange={(e) =>
-                                      handleUpdateRoomField(floorNum, rm.id, 'capacity', Number(e.target.value))
-                                    }
-                                    className={`w-full border rounded-lg px-2 py-1 font-bold text-xs outline-none ${isLight ? 'bg-white border-slate-300 text-slate-900 focus:border-amber-500' : 'bg-slate-950 border-slate-800 text-slate-200 focus:border-amber-500'}`}
+                                    min="0"
+                                    value={rm.capacity ?? ''}
+                                    onChange={(e) => handleUpdateRoom(rm.id, 'capacity', Number(e.target.value) || 0)}
+                                    className={`w-14 border rounded-lg px-1.5 py-1 text-xs font-bold outline-none text-center ${
+                                      isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-slate-900 border-slate-800 text-slate-100'
+                                    }`}
                                   />
-                                </td>
-                                <td className="p-2 text-center w-12">
-                                  <button
-                                    type="button"
-                                    onClick={() => handleDeleteRoom(floorNum, rm.id)}
-                                    className={`p-1 rounded transition cursor-pointer ${isLight ? 'text-red-600 hover:text-red-700 hover:bg-red-50' : 'text-red-400 hover:text-red-300 hover:bg-red-500/10'}`}
-                                    title="حذف الغرفة"
-                                  >
-                                    <Trash2 className="w-3.5 h-3.5 mx-auto" />
-                                  </button>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    )}
-                  </div>
+                                  <span className="text-[10px] text-sky-500 font-bold whitespace-nowrap">طاقة</span>
+                                </div>
+                              ) : (
+                                <div className="flex items-center gap-1">
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    value={rm.occupantsCount ?? ''}
+                                    onChange={(e) => handleUpdateRoom(rm.id, 'occupantsCount', Number(e.target.value) || 0)}
+                                    className={`w-14 border rounded-lg px-1.5 py-1 text-xs font-bold outline-none text-center ${
+                                      isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-slate-900 border-slate-800 text-slate-100'
+                                    }`}
+                                  />
+                                  <span className="text-[10px] text-emerald-500 font-bold whitespace-nowrap">شاغل</span>
+                                </div>
+                              )}
+                            </td>
+
+                            <td className="p-2">
+                              <select
+                                value={rm.occupiedBy ?? ''}
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  handleUpdateRoom(rm.id, 'occupiedBy', val);
+                                  if (!val) {
+                                    handleUpdateRoom(rm.id, 'status', 'Vacant');
+                                  } else if (rm.status === 'Vacant') {
+                                    handleUpdateRoom(rm.id, 'status', 'Active');
+                                  }
+                                }}
+                                className={`w-full border rounded-lg px-2 py-1 text-xs outline-none cursor-pointer ${
+                                  isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-slate-900 border-slate-800 text-slate-100'
+                                }`}
+                              >
+                                <option value="">🏢 شاغرة (بدون إشغال)</option>
+                                {selectedDepartments.map((deptName, deptIdx) => (
+                                  <option key={deptName} value={deptName}>
+                                    {deptIdx === 0 ? `★ ${deptName}` : `• ${deptName}`}
+                                  </option>
+                                ))}
+                                {rm.occupiedBy && !selectedDepartments.includes(rm.occupiedBy) && (
+                                  <option value={rm.occupiedBy}>{rm.occupiedBy} (مخصص)</option>
+                                )}
+                              </select>
+                            </td>
+
+                            <td className="p-2">
+                              <select
+                                value={rm.status}
+                                onChange={(e) => handleUpdateRoom(rm.id, 'status', e.target.value)}
+                                className={`w-full border rounded-lg px-2 py-1 text-xs font-bold outline-none cursor-pointer ${
+                                  isStopped
+                                    ? 'bg-rose-500/20 text-rose-500 border-rose-500/40'
+                                    : 'bg-emerald-500/20 text-emerald-500 border-emerald-500/40'
+                                }`}
+                              >
+                                <option value="Active">🟢 فعالة</option>
+                                <option value="Stopped">🔴 متوقفة</option>
+                                <option value="Vacant">⚪ شاغرة</option>
+                                <option value="Maintenance">🟡 صيانة</option>
+                              </select>
+                            </td>
+
+                            <td className="p-2">
+                              <input
+                                type="text"
+                                value={rm.notes || ''}
+                                onChange={(e) => handleUpdateRoom(rm.id, 'notes', e.target.value)}
+                                placeholder={isStopped ? 'أدخل سبب التوقف...' : 'ملاحظات...'}
+                                className={`w-full border rounded-lg px-2 py-1 text-xs outline-none ${
+                                  isStopped
+                                    ? isLight
+                                      ? 'bg-rose-50 border-rose-300 text-rose-900'
+                                      : 'bg-rose-950/40 border-rose-800 text-rose-200'
+                                    : isLight
+                                    ? 'bg-slate-50 border-slate-300 text-slate-900'
+                                    : 'bg-slate-900 border-slate-800 text-slate-100'
+                                }`}
+                              />
+                            </td>
+
+                            <td className="p-2 text-center">
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteRoom(rm.id)}
+                                className="p-1 text-slate-400 hover:text-rose-500 transition cursor-pointer"
+                                title="حذف الغرفة"
+                              >
+                                <Trash2 className="w-3.5 h-3.5 mx-auto" />
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
                 </div>
-              );
-            })}
+              </div>
+            )}
           </div>
         </div>
 
         {/* ==================== SECTION 4 ==================== */}
-        <div ref={section4Ref} className="bg-slate-950 border border-slate-800 rounded-3xl p-6 space-y-6 scroll-mt-24">
-          <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-xl bg-amber-500 text-slate-950 font-black flex items-center justify-center text-sm shadow">
+        <div
+          ref={section4Ref}
+          className={`border rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 space-y-4 sm:space-y-6 scroll-mt-24 transition-colors ${
+            isLight ? 'bg-white border-slate-200 text-slate-900 shadow-xs' : 'bg-slate-950 border-slate-800 text-slate-100'
+          }`}
+        >
+          <div className={`flex items-center justify-between border-b pb-3 ${isLight ? 'border-slate-200' : 'border-slate-800/80'}`}>
+            <div className="flex items-center gap-2.5 sm:gap-3">
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-amber-500 text-slate-950 font-black flex items-center justify-center text-xs sm:text-sm shadow">
                 {toArabicDigits(4)}
               </div>
               <div>
-                <h3 className="text-base font-bold text-slate-100">التقييم الهندسي المبدئي والمرفقات الرسمية</h3>
-                <p className="text-xs text-slate-400">تحديد درجة الحالة الهندسية وإرفاق المحاضر والمخططات الرسمية</p>
+                <h3 className={`text-sm sm:text-base font-bold ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                  التقييم الهندسي المبدئي والمرفقات الرسمية
+                </h3>
+                <p className={`text-[11px] sm:text-xs ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                  تحديد درجة الحالة الهندسية وإرفاق المحاضر والمخططات الرسمية
+                </p>
               </div>
             </div>
           </div>
@@ -2023,11 +2689,19 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
         </div>
 
         {/* ==================== BOTTOM FORM ACTIONS ==================== */}
-        <div className="bg-slate-950 border border-slate-800 rounded-3xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div
+          className={`border rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 transition-colors ${
+            isLight ? 'bg-white border-slate-200 shadow-xs' : 'bg-slate-950 border-slate-800'
+          }`}
+        >
           <button
             type="button"
             onClick={onCancel}
-            className="w-full sm:w-auto bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs px-6 py-3.5 rounded-2xl font-bold transition cursor-pointer border border-slate-700 flex items-center justify-center gap-2"
+            className={`w-full sm:w-auto text-xs px-6 py-3 rounded-xl font-bold transition cursor-pointer border flex items-center justify-center gap-2 ${
+              isLight
+                ? 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300'
+                : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-700'
+            }`}
           >
             <ArrowRight className="w-4 h-4" />
             <span>تراجع / إلغاء</span>
@@ -2035,7 +2709,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
 
           <button
             type="submit"
-            className="w-full sm:w-auto bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs px-8 py-3.5 rounded-2xl font-black shadow-xl shadow-emerald-500/20 transition cursor-pointer flex items-center justify-center gap-2"
+            className="w-full sm:w-auto bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs sm:text-sm px-8 py-3 rounded-xl font-black shadow-lg shadow-emerald-500/20 transition cursor-pointer flex items-center justify-center gap-2 active:scale-98"
           >
             <CheckCircle2 className="w-5 h-5" />
             <span>حفظ الوحدة وتوليد الهوية القياسية</span>
@@ -2468,6 +3142,35 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
           selectionMode={true}
           initialSelectedEntities={selectedDepartments}
           onSaveSelection={handleSaveSelectionFromOrgChart}
+        />
+      )}
+
+      {/* Room QR Card Modal */}
+      {selectedRoomForQr && (
+        <RoomQrCardModal
+          unit={{
+            id: code || 'NEW-UNIT',
+            code: code || 'NEW-UNIT',
+            name: name || 'منشأة جديدة',
+            type: (selectedUnitType === 'CRV' ? 'caravan' : selectedUnitType === 'BLD' ? 'building' : selectedUnitType === 'WHS' ? 'warehouse' : 'building') as UnitType,
+            field: availableOilfields.find((f) => f.id === fieldId)?.nameAr || 'الحقل النفطي',
+            governorate: governorates.find((g) => g.id === governorateId)?.nameAr || 'المحافظة',
+            constructionYear: Number(constructionYear) || new Date().getFullYear(),
+            department: selectedDepartments.join(' ، ') || department || '',
+            coordinates: { lat: Number(lat) || 0, lng: Number(lng) || 0 },
+            sectorAddress: '',
+            totalAreaSqM: Number(areaSqM) || 0,
+            floorsCount: Number(floorsCount) || 1,
+            conditionGrade: (conditionGrade || 'A') as ConditionGrade,
+            rooms: rooms,
+            equipment: [],
+            attachmentsCount: attachments.length,
+            lastUpdated: getServerDateFormatted(),
+          }}
+          room={selectedRoomForQr}
+          allRooms={rooms}
+          theme={theme}
+          onClose={() => setSelectedRoomForQr(null)}
         />
       )}
     </div>
