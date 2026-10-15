@@ -64,6 +64,7 @@ import {
 } from '../types';
 import { OrgStructureBuilder } from './OrgStructureBuilder';
 import { DatabaseBackupManager } from './DatabaseBackupManager';
+import { MobileAppDistributionCard } from './MobileAppDistributionCard';
 import { toArabicDigits, getServerDateTimeFormatted, getServerTimestamp } from '../utils/arabicUtils';
 import { DEFAULT_SYSTEM_LOGO_SVG } from '../data/mockData';
 
@@ -3855,29 +3856,32 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             </div>
           )}
 
-          {/* TAB: Comprehensive Database Backup & Restore */}
+          {/* TAB: Comprehensive Database Backup & Restore and Mobile App Distribution */}
           {activeTab === 'backup_restore' && (
-            <DatabaseBackupManager
-              units={units}
-              maintenanceRequests={maintenanceRequests}
-              occupancyRecords={occupancyRecords}
-              periodicInspections={periodicInspections}
-              auditLogs={auditLogs}
-              orgEntities={orgEntities}
-              branding={branding}
-              users={users}
-              unitTypes={unitTypes}
-              governorates={governorates}
-              oilfields={oilfields}
-              roomTypes={roomTypes}
-              equipmentTypes={equipmentTypes}
-              maintenanceDepartments={maintenanceDepartments}
-              currentUser={currentUser}
-              theme={theme}
-              onRestoreDatabase={onRestoreDatabase || (() => {})}
-              onAddAuditLog={onAddAuditLog}
-              triggerSaveToast={triggerSaveToast}
-            />
+            <div className="space-y-6">
+              <DatabaseBackupManager
+                units={units}
+                maintenanceRequests={maintenanceRequests}
+                occupancyRecords={occupancyRecords}
+                periodicInspections={periodicInspections}
+                auditLogs={auditLogs}
+                orgEntities={orgEntities}
+                branding={branding}
+                users={users}
+                unitTypes={unitTypes}
+                governorates={governorates}
+                oilfields={oilfields}
+                roomTypes={roomTypes}
+                equipmentTypes={equipmentTypes}
+                maintenanceDepartments={maintenanceDepartments}
+                currentUser={currentUser}
+                theme={theme}
+                onRestoreDatabase={onRestoreDatabase || (() => {})}
+                onAddAuditLog={onAddAuditLog}
+                triggerSaveToast={triggerSaveToast}
+              />
+              <MobileAppDistributionCard theme={theme} />
+            </div>
           )}
 
           {/* TAB 9: Custom Granular Factory Reset */}

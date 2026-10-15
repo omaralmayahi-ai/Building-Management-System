@@ -29,6 +29,7 @@ import {
   FileText,
   Settings,
   ClipboardCheck,
+  Download,
 } from 'lucide-react';
 
 import { SystemBranding, SystemUser } from '../types';
@@ -36,11 +37,11 @@ import { getServerDateFormatted, getServerTimeFormatted } from '../services/serv
 import { syncQueue, SyncQueueStatus } from '../services/syncQueue';
 import { NavTab } from './Sidebar';
 
-
 interface HeaderProps {
   onOpenNewAssetModal?: () => void;
   onOpenNewMaintenanceModal?: () => void;
   onOpenQrScanner?: () => void;
+  onOpenDownloadOptions?: () => void;
   searchTerm?: string;
   onSearchChange?: (term: string) => void;
   theme: 'dark' | 'light';
@@ -65,6 +66,7 @@ export const Header: React.FC<HeaderProps> = ({
   onLogout,
   onChangePassword,
   onOpenQrScanner,
+  onOpenDownloadOptions,
   syncStatus = 'connected',
   activeTab,
   onTabChange,
@@ -805,6 +807,23 @@ export const Header: React.FC<HeaderProps> = ({
                 aria-label="مسح رمز QR للوحدة أو الغرفة"
               >
                 <QrCode className="w-3.5 h-3.5 xs:w-4 xs:h-4 shrink-0 stroke-2 text-amber-500" />
+              </button>
+            )}
+
+            {/* Quick Download Options Icon Button for Mobile Screens */}
+            {onOpenDownloadOptions && (
+              <button
+                type="button"
+                onClick={onOpenDownloadOptions}
+                className={`flex items-center justify-center w-7 h-7 xs:w-7.5 xs:h-7.5 p-1 rounded-lg transition-all duration-150 cursor-pointer select-none shrink-0 border ${
+                  isLight
+                    ? 'bg-cyan-50 border-cyan-300 text-cyan-700 hover:bg-cyan-100 active:scale-95'
+                    : 'bg-cyan-500/15 border-cyan-500/35 text-cyan-400 hover:bg-cyan-500/25 active:scale-95'
+                }`}
+                title="خيارات التنزيل"
+                aria-label="خيارات التنزيل"
+              >
+                <Download className="w-3.5 h-3.5 xs:w-4 xs:h-4 shrink-0 stroke-2 text-cyan-500" />
               </button>
             )}
           </div>

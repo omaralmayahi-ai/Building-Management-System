@@ -33,6 +33,8 @@ import { UnitScanChoiceModal } from './components/UnitScanChoiceModal';
 import { UnitLocationMapModal } from './components/UnitLocationMapModal';
 import { GISMapView } from './components/GISMapView';
 import { ScannedQrPayload } from './utils/qrReader';
+import { PWAInstallPrompt } from './components/PWAInstallPrompt';
+import { DownloadOptionsModal } from './components/DownloadOptionsModal';
 
 import {
   INITIAL_UNITS,
@@ -199,6 +201,7 @@ export function App() {
   const [scannedRoomForChoice, setScannedRoomForChoice] = useState<Room | null>(null);
   const [scannedQrPayloadForChoice, setScannedQrPayloadForChoice] = useState<ScannedQrPayload | null>(null);
   const [locationMapUnit, setLocationMapUnit] = useState<UnitAsset | null>(null);
+  const [showDownloadOptionsModal, setShowDownloadOptionsModal] = useState<boolean>(false);
 
   const handleLogin = (user: SystemUser) => {
     setCurrentUser(user);
@@ -2169,6 +2172,7 @@ export function App() {
         syncStatus={syncStatus}
         activeTab={activeTab}
         onTabChange={setActiveTab}
+        onOpenDownloadOptions={() => setShowDownloadOptionsModal(true)}
       />
 
       {/* Main Body Layout: Sidebar + Dynamic Main Content */}
@@ -2183,6 +2187,7 @@ export function App() {
           isCollapsed={isSidebarCollapsed}
           onToggleCollapse={() => setIsSidebarCollapsed((prev) => !prev)}
           onOpenQrScanner={() => setShowInAppQrScanner(true)}
+          onOpenDownloadOptions={() => setShowDownloadOptionsModal(true)}
           theme={theme}
           currentUserRole={currentUserRole}
         />
@@ -2602,6 +2607,16 @@ export function App() {
           </div>
         </div>
       )}
+
+      {/* Floating PWA In-App Install Prompt Banner for Mobile Devices */}
+      <PWAInstallPrompt variant="banner" theme={theme} />
+
+      {/* Standalone Download Options Modal for Apple iOS (.mobileconfig) & Android (.apk) */}
+      <DownloadOptionsModal
+        isOpen={showDownloadOptionsModal}
+        onClose={() => setShowDownloadOptionsModal(false)}
+        theme={theme}
+      />
     </div>
   );
 }

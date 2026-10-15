@@ -298,7 +298,13 @@ async function startServer() {
   // API Authentication Middleware (Protected Routes under /api)
   // ==========================================================================
   app.use('/api', (req, res, next) => {
-    if (req.path === '/health' || req.path === '/health/' || req.path === '/server-time' || req.path.startsWith('/sync')) {
+    if (
+      req.path === '/health' ||
+      req.path === '/health/' ||
+      req.path === '/server-time' ||
+      req.path.startsWith('/sync') ||
+      req.path.startsWith('/download')
+    ) {
       return next();
     }
     const clientKey = req.headers['x-api-key'] as string | undefined;
@@ -1892,6 +1898,51 @@ async function startServer() {
     res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
     return res.json(manifestData);
   });
+
+  // ==========================================================================
+  // Direct Installer Downloads (Android APK & Package ZIP)
+  // ==========================================================================
+  app.get('/api/download/apk', (req, res) => {
+    const apkFile = path.join(process.cwd(), 'public', 'downloads', 'MidlandOil-Assets-Registry.apk');
+    if (!fs.existsSync(apkFile)) {
+      return res.status(404).json({ error: 'ملف الـ APK غير متوفر حالياً' });
+    }
+    res.setHeader('Content-Type', 'application/vnd.android.package-archive');
+    res.setHeader('Content-Disposition', 'attachment; filename="MidlandOil-Assets-Registry.apk"');
+    return res.sendFile(apkFile);
+  });
+
+  app.get('/api/download/ios-profile', (req, res) => {
+    const profileFile = path.join(process.cwd(), 'public', 'downloads', 'MidlandOil-Assets-iOS.mobileconfig');
+    if (!fs.existsSync(profileFile)) {
+      return res.status(404).json({ error: 'ملف تثبيت الآيفون (iOS Profile) غير متوفر حالياً' });
+    }
+    res.setHeader('Content-Type', 'application/x-apple-aspen-config');
+    res.setHeader('Content-Disposition', 'attachment; filename="MidlandOil-Assets-iOS.mobileconfig"');
+    return res.sendFile(profileFile);
+  });
+
+  app.get('/api/download/desktop', (req, res) => {
+    const desktopFile = path.join(process.cwd(), 'public', 'downloads', 'MidlandOil-Assets-Desktop-Setup.exe');
+    if (!fs.existsSync(desktopFile)) {
+      return res.status(404).json({ error: 'ملف تثبيت الحاسوب (Desktop Setup) غير متوفر حالياً' });
+    }
+    res.setHeader('Content-Type', 'application/vnd.microsoft.portable-executable');
+    res.setHeader('Content-Disposition', 'attachment; filename="MidlandOil-Assets-Desktop-Setup.exe"');
+    return res.sendFile(desktopFile);
+  });
+
+  app.get('/api/download/package', (req, res) => {
+    const zipFile = path.join(process.cwd(), 'public', 'downloads', 'MidlandOil-Assets-Installation-Package.zip');
+    if (!fs.existsSync(zipFile)) {
+      return res.status(404).json({ error: 'حزمة التثبيت غير متوفرة حالياً' });
+    }
+    res.setHeader('Content-Type', 'application/zip');
+    res.setHeader('Content-Disposition', 'attachment; filename="MidlandOil-Assets-Installation-Package.zip"');
+    return res.sendFile(zipFile);
+  });
+
+  app.use('/downloads', express.static(path.join(process.cwd(), 'public', 'downloads')));
 
   // ==========================================================================
   // Vite Integration & Static Frontend Serving

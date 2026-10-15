@@ -48,13 +48,15 @@ html.light,
   box-shadow: 0 4px 12px -2px rgba(15, 23, 42, 0.04) !important;
 }
 
-/* Ensure background gradients turn into clean light gradients in day mode */
-.light .bg-gradient-to-r,
-.light .bg-gradient-to-br,
-.light .bg-gradient-to-b,
-.light .bg-gradient-to-t,
-.light .bg-gradient-to-bl,
-.light .bg-gradient-to-l {
+/* Ensure background gradients turn into clean light gradients in day mode, excluding buttons and badges */
+.light div.bg-gradient-to-r:not(button):not(button *),
+.light div.bg-gradient-to-br:not(button):not(button *),
+.light div.bg-gradient-to-b:not(button):not(button *),
+.light div.bg-gradient-to-t:not(button):not(button *),
+.light div.bg-gradient-to-bl:not(button):not(button *),
+.light div.bg-gradient-to-l:not(button):not(button *),
+.light section.bg-gradient-to-r,
+.light main.bg-gradient-to-r {
   background-image: linear-gradient(to right, #ffffff, #f8fafc, #ffffff) !important;
   background-color: #ffffff !important;
   border-color: #e2e8f0 !important;
@@ -73,25 +75,27 @@ html.light,
   border-color: #e2e8f0 !important;
 }
 
-.light .bg-slate-800 {
+.light div.bg-slate-800:not(button):not(button *),
+.light aside.bg-slate-800,
+.light header.bg-slate-800 {
   background-color: #f1f5f9 !important;
   border-color: #cbd5e1 !important;
   color: #1e293b !important;
 }
 
-.light .bg-slate-800\/40,
-.light .bg-slate-800\/50,
-.light .bg-slate-800\/60 {
+.light div.bg-slate-800\/40,
+.light div.bg-slate-800\/50,
+.light div.bg-slate-800\/60 {
   background-color: rgba(241, 245, 249, 0.8) !important;
   border-color: #e2e8f0 !important;
 }
 
-.light .hover\:bg-slate-800:hover,
-.light .hover\:bg-slate-800\/60:hover {
+.light div.hover\:bg-slate-800:not(button):not(button *):hover,
+.light div.hover\:bg-slate-800\/60:not(button):not(button *):hover {
   background-color: #e2e8f0 !important;
 }
 
-.light .hover\:bg-slate-700:hover {
+.light div.hover\:bg-slate-700:not(button):not(button *):hover {
   background-color: #cbd5e1 !important;
 }
 
@@ -114,11 +118,24 @@ html.light,
   border-color: #e2e8f0 !important;
 }
 
-/* Typography & Contrast */
-.light .text-white,
-.light .text-slate-100,
-.light .text-slate-200 {
+/* Typography & Contrast (Keep text-white pure white on buttons, badges, and dark containers) */
+.light p.text-white,
+.light span.text-white:not(button *):not([class*="bg-"]):not(.badge *),
+.light h1.text-white,
+.light h2.text-white,
+.light h3.text-white,
+.light h4.text-white,
+.light .text-slate-100:not(button):not(button *),
+.light .text-slate-200:not(button):not(button *) {
   color: #0f172a !important;
+}
+
+.light button.text-white,
+.light button .text-white,
+.light a.text-white,
+.light a .text-white,
+.light .text-pure-white {
+  color: #ffffff !important;
 }
 
 .light .text-slate-300 {

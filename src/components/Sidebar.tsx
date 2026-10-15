@@ -18,6 +18,7 @@ import {
   ClipboardCheck,
   QrCode,
   X,
+  Download,
 } from 'lucide-react';
 
 import { SystemBranding } from '../types';
@@ -44,6 +45,7 @@ interface SidebarProps {
   isCollapsed?: boolean;
   onToggleCollapse?: () => void;
   onOpenQrScanner?: () => void;
+  onOpenDownloadOptions?: () => void;
   theme?: 'dark' | 'light';
   currentUserRole?: string;
   isMobileOpen?: boolean;
@@ -60,6 +62,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   isCollapsed: externalCollapsed,
   onToggleCollapse,
   onOpenQrScanner,
+  onOpenDownloadOptions,
   theme = 'dark',
   currentUserRole = 'مدير النظام',
   isMobileOpen = false,
@@ -254,6 +257,44 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </button>
           );
         })}
+
+        {/* Dedicated "خيارات التنزيل" Button in Main Menu */}
+        {onOpenDownloadOptions && (
+          <button
+            type="button"
+            onClick={onOpenDownloadOptions}
+            title={isCollapsed ? 'خيارات التنزيل' : undefined}
+            className={`w-full flex items-center ${
+              isCollapsed ? 'justify-center px-0 overflow-hidden' : 'justify-between px-3'
+            } py-2.5 rounded-lg text-xs font-semibold transition-all cursor-pointer relative group ${
+              theme === 'light'
+                ? 'text-cyan-800 hover:text-cyan-950 hover:bg-cyan-50 border border-cyan-200/80 bg-cyan-50/40'
+                : 'text-cyan-300 hover:text-cyan-100 hover:bg-cyan-950/50 border border-cyan-500/30 bg-cyan-950/20'
+            }`}
+          >
+            <div className="flex items-center gap-2.5 min-w-0 max-w-full overflow-hidden">
+              <Download
+                className={`w-4 h-4 shrink-0 ${
+                  theme === 'light' ? 'text-cyan-600' : 'text-cyan-400'
+                }`}
+              />
+              {!isCollapsed && <span className="truncate font-bold">خيارات التنزيل</span>}
+            </div>
+
+            {/* Tooltip on Collapsed Mode */}
+            {isCollapsed && (
+              <div
+                className={`fixed right-16 mr-2 px-2.5 py-1 text-xs rounded-md border shadow-xl opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 transition-opacity ${
+                  theme === 'light'
+                    ? 'bg-slate-900 text-white border-slate-700'
+                    : 'bg-slate-950 text-white border-slate-700'
+                }`}
+              >
+                خيارات التنزيل
+              </div>
+            )}
+          </button>
+        )}
       </div>
 
       {/* Quick QR Scanner Action Button in Sidebar */}

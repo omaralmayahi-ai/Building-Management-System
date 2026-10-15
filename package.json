@@ -9,7 +9,9 @@
     "start": "node dist/server.cjs",
     "preview": "vite preview",
     "clean": "rm -rf dist server.cjs",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "pwa:assets": "node scripts/pwa-asset-generator.cjs",
+    "build:apk": "bash scripts/build-apk.sh"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
@@ -37,7 +39,8 @@
     "react-dom": "^19.0.1",
     "sharp": "^0.35.4",
     "three": "^0.185.1",
-    "vite": "^6.2.3"
+    "vite": "^6.2.3",
+    "vite-plugin-pwa": "^2.0.0"
   },
   "devDependencies": {
     "@types/express": "^4.17.21",

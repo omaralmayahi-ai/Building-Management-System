@@ -1,0 +1,191 @@
+// Utility for generating and handling mobile & desktop installers
+// Midland Oil Company - Unified Digital Asset Registry
+
+const ICON_192_BASE64 = `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`;
+
+function generateUUID(): string {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return crypto.randomUUID().toUpperCase();
+  }
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16).toUpperCase();
+  });
+}
+
+/**
+ * Generates genuine Apple Mobile Device Configuration Profile (.mobileconfig)
+ * This runs entirely in-memory in the client browser, completely immune to
+ * Cloud Run / Google proxy cookie-check interceptions.
+ */
+export function generateIosMobileConfigXml(appUrl?: string): string {
+  const targetUrl = appUrl || (typeof window !== 'undefined' ? window.location.origin : 'https://ais-dev-nibj4syurgyjc7azwwus4s-475677285717.europe-west2.run.app');
+  const payloadUuid = generateUUID();
+  const profileUuid = generateUUID();
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>PayloadContent</key>
+    <array>
+        <dict>
+            <key>FullScreen</key>
+            <true/>
+            <key>IsRemovable</key>
+            <true/>
+            <key>Label</key>
+            <string>السجل الرقمي للأصول</string>
+            <key>PayloadDescription</key>
+            <string>تطبيق السجل الرقمي الموحد للأصول الهندسية - شركة نفط الوسط</string>
+            <key>PayloadDisplayName</key>
+            <string>السجل الرقمي للأصول</string>
+            <key>PayloadIdentifier</key>
+            <string>iq.gov.mdoc.assetregistry.webclip</string>
+            <key>PayloadType</key>
+            <string>com.apple.webClip.managed</string>
+            <key>PayloadUUID</key>
+            <string>${payloadUuid}</string>
+            <key>PayloadVersion</key>
+            <integer>1</integer>
+            <key>Precomposed</key>
+            <true/>
+            <key>URL</key>
+            <string>${targetUrl}</string>
+            <key>IgnoreManifestScope</key>
+            <true/>
+            <key>Icon</key><data>${ICON_192_BASE64}</data>
+        </dict>
+    </array>
+    <key>PayloadDescription</key>
+    <string>ملف تثبيت تطبيق إدارة الأصول الميدانية على أجهزة iPhone و iPad التابعة لشركة نفط الوسط - وزارة النفط العراقية</string>
+    <key>PayloadDisplayName</key>
+    <string>السجل الرقمي للأصول - شركة نفط الوسط</string>
+    <key>PayloadIdentifier</key>
+    <string>iq.gov.mdoc.assetregistry.profile</string>
+    <key>PayloadOrganization</key>
+    <string>شركة نفط الوسط - وزارة النفط العراقية</string>
+    <key>PayloadRemovalDisallowed</key>
+    <false/>
+    <key>PayloadType</key>
+    <string>Configuration</string>
+    <key>PayloadUUID</key>
+    <string>${profileUuid}</string>
+    <key>PayloadVersion</key>
+    <integer>1</integer>
+</dict>
+</plist>
+`;
+}
+
+/**
+ * Direct client-side download of the verified Apple .mobileconfig file
+ */
+export function downloadIosMobileConfigFile(appUrl?: string): void {
+  const xml = generateIosMobileConfigXml(appUrl);
+  const blob = new Blob([xml], { type: 'application/x-apple-aspen-config;charset=utf-8' });
+  const objectUrl = URL.createObjectURL(blob);
+
+  const link = document.createElement('a');
+  link.href = objectUrl;
+  link.download = 'MidlandOil-Assets-iOS.mobileconfig';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+
+  setTimeout(() => {
+    URL.revokeObjectURL(objectUrl);
+  }, 10000);
+}
+
+/**
+ * Downloads a verified binary file from the backend, ensuring it was not intercepted
+ * by authentication proxy HTML pages.
+ */
+export async function downloadVerifiedBinaryFile(
+  endpointUrl: string,
+  fileName: string,
+  fallbackMime: string
+): Promise<{ success: boolean; isHtmlIntercepted: boolean }> {
+  try {
+    const res = await fetch(endpointUrl, { credentials: 'same-origin' });
+    if (!res.ok) {
+      return { success: false, isHtmlIntercepted: false };
+    }
+    const blob = await res.blob();
+    const sample = await blob.slice(0, 100).text();
+    if (sample.includes('<!doctype') || sample.includes('<html') || sample.includes('Cookie check')) {
+      return { success: false, isHtmlIntercepted: true };
+    }
+
+    const objectUrl = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = objectUrl;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    setTimeout(() => {
+      URL.revokeObjectURL(objectUrl);
+    }, 10000);
+
+    return { success: true, isHtmlIntercepted: false };
+  } catch (err) {
+    console.error('Binary download error:', err);
+    return { success: false, isHtmlIntercepted: false };
+  }
+}
+
+/**
+ * Downloads an instant Windows Internet Shortcut (.url) that places an official
+ * shortcut on Windows desktop in 1 second without any server dependencies.
+ */
+export function downloadWindowsDesktopShortcut(appUrl?: string): void {
+  const targetUrl = appUrl || (typeof window !== 'undefined' ? window.location.origin : '');
+  const urlFileContent = `[InternetShortcut]\r\nURL=${targetUrl}\r\nIconIndex=0\r\nHotKey=0\r\nIDList=\r\n[{000214A0-0000-0000-C000-000000000046}]\r\nProp3=19,11\r\n`;
+
+  const blob = new Blob([urlFileContent], { type: 'application/internet-shortcut;charset=utf-8' });
+  const objectUrl = URL.createObjectURL(blob);
+
+  const link = document.createElement('a');
+  link.href = objectUrl;
+  link.download = 'السجل الرقمي للأصول - شركة نفط الوسط.url';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+
+  setTimeout(() => {
+    URL.revokeObjectURL(objectUrl);
+  }, 10000);
+}
+
+/**
+ * Copies the direct Web installation link for any platform to share via WhatsApp
+ */
+export async function copyPlatformDirectInstallLink(
+  platform: 'ios' | 'android' | 'desktop',
+  appUrl?: string
+): Promise<boolean> {
+  const targetUrl = appUrl || (typeof window !== 'undefined' ? window.location.origin : '');
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(targetUrl);
+      return true;
+    }
+    // Fallback for older browsers
+    const textArea = document.createElement('textarea');
+    textArea.value = targetUrl;
+    textArea.style.position = 'fixed';
+    textArea.style.opacity = '0';
+    document.body.appendChild(textArea);
+    textArea.select();
+    const successful = document.execCommand('copy');
+    document.body.removeChild(textArea);
+    return successful;
+  } catch (err) {
+    console.error('Failed to copy direct link', err);
+    return false;
+  }
+}

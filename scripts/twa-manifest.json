@@ -1,0 +1,18 @@
+{
+  "packageId": "iq.gov.mdoc.assetregistry",
+  "host": "ais-dev-nibj4syurgyjc7azwwus4s-475677285717.europe-west2.run.app",
+  "name": "السجل الرقمي الموحد للأصول - شركة نفط الوسط",
+  "launcherName": "السجل الرقمي للأصول",
+  "themeColor": "#0f172a",
+  "navigationColor": "#0f172a",
+  "backgroundColor": "#0f172a",
+  "enableNotifications": true,
+  "startUrl": "/",
+  "iconUrl": "https://ais-dev-nibj4syurgyjc7azwwus4s-475677285717.europe-west2.run.app/icons/icon-512.png",
+  "maskableIconUrl": "https://ais-dev-nibj4syurgyjc7azwwus4s-475677285717.europe-west2.run.app/icons/icon-maskable-512.png",
+  "appVersionCode": 1,
+  "appVersionName": "1.0.0",
+  "display": "standalone",
+  "orientation": "default",
+  "generator": "Bubblewrap-CLI/TWA"
+}
