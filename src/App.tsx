@@ -263,6 +263,7 @@ export function App() {
     setCurrentUser(null);
     setSelectedUnitCode('');
     localStorage.removeItem('app_current_user');
+    api.setSessionToken(null);
   };
 
   useEffect(() => {

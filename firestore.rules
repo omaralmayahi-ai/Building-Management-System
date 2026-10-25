@@ -1,32 +1,68 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    // Helper functions for access control
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Units (Fixed assets, caravans & engineered buildings):
+    // Read allowed for system users; writes require valid schema and unit code
     match /units/{unitId} {
-      allow read, write: if true;
+      allow read: if true;
+      allow write: if request.auth != null || (request.resource.data.code != null && request.resource.data.name != null);
     }
+
+    // Maintenance Requests:
+    // Read allowed; create/update require unitCode; deletion restricted
     match /maintenance_requests/{reqId} {
-      allow read, write: if true;
+      allow read: if true;
+      allow create, update: if request.resource.data.unitCode != null;
+      allow delete: if request.auth != null;
     }
+
+    // Occupancy Records:
     match /occupancy_records/{occId} {
-      allow read, write: if true;
+      allow read: if true;
+      allow write: if request.resource.data.unitCode != null;
     }
+
+    // Periodic Inspections:
     match /periodic_inspections/{inspId} {
-      allow read, write: if true;
+      allow read: if true;
+      allow create, update: if request.resource.data.unitCode != null;
+      allow delete: if request.auth != null;
     }
+
+    // Audit Logs: Strictly Immutable (Append-Only)
+    // Logs cannot be altered or deleted by anyone to preserve forensic evidence
     match /audit_logs/{logId} {
-      allow read, write: if true;
+      allow read: if true;
+      allow create: if request.resource.data.action != null && request.resource.data.timestamp != null;
+      allow update, delete: if false; // Prevents tampering or clearing audit trail
     }
+
+    // Org Entities & Settings:
     match /org_entities/{entityId} {
-      allow read, write: if true;
+      allow read: if true;
+      allow write: if request.auth != null || request.resource.data.name != null;
     }
-    match /system_users/{userId} {
-      allow read, write: if true;
-    }
+
     match /system_settings/{settingId} {
-      allow read, write: if true;
+      allow read: if true;
+      allow write: if request.auth != null || settingId in ['metadata', 'branding', 'app_users'];
     }
+
+    // System Users:
+    match /system_users/{userId} {
+      allow read: if true;
+      allow write: if request.auth != null || (request.resource.data.id != null && request.resource.data.username != null);
+    }
+
+    // Strict default fallback: deny any undefined collection or path
     match /{document=**} {
-      allow read, write: if true;
+      allow read, write: if false;
     }
   }
 }

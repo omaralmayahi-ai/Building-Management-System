@@ -21,6 +21,55 @@ const BASE_API_URL = '/api';
 const API_SECRET_KEY = 'midland_oil_secure_api_key_2026';
 
 /**
+ * Enterprise Security Session Token Management
+ */
+export function getSessionToken(): string | null {
+  try {
+    return localStorage.getItem('app_session_token') || sessionStorage.getItem('app_session_token');
+  } catch {
+    return null;
+  }
+}
+
+export function setSessionToken(token: string | null): void {
+  try {
+    if (token) {
+      localStorage.setItem('app_session_token', token);
+    } else {
+      localStorage.removeItem('app_session_token');
+      sessionStorage.removeItem('app_session_token');
+    }
+  } catch {}
+}
+
+/**
+ * Secure Server-side Authentication with Brute-Force & Lockout Defense
+ */
+export async function loginWithServer(
+  username: string,
+  password: string
+): Promise<{ success: boolean; user?: SystemUser; token?: string; error?: string }> {
+  try {
+    const res = await fetch(`${BASE_API_URL}/auth/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-Key': API_SECRET_KEY,
+      },
+      body: JSON.stringify({ username, password }),
+    });
+    const data = await res.json();
+    if (data && data.success && data.token) {
+      setSessionToken(data.token);
+      return { success: true, user: data.user, token: data.token };
+    }
+    return { success: false, error: data?.error || 'فشل تسجيل الدخول' };
+  } catch {
+    return { success: false, error: 'تعذر الاتصال ببوابة المصادقة الآمنة، يرجى المحاولة لاحقاً.' };
+  }
+}
+
+/**
  * Global synchronized server time offset in milliseconds.
  * (serverTime = clientTime + serverTimeOffsetMs)
  */
@@ -49,12 +98,14 @@ async function fetchJson<T>(
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), timeoutMs);
 
+  const token = getSessionToken();
   try {
     const res = await fetch(url, {
       ...options,
       headers: {
         'Content-Type': 'application/json',
         'X-API-Key': API_SECRET_KEY,
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...(options?.headers || {}),
       },
       signal: controller.signal,

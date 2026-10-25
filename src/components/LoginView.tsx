@@ -145,65 +145,53 @@ export const LoginView: React.FC<LoginViewProps> = ({
 
     const authenticate = async () => {
       try {
+        // 1. Primary: Secure Server-Side Authentication with Lockout & Rate Limiting
+        const serverAuthResult = await api.loginWithServer(trimmedUser, trimmedPass);
+
+        if (serverAuthResult.success && serverAuthResult.user) {
+          setIsLoading(false);
+          onLogin(serverAuthResult.user);
+          return;
+        }
+
+        if (serverAuthResult.error && !serverAuthResult.error.includes('تعذر الاتصال')) {
+          setErrorMessage(serverAuthResult.error);
+          setIsLoading(false);
+          return;
+        }
+
+        // 2. Offline Fallback for field operations when server connection is unavailable
         let usersList = allAvailableUsers;
-        // If not found in current memory, fetch latest fresh users from backend
         let foundUser = usersList.find(
           (u) =>
             (u.username && u.username.toLowerCase() === trimmedUser) ||
             (u.email && u.email.toLowerCase() === trimmedUser) ||
-            (u.email && u.email.split('@')[0].toLowerCase() === trimmedUser) ||
             (u.name && u.name.toLowerCase() === trimmedUser) ||
             (u.name && u.name.trim() === rawInput)
         );
 
         if (!foundUser) {
-          try {
-            const freshUsers = await api.getUsers();
-            if (freshUsers && Array.isArray(freshUsers) && freshUsers.length > 0) {
-              setInternalUsers(freshUsers);
-              usersList = freshUsers;
-              foundUser = usersList.find(
-                (u) =>
-                  (u.username && u.username.toLowerCase() === trimmedUser) ||
-                  (u.email && u.email.toLowerCase() === trimmedUser) ||
-                  (u.email && u.email.split('@')[0].toLowerCase() === trimmedUser) ||
-                  (u.name && u.name.toLowerCase() === trimmedUser) ||
-                  (u.name && u.name.trim() === rawInput)
-              );
-            }
-          } catch (fetchErr) {
-            console.warn('Live users check note:', fetchErr);
-          }
-        }
-
-        if (!foundUser) {
-          setErrorMessage(`اسم المستخدم أو الحساب (${rawInput}) غير مسجل في النظام. يرجى التأكد من صحة البيانات.`);
+          setErrorMessage(serverAuthResult.error || `اسم المستخدم أو الحساب (${rawInput}) غير مسجل في النظام.`);
           setIsLoading(false);
           return;
         }
 
-        // Check password: Must strictly match the user's password in the system
-        const expectedPass = foundUser.password || 'admin123';
-        const isPasswordValid = trimmedPass === expectedPass;
-
-        if (!isPasswordValid) {
-          setErrorMessage('كلمة المرور المدخلة غير صحيحة، يرجى التأكد والمحاولة مجدداً');
-          setIsLoading(false);
-          return;
-        }
-
-        // Check account status
         if (foundUser.status === 'disabled') {
-          setErrorMessage(
-            'تم إيقاف تنشيط هذا الحساب من قبل إدارة النظام. يرجى التواصل مع المسؤول لإعادة التفعيل.'
-          );
+          setErrorMessage('تم إيقاف تنشيط هذا الحساب من قبل إدارة النظام.');
+          setIsLoading(false);
+          return;
+        }
+
+        const expectedPass = foundUser.password || 'admin123';
+        if (trimmedPass !== expectedPass) {
+          setErrorMessage('كلمة المرور المدخلة غير صحيحة، يرجى التأكد والمحاولة مجدداً');
           setIsLoading(false);
           return;
         }
 
         setIsLoading(false);
         onLogin(foundUser);
-      } catch (err) {
+      } catch {
         setErrorMessage('حدث خطأ أثناء معالجة تسجيل الدخول، يرجى المحاولة ثانية.');
         setIsLoading(false);
       }
