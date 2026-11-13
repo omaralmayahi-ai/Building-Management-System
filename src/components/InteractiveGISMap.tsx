@@ -216,25 +216,25 @@ export const InteractiveGISMap: React.FC<InteractiveGISMapProps> = ({
         const count = cluster.getChildCount();
         return L.divIcon({
           html: `
-            <div style="
-              background: linear-gradient(135deg, #f59e0b, #d97706);
-              color: #0f172a;
-              width: 36px;
-              height: 36px;
-              border-radius: 50%;
-              border: 2.5px solid #ffffff;
-              box-shadow: 0 4px 12px rgba(0,0,0,0.6);
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              font-weight: 900;
-              font-size: 12px;
-              font-family: system-ui, sans-serif;
-              cursor: pointer;
-            ">
-              ${count}
-            </div>
-          `,
+ <div style="
+ background: linear-gradient(135deg, #f59e0b, #d97706);
+ color: #0f172a;
+ width: 36px;
+ height: 36px;
+ border-radius: 50%;
+ border: 2.5px solid #ffffff;
+ box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ font-weight: 900;
+ font-size: 12px;
+ font-family: system-ui, sans-serif;
+ cursor: pointer;
+ ">
+ ${count}
+ </div>
+ `,
           className: 'custom-gis-cluster',
           iconSize: [36, 36],
           iconAnchor: [18, 18],
@@ -256,58 +256,58 @@ export const InteractiveGISMap: React.FC<InteractiveGISMapProps> = ({
       const customIcon = L.divIcon({
         className: 'custom-gis-marker',
         html: `
-          <div style="
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            cursor: pointer;
-            filter: drop-shadow(0 6px 14px rgba(0,0,0,0.6));
-          ">
-            <div style="
-              background: ${typeConfig.gradient};
-              width: 34px;
-              height: 34px;
-              border-radius: 50% 50% 50% 0;
-              transform: rotate(-45deg);
-              border: 2.5px solid #ffffff;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              box-shadow: inset 0 2px 4px rgba(255,255,255,0.3);
-              position: relative;
-            ">
-              <div style="
-                transform: rotate(45deg);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                width: 100%;
-                height: 100%;
-              ">
-                ${typeConfig.iconSvg}
-              </div>
-            </div>
+ <div style="
+ position: relative;
+ display: flex;
+ flex-direction: column;
+ align-items: center;
+ cursor: pointer;
+ filter: drop-shadow(0 6px 14px rgba(0,0,0,0.6));
+ ">
+ <div style="
+ background: ${typeConfig.gradient};
+ width: 34px;
+ height: 34px;
+ border-radius: 50% 50% 50% 0;
+ transform: rotate(-45deg);
+ border: 2.5px solid #ffffff;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ box-shadow: inset 0 2px 4px rgba(255,255,255,0.3);
+ position: relative;
+ ">
+ <div style="
+ transform: rotate(45deg);
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ width: 100%;
+ height: 100%;
+ ">
+ ${typeConfig.iconSvg}
+ </div>
+ </div>
 
-            <div style="
-              position: absolute;
-              top: -3px;
-              right: -3px;
-              background: ${gradeColor};
-              color: #ffffff;
-              border: 1.5px solid #ffffff;
-              border-radius: 9999px;
-              font-size: 8.5px;
-              font-weight: 900;
-              font-family: monospace;
-              padding: 0px 4px;
-              line-height: 13px;
-              box-shadow: 0 2px 4px rgba(0,0,0,0.4);
-            ">
-              ${unit.conditionGrade}
-            </div>
-          </div>
-        `,
+ <div style="
+ position: absolute;
+ top: -3px;
+ right: -3px;
+ background: ${gradeColor};
+ color: #ffffff;
+ border: 1.5px solid #ffffff;
+ border-radius: 9999px;
+ font-size: 8.5px;
+ font-weight: 900;
+ font-family: monospace;
+ padding: 0px 4px;
+ line-height: 13px;
+ box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+ ">
+ ${unit.conditionGrade}
+ </div>
+ </div>
+ `,
         iconSize: [34, 40],
         iconAnchor: [17, 40],
       });
@@ -326,16 +326,16 @@ export const InteractiveGISMap: React.FC<InteractiveGISMapProps> = ({
   }, [site.id, units]);
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-lg space-y-3">
+    <div className="bg-card border border-slate-200 rounded-2xl p-4 shadow-lg space-y-3">
       {/* Map Control Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 pb-2 border-b border-slate-800">
+      <div className="flex flex-wrap items-center justify-between gap-3 pb-2 border-b border-slate-200">
         <div className="flex items-center gap-2">
-          <MapPin className="w-5 h-5 text-amber-400" />
+          <MapPin className="w-5 h-5 text-brand-700" />
           <div>
-            <h3 className="font-bold text-slate-100 text-sm">
+            <h3 className="font-bold text-slate-800 text-sm">
               الخريطة التفاعلية ونظام الإسقاط الجغرافي GIS
             </h3>
-            <span className="text-[11px] text-slate-400 font-mono">
+            <span className="text-[11px] text-slate-500 font-mono">
               موقع {site.nameAr} - الإحداثيات: {centerLat}° N, {centerLng}° E
             </span>
           </div>
@@ -349,18 +349,18 @@ export const InteractiveGISMap: React.FC<InteractiveGISMapProps> = ({
                 mapInstanceRef.current.setView([33.2232, 43.6793], 6, { animate: true });
               }
             }}
-            className="bg-slate-950 border border-slate-800 hover:border-amber-500/50 text-slate-200 px-3 py-1.5 rounded-xl font-bold text-xs flex items-center gap-1.5 transition cursor-pointer"
+            className="bg-card border border-slate-200 hover:border-brand-200 text-slate-800 px-3 py-1.5 rounded-xl font-bold text-xs flex items-center gap-1.5 transition cursor-pointer"
           >
             <span>خارطة العراق (Zoom Out)</span>
           </button>
 
-          <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs">
+          <div className="flex items-center gap-1 bg-card p-1 rounded-xl border border-slate-200 text-xs">
             <button
               onClick={() => setMapType('satellite')}
               className={`px-2.5 sm:px-3 py-1.5 rounded-lg font-bold transition cursor-pointer ${
                 mapType === 'satellite'
-                  ? 'bg-amber-500 text-slate-950 shadow'
-                  : 'text-slate-400 hover:text-slate-200'
+                  ? 'bg-brand-700 text-on-brand shadow'
+                  : 'text-slate-500 hover:text-slate-800'
               }`}
             >
               أقمار صناعية
@@ -369,8 +369,8 @@ export const InteractiveGISMap: React.FC<InteractiveGISMapProps> = ({
               onClick={() => setMapType('streets')}
               className={`px-2.5 sm:px-3 py-1.5 rounded-lg font-bold transition cursor-pointer ${
                 mapType === 'streets'
-                  ? 'bg-amber-500 text-slate-950 shadow'
-                  : 'text-slate-400 hover:text-slate-200'
+                  ? 'bg-brand-700 text-on-brand shadow'
+                  : 'text-slate-500 hover:text-slate-800'
               }`}
             >
               طرق وشوارع
@@ -380,16 +380,16 @@ export const InteractiveGISMap: React.FC<InteractiveGISMapProps> = ({
       </div>
 
       {/* Leaflet Map Canvas Container */}
-      <div className="relative w-full h-[380px] rounded-xl overflow-hidden border border-slate-800 shadow-inner z-0">
+      <div className="relative w-full h-[380px] rounded-xl overflow-hidden border border-slate-200 shadow-inner z-0">
         <div ref={mapContainerRef} className="w-full h-full z-0" />
 
         {/* Tile Error / Offline Server Notice */}
         {tileError && (
-          <div className="absolute top-3 left-3 z-[400] max-w-xs bg-slate-950/95 border border-amber-500/50 backdrop-blur-md text-amber-300 p-2.5 rounded-xl text-[11px] shadow-2xl flex items-start gap-2">
-            <AlertTriangle className="w-4 h-4 shrink-0 text-amber-400 mt-0.5" />
+          <div className="absolute top-3 left-3 z-[400] max-w-xs bg-card/95 border border-brand-200 backdrop-blur-md text-brand-700 p-2.5 rounded-xl text-[11px] shadow-2xl flex items-start gap-2">
+            <AlertTriangle className="w-4 h-4 shrink-0 text-brand-700 mt-0.5" />
             <div className="space-y-0.5">
-              <div className="font-bold text-slate-100">تنبيه اتصال طبقات الخريطة</div>
-              <div className="text-[10px] text-slate-300 leading-tight">
+              <div className="font-bold text-slate-800">تنبيه اتصال طبقات الخريطة</div>
+              <div className="text-[10px] text-slate-600 leading-tight">
                 تعذّر تحميل بلاطات الخريطة — تحقق من الاتصال بالشبكة الداخلية أو أضف خادم بلاطات محلي (TileServer GL / Offline Map Server).
               </div>
             </div>
@@ -397,29 +397,29 @@ export const InteractiveGISMap: React.FC<InteractiveGISMapProps> = ({
         )}
 
         {/* Map Legend */}
-        <div className="absolute top-3 right-3 z-[400] bg-slate-950/90 backdrop-blur-sm border border-slate-800 p-2.5 rounded-xl text-[10px] space-y-1 shadow-xl">
-          <div className="font-bold text-slate-300 border-b border-slate-800 pb-1 mb-1">دليل أنواع وأصناف الوحدات</div>
-          <div className="flex items-center gap-1.5 text-blue-400">
+        <div className="absolute top-3 right-3 z-[400] bg-card/90 backdrop-blur-sm border border-slate-200 p-2.5 rounded-xl text-[10px] space-y-1 shadow-xl">
+          <div className="font-bold text-slate-600 border-b border-slate-200 pb-1 mb-1">دليل أنواع وأصناف الوحدات</div>
+          <div className="flex items-center gap-1.5 text-blue-600">
             <span className="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
             <span>بنايات ومقرات إدارية</span>
           </div>
-          <div className="flex items-center gap-1.5 text-teal-400">
+          <div className="flex items-center gap-1.5 text-teal-600">
             <span className="w-2.5 h-2.5 rounded-full bg-teal-500"></span>
             <span>كرفانات ومنشآت متنقلة</span>
           </div>
-          <div className="flex items-center gap-1.5 text-amber-400">
-            <span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+          <div className="flex items-center gap-1.5 text-brand-700">
+            <span className="w-2.5 h-2.5 rounded-full bg-brand-700"></span>
             <span>مستودعات ومخازن</span>
           </div>
-          <div className="flex items-center gap-1.5 text-purple-400">
+          <div className="flex items-center gap-1.5 text-purple-600">
             <span className="w-2.5 h-2.5 rounded-full bg-purple-500"></span>
             <span>معدات ومحطات خدمة</span>
           </div>
-          <div className="flex items-center gap-1.5 text-red-400">
+          <div className="flex items-center gap-1.5 text-red-600">
             <span className="w-2.5 h-2.5 rounded-full bg-red-500"></span>
             <span>منظومات سلامة وإطفاء</span>
           </div>
-          <div className="flex items-center gap-1.5 text-sky-400">
+          <div className="flex items-center gap-1.5 text-sky-600">
             <span className="w-2.5 h-2.5 rounded-full bg-sky-500"></span>
             <span>خزانات نفط ووقود</span>
           </div>

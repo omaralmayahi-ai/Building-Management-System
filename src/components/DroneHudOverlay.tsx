@@ -100,7 +100,7 @@ export const DroneHudOverlay: React.FC<DroneHudOverlayProps> = ({
   };
 
   return (
-    <div className="absolute inset-0 pointer-events-none z-30 overflow-hidden select-none">
+    <div className="ds-off absolute inset-0 pointer-events-none z-30 overflow-hidden select-none">
       {/* Camera Shutter Flash Effect */}
       {shutterFlash && (
         <div className="absolute inset-0 bg-white z-50 animate-out fade-out duration-300 pointer-events-none" />

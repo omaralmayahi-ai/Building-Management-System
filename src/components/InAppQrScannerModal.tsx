@@ -411,38 +411,32 @@ export const InAppQrScannerModal: React.FC<InAppQrScannerModalProps> = ({
   return (
     <div
       id="modal-inapp-qr-scanner"
-      className={`fixed inset-0 z-50 backdrop-blur-md flex items-center justify-center p-3 sm:p-5 animate-fadeIn ${
-        isLight ? 'bg-slate-900/60' : 'bg-slate-950/85'
-      }`}
+      className={`fixed inset-0 z-50 backdrop-blur-md flex items-center justify-center p-3 sm:p-5 animate-fadeIn bg-slate-900/60`}
     >
       {/* Hidden offscreen canvas for accelerated frame capture */}
       <canvas ref={canvasRef} className="hidden" />
 
       <div
-        className={`border rounded-3xl max-w-md w-full flex flex-col max-h-[94vh] shadow-2xl overflow-hidden transition-all ${
-          isLight ? 'bg-white border-slate-200 text-slate-900 shadow-slate-300/50' : 'bg-slate-900 border-slate-800 text-white'
-        }`}
+        className={`border rounded-3xl max-w-md w-full flex flex-col max-h-[94vh] shadow-2xl overflow-hidden transition-all bg-card border-slate-200 text-slate-900 shadow-slate-300/50`}
       >
         {/* Header */}
         <div
-          className={`p-4 sm:p-5 border-b flex items-center justify-between shrink-0 transition-colors ${
-            isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-950/60 border-slate-800'
-          }`}
+          className={`p-4 sm:p-5 border-b flex items-center justify-between shrink-0 transition-colors bg-slate-50 border-slate-200`}
         >
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-linear-to-br from-amber-400 to-amber-600 text-slate-950 flex items-center justify-center font-bold shadow-lg shrink-0 ring-2 ring-amber-400/30">
+            <div className="w-10 h-10 rounded-2xl bg-linear-to-br from-brand-600 to-brand-800 text-on-brand flex items-center justify-center font-bold shadow-lg shrink-0 ring-2 ring-brand-600/30">
               <QrCode className="w-5 h-5" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="font-extrabold text-base sm:text-lg text-amber-500">
+                <h3 className="font-extrabold text-base sm:text-lg text-brand-700">
                   ماسح رمز الوصول السريع
                 </h3>
-                <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-brand-50 text-brand-700 border border-brand-200">
                   فوري وسريع
                 </span>
               </div>
-              <p className={`text-xs ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+              <p className={`text-xs text-slate-500`}>
                 وجّه كاميرا الهاتف نحو لوحة الرمز في أي اتجاه
               </p>
             </div>
@@ -453,11 +447,7 @@ export const InAppQrScannerModal: React.FC<InAppQrScannerModalProps> = ({
               stopCamera();
               onClose();
             }}
-            className={`p-2 rounded-xl transition cursor-pointer ${
-              isLight
-                ? 'text-slate-500 hover:text-slate-900 bg-slate-200/70 hover:bg-slate-200'
-                : 'text-slate-400 hover:text-white bg-slate-800/80 hover:bg-slate-800'
-            }`}
+            className={`p-2 rounded-xl transition cursor-pointer text-slate-500 hover:text-slate-900 bg-slate-200/70 hover:bg-slate-200`}
             title="إغلاق"
           >
             <X className="w-5 h-5" />
@@ -466,19 +456,15 @@ export const InAppQrScannerModal: React.FC<InAppQrScannerModalProps> = ({
 
         {/* Tab Selection */}
         <div
-          className={`p-2 border-b flex items-center gap-2 transition-colors ${
-            isLight ? 'bg-slate-100/90 border-slate-200' : 'border-slate-800/60 bg-slate-950/40'
-          }`}
+          className={`p-2 border-b flex items-center gap-2 transition-colors bg-slate-100/90 border-slate-200`}
         >
           <button
             type="button"
             onClick={() => setActiveTab('camera')}
             className={`flex-1 py-2 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition cursor-pointer ${
               activeTab === 'camera'
-                ? 'bg-amber-500 text-slate-950 shadow-md'
-                : isLight
-                ? 'text-slate-700 hover:text-slate-950 bg-white hover:bg-slate-50 border border-slate-200'
-                : 'text-slate-400 hover:text-slate-200 bg-slate-900/90 hover:bg-slate-800 border border-slate-800'
+                ? 'bg-brand-700 text-on-brand shadow-md'
+                : 'text-slate-700 hover:text-slate-950 bg-card hover:bg-slate-50 border border-slate-200'
             }`}
           >
             <Camera className="w-4 h-4" />
@@ -490,10 +476,8 @@ export const InAppQrScannerModal: React.FC<InAppQrScannerModalProps> = ({
             onClick={() => setActiveTab('upload')}
             className={`flex-1 py-2 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition cursor-pointer ${
               activeTab === 'upload'
-                ? 'bg-amber-500 text-slate-950 shadow-md'
-                : isLight
-                ? 'text-slate-700 hover:text-slate-950 bg-white hover:bg-slate-50 border border-slate-200'
-                : 'text-slate-400 hover:text-slate-200 bg-slate-900/90 hover:bg-slate-800 border border-slate-800'
+                ? 'bg-brand-700 text-on-brand shadow-md'
+                : 'text-slate-700 hover:text-slate-950 bg-card hover:bg-slate-50 border border-slate-200'
             }`}
           >
             <Upload className="w-4 h-4" />
@@ -504,7 +488,7 @@ export const InAppQrScannerModal: React.FC<InAppQrScannerModalProps> = ({
         {/* Scanner Body */}
         <div className="p-4 sm:p-5 space-y-3.5 overflow-y-auto flex flex-col items-center justify-center">
           {scanError && (
-            <div className="w-full bg-rose-500/10 border border-rose-500/30 rounded-2xl p-3.5 text-rose-500 text-xs flex items-start gap-2.5 animate-fadeIn">
+            <div className="w-full bg-rose-500/10 border border-rose-500/30 rounded-2xl p-3.5 text-rose-600 text-xs flex items-start gap-2.5 animate-fadeIn">
               <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
               <div className="space-y-1">
                 <span className="font-bold block">تنبيه المسح:</span>
@@ -517,7 +501,7 @@ export const InAppQrScannerModal: React.FC<InAppQrScannerModalProps> = ({
           {activeTab === 'camera' && (
             <div className="w-full flex flex-col items-center space-y-3">
               {/* Responsive Camera Box */}
-              <div className="relative w-full max-w-[340px] aspect-4/3 sm:aspect-square mx-auto rounded-3xl overflow-hidden border-2 border-amber-500/60 bg-slate-950 shadow-2xl flex items-center justify-center">
+              <div className="relative w-full max-w-[340px] aspect-4/3 sm:aspect-square mx-auto rounded-3xl overflow-hidden border-2 border-brand-200 bg-card shadow-2xl flex items-center justify-center">
                 {/* Live Video Feed */}
                 <video
                   ref={videoRef}
@@ -533,7 +517,7 @@ export const InAppQrScannerModal: React.FC<InAppQrScannerModalProps> = ({
                 {/* Instant Success Detection Banner */}
                 {successDetected && (
                   <div className="absolute inset-0 bg-emerald-600/85 backdrop-blur-xs flex flex-col items-center justify-center text-white z-30 animate-fadeIn p-4 text-center">
-                    <Sparkles className="w-12 h-12 text-amber-300 animate-bounce" />
+                    <Sparkles className="w-12 h-12 text-brand-700 animate-bounce" />
                     <span className="text-base font-black mt-2">تم مسح الرمز بنجاح!</span>
                     <p className="text-xs text-emerald-100 font-bold mt-1 line-clamp-1">{matchedUnitName}</p>
                     <span className="text-[11px] text-emerald-200 mt-2 bg-emerald-800/60 px-3 py-1 rounded-full">
@@ -545,17 +529,17 @@ export const InAppQrScannerModal: React.FC<InAppQrScannerModalProps> = ({
                 {/* Active HUD Scanning Overlay */}
                 {cameraActive && !successDetected && (
                   <div className="absolute inset-0 pointer-events-none flex items-center justify-center z-10 p-4 sm:p-6">
-                    <div className="w-full h-full border-2 border-amber-400/70 rounded-2xl relative shadow-[0_0_25px_rgba(245,158,11,0.25)] flex items-center justify-center">
+                    <div className="w-full h-full border-2 border-brand-200 rounded-2xl relative shadow-[0_0_25px_rgba(245,158,11,0.25)] flex items-center justify-center">
                       {/* 4 Precision Corner Brackets */}
-                      <div className="absolute -top-1 -left-1 w-7 h-7 border-t-4 border-l-4 border-amber-400 rounded-tl-xl shadow-[0_0_10px_#f59e0b]" />
-                      <div className="absolute -top-1 -right-1 w-7 h-7 border-t-4 border-r-4 border-amber-400 rounded-tr-xl shadow-[0_0_10px_#f59e0b]" />
-                      <div className="absolute -bottom-1 -left-1 w-7 h-7 border-b-4 border-l-4 border-amber-400 rounded-bl-xl shadow-[0_0_10px_#f59e0b]" />
-                      <div className="absolute -bottom-1 -right-1 w-7 h-7 border-b-4 border-r-4 border-amber-400 rounded-br-xl shadow-[0_0_10px_#f59e0b]" />
+                      <div className="absolute -top-1 -left-1 w-7 h-7 border-t-4 border-l-4 border-brand-200 rounded-tl-xl shadow-[0_0_10px_#f59e0b]" />
+                      <div className="absolute -top-1 -right-1 w-7 h-7 border-t-4 border-r-4 border-brand-200 rounded-tr-xl shadow-[0_0_10px_#f59e0b]" />
+                      <div className="absolute -bottom-1 -left-1 w-7 h-7 border-b-4 border-l-4 border-brand-200 rounded-bl-xl shadow-[0_0_10px_#f59e0b]" />
+                      <div className="absolute -bottom-1 -right-1 w-7 h-7 border-b-4 border-r-4 border-brand-200 rounded-br-xl shadow-[0_0_10px_#f59e0b]" />
 
                       {/* Animated High-Tech Laser Beam */}
-                      <div className="absolute left-2 right-2 h-0.5 bg-linear-to-r from-transparent via-amber-400 to-transparent animate-pulse shadow-[0_0_15px_#f59e0b] top-1/2 -translate-y-1/2" />
+                      <div className="absolute left-2 right-2 h-0.5 bg-linear-to-r from-transparent via-brand-600 to-transparent animate-pulse shadow-[0_0_15px_#f59e0b] top-1/2 -translate-y-1/2" />
 
-                      <span className="text-[10px] font-bold text-amber-300 bg-slate-950/80 px-3 py-1 rounded-full border border-amber-500/40 backdrop-blur-md shadow-xs">
+                      <span className="text-[10px] font-bold text-brand-700 bg-card/80 px-3 py-1 rounded-full border border-brand-200 backdrop-blur-md shadow-xs">
                         المسح المباشر فعال • ضع الرمز في الإطار
                       </span>
                     </div>
@@ -572,12 +556,12 @@ export const InAppQrScannerModal: React.FC<InAppQrScannerModalProps> = ({
                         onClick={toggleTorch}
                         className={`p-2.5 rounded-xl border backdrop-blur-md transition cursor-pointer shadow-lg flex items-center gap-1 text-[11px] font-bold ${
                           torchOn
-                            ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-amber-500/40'
-                            : 'bg-slate-900/80 text-slate-200 border-slate-700 hover:bg-slate-800'
+                            ? 'bg-brand-700 text-on-brand border-brand-200 '
+                            : 'bg-card/80 text-slate-800 border-slate-200 hover:bg-slate-100'
                         }`}
                         title="تشغيل / إيقاف الكشاف"
                       >
-                        <Zap className={`w-4 h-4 ${torchOn ? 'fill-slate-950' : 'text-amber-400'}`} />
+                        <Zap className={`w-4 h-4 ${torchOn ? 'fill-slate-950' : 'text-brand-700'}`} />
                         <span>{torchOn ? 'الكشاف مضاء' : 'كشاف'}</span>
                       </button>
                     ) : (
@@ -592,8 +576,8 @@ export const InAppQrScannerModal: React.FC<InAppQrScannerModalProps> = ({
                           onClick={toggleZoom}
                           className={`p-2.5 rounded-xl border backdrop-blur-md transition cursor-pointer shadow-lg text-[11px] font-bold flex items-center gap-1 ${
                             zoomLevel > 1
-                              ? 'bg-amber-500 text-slate-950 border-amber-400'
-                              : 'bg-slate-900/80 text-slate-200 border-slate-700 hover:bg-slate-800'
+                              ? 'bg-brand-700 text-on-brand border-brand-200'
+                              : 'bg-card/80 text-slate-800 border-slate-200 hover:bg-slate-100'
                           }`}
                           title="تقريب الكاميرا"
                         >
@@ -606,10 +590,10 @@ export const InAppQrScannerModal: React.FC<InAppQrScannerModalProps> = ({
                       <button
                         type="button"
                         onClick={flipCamera}
-                        className="p-2.5 rounded-xl bg-slate-900/80 hover:bg-slate-800 text-slate-200 border border-slate-700 backdrop-blur-md transition cursor-pointer shadow-lg flex items-center gap-1 text-[11px] font-bold"
+                        className="p-2.5 rounded-xl bg-card/80 hover:bg-slate-100 text-slate-800 border border-slate-200 backdrop-blur-md transition cursor-pointer shadow-lg flex items-center gap-1 text-[11px] font-bold"
                         title="تبديل الكاميرا"
                       >
-                        <SwitchCamera className="w-4 h-4 text-amber-400" />
+                        <SwitchCamera className="w-4 h-4 text-brand-700" />
                         <span>تبديل</span>
                       </button>
                     </div>
@@ -618,13 +602,13 @@ export const InAppQrScannerModal: React.FC<InAppQrScannerModalProps> = ({
 
                 {/* Loading State Overlay */}
                 {!cameraActive && (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-950/90 p-5 text-center space-y-3 z-30">
-                    <Loader2 className="w-9 h-9 text-amber-500 animate-spin" />
-                    <p className="text-xs text-slate-200 font-bold">جاري تنشيط كاميرا الهاتف والمستشعر...</p>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-card/90 p-5 text-center space-y-3 z-30">
+                    <Loader2 className="w-9 h-9 text-brand-700 animate-spin" />
+                    <p className="text-xs text-slate-800 font-bold">جاري تنشيط كاميرا الهاتف والمستشعر...</p>
                     <button
                       type="button"
                       onClick={startCamera}
-                      className="mt-1 px-4 py-2 bg-amber-500 text-slate-950 font-black rounded-xl text-xs hover:bg-amber-400 transition cursor-pointer shadow-lg shadow-amber-500/20 flex items-center gap-1.5"
+                      className="mt-1 px-4 py-2 bg-brand-700 text-on-brand font-black rounded-xl text-xs hover:bg-brand-800 transition cursor-pointer shadow-lg flex items-center gap-1.5"
                     >
                       <RefreshCw className="w-3.5 h-3.5" />
                       <span>إعادة تشغيل الكاميرا</span>
@@ -635,14 +619,14 @@ export const InAppQrScannerModal: React.FC<InAppQrScannerModalProps> = ({
 
               {/* Instructions & Instant File Upload Trigger */}
               <div className="flex items-center justify-between w-full max-w-[340px] px-1 text-xs">
-                <p className={`text-[11px] font-medium ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                <p className={`text-[11px] font-medium text-slate-600`}>
                   يدعم القراءة السريعة للوحات التعريف الميدانية
                 </p>
 
                 <button
                   type="button"
                   onClick={() => qrFileInputRef.current?.click()}
-                  className="text-amber-500 hover:text-amber-600 font-bold text-[11px] flex items-center gap-1 cursor-pointer"
+                  className="text-brand-700 hover:text-brand-700 font-bold text-[11px] flex items-center gap-1 cursor-pointer"
                 >
                   <ImageIcon className="w-3.5 h-3.5" />
                   <span>من المعرض</span>
@@ -663,31 +647,27 @@ export const InAppQrScannerModal: React.FC<InAppQrScannerModalProps> = ({
               />
               <div
                 onClick={() => !isScanningFile && qrFileInputRef.current?.click()}
-                className={`w-full max-w-[340px] aspect-square mx-auto border-2 border-dashed rounded-3xl p-6 transition cursor-pointer flex flex-col items-center justify-center space-y-3 ${
-                  isLight
-                    ? 'border-slate-300 hover:border-amber-500 bg-slate-50 hover:bg-slate-100/80'
-                    : 'border-slate-700 hover:border-amber-500 bg-slate-950/50 hover:bg-slate-950/80'
-                }`}
+                className={`w-full max-w-[340px] aspect-square mx-auto border-2 border-dashed rounded-3xl p-6 transition cursor-pointer flex flex-col items-center justify-center space-y-3 border-slate-300 hover:border-brand-600 bg-slate-50 hover:bg-slate-100/80`}
               >
-                <div className="w-16 h-16 rounded-2xl bg-amber-500/10 text-amber-500 border border-amber-500/30 flex items-center justify-center mx-auto shadow-inner">
+                <div className="w-16 h-16 rounded-2xl bg-brand-50 text-brand-700 border border-brand-200 flex items-center justify-center mx-auto shadow-inner">
                   {isScanningFile ? (
-                    <Loader2 className="w-8 h-8 animate-spin text-amber-500" />
+                    <Loader2 className="w-8 h-8 animate-spin text-brand-700" />
                   ) : (
                     <Upload className="w-8 h-8" />
                   )}
                 </div>
                 <div>
-                  <h4 className={`font-bold text-sm ${isLight ? 'text-slate-900' : 'text-slate-200'}`}>
+                  <h4 className={`font-bold text-sm text-slate-900`}>
                     {isScanningFile ? 'جاري فك تشفير وفحص رمز QR...' : 'اختر صورة لوحة الرمز من الهاتف'}
                   </h4>
-                  <p className={`text-xs mt-1 ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                  <p className={`text-xs mt-1 text-slate-500`}>
                     يدعم جميع الصور الميدانية بصيغ PNG, JPG, JPEG
                   </p>
                 </div>
                 <button
                   type="button"
                   disabled={isScanningFile}
-                  className="bg-amber-500 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs shadow-md hover:bg-amber-400 transition disabled:opacity-50 cursor-pointer"
+                  className="bg-brand-700 text-on-brand font-bold px-4 py-2 rounded-xl text-xs shadow-md hover:bg-brand-800 transition disabled:opacity-50 cursor-pointer"
                 >
                   {isScanningFile ? 'جاري الفحص...' : 'استعراض من الهاتف'}
                 </button>
@@ -698,12 +678,10 @@ export const InAppQrScannerModal: React.FC<InAppQrScannerModalProps> = ({
 
         {/* Footer */}
         <div
-          className={`p-3.5 sm:p-4 border-t flex items-center justify-between shrink-0 transition-colors ${
-            isLight ? 'border-slate-200 bg-slate-50' : 'border-slate-800 bg-slate-950'
-          }`}
+          className={`p-3.5 sm:p-4 border-t flex items-center justify-between shrink-0 transition-colors border-slate-200 bg-slate-50`}
         >
           <div className="flex items-center gap-1.5 text-[11px] text-slate-500">
-            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
             <span>محرك فك تشفير سريع ومزدوج</span>
           </div>
 
@@ -713,11 +691,7 @@ export const InAppQrScannerModal: React.FC<InAppQrScannerModalProps> = ({
               stopCamera();
               onClose();
             }}
-            className={`px-5 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
-              isLight
-                ? 'bg-slate-200 hover:bg-slate-300 text-slate-700'
-                : 'bg-slate-800 hover:bg-slate-700 text-slate-300'
-            }`}
+            className={`px-5 py-2 rounded-xl text-xs font-bold transition cursor-pointer bg-slate-200 hover:bg-slate-300 text-slate-700`}
           >
             إغلاق
           </button>

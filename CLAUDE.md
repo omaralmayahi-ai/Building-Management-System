@@ -8,7 +8,7 @@
 - نقطة البداية الأصلية موسومة `baseline-original`. نسخة مضغوطة منها في `_safety/` (خارج Git).
 
 ## التقنيات الحالية
-- React 19 + TypeScript + Vite 6 + Tailwind 4 (src/)، Express 4 (server.ts)، PostgreSQL عبر pg (src/db/)، Firebase Firestore (يُحذف في المرحلتين 1 و2).
+- React 19 + TypeScript + Vite 6 + Tailwind 4 (src/)، Express 4 (server.ts)، PostgreSQL عبر pg (src/db/)، Firebase Firestore (**باقٍ بقرار المالك 13-11-2026: أُوقفت إزالته**؛ لا تُحذف شيفرته ولا تُنقل بياناته دون طلب صريح).
 - الهدف: Windows 10/11 أو Windows Server على شبكة داخلية بلا إنترنت. الخطوط والأصول تُضمَّن محلياً (لا CDN).
 - المنفذ يُقرأ من PORT في .env (الافتراضي 3000).
 - **GitHub (قرار 13-11-2026):** كل تعديل يُرفع إلى `main` في https://github.com/omaralmayahi-ai/Building-Management-System ، والفرع main هو دائماً آخر إصدار. المالك يحدّث حاسبته من زر «تحديث من GitHub» في لوحة التحكم (fetch ثم reset --hard origin/main ثم تنصيب وبناء). لا تُرفع الأسرار ولا البيانات: `.env` و `.data/` و `backups/` و `logs/` و `_safety/` خارج المستودع.
@@ -28,17 +28,20 @@
 - الجلسات في `.data/sessions.json`. لا تُرسل كلمة المرور في أي استجابة ولا تُحفظ في localStorage ولا في Firestore.
 - تغيير كلمة المرور الشخصية: `POST /api/auth/change-password`. لا يوجد دخول بديل داخل المتصفح.
 - الاختبارات: `npm test` (node:test، tests/security.test.mjs) تشغّل dist/server.cjs بمنفذ مؤقت و`BMS_DATA_DIR` مؤقت. يجب أن تمر قبل كل commit يمس الخادم.
-- بقي من المرحلة 1: إزالة Firestore لبقية البيانات (بانتظار تصدير البيانات الحقيقية من المالك).
+- إزالة Firestore أُلغيت بقرار المالك (13-11-2026). المرحلة 2 (مصدر واحد للحقيقة) تحتاج إعادة تحديد نطاق مع بقاء Firestore. ما زال موقع البيانات الحقيقية غير معروف — يُذكَّر المالك بتصديرها إلى `_safety`.
 
-## التصميم المعتمد (المرحلة 4-أ منجزة؛ 4-ب الشاشات لم تبدأ)
+## التصميم المعتمد (4-أ منجزة؛ 4-ب: التحويل الآلي لكل الشاشات والنوافذ منجز، بقي اعتماد مكوّنات ui.tsx وتقسيم المكوّنات الكبيرة)
 - الرموز في `src/index.css` (منقولة من نظام الأرشفة): `--primary` لكل ثيم (`[data-theme]`)، `brand-*` مشتقة منه، `bg-card` / `bg-page` / `bg-sidebar` / `text-on-brand`. الخطوط محلية (@fontsource). `dark:` يتبع الصنف `.dark` على `<html>` لا نظام التشغيل.
 - `src/lib/theme.ts`: الثيمات التسعة («buildings» الافتراضي + لوحات ناظم الثماني)، الخطوط، `applyAppearance`. المظهر الافتراضي ضمن هوية النظام (`branding.themeId/fontId/sidebarStyle`، الإعدادات ← الهوية ← «مظهر الواجهة»). تفضيلات كل مستخدم فوقه في `user.uiPrefs` {theme,font,sidebar,collapsed} عبر `PATCH /api/auth/preferences` (null = العودة لمظهر النظام)، وقائمة «مظهر الواجهة» في الترويسة (`AppearanceMenu.tsx`). الوضع الداكن من زر المستخدم (`app_theme`). `effectiveAppearance` في App.tsx.
 - المحوَّل: `Sidebar.tsx`، `StatusBar.tsx` (يعتمد `GET /api/status`)، شريط `Header.tsx` العلوي (زر طيّ القائمة في بدايته)، `AppearanceMenu.tsx`. الترتيب العلوي: شريط الحالة ثابت 30px، الترويسة `top-[30px]`، القائمة `top-[91px]`.
 - `src/components/ui.tsx`: مجموعة المكوّنات الموحدة منقولة من الأرشفة (Button، Input، Select، Field، Card، PageHeader، Tabs، Badge، Table، EmptyState، Modal، ConfirmDialog، ToastProvider، Pagination). لم تُستخدم في الشاشات بعد.
 - التنقل: كل تبويب له مسار من مقطع واحد (`/dashboard`، `/units`، `/gis-map`...) عبر History API في App.tsx (`tabFromLocation` / `pathForTab` / `isTabAllowedForRole`). المسارات من مقطع واحد فقط لأن `base: './'` في vite.
-- **قاعدة التحويل (4-ب):** الشاشات القديمة تختار ألوانها بشرط `isLight` ومعها تجاوزات `.light` في index.css. عند تحويل شاشة: أحطها بالصنف `.ds` (داخله ينقلب سلّم slate في الوضع الداكن)، احذف شروط `isLight`، استخدم الرموز ومكوّنات ui.tsx، ولا تكتب `bg-white` للأسطح. لا تفعّل قلب slate عاماً قبل تحويل كل الشاشات.
-- الفحص البصري: playwright + google-chrome على نسخة البناء الخارجية (دخول، تغيير كلمة المرور، فتح كل تبويب، الرجوع، رابط مباشر، طيّ القائمة، قائمة المظهر، داكن، هاتف).
-- لم يُحوَّل بعد: داخل الترويسة (الساعة، بطاقة المستخدم، نافذة كلمة المرور، شريط الهاتف)، وكل الشاشات.
+- **نطاق `.ds` (4-ب):** الصنف `ds` على `<body>` وجذر التطبيق؛ داخله ينقلب سلّم slate والألوان الدلالية (50/100/200 و600–900) في الوضع الداكن، فتُكتب الأصناف بصيغة الوضع الفاتح فقط (`bg-card`، `text-slate-900`، `border-slate-200`، `text-emerald-600`...). لا تكتب شروط `isLight` للألوان ولا `dark:` ولا `bg-white` للأسطح ولا درجات 300/400/950 للنصوص والحدود.
+- `ds-off` يعيد الدرجات الأصلية لمكوّن يلوّن نفسه: `ThreeBuildingCanvas`، `DroneHudOverlay`، `InteractiveEngineeringEditor`، `Sidebar`، `StatusBar`، وبطاقات QR المطبوعة (تبقى بيضاء).
+- الخلفيات الصلبة `bg-<لون>-600/700/800` تبقى بدرجتها الأصلية في الداكن (قواعد في index.css) لتصلح مع نص أبيض. الزر الأساسي: `bg-brand-700 hover:bg-brand-800 text-on-brand`.
+- `script/ds-codemod.py <ملفات>`: المحوّل الآلي (يزيل شروط isLight ويحوّل amber إلى brand). استُخدم على كل `src/components` عدا مكوّنات `ds-off` و`ui.tsx`. ما بقي من `isLight` وظيفي (أيقونة الشمس/القمر، خصائص تُمرَّر للمكوّنات ثلاثية الأبعاد).
+- ما زالت قواعد تجاوز `.light` في index.css والصنف `light`/`dark` على جذر التطبيق؛ تُزال عند التنظيف (المرحلة 5) بعد فحص بصري.
+- الفحص البصري: playwright + google-chrome على نسخة البناء الخارجية بالوضعين وبمقاس الهاتف، مع فحص آلي لتباين النصوص (أقل من 2.6 يُعدّ عيباً). لم تُفحص بعد النوافذ التي تحتاج بيانات (تعديل وحدة، بطاقات QR، عارض المرفقات، المخطط التنظيمي، المجسّم ثلاثي الأبعاد).
 
 ## معروف وغير محلول (تفاصيله في تقرير المراجعة)
 - أربعة مخازن بيانات (Firestore، PostgreSQL، ذاكرة + .data/store.json، localStorage).

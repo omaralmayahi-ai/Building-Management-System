@@ -2226,9 +2226,9 @@ export function App() {
   return (
     <div
       dir="rtl"
-      className={`min-h-screen font-sans antialiased selection:bg-amber-500 selection:text-slate-950 transition-colors duration-300 ${
-        theme === 'light' ? 'light bg-slate-100 text-slate-900' : 'dark bg-slate-950 text-slate-100'
-      }`}
+      className={`min-h-screen font-sans antialiased selection:bg-brand-700 selection:text-on-brand transition-colors duration-300 ${
+        theme === 'light' ? 'light' : 'dark'
+      } ds bg-page text-slate-900 `}
     >
       {/* شريط الحالة: الاتصال بالخادم، ساعة الخادم، آخر نسخة احتياطية */}
       <StatusBar />
@@ -2661,26 +2661,26 @@ export function App() {
             className={`flex items-start gap-3 p-4 rounded-xl shadow-2xl border backdrop-blur-md ${
               toastMessage.type === 'error'
                 ? theme === 'light'
-                  ? 'bg-rose-50 border-rose-300 text-rose-900 shadow-rose-200/50'
+                  ? 'bg-rose-50 border-rose-200 text-rose-900 shadow-rose-200/50'
                   : 'bg-rose-950/95 border-rose-700/80 text-rose-100 shadow-black/80'
                 : toastMessage.type === 'success'
                 ? theme === 'light'
-                  ? 'bg-emerald-50 border-emerald-300 text-emerald-900 shadow-emerald-200/50'
+                  ? 'bg-emerald-50 border-emerald-200 text-emerald-900 shadow-emerald-200/50'
                   : 'bg-emerald-950/95 border-emerald-700/80 text-emerald-100 shadow-black/80'
                 : theme === 'light'
-                ? 'bg-blue-50 border-blue-300 text-blue-900 shadow-blue-200/50'
+                ? 'bg-blue-50 border-blue-200 text-blue-900 shadow-blue-200/50'
                 : 'bg-blue-950/95 border-blue-700/80 text-blue-100 shadow-black/80'
             }`}
           >
             <div className="shrink-0 mt-0.5">
               {toastMessage.type === 'error' && (
-                <AlertTriangle className="w-5 h-5 text-rose-600 dark:text-rose-400" />
+                <AlertTriangle className="w-5 h-5 text-rose-600 " />
               )}
               {toastMessage.type === 'success' && (
-                <CheckCircle className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                <CheckCircle className="w-5 h-5 text-emerald-600 " />
               )}
               {toastMessage.type === 'info' && (
-                <Info className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                <Info className="w-5 h-5 text-blue-600 " />
               )}
             </div>
             <div className="flex-1 min-w-0">
@@ -2695,7 +2695,7 @@ export function App() {
             </div>
             <button
               onClick={() => setToastMessage(null)}
-              className="shrink-0 p-1 rounded-lg hover:bg-black/10 dark:hover:bg-white/10 transition-colors opacity-70 hover:opacity-100 cursor-pointer"
+              className="shrink-0 p-1 rounded-lg hover:bg-black/10 transition-colors opacity-70 hover:opacity-100 cursor-pointer"
               title="إغلاق التنبيه"
             >
               <X className="w-4 h-4" />

@@ -155,8 +155,8 @@ export function PWAInstallPrompt({
       <div
         className={`fixed bottom-4 inset-x-4 md:inset-x-auto md:end-6 md:w-96 z-40 p-4 rounded-2xl shadow-2xl border backdrop-blur-md transition-all animate-slide-up ${
           theme === 'dark'
-            ? 'bg-slate-900/95 border-slate-700/80 text-white shadow-black/60'
-            : 'bg-white/95 border-slate-200 text-slate-800 shadow-slate-400/30'
+            ? 'bg-card/95 border-slate-200 text-slate-900 shadow-black/60'
+            : 'bg-card/95 border-slate-200 text-slate-800 shadow-slate-400/30'
         } ${className}`}
         dir="rtl"
       >
@@ -168,11 +168,11 @@ export function PWAInstallPrompt({
             <div>
               <div className="font-bold text-sm flex items-center gap-1.5">
                 تطبيق السجل الرقمي للهاتف
-                <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                <Sparkles className="w-3.5 h-3.5 text-brand-700" />
               </div>
               <div
                 className={`text-xs ${
-                  theme === 'dark' ? 'text-slate-400' : 'text-slate-500'
+                  theme === 'dark' ? 'text-slate-500' : 'text-slate-500'
                 }`}
               >
                 تثبيت مباشر أو تنزيل ملف التنصيب APK
@@ -184,8 +184,8 @@ export function PWAInstallPrompt({
             type="button"
             className={`p-1 rounded-lg transition-colors cursor-pointer ${
               theme === 'dark'
-                ? 'text-slate-400 hover:text-white hover:bg-slate-800'
-                : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100'
+                ? 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
+                : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
             }`}
             title="إغلاق التنبيه"
           >
@@ -195,7 +195,7 @@ export function PWAInstallPrompt({
 
         <p
           className={`text-xs mb-3 leading-relaxed ${
-            theme === 'dark' ? 'text-slate-300' : 'text-slate-600'
+            theme === 'dark' ? 'text-slate-600' : 'text-slate-600'
           }`}
         >
           يمكنك تثبيت النظام مباشرة على شاشة الهاتف، أو تنزيل ملف التنصيب (APK) لإرساله ومشاركته عبر واتساب مع الزملاء في الحقول النفطية.
@@ -221,7 +221,7 @@ export function PWAInstallPrompt({
             type="button"
             className={`flex-1 inline-flex items-center justify-center gap-1.5 px-2.5 py-2 rounded-xl text-xs font-bold border transition-colors cursor-pointer ${
               theme === 'dark'
-                ? 'bg-slate-800 border-slate-700 text-cyan-300 hover:bg-slate-700'
+                ? 'bg-slate-100 border-slate-200 text-cyan-600 hover:bg-slate-100'
                 : 'bg-cyan-50 border-cyan-200 text-cyan-700 hover:bg-cyan-100'
             }`}
           >
@@ -279,15 +279,15 @@ function InstallAndDownloadModal({
       <div
         className={`w-full max-w-2xl my-auto rounded-2xl sm:rounded-3xl shadow-2xl border overflow-hidden transition-all ${
           isDark
-            ? 'bg-slate-900 border-slate-700/80 text-white shadow-black/80'
-            : 'bg-white border-slate-200 text-slate-900 shadow-xl'
+            ? 'bg-card border-slate-200 text-slate-900 shadow-black/80'
+            : 'bg-card border-slate-200 text-slate-900 shadow-xl'
         }`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div
           className={`p-5 sm:p-6 border-b flex items-start justify-between gap-4 ${
-            isDark ? 'border-slate-800 bg-slate-900/60' : 'border-slate-100 bg-slate-50/70'
+            isDark ? 'border-slate-200 bg-card/60' : 'border-slate-100 bg-slate-50/70'
           }`}
         >
           <div className="flex items-center gap-3">
@@ -297,13 +297,13 @@ function InstallAndDownloadModal({
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="font-bold text-lg sm:text-xl">خيارات تثبيت وتنزيل التطبيق</h3>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-500 border border-amber-500/20">
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-brand-50 text-brand-700 border border-brand-200">
                   شركة نفط الوسط
                 </span>
               </div>
               <p
                 className={`text-xs sm:text-sm mt-0.5 ${
-                  isDark ? 'text-slate-400' : 'text-slate-500'
+                  isDark ? 'text-slate-500' : 'text-slate-500'
                 }`}
               >
                 اختر بين التثبيت المباشر على هذا الجهاز أو تنزيل ملف التنصيب (APK) لإرساله
@@ -314,8 +314,8 @@ function InstallAndDownloadModal({
             onClick={onClose}
             className={`p-1.5 rounded-xl transition-colors cursor-pointer ${
               isDark
-                ? 'text-slate-400 hover:text-white hover:bg-slate-800'
-                : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100'
+                ? 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
+                : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
             }`}
             title="إغلاق"
           >
@@ -326,7 +326,7 @@ function InstallAndDownloadModal({
         {/* Navigation Tabs */}
         <div
           className={`flex border-b px-4 sm:px-6 gap-2 ${
-            isDark ? 'border-slate-800 bg-slate-950/40' : 'border-slate-100 bg-slate-100/40'
+            isDark ? 'border-slate-200 bg-card/40' : 'border-slate-100 bg-slate-100/40'
           }`}
         >
           <button
@@ -334,13 +334,13 @@ function InstallAndDownloadModal({
             onClick={() => setActiveTab('apk')}
             className={`py-3 px-3 sm:px-4 text-xs sm:text-sm font-bold border-b-2 flex items-center gap-2 transition-colors cursor-pointer ${
               activeTab === 'apk'
-                ? 'border-cyan-500 text-cyan-500 dark:text-cyan-400'
-                : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+                ? 'border-cyan-500 text-cyan-600 '
+                : 'border-transparent text-slate-500 hover:text-slate-800 '
             }`}
           >
             <PackageCheck className="w-4 h-4" />
             <span>تنزيل ملف التنصيب (APK للإرسال)</span>
-            <span className="px-1.5 py-0.2 rounded text-[10px] bg-cyan-500/10 text-cyan-600 dark:text-cyan-300 font-semibold">
+            <span className="px-1.5 py-0.2 rounded text-[10px] bg-cyan-500/10 text-cyan-600 font-semibold">
               موصى به للمشاركة
             </span>
           </button>
@@ -350,8 +350,8 @@ function InstallAndDownloadModal({
             onClick={() => setActiveTab('direct')}
             className={`py-3 px-3 sm:px-4 text-xs sm:text-sm font-bold border-b-2 flex items-center gap-2 transition-colors cursor-pointer ${
               activeTab === 'direct'
-                ? 'border-cyan-500 text-cyan-500 dark:text-cyan-400'
-                : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+                ? 'border-cyan-500 text-cyan-600 '
+                : 'border-transparent text-slate-500 hover:text-slate-800 '
             }`}
           >
             <Smartphone className="w-4 h-4" />
@@ -363,8 +363,8 @@ function InstallAndDownloadModal({
             onClick={() => setActiveTab('guide')}
             className={`py-3 px-3 sm:px-4 text-xs sm:text-sm font-bold border-b-2 flex items-center gap-2 transition-colors cursor-pointer ${
               activeTab === 'guide'
-                ? 'border-cyan-500 text-cyan-500 dark:text-cyan-400'
-                : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+                ? 'border-cyan-500 text-cyan-600 '
+                : 'border-transparent text-slate-500 hover:text-slate-800 '
             }`}
           >
             <Info className="w-4 h-4" />
@@ -389,7 +389,7 @@ function InstallAndDownloadModal({
                     <PackageCheck className="w-6 h-6" />
                   </div>
                   <div>
-                    <h4 className="font-bold text-base text-slate-900 dark:text-white flex items-center gap-2">
+                    <h4 className="font-bold text-base text-slate-900 flex items-center gap-2">
                       ملف تثبيت أندرويد المستقل (APK File)
                       <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500 text-white">
                         جاهز للإرسال
@@ -397,19 +397,19 @@ function InstallAndDownloadModal({
                     </h4>
                     <p
                       className={`text-xs mt-1 leading-relaxed ${
-                        isDark ? 'text-slate-300' : 'text-slate-600'
+                        isDark ? 'text-slate-600' : 'text-slate-600'
                       }`}
                     >
                       نزّل ملف التنصيب بصيغة <strong>.apk</strong> لتتمكن من إرساله كملف مستقل عبر <strong>واتساب</strong> أو <strong>تليغرام</strong> أو <strong>بلوتوث</strong> أو ذاكرة فلاش، ليقوم الموظفون بتثبيته مباشرة على هواتفهم دون الحاجة لفتح المتصفح أو إرسال رابط.
                     </p>
-                    <div className="mt-2.5 flex flex-wrap items-center gap-3 text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+                    <div className="mt-2.5 flex flex-wrap items-center gap-3 text-[11px] text-slate-500 font-medium">
                       <span className="flex items-center gap-1">
-                        <HardDrive className="w-3.5 h-3.5 text-cyan-500" />
+                        <HardDrive className="w-3.5 h-3.5 text-cyan-600" />
                         حجم الملف: ~80 KB (سريع الإرسال)
                       </span>
                       <span>•</span>
                       <span className="flex items-center gap-1">
-                        <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+                        <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
                         الإصدار: v1.0.0 (نظام السجل الرقمي)
                       </span>
                     </div>
@@ -430,21 +430,21 @@ function InstallAndDownloadModal({
               <div
                 className={`p-4 rounded-2xl border flex flex-col md:flex-row items-start md:items-center justify-between gap-4 ${
                   isDark
-                    ? 'bg-slate-800/40 border-slate-700/60'
+                    ? 'bg-slate-100 border-slate-200'
                     : 'bg-slate-50 border-slate-200'
                 }`}
               >
                 <div className="flex items-start gap-3">
-                  <div className="p-2.5 rounded-xl bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 shrink-0">
+                  <div className="p-2.5 rounded-xl bg-slate-200 text-slate-700 shrink-0">
                     <FileArchive className="w-5 h-5" />
                   </div>
                   <div>
-                    <h5 className="font-bold text-sm text-slate-900 dark:text-white">
+                    <h5 className="font-bold text-sm text-slate-900 ">
                       حزمة التثبيت الشاملة للمهندسين وفِرق الـ IT (.ZIP)
                     </h5>
                     <p
                       className={`text-xs mt-0.5 ${
-                        isDark ? 'text-slate-400' : 'text-slate-500'
+                        isDark ? 'text-slate-500' : 'text-slate-500'
                       }`}
                     >
                       تحتوي على ملف الـ APK + أيقونات الدقة العالية + دليل التثبيت بالصور + سكربتات التثبيت السريع عبر الكمبيوتر (ADB).
@@ -457,8 +457,8 @@ function InstallAndDownloadModal({
                   onClick={onDownloadZip}
                   className={`w-full md:w-auto inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-bold border transition-colors cursor-pointer shrink-0 ${
                     isDark
-                      ? 'bg-slate-800 hover:bg-slate-700 border-slate-600 text-slate-200'
-                      : 'bg-white hover:bg-slate-100 border-slate-300 text-slate-700'
+                      ? 'bg-slate-100 hover:bg-slate-100 border-slate-200 text-slate-800'
+                      : 'bg-card hover:bg-slate-100 border-slate-300 text-slate-700'
                   }`}
                 >
                   <Download className="w-3.5 h-3.5" />
@@ -470,29 +470,29 @@ function InstallAndDownloadModal({
               <div
                 className={`p-4 rounded-2xl border text-xs space-y-2.5 ${
                   isDark
-                    ? 'bg-slate-950/40 border-slate-800 text-slate-300'
-                    : 'bg-amber-50/50 border-amber-200 text-amber-900'
+                    ? 'bg-card/40 border-slate-200 text-slate-600'
+                    : 'bg-brand-50 border-brand-200 text-brand-800'
                 }`}
               >
-                <div className="font-bold flex items-center gap-2 text-sm text-amber-600 dark:text-amber-400">
+                <div className="font-bold flex items-center gap-2 text-sm text-brand-700 ">
                   <Send className="w-4 h-4" />
                   <span>خطوات إرسال وتثبيت ملف الـ APK للهواتف:</span>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
-                  <div className="p-2.5 rounded-xl bg-white/70 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60">
-                    <span className="font-bold text-cyan-600 dark:text-cyan-400 block mb-1">
+                  <div className="p-2.5 rounded-xl bg-card/70 border border-slate-200/60 ">
+                    <span className="font-bold text-cyan-600 block mb-1">
                       1. التنزيل والإرسال
                     </span>
                     نزّل الملف وأرسله عبر واتساب أو تليغرام أو بلوتوث أو فلاش إلى هاتف الموظف.
                   </div>
-                  <div className="p-2.5 rounded-xl bg-white/70 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60">
-                    <span className="font-bold text-cyan-600 dark:text-cyan-400 block mb-1">
+                  <div className="p-2.5 rounded-xl bg-card/70 border border-slate-200/60 ">
+                    <span className="font-bold text-cyan-600 block mb-1">
                       2. الضغط والتثبيت
                     </span>
                     يضغط المستلم على الملف في الهاتف ويختار "تثبيت" (Install) على أندرويد.
                   </div>
-                  <div className="p-2.5 rounded-xl bg-white/70 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60">
-                    <span className="font-bold text-cyan-600 dark:text-cyan-400 block mb-1">
+                  <div className="p-2.5 rounded-xl bg-card/70 border border-slate-200/60 ">
+                    <span className="font-bold text-cyan-600 block mb-1">
                       3. التشغيل المستقل
                     </span>
                     يظهر التطبيق فوراً في قائمة تطبيقات الهاتف ويعمل مباشرة بدون متصفح.
@@ -508,7 +508,7 @@ function InstallAndDownloadModal({
               <div
                 className={`p-4 rounded-2xl border flex flex-col md:flex-row items-start md:items-center justify-between gap-4 ${
                   isDark
-                    ? 'bg-slate-800/60 border-slate-700'
+                    ? 'bg-slate-100 border-slate-200'
                     : 'bg-emerald-50/60 border-emerald-200'
                 }`}
               >
@@ -517,7 +517,7 @@ function InstallAndDownloadModal({
                     <Smartphone className="w-6 h-6" />
                   </div>
                   <div>
-                    <h4 className="font-bold text-base text-slate-900 dark:text-white flex items-center gap-2">
+                    <h4 className="font-bold text-base text-slate-900 flex items-center gap-2">
                       التثبيت المباشر على هذا الجهاز (PWA)
                       {isInstalled && (
                         <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500 text-white">
@@ -527,7 +527,7 @@ function InstallAndDownloadModal({
                     </h4>
                     <p
                       className={`text-xs mt-1 leading-relaxed ${
-                        isDark ? 'text-slate-300' : 'text-slate-600'
+                        isDark ? 'text-slate-600' : 'text-slate-600'
                       }`}
                     >
                       تثبيت النظام فوراً على شاشة هاتفك الرئيسية أو حاسوبك دون الحاجة لتنزيل أي ملفات. يعمل بكامل ميزات التطبيقات الأصلية، سرعة عالية، وملء الشاشة.
@@ -548,18 +548,18 @@ function InstallAndDownloadModal({
               {/* Guide if manual install is needed */}
               <div
                 className={`p-4 rounded-2xl border text-xs space-y-2 ${
-                  isDark ? 'bg-slate-950/40 border-slate-800 text-slate-300' : 'bg-slate-50 border-slate-200 text-slate-700'
+                  isDark ? 'bg-card/40 border-slate-200 text-slate-600' : 'bg-slate-50 border-slate-200 text-slate-700'
                 }`}
               >
-                <div className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
-                  <Info className="w-4 h-4 text-cyan-500" />
+                <div className="font-bold text-slate-900 flex items-center gap-1.5">
+                  <Info className="w-4 h-4 text-cyan-600" />
                   <span>طريقة التثبيت المباشر من المتصفح:</span>
                 </div>
                 <p>
                   إذا لم تظهر نافذة التثبيت التلقائية، يمكنك الضغط على قائمة المتصفح (⋮) ثم اختيار <strong>"تثبيت التطبيق"</strong> أو <strong>"إضافة إلى الشاشة الرئيسية"</strong>.
                 </p>
                 {isIOS && (
-                  <p className="text-amber-600 dark:text-amber-400 font-medium">
+                  <p className="text-brand-700 font-medium">
                     على أجهزة آيفون (Safari): اضغط زر المشاركة (مربع بسهم لأعلى) ثم اختر <strong>"إضافة إلى الصفحة الرئيسية"</strong>.
                   </p>
                 )}
@@ -572,14 +572,14 @@ function InstallAndDownloadModal({
             <div className="space-y-4 text-xs animate-fade-in">
               <div
                 className={`p-4 rounded-2xl border space-y-3 ${
-                  isDark ? 'bg-slate-800/40 border-slate-700' : 'bg-slate-50 border-slate-200'
+                  isDark ? 'bg-slate-100 border-slate-200' : 'bg-slate-50 border-slate-200'
                 }`}
               >
-                <h4 className="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
-                  <PackageCheck className="w-4 h-4 text-cyan-500" />
+                <h4 className="font-bold text-sm text-slate-900 flex items-center gap-2">
+                  <PackageCheck className="w-4 h-4 text-cyan-600" />
                   ما الفرق بين تنزيل ملف الـ APK والتثبيت المباشر؟
                 </h4>
-                <div className="space-y-2 leading-relaxed text-slate-600 dark:text-slate-300">
+                <div className="space-y-2 leading-relaxed text-slate-600 ">
                   <p>
                     <strong>1. ملف الـ APK:</strong> هو ملف تثبيت أندرويد حقيقي يمكنك حفظه على جهازك وإرساله عبر واتساب، تليغرام، البريد، أو البلوتوث لأي شخص ليقوم بتثبيته كملف، دون الحاجة لأن يفتح متصفح الإنترنت أو يحتاج رابطاً.
                   </p>
@@ -591,14 +591,14 @@ function InstallAndDownloadModal({
 
               <div
                 className={`p-4 rounded-2xl border space-y-3 ${
-                  isDark ? 'bg-slate-800/40 border-slate-700' : 'bg-slate-50 border-slate-200'
+                  isDark ? 'bg-slate-100 border-slate-200' : 'bg-slate-50 border-slate-200'
                 }`}
               >
-                <h4 className="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
-                  <ShieldCheck className="w-4 h-4 text-emerald-500" />
+                <h4 className="font-bold text-sm text-slate-900 flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-emerald-600" />
                   ماذا أفعل إذا ظهرت رسالة "تثبيت تطبيقات غير معروفة" على أندرويد؟
                 </h4>
-                <p className="leading-relaxed text-slate-600 dark:text-slate-300">
+                <p className="leading-relaxed text-slate-600 ">
                   هذا إجراء أمني اعتيادي في نظام أندرويد عند تثبيت أي ملف APK يتم إرساله عبر واتساب أو تليغرام. كل ما عليك هو الضغط على <strong>"الإعدادات"</strong> ثم تفعيل خيار <strong>"السماح بالتثبيت من هذا المصدر" (Allow from this source)</strong>، ثم الرجوع والضغط على "تثبيت".
                 </p>
               </div>
@@ -609,10 +609,10 @@ function InstallAndDownloadModal({
         {/* Footer */}
         <div
           className={`p-4 sm:p-5 border-t flex flex-wrap items-center justify-between gap-3 ${
-            isDark ? 'border-slate-800 bg-slate-950/40' : 'border-slate-100 bg-slate-50/60'
+            isDark ? 'border-slate-200 bg-card/40' : 'border-slate-100 bg-slate-50/60'
           }`}
         >
-          <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+          <div className="flex items-center gap-2 text-xs text-slate-500 ">
             <span className="w-2 h-2 rounded-full bg-emerald-500" />
             <span>شركة نفط الوسط - وزارة النفط العراقية</span>
           </div>
@@ -623,7 +623,7 @@ function InstallAndDownloadModal({
               onClick={onClose}
               className={`px-4 py-2 rounded-xl text-xs font-semibold border transition-colors cursor-pointer ${
                 isDark
-                  ? 'border-slate-700 text-slate-300 hover:bg-slate-800'
+                  ? 'border-slate-200 text-slate-600 hover:bg-slate-100'
                   : 'border-slate-200 text-slate-700 hover:bg-slate-100'
               }`}
             >

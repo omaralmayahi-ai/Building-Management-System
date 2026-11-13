@@ -271,18 +271,12 @@ export const Header: React.FC<HeaderProps> = ({
 
   const getRoleBadgeStyle = (role?: string) => {
     if (role === 'مدير النظام' || role === 'admin') {
-      return isLight
-        ? 'bg-amber-100 text-amber-900 border-amber-300'
-        : 'bg-amber-500/20 text-amber-300 border-amber-500/30';
+      return 'bg-brand-100 text-brand-800 border-brand-200';
     }
     if (role === 'مشغل النظام' || role === 'operator') {
-      return isLight
-        ? 'bg-sky-100 text-sky-900 border-sky-300'
-        : 'bg-sky-500/20 text-sky-300 border-sky-500/30';
+      return 'bg-sky-100 text-sky-900 border-sky-200';
     }
-    return isLight
-      ? 'bg-emerald-100 text-emerald-900 border-emerald-300'
-      : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30';
+    return 'bg-emerald-100 text-emerald-900 border-emerald-200';
   };
 
   const handleOpenPasswordModal = () => {
@@ -361,7 +355,7 @@ export const Header: React.FC<HeaderProps> = ({
       <div className="sticky top-[30px] z-30 w-full shadow-xs backdrop-blur-md">
         {/* Main Header (Pure, uncluttered, logo & system info fully preserved) */}
         <header
-          className="border-b px-2 sm:px-4 py-1.5 sm:py-2.5 transition-colors duration-300 bg-card/95 border-slate-200 text-slate-900 dark:border-white/10 dark:text-white"
+          className="border-b px-2 sm:px-4 py-1.5 sm:py-2.5 transition-colors duration-300 bg-card/95 border-slate-200 text-slate-900 "
         >
           <div className="w-full flex items-center justify-between gap-1.5 sm:gap-4 min-w-0">
             {/* Company Identity Branding */}
@@ -372,7 +366,7 @@ export const Header: React.FC<HeaderProps> = ({
                   onClick={onToggleSidebar}
                   aria-label={isSidebarCollapsed ? 'توسيع القائمة' : 'طيّ القائمة'}
                   title={isSidebarCollapsed ? 'توسيع القائمة' : 'طيّ القائمة'}
-                  className="hidden md:inline-flex shrink-0 rounded-lg p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white transition-colors cursor-pointer"
+                  className="hidden md:inline-flex shrink-0 rounded-lg p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-900 transition-colors cursor-pointer"
                 >
                   {isSidebarCollapsed ? <PanelRightOpen className="h-5 w-5" aria-hidden /> : <PanelRightClose className="h-5 w-5" aria-hidden />}
                 </button>
@@ -386,27 +380,25 @@ export const Header: React.FC<HeaderProps> = ({
                   />
                 </div>
               ) : (
-                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-brand-50 border border-brand-200 flex items-center justify-center text-brand-700 dark:text-white font-bold shrink-0">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-brand-50 border border-brand-200 flex items-center justify-center text-brand-700 font-bold shrink-0">
                   <ShieldCheck className="w-5 h-5 sm:w-6 sm:h-6" />
                 </div>
               )}
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1 sm:gap-2">
                   <h1
-                    className="font-bold text-xs xs:text-sm sm:text-base md:text-lg tracking-wide truncate max-w-[130px] xs:max-w-[180px] sm:max-w-none text-brand-700 dark:text-(--primary-text)"
+                    className="font-bold text-xs xs:text-sm sm:text-base md:text-lg tracking-wide truncate max-w-[130px] xs:max-w-[180px] sm:max-w-none text-brand-700 "
                   >
                     {branding?.companyName || 'شركة نفط الوسط'}
                   </h1>
                   {branding?.logoSubtext && (
-                    <span className="hidden md:inline-flex text-[10px] bg-brand-100 text-brand-800 dark:text-white px-1.5 py-0.5 rounded border border-brand-200 font-semibold shrink-0">
+                    <span className="hidden md:inline-flex text-[10px] bg-brand-100 text-brand-800 px-1.5 py-0.5 rounded border border-brand-200 font-semibold shrink-0">
                       {branding.logoSubtext}
                     </span>
                   )}
                 </div>
                 <p
-                  className={`text-[9px] xs:text-[10px] sm:text-xs truncate block max-w-[150px] xs:max-w-[210px] sm:max-w-xs font-medium leading-tight ${
-                    isLight ? 'text-slate-500' : 'text-slate-400'
-                  }`}
+                  className={`text-[9px] xs:text-[10px] sm:text-xs truncate block max-w-[150px] xs:max-w-[210px] sm:max-w-xs font-medium leading-tight text-slate-500`}
                 >
                   {branding?.systemName || 'نظام إدارة المباني والكرفانات والأصول'}
                 </p>
@@ -421,7 +413,7 @@ export const Header: React.FC<HeaderProps> = ({
                 type="button"
                 id="offline-sync-queue-badge"
                 onClick={handleManualFlushQueue}
-                className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-[11px] font-bold bg-amber-500/20 text-amber-500 border border-amber-500/40 hover:bg-amber-500/30 transition-all cursor-pointer shadow-xs animate-pulse"
+                className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-[11px] font-bold bg-brand-100 text-brand-700 border border-brand-200 hover:bg-brand-100 transition-all cursor-pointer shadow-xs animate-pulse"
                 title={`يوجد ${queueStatus.pendingCount} طلب بانتظار المزامنة مع الخادم. اضغط لإعادة المحاولة الآن.`}
               >
                 <RefreshCw className={`w-3 h-3 sm:w-3.5 sm:h-3.5 ${queueStatus.isSyncing ? 'animate-spin' : ''}`} />
@@ -431,7 +423,7 @@ export const Header: React.FC<HeaderProps> = ({
             ) : !isOnline ? (
               <div
                 id="offline-mode-badge"
-                className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-[11px] font-bold bg-slate-500/20 text-slate-400 border border-slate-500/30 select-none shadow-xs"
+                className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-[11px] font-bold bg-slate-500/20 text-slate-500 border border-slate-500/30 select-none shadow-xs"
                 title="أنت تعمل حالياً بدون اتصال إنترنت. سيتم حفظ جميع الكشوفات وطلبات الصيانة محلياً وتمريرها تلقائياً فور توفر الشبكة."
               >
                 <WifiOff className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
@@ -442,11 +434,7 @@ export const Header: React.FC<HeaderProps> = ({
             {/* Unified Date & Time Badge + Live Sync Indicator Dot */}
             <div
               id="server-time-indicator-badge"
-              className={`hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full border text-[11px] font-mono font-semibold select-none shadow-xs transition-all ${
-                isLight
-                  ? 'bg-amber-50/90 text-amber-950 border-amber-200'
-                  : 'bg-slate-800/90 text-amber-300 border-slate-700'
-              }`}
+              className={`hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full border text-[11px] font-mono font-semibold select-none shadow-xs transition-all bg-brand-50 text-brand-800 border-brand-200`}
               title={`الوقت والتاريخ المعتمد (YYYY-MM-DD) • حالة المزامنة: ${
                 syncStatus === 'connected'
                   ? 'متصلة ومزامنة فورية نشطة'
@@ -462,7 +450,7 @@ export const Header: React.FC<HeaderProps> = ({
                     syncStatus === 'connected'
                       ? 'bg-emerald-400'
                       : syncStatus === 'reconnecting'
-                      ? 'bg-amber-400'
+                      ? 'bg-brand-700'
                       : 'bg-rose-500'
                   }`}
                 />
@@ -471,16 +459,16 @@ export const Header: React.FC<HeaderProps> = ({
                     syncStatus === 'connected'
                       ? 'bg-emerald-500 shadow-xs shadow-emerald-500/60'
                       : syncStatus === 'reconnecting'
-                      ? 'bg-amber-500 shadow-xs shadow-amber-500/60'
+                      ? 'bg-brand-700 shadow-xs '
                       : 'bg-rose-600 shadow-xs shadow-rose-600/60'
                   }`}
                 />
               </span>
 
-              <Clock className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-              <span className="font-bold text-slate-700 dark:text-slate-200">{serverDateStr}</span>
+              <Clock className="w-3.5 h-3.5 text-brand-700 shrink-0" />
+              <span className="font-bold text-slate-700 ">{serverDateStr}</span>
               <span className="opacity-40 text-[10px]">|</span>
-              <span className="text-amber-700 dark:text-amber-400 font-bold">{serverTimeStr}</span>
+              <span className="text-brand-700 font-bold">{serverTimeStr}</span>
             </div>
 
             {appearanceMenu}
@@ -492,10 +480,8 @@ export const Header: React.FC<HeaderProps> = ({
               onClick={toggleBrowserFullscreen}
               className={`hidden sm:flex p-1.5 sm:p-2 rounded-xl border transition-all cursor-pointer select-none active:scale-95 items-center justify-center ${
                 isFullscreen
-                  ? 'bg-amber-500 text-slate-950 border-amber-600 shadow-md ring-2 ring-amber-400/30'
-                  : isLight
-                  ? 'bg-slate-50/90 hover:bg-amber-50 text-slate-700 hover:text-amber-600 border-slate-200 hover:border-amber-300 shadow-2xs'
-                  : 'bg-slate-800/80 hover:bg-slate-800 text-slate-300 hover:text-amber-400 border-slate-700 hover:border-slate-600 shadow-sm'
+                  ? 'bg-brand-700 text-on-brand border-brand-600 shadow-md ring-2 ring-brand-600/30'
+                  : 'bg-slate-50/90 hover:bg-brand-50 text-slate-700 hover:text-brand-700 border-slate-200 hover:border-brand-200 shadow-2xs'
               }`}
               title={isFullscreen ? 'العودة إلى وضع المتصفح الطبيعي' : 'تشغيل النظام بوضع ملء الشاشة الكامل'}
               aria-label={isFullscreen ? 'العودة إلى وضع المتصفح' : 'ملء الشاشة'}
@@ -516,12 +502,8 @@ export const Header: React.FC<HeaderProps> = ({
                   onClick={() => setIsDropdownOpen((prev) => !prev)}
                   className={`group flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-xl border transition-all cursor-pointer select-none ${
                     isDropdownOpen
-                      ? isLight
-                        ? 'bg-amber-50 border-amber-400 ring-2 ring-amber-400/20 shadow-xs'
-                        : 'bg-slate-800 border-amber-500/50 ring-2 ring-amber-500/20 shadow-md'
-                      : isLight
-                      ? 'bg-slate-50/90 hover:bg-slate-100 border-slate-200 hover:border-slate-300 shadow-2xs'
-                      : 'bg-slate-800/80 hover:bg-slate-800 border-slate-700/80 hover:border-slate-600'
+                      ? 'bg-brand-50 border-brand-200 ring-2 ring-brand-600/20 shadow-xs'
+                      : 'bg-slate-50/90 hover:bg-slate-100 border-slate-200 hover:border-slate-300 shadow-2xs'
                   }`}
                   aria-expanded={isDropdownOpen}
                   aria-haspopup="true"
@@ -529,20 +511,14 @@ export const Header: React.FC<HeaderProps> = ({
                 >
                   {/* User Avatar Circle */}
                   <div
-                    className={`w-6 h-6 sm:w-7 sm:h-7 rounded-lg font-black flex items-center justify-center text-[10px] sm:text-xs shadow-xs shrink-0 ${
-                      isLight
-                        ? 'bg-gradient-to-br from-amber-500 to-amber-600 text-white'
-                        : 'bg-gradient-to-br from-amber-400 to-amber-500 text-slate-950'
-                    }`}
+                    className={`w-6 h-6 sm:w-7 sm:h-7 rounded-lg font-black flex items-center justify-center text-[10px] sm:text-xs shadow-xs shrink-0 bg-gradient-to-br from-brand-600 to-brand-800 text-white`}
                   >
                     {getInitials(currentUser.name)}
                   </div>
 
                   {/* User Full Name */}
                   <span
-                    className={`font-bold text-xs sm:text-sm tracking-tight truncate max-w-[65px] xs:max-w-[100px] sm:max-w-[150px] md:max-w-none ${
-                      isLight ? 'text-slate-900' : 'text-slate-100'
-                    }`}
+                    className={`font-bold text-xs sm:text-sm tracking-tight truncate max-w-[65px] xs:max-w-[100px] sm:max-w-[150px] md:max-w-none text-slate-900`}
                   >
                     {currentUser.name}
                   </span>
@@ -559,7 +535,7 @@ export const Header: React.FC<HeaderProps> = ({
                   {/* Chevron icon */}
                   <ChevronDown
                     className={`w-3.5 h-3.5 transition-transform duration-200 shrink-0 ${
-                      isDropdownOpen ? 'rotate-180 text-amber-500' : isLight ? 'text-slate-400' : 'text-slate-400'
+                      isDropdownOpen ? 'rotate-180 text-brand-700' : 'text-slate-400'
                     }`}
                   />
                 </button>
@@ -576,34 +552,20 @@ export const Header: React.FC<HeaderProps> = ({
                 {/* Dropdown Menu Container */}
                 {isDropdownOpen && (
                   <div
-                    className={`absolute left-0 top-full mt-2 w-[calc(100vw-1.5rem)] max-w-[300px] sm:w-80 rounded-2xl border shadow-2xl z-50 p-2 space-y-1.5 animate-in fade-in slide-in-from-top-2 duration-150 ${
-                      isLight
-                        ? 'bg-white border-slate-200 text-slate-800 shadow-slate-400/30 ring-1 ring-slate-900/5'
-                        : 'bg-slate-900 border-slate-800 text-slate-100 shadow-black/80 ring-1 ring-white/5'
-                    }`}
+                    className={`absolute left-0 top-full mt-2 w-[calc(100vw-1.5rem)] max-w-[300px] sm:w-80 rounded-2xl border shadow-2xl z-50 p-2 space-y-1.5 animate-in fade-in slide-in-from-top-2 duration-150 bg-card border-slate-200 text-slate-800 shadow-slate-400/30 ring-1 ring-slate-900/5`}
                   >
                   {/* Dropdown Header: User Summary */}
                   <div
-                    className={`p-3 rounded-xl border flex items-center gap-3 ${
-                      isLight
-                        ? 'bg-slate-50 border-slate-200'
-                        : 'bg-slate-950/70 border-slate-800'
-                    }`}
+                    className={`p-3 rounded-xl border flex items-center gap-3 bg-slate-50 border-slate-200`}
                   >
                     <div
-                      className={`w-10 h-10 rounded-xl font-black flex items-center justify-center text-sm shadow-inner shrink-0 ${
-                        isLight
-                          ? 'bg-gradient-to-br from-amber-500 to-amber-600 text-white'
-                          : 'bg-gradient-to-br from-amber-400 to-amber-500 text-slate-950'
-                      }`}
+                      className={`w-10 h-10 rounded-xl font-black flex items-center justify-center text-sm shadow-inner shrink-0 bg-gradient-to-br from-brand-600 to-brand-800 text-white`}
                     >
                       {getInitials(currentUser.name)}
                     </div>
                     <div className="min-w-0 flex-1 text-right">
                       <p
-                        className={`font-bold text-xs truncate ${
-                          isLight ? 'text-slate-900' : 'text-slate-100'
-                        }`}
+                        className={`font-bold text-xs truncate text-slate-900`}
                       >
                         {currentUser.name}
                       </p>
@@ -616,11 +578,7 @@ export const Header: React.FC<HeaderProps> = ({
                           {currentUser.role}
                         </span>
                         <span
-                          className={`text-[10px] font-mono px-1.5 py-0.2 rounded border ${
-                            isLight
-                              ? 'bg-white text-slate-600 border-slate-200'
-                              : 'bg-slate-900 text-amber-400 border-slate-800'
-                          }`}
+                          className={`text-[10px] font-mono px-1.5 py-0.2 rounded border bg-card text-slate-600 border-slate-200`}
                         >
                           @{currentUser.username || currentUser.email?.split('@')[0] || 'user'}
                         </span>
@@ -634,58 +592,42 @@ export const Header: React.FC<HeaderProps> = ({
                     onClick={() => {
                       onToggleTheme();
                     }}
-                    className={`w-full text-right p-2.5 rounded-xl text-xs font-bold transition flex items-center justify-between cursor-pointer border ${
-                      isLight
-                        ? 'bg-slate-50/60 hover:bg-slate-100 text-slate-800 border-slate-200/80'
-                        : 'bg-slate-800/50 hover:bg-slate-800 text-slate-200 border-slate-700/60'
-                    }`}
+                    className={`w-full text-right p-2.5 rounded-xl text-xs font-bold transition flex items-center justify-between cursor-pointer border bg-slate-50/60 hover:bg-slate-100 text-slate-800 border-slate-200/80`}
                   >
                     <div className="flex items-center gap-2.5">
                       <div
-                        className={`w-8 h-8 rounded-lg flex items-center justify-center border shrink-0 ${
-                          isLight
-                            ? 'bg-amber-100 text-amber-800 border-amber-300'
-                            : 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40'
-                        }`}
+                        className={`w-8 h-8 rounded-lg flex items-center justify-center border shrink-0 bg-brand-100 text-brand-800 border-brand-200`}
                       >
                         {isLight ? (
-                          <Sun className="w-4 h-4 text-amber-600" />
+                          <Sun className="w-4 h-4 text-brand-700" />
                         ) : (
-                          <Moon className="w-4 h-4 text-indigo-400" />
+                          <Moon className="w-4 h-4 text-indigo-600" />
                         )}
                       </div>
                       <div>
                         <div className="flex items-center gap-1.5">
                           <span>وضع العرض</span>
                           <span
-                            className={`text-[10px] font-bold px-1.5 py-0.2 rounded-full border ${
-                              isLight
-                                ? 'bg-teal-100 text-teal-900 border-teal-200'
-                                : 'bg-indigo-950 text-indigo-300 border-indigo-800'
-                            }`}
+                            className={`text-[10px] font-bold px-1.5 py-0.2 rounded-full border bg-teal-100 text-teal-900 border-teal-200`}
                           >
-                            {isLight ? 'الفاتح' : 'الداكن'}
+                            {'الفاتح'}
                           </span>
                         </div>
                         <p
-                          className={`text-[10px] font-normal mt-0.5 ${
-                            isLight ? 'text-slate-500' : 'text-slate-400'
-                          }`}
+                          className={`text-[10px] font-normal mt-0.5 text-slate-500`}
                         >
-                          {isLight ? 'انقر للتحويل إلى الوضع الداكن' : 'انقر للتحويل إلى الوضع الفاتح'}
+                          {'انقر للتحويل إلى الوضع الداكن'}
                         </p>
                       </div>
                     </div>
 
                     {/* Toggle Switch Visual Indicator */}
                     <div
-                      className={`w-11 h-6 rounded-full p-0.5 transition-colors duration-200 ease-in-out flex items-center ${
-                        isLight ? 'bg-amber-500 justify-start' : 'bg-indigo-600 justify-end'
-                      }`}
+                      className={`w-11 h-6 rounded-full p-0.5 transition-colors duration-200 ease-in-out flex items-center bg-brand-700 justify-start`}
                     >
-                      <div className="w-5 h-5 rounded-full bg-white shadow-md flex items-center justify-center text-[10px]">
+                      <div className="w-5 h-5 rounded-full bg-card shadow-md flex items-center justify-center text-[10px]">
                         {isLight ? (
-                          <Sun className="w-3 h-3 text-amber-600" />
+                          <Sun className="w-3 h-3 text-brand-700" />
                         ) : (
                           <Moon className="w-3 h-3 text-indigo-600" />
                         )}
@@ -697,34 +639,24 @@ export const Header: React.FC<HeaderProps> = ({
                   <button
                     type="button"
                     onClick={handleOpenPasswordModal}
-                    className={`w-full text-right p-2.5 rounded-xl text-xs font-bold transition flex items-center justify-between cursor-pointer border ${
-                      isLight
-                        ? 'bg-slate-50/60 hover:bg-slate-100 text-slate-800 border-slate-200/80'
-                        : 'bg-slate-800/50 hover:bg-slate-800 text-slate-200 border-slate-700/60'
-                    }`}
+                    className={`w-full text-right p-2.5 rounded-xl text-xs font-bold transition flex items-center justify-between cursor-pointer border bg-slate-50/60 hover:bg-slate-100 text-slate-800 border-slate-200/80`}
                   >
                     <div className="flex items-center gap-2.5">
                       <div
-                        className={`w-8 h-8 rounded-lg flex items-center justify-center border shrink-0 ${
-                          isLight
-                            ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
-                            : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
-                        }`}
+                        className={`w-8 h-8 rounded-lg flex items-center justify-center border shrink-0 bg-emerald-100 text-emerald-800 border-emerald-200`}
                       >
                         <KeyRound className="w-4 h-4" />
                       </div>
                       <div>
                         <span>تغيير كلمة المرور</span>
                         <p
-                          className={`text-[10px] font-normal mt-0.5 ${
-                            isLight ? 'text-slate-500' : 'text-slate-400'
-                          }`}
+                          className={`text-[10px] font-normal mt-0.5 text-slate-500`}
                         >
                           تحديث كلمة مرور الدخول لحسابك
                         </p>
                       </div>
                     </div>
-                    <Lock className={`w-3.5 h-3.5 ${isLight ? 'text-slate-400' : 'text-slate-500'}`} />
+                    <Lock className={`w-3.5 h-3.5 text-slate-400`} />
                   </button>
 
                   {/* Menu Item 3: Logout */}
@@ -735,28 +667,18 @@ export const Header: React.FC<HeaderProps> = ({
                         setIsDropdownOpen(false);
                         onLogout();
                       }}
-                      className={`w-full text-right p-2.5 rounded-xl text-xs font-bold transition flex items-center justify-between cursor-pointer border ${
-                        isLight
-                          ? 'bg-rose-50/70 hover:bg-rose-100 text-rose-800 border-rose-200'
-                          : 'bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border-rose-500/30'
-                      }`}
+                      className={`w-full text-right p-2.5 rounded-xl text-xs font-bold transition flex items-center justify-between cursor-pointer border bg-rose-50/70 hover:bg-rose-100 text-rose-800 border-rose-200`}
                     >
                       <div className="flex items-center gap-2.5">
                         <div
-                          className={`w-8 h-8 rounded-lg flex items-center justify-center border shrink-0 ${
-                            isLight
-                              ? 'bg-rose-100 text-rose-700 border-rose-300'
-                              : 'bg-rose-500/20 text-rose-400 border-rose-500/40'
-                          }`}
+                          className={`w-8 h-8 rounded-lg flex items-center justify-center border shrink-0 bg-rose-100 text-rose-700 border-rose-200`}
                         >
                           <LogOut className="w-4 h-4" />
                         </div>
                         <div>
                           <span>تسجيل الخروج</span>
                           <p
-                            className={`text-[10px] font-normal mt-0.5 ${
-                              isLight ? 'text-rose-600' : 'text-rose-400'
-                            }`}
+                            className={`text-[10px] font-normal mt-0.5 text-rose-600`}
                           >
                             إنهاء الجلسة والعودة لشاشة الدخول
                           </p>
@@ -777,11 +699,7 @@ export const Header: React.FC<HeaderProps> = ({
       {activeTab && onTabChange && (
         <nav
           aria-label="شريط أزرار التنقل السريع للهاتف"
-          className={`md:hidden border-b px-1 py-1 shadow-xs transition-colors backdrop-blur-md select-none ${
-            isLight
-              ? 'bg-white/95 border-slate-200/90 text-slate-800'
-              : 'bg-slate-900/95 border-slate-800/90 text-slate-200'
-          }`}
+          className={`md:hidden border-b px-1 py-1 shadow-xs transition-colors backdrop-blur-md select-none bg-card/95 border-slate-200/90 text-slate-800`}
         >
           <div className="flex items-center justify-evenly sm:justify-center gap-0.5 xs:gap-1 w-full max-w-full mx-auto overflow-x-auto no-scrollbar py-0.5 px-0.5">
             {mobileNavItemsForRole.map((item) => {
@@ -797,10 +715,8 @@ export const Header: React.FC<HeaderProps> = ({
                   }}
                   className={`flex items-center justify-center w-7 h-7 xs:w-7.5 xs:h-7.5 p-1 rounded-lg transition-all duration-150 cursor-pointer select-none shrink-0 relative ${
                     isActive
-                      ? 'bg-amber-500 text-slate-950 shadow-xs ring-1.5 ring-amber-400/60 font-black scale-105'
-                      : isLight
-                      ? 'text-slate-600 hover:text-slate-950 hover:bg-slate-100 active:scale-95'
-                      : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800 active:scale-95'
+                      ? 'bg-brand-700 text-on-brand shadow-xs ring-1.5 ring-brand-600/60 font-black scale-105'
+                      : 'text-slate-600 hover:text-slate-950 hover:bg-slate-100 active:scale-95'
                   }`}
                   title={item.label}
                   aria-label={item.label}
@@ -815,15 +731,11 @@ export const Header: React.FC<HeaderProps> = ({
               <button
                 type="button"
                 onClick={onOpenQrScanner}
-                className={`flex items-center justify-center w-7 h-7 xs:w-7.5 xs:h-7.5 p-1 rounded-lg transition-all duration-150 cursor-pointer select-none shrink-0 border ${
-                  isLight
-                    ? 'bg-amber-50 border-amber-300 text-amber-700 hover:bg-amber-100 active:scale-95'
-                    : 'bg-amber-500/15 border-amber-500/35 text-amber-400 hover:bg-amber-500/25 active:scale-95'
-                }`}
+                className={`flex items-center justify-center w-7 h-7 xs:w-7.5 xs:h-7.5 p-1 rounded-lg transition-all duration-150 cursor-pointer select-none shrink-0 border bg-brand-50 border-brand-200 text-brand-700 hover:bg-brand-100 active:scale-95`}
                 title="مسح رمز QR للوحدة أو الغرفة"
                 aria-label="مسح رمز QR للوحدة أو الغرفة"
               >
-                <QrCode className="w-3.5 h-3.5 xs:w-4 xs:h-4 shrink-0 stroke-2 text-amber-500" />
+                <QrCode className="w-3.5 h-3.5 xs:w-4 xs:h-4 shrink-0 stroke-2 text-brand-700" />
               </button>
             )}
 
@@ -832,15 +744,11 @@ export const Header: React.FC<HeaderProps> = ({
               <button
                 type="button"
                 onClick={onOpenDownloadOptions}
-                className={`flex items-center justify-center w-7 h-7 xs:w-7.5 xs:h-7.5 p-1 rounded-lg transition-all duration-150 cursor-pointer select-none shrink-0 border ${
-                  isLight
-                    ? 'bg-cyan-50 border-cyan-300 text-cyan-700 hover:bg-cyan-100 active:scale-95'
-                    : 'bg-cyan-500/15 border-cyan-500/35 text-cyan-400 hover:bg-cyan-500/25 active:scale-95'
-                }`}
+                className={`flex items-center justify-center w-7 h-7 xs:w-7.5 xs:h-7.5 p-1 rounded-lg transition-all duration-150 cursor-pointer select-none shrink-0 border bg-cyan-50 border-cyan-200 text-cyan-700 hover:bg-cyan-100 active:scale-95`}
                 title="خيارات التنزيل"
                 aria-label="خيارات التنزيل"
               >
-                <Download className="w-3.5 h-3.5 xs:w-4 xs:h-4 shrink-0 stroke-2 text-cyan-500" />
+                <Download className="w-3.5 h-3.5 xs:w-4 xs:h-4 shrink-0 stroke-2 text-cyan-600" />
               </button>
             )}
           </div>
@@ -850,35 +758,25 @@ export const Header: React.FC<HeaderProps> = ({
 
       {/* ==================== Change Password Modal ==================== */}
       {isPasswordModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+        <div className="fixed inset-0 z-50 bg-card/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
           <div
-            className={`rounded-2xl max-w-md w-full p-4 sm:p-5 space-y-4 shadow-2xl border transition-all max-h-[92vh] flex flex-col overflow-y-auto ${
-              isLight
-                ? 'bg-white border-slate-200 text-slate-900 shadow-slate-900/20'
-                : 'bg-slate-900 border-slate-800 text-slate-100 shadow-black/80'
-            }`}
+            className={`rounded-2xl max-w-md w-full p-4 sm:p-5 space-y-4 shadow-2xl border transition-all max-h-[92vh] flex flex-col overflow-y-auto bg-card border-slate-200 text-slate-900 shadow-slate-900/20`}
           >
             {/* Modal Header */}
             <div
-              className={`flex items-center justify-between pb-3 border-b ${
-                isLight ? 'border-slate-200' : 'border-slate-800'
-              }`}
+              className={`flex items-center justify-between pb-3 border-b border-slate-200`}
             >
               <div className="flex items-center gap-2.5">
                 <div
-                  className={`w-9 h-9 rounded-xl border flex items-center justify-center ${
-                    isLight
-                      ? 'bg-emerald-100 border-emerald-300 text-emerald-800'
-                      : 'bg-emerald-500/20 border-emerald-500/40 text-emerald-400'
-                  }`}
+                  className={`w-9 h-9 rounded-xl border flex items-center justify-center bg-emerald-100 border-emerald-200 text-emerald-800`}
                 >
                   <KeyRound className="w-4.5 h-4.5" />
                 </div>
                 <div>
-                  <h3 className={`font-bold text-sm ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                  <h3 className={`font-bold text-sm text-slate-900`}>
                     تغيير كلمة المرور
                   </h3>
-                  <p className={`text-[11px] ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                  <p className={`text-[11px] text-slate-600`}>
                     لحساب المستخدم: <span className="font-bold">{currentUser?.name}</span>
                   </p>
                 </div>
@@ -886,11 +784,7 @@ export const Header: React.FC<HeaderProps> = ({
               <button
                 type="button"
                 onClick={handleClosePasswordModal}
-                className={`p-1.5 rounded-lg transition cursor-pointer ${
-                  isLight
-                    ? 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
-                }`}
+                className={`p-1.5 rounded-lg transition cursor-pointer text-slate-500 hover:text-slate-900 hover:bg-slate-100`}
                 title="إغلاق"
               >
                 <X className="w-4 h-4" />
@@ -900,26 +794,18 @@ export const Header: React.FC<HeaderProps> = ({
             {/* Error / Success Alerts */}
             {passwordError && (
               <div
-                className={`p-3 rounded-xl text-xs flex items-center gap-2 border ${
-                  isLight
-                    ? 'bg-rose-50 border-rose-200 text-rose-800'
-                    : 'bg-rose-500/15 border-rose-500/30 text-rose-300'
-                }`}
+                className={`p-3 rounded-xl text-xs flex items-center gap-2 border bg-rose-50 border-rose-200 text-rose-800`}
               >
-                <AlertTriangle className="w-4 h-4 text-rose-500 shrink-0" />
+                <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
                 <span>{passwordError}</span>
               </div>
             )}
 
             {passwordSuccess && (
               <div
-                className={`p-3 rounded-xl text-xs flex items-center gap-2 border ${
-                  isLight
-                    ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
-                    : 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300'
-                }`}
+                className={`p-3 rounded-xl text-xs flex items-center gap-2 border bg-emerald-50 border-emerald-200 text-emerald-800`}
               >
-                <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
                 <span>{passwordSuccess}</span>
               </div>
             )}
@@ -929,11 +815,9 @@ export const Header: React.FC<HeaderProps> = ({
               {/* Current Password Field */}
               <div className="space-y-1.5">
                 <label
-                  className={`block text-[11px] font-bold ${
-                    isLight ? 'text-slate-700' : 'text-slate-300'
-                  }`}
+                  className={`block text-[11px] font-bold text-slate-700`}
                 >
-                  كلمة المرور الحالية <span className="text-rose-500">*</span>
+                  كلمة المرور الحالية <span className="text-rose-600">*</span>
                 </label>
                 <div className="relative">
                   <input
@@ -942,20 +826,12 @@ export const Header: React.FC<HeaderProps> = ({
                     value={currentPasswordInput}
                     onChange={(e) => setCurrentPasswordInput(e.target.value)}
                     placeholder="أدخل كلمة المرور الحالية"
-                    className={`w-full rounded-xl px-3 py-2 pl-9 text-xs font-mono transition border focus:outline-none ${
-                      isLight
-                        ? 'bg-white border-slate-300 text-slate-900 placeholder:text-slate-400 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-500'
-                        : 'bg-slate-950 border-slate-700 text-slate-100 placeholder:text-slate-600 focus:border-emerald-500'
-                    }`}
+                    className={`w-full rounded-xl px-3 py-2 pl-9 text-xs font-mono transition border focus:outline-none bg-card border-slate-300 text-slate-900 placeholder:text-slate-400 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-500`}
                   />
                   <button
                     type="button"
                     onClick={() => setShowCurrentPass(!showCurrentPass)}
-                    className={`absolute left-2.5 top-1/2 -translate-y-1/2 transition ${
-                      isLight
-                        ? 'text-slate-400 hover:text-emerald-600'
-                        : 'text-slate-500 hover:text-emerald-400'
-                    }`}
+                    className={`absolute left-2.5 top-1/2 -translate-y-1/2 transition text-slate-400 hover:text-emerald-600`}
                     title={showCurrentPass ? 'إخفاء' : 'إظهار'}
                   >
                     {showCurrentPass ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
@@ -966,11 +842,9 @@ export const Header: React.FC<HeaderProps> = ({
               {/* New Password Field */}
               <div className="space-y-1.5">
                 <label
-                  className={`block text-[11px] font-bold ${
-                    isLight ? 'text-slate-700' : 'text-slate-300'
-                  }`}
+                  className={`block text-[11px] font-bold text-slate-700`}
                 >
-                  كلمة المرور الجديدة <span className="text-rose-500">*</span>
+                  كلمة المرور الجديدة <span className="text-rose-600">*</span>
                 </label>
                 <div className="relative">
                   <input
@@ -979,20 +853,12 @@ export const Header: React.FC<HeaderProps> = ({
                     value={newPasswordInput}
                     onChange={(e) => setNewPasswordInput(e.target.value)}
                     placeholder="أدخل كلمة المرور الجديدة (3 خانات فأكثر)"
-                    className={`w-full rounded-xl px-3 py-2 pl-9 text-xs font-mono transition border focus:outline-none ${
-                      isLight
-                        ? 'bg-white border-slate-300 text-slate-900 placeholder:text-slate-400 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-500'
-                        : 'bg-slate-950 border-slate-700 text-slate-100 placeholder:text-slate-600 focus:border-emerald-500'
-                    }`}
+                    className={`w-full rounded-xl px-3 py-2 pl-9 text-xs font-mono transition border focus:outline-none bg-card border-slate-300 text-slate-900 placeholder:text-slate-400 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-500`}
                   />
                   <button
                     type="button"
                     onClick={() => setShowNewPass(!showNewPass)}
-                    className={`absolute left-2.5 top-1/2 -translate-y-1/2 transition ${
-                      isLight
-                        ? 'text-slate-400 hover:text-emerald-600'
-                        : 'text-slate-500 hover:text-emerald-400'
-                    }`}
+                    className={`absolute left-2.5 top-1/2 -translate-y-1/2 transition text-slate-400 hover:text-emerald-600`}
                     title={showNewPass ? 'إخفاء' : 'إظهار'}
                   >
                     {showNewPass ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
@@ -1003,11 +869,9 @@ export const Header: React.FC<HeaderProps> = ({
               {/* Confirm New Password Field */}
               <div className="space-y-1.5">
                 <label
-                  className={`block text-[11px] font-bold ${
-                    isLight ? 'text-slate-700' : 'text-slate-300'
-                  }`}
+                  className={`block text-[11px] font-bold text-slate-700`}
                 >
-                  تأكيد كلمة المرور الجديدة <span className="text-rose-500">*</span>
+                  تأكيد كلمة المرور الجديدة <span className="text-rose-600">*</span>
                 </label>
                 <div className="relative">
                   <input
@@ -1016,20 +880,12 @@ export const Header: React.FC<HeaderProps> = ({
                     value={confirmPasswordInput}
                     onChange={(e) => setConfirmPasswordInput(e.target.value)}
                     placeholder="أعد إدخال كلمة المرور الجديدة للتأكيد"
-                    className={`w-full rounded-xl px-3 py-2 pl-9 text-xs font-mono transition border focus:outline-none ${
-                      isLight
-                        ? 'bg-white border-slate-300 text-slate-900 placeholder:text-slate-400 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-500'
-                        : 'bg-slate-950 border-slate-700 text-slate-100 placeholder:text-slate-600 focus:border-emerald-500'
-                    }`}
+                    className={`w-full rounded-xl px-3 py-2 pl-9 text-xs font-mono transition border focus:outline-none bg-card border-slate-300 text-slate-900 placeholder:text-slate-400 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-500`}
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPass(!showConfirmPass)}
-                    className={`absolute left-2.5 top-1/2 -translate-y-1/2 transition ${
-                      isLight
-                        ? 'text-slate-400 hover:text-emerald-600'
-                        : 'text-slate-500 hover:text-emerald-400'
-                    }`}
+                    className={`absolute left-2.5 top-1/2 -translate-y-1/2 transition text-slate-400 hover:text-emerald-600`}
                     title={showConfirmPass ? 'إخفاء' : 'إظهار'}
                   >
                     {showConfirmPass ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
@@ -1039,30 +895,20 @@ export const Header: React.FC<HeaderProps> = ({
 
               {/* Modal Actions */}
               <div
-                className={`flex items-center justify-end gap-2.5 pt-3 border-t ${
-                  isLight ? 'border-slate-200' : 'border-slate-800'
-                }`}
+                className={`flex items-center justify-end gap-2.5 pt-3 border-t border-slate-200`}
               >
                 <button
                   type="button"
                   onClick={handleClosePasswordModal}
                   disabled={isSubmittingPassword}
-                  className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer border ${
-                    isLight
-                      ? 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300'
-                      : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border-transparent'
-                  }`}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer border bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300`}
                 >
                   إلغاء
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmittingPassword}
-                  className={`px-5 py-2 font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-lg transition cursor-pointer ${
-                    isLight
-                      ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/30'
-                      : 'bg-emerald-500 hover:bg-emerald-400 text-slate-950'
-                  }`}
+                  className={`px-5 py-2 font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-lg transition cursor-pointer bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/30`}
                 >
                   <CheckCircle2 className="w-4 h-4" />
                   <span>{isSubmittingPassword ? 'جاري الحفظ...' : 'حفظ كلمة المرور'}</span>

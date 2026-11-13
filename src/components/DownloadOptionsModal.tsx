@@ -179,15 +179,15 @@ export const DownloadOptionsModal: React.FC<DownloadOptionsModalProps> = ({
 
   const modalContent = (
     <div
-      className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-950/75 backdrop-blur-xs animate-fade-in select-none"
+      className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-card/75 backdrop-blur-xs animate-fade-in select-none"
       dir="rtl"
       onClick={onClose}
     >
       <div
         className={`w-full max-w-2xl rounded-t-3xl sm:rounded-3xl border shadow-2xl overflow-hidden transition-all max-h-[92vh] flex flex-col ${
           isDark
-            ? 'bg-slate-900 border-slate-700/80 text-white shadow-black/90'
-            : 'bg-white border-slate-200 text-slate-900 shadow-2xl ring-1 ring-slate-900/10'
+            ? 'bg-card border-slate-200 text-slate-900 shadow-black/90'
+            : 'bg-card border-slate-200 text-slate-900 shadow-2xl ring-1 ring-slate-900/10'
         }`}
         onClick={(e) => e.stopPropagation()}
       >
@@ -195,19 +195,19 @@ export const DownloadOptionsModal: React.FC<DownloadOptionsModalProps> = ({
         <div
           className={`p-4 sm:p-5 border-b flex items-start justify-between gap-3 shrink-0 ${
             isDark
-              ? 'bg-slate-900/95 border-slate-800'
+              ? 'bg-card/95 border-slate-200'
               : 'bg-slate-50 border-slate-200'
           }`}
         >
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-amber-500 text-slate-950 flex items-center justify-center shadow-md shadow-amber-500/20 shrink-0 font-bold">
+            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-brand-700 text-on-brand flex items-center justify-center shadow-md shrink-0 font-bold">
               <ArrowDownToLine className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2.5]" />
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <h3
                   className={`font-bold text-base sm:text-lg tracking-tight ${
-                    isDark ? 'text-white' : 'text-slate-900'
+                    isDark ? 'text-slate-900' : 'text-slate-900'
                   }`}
                 >
                   خيارات التنزيل والتثبيت المعتمدة
@@ -215,8 +215,8 @@ export const DownloadOptionsModal: React.FC<DownloadOptionsModalProps> = ({
                 <span
                   className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
                     isDark
-                      ? 'bg-amber-500/15 text-amber-400 border-amber-500/30'
-                      : 'bg-amber-50 text-amber-800 border-amber-300'
+                      ? 'bg-brand-100 text-brand-700 border-brand-200'
+                      : 'bg-brand-50 text-brand-800 border-brand-200'
                   }`}
                 >
                   شركة نفط الوسط
@@ -224,7 +224,7 @@ export const DownloadOptionsModal: React.FC<DownloadOptionsModalProps> = ({
               </div>
               <p
                 className={`text-xs mt-0.5 leading-relaxed font-normal ${
-                  isDark ? 'text-slate-300' : 'text-slate-600'
+                  isDark ? 'text-slate-600' : 'text-slate-600'
                 }`}
               >
                 تنزيل ملفات التثبيت وروابط التنصيب المباشر لهواتف الآيفون، أجهزة الأندرويد، وأجهزة الحاسوب
@@ -237,8 +237,8 @@ export const DownloadOptionsModal: React.FC<DownloadOptionsModalProps> = ({
             onClick={onClose}
             className={`p-2 rounded-xl border transition-colors cursor-pointer shrink-0 ${
               isDark
-                ? 'bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border-slate-700'
-                : 'bg-white hover:bg-slate-100 text-slate-700 hover:text-slate-900 border-slate-300'
+                ? 'bg-slate-100 hover:bg-slate-100 text-slate-600 hover:text-slate-900 border-slate-200'
+                : 'bg-card hover:bg-slate-100 text-slate-700 hover:text-slate-900 border-slate-300'
             }`}
             title="إغلاق النافذة"
           >
@@ -254,8 +254,8 @@ export const DownloadOptionsModal: React.FC<DownloadOptionsModalProps> = ({
           <div
             className={`p-4 sm:p-5 rounded-2xl border transition-all flex flex-col justify-between gap-3.5 shadow-sm ${
               isDark
-                ? 'bg-slate-800/80 border-slate-700 hover:border-emerald-500/40'
-                : 'bg-white border-slate-200 hover:border-emerald-300 hover:bg-emerald-50/20'
+                ? 'bg-slate-100 border-slate-200 hover:border-emerald-500/40'
+                : 'bg-card border-slate-200 hover:border-emerald-200 hover:bg-emerald-50/20'
             }`}
           >
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
@@ -263,7 +263,7 @@ export const DownloadOptionsModal: React.FC<DownloadOptionsModalProps> = ({
                 <div
                   className={`p-3 rounded-2xl shrink-0 ${
                     isDark
-                      ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                      ? 'bg-emerald-500/20 text-emerald-600 border border-emerald-500/30'
                       : 'bg-emerald-100 text-emerald-800 border border-emerald-200 shadow-xs'
                   }`}
                 >
@@ -273,7 +273,7 @@ export const DownloadOptionsModal: React.FC<DownloadOptionsModalProps> = ({
                   <div className="flex items-center gap-2 flex-wrap">
                     <h4
                       className={`font-bold text-sm sm:text-base ${
-                        isDark ? 'text-white' : 'text-slate-900'
+                        isDark ? 'text-slate-900' : 'text-slate-900'
                       }`}
                     >
                       نسخة الأندرويد (Android APK)
@@ -281,8 +281,8 @@ export const DownloadOptionsModal: React.FC<DownloadOptionsModalProps> = ({
                     <span
                       className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
                         isDark
-                          ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
-                          : 'bg-emerald-100 text-emerald-900 border-emerald-300 font-extrabold'
+                          ? 'bg-emerald-500/15 text-emerald-600 border-emerald-500/30'
+                          : 'bg-emerald-100 text-emerald-900 border-emerald-200 font-extrabold'
                       }`}
                     >
                       هواتف وأجهزة أندرويد
@@ -290,33 +290,33 @@ export const DownloadOptionsModal: React.FC<DownloadOptionsModalProps> = ({
                   </div>
                   <p
                     className={`text-xs mt-1 leading-relaxed ${
-                      isDark ? 'text-slate-300' : 'text-slate-700'
+                      isDark ? 'text-slate-600' : 'text-slate-700'
                     }`}
                   >
-                    حزمة تثبيت بصيغة <strong className="font-bold text-slate-900 dark:text-white">.apk</strong> للإرسال الميداني المباشر، أو التثبيت الفوري بضغطة زر واحدة على شاشة هاتف الأندرويد عبر متصفح Chrome.
+                    حزمة تثبيت بصيغة <strong className="font-bold text-slate-900 ">.apk</strong> للإرسال الميداني المباشر، أو التثبيت الفوري بضغطة زر واحدة على شاشة هاتف الأندرويد عبر متصفح Chrome.
                   </p>
                   <div className="mt-2.5 flex flex-wrap items-center gap-2 text-[11px] font-medium">
-                    <span className={`flex items-center gap-1 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
-                      <HardDrive className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                    <span className={`flex items-center gap-1 ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
+                      <HardDrive className="w-3.5 h-3.5 text-emerald-600 " />
                       الحجم: ~80 KB
                     </span>
-                    <span className="text-slate-400">•</span>
+                    <span className="text-slate-500">•</span>
                     <span className={`font-mono text-[10px] px-1.5 py-0.5 rounded border ${
                       isDark
-                        ? 'bg-slate-950/60 border-slate-700 text-slate-300'
+                        ? 'bg-card/60 border-slate-200 text-slate-600'
                         : 'bg-slate-100 border-slate-200 text-slate-700'
                     }`}>
                       MidlandOil-Assets-Registry.apk
                     </span>
-                    <span className="text-slate-400">•</span>
+                    <span className="text-slate-500">•</span>
                     <button
                       type="button"
                       onClick={() => toggleInstruction('android')}
                       className={`font-bold text-[11px] flex items-center gap-1 cursor-pointer transition-colors ${
-                        isDark ? 'text-emerald-400 hover:text-emerald-300' : 'text-emerald-800 hover:text-emerald-950 underline underline-offset-2'
+                        isDark ? 'text-emerald-600 hover:text-emerald-600' : 'text-emerald-800 hover:text-emerald-900 underline underline-offset-2'
                       }`}
                     >
-                      <HelpCircle className="w-3.5 h-3.5 text-emerald-500" />
+                      <HelpCircle className="w-3.5 h-3.5 text-emerald-600" />
                       {activeInstructionTab === 'android' ? 'إخفاء طريقة التثبيت على الأندرويد' : 'طريقة تثبيته على الأندرويد'}
                     </button>
                   </div>
@@ -332,7 +332,7 @@ export const DownloadOptionsModal: React.FC<DownloadOptionsModalProps> = ({
                   className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold shadow-md hover:opacity-95 hover:shadow-lg transition-all active:scale-95 cursor-pointer border-2 border-emerald-700 select-none"
                 >
                   <Download className="w-4 h-4 stroke-[2.5]" style={{ color: '#ffffff' }} />
-                  <span style={{ color: '#ffffff' }} className="font-extrabold text-white tracking-wide">
+                  <span style={{ color: '#ffffff' }} className="font-extrabold text-slate-900 tracking-wide">
                     تنزيل ملف الأندرويد (.apk)
                   </span>
                 </button>
@@ -341,7 +341,7 @@ export const DownloadOptionsModal: React.FC<DownloadOptionsModalProps> = ({
                   type="button"
                   onClick={() => handleCopyLink('android')}
                   style={{ backgroundColor: '#f59e0b', color: '#0f172a' }}
-                  className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold shadow-md hover:bg-amber-400 transition-all active:scale-95 cursor-pointer border-2 border-amber-600 select-none"
+                  className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold shadow-md hover:bg-brand-800 transition-all active:scale-95 cursor-pointer border-2 border-brand-600 select-none"
                   title="نسخ رابط سريع لإرساله عبر واتساب والتثبيت في ثوانٍ"
                 >
                   {copiedPlatform === 'android' ? (
@@ -364,11 +364,11 @@ export const DownloadOptionsModal: React.FC<DownloadOptionsModalProps> = ({
               <div
                 className={`p-4 rounded-xl border text-xs leading-relaxed space-y-3 animate-fade-in ${
                   isDark
-                    ? 'bg-slate-950/90 border-slate-800 text-slate-300'
+                    ? 'bg-card/90 border-slate-200 text-slate-600'
                     : 'bg-emerald-50/90 border-emerald-200 text-slate-900 shadow-xs'
                 }`}
               >
-                <div className="font-bold flex items-center justify-between text-emerald-800 dark:text-emerald-400 text-sm">
+                <div className="font-bold flex items-center justify-between text-emerald-800 text-sm">
                   <div className="flex items-center gap-1.5">
                     <Bot className="w-4 h-4" />
                     <span>كيفية تثبيت التطبيق على شاشة هواتف الأندرويد (طريقتان معتمدتان):</span>
@@ -378,13 +378,13 @@ export const DownloadOptionsModal: React.FC<DownloadOptionsModalProps> = ({
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
                   {/* Method A: Direct via Chrome (Fastest) */}
                   <div className={`p-3 rounded-xl border ${
-                    isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-emerald-300'
+                    isDark ? 'bg-card border-slate-200' : 'bg-card border-emerald-200'
                   }`}>
-                    <div className="font-bold text-emerald-700 dark:text-emerald-300 mb-1 flex items-center gap-1.5">
+                    <div className="font-bold text-emerald-700 mb-1 flex items-center gap-1.5">
                       <span className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px] font-bold">1</span>
                       <span>الطريقة الأسرع والأسهل (عبر متصفح Google Chrome):</span>
                     </div>
-                    <ol className="list-decimal list-inside space-y-1 pr-1 text-[11px] leading-relaxed text-slate-700 dark:text-slate-300">
+                    <ol className="list-decimal list-inside space-y-1 pr-1 text-[11px] leading-relaxed text-slate-700 ">
                       <li>اضغط على زر <strong>«نسخ رابط التثبيت للأندرويد»</strong> أعلاه وأرسله للموظف عبر واتساب.</li>
                       <li>يفتح الموظف الرابط في متصفح <strong>Google Chrome</strong> على هاتف الأندرويد.</li>
                       <li>يضغط على قائمة الخيارات <strong>(الثلاث نقاط ⋮)</strong> في أعلى يسار الشاشة.</li>
@@ -395,13 +395,13 @@ export const DownloadOptionsModal: React.FC<DownloadOptionsModalProps> = ({
 
                   {/* Method B: Via APK File */}
                   <div className={`p-3 rounded-xl border ${
-                    isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'
+                    isDark ? 'bg-card border-slate-200' : 'bg-card border-slate-200'
                   }`}>
-                    <div className="font-bold text-slate-900 dark:text-white mb-1 flex items-center gap-1.5">
-                      <span className="w-5 h-5 rounded-full bg-slate-800 text-white flex items-center justify-center text-[10px] font-bold">2</span>
+                    <div className="font-bold text-slate-900 mb-1 flex items-center gap-1.5">
+                      <span className="w-5 h-5 rounded-full bg-slate-100 text-slate-900 flex items-center justify-center text-[10px] font-bold">2</span>
                       <span>طريقة تثبيت ملف التنصيب (.apk) المرسل عبر واتساب:</span>
                     </div>
-                    <ol className="list-decimal list-inside space-y-1 pr-1 text-[11px] leading-relaxed text-slate-700 dark:text-slate-300">
+                    <ol className="list-decimal list-inside space-y-1 pr-1 text-[11px] leading-relaxed text-slate-700 ">
                       <li>أرسل ملف <code>MidlandOil-Assets-Registry.apk</code> للموظف عبر واتساب أو تليغرام أو بلوتوث.</li>
                       <li>يضغط الموظف على الملف المستلم في واتساب لفتحه.</li>
                       <li>يختار <strong>«تثبيت (Install)»</strong>.</li>
@@ -420,8 +420,8 @@ export const DownloadOptionsModal: React.FC<DownloadOptionsModalProps> = ({
           <div
             className={`p-4 sm:p-5 rounded-2xl border transition-all flex flex-col justify-between gap-3.5 shadow-sm ${
               isDark
-                ? 'bg-slate-800/80 border-slate-700 hover:border-blue-500/40'
-                : 'bg-white border-slate-200 hover:border-blue-300 hover:bg-blue-50/20'
+                ? 'bg-slate-100 border-slate-200 hover:border-blue-500/40'
+                : 'bg-card border-slate-200 hover:border-blue-200 hover:bg-blue-50/20'
             }`}
           >
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
@@ -429,7 +429,7 @@ export const DownloadOptionsModal: React.FC<DownloadOptionsModalProps> = ({
                 <div
                   className={`p-3 rounded-2xl shrink-0 ${
                     isDark
-                      ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
+                      ? 'bg-blue-500/20 text-blue-600 border border-blue-500/30'
                       : 'bg-blue-100 text-blue-800 border border-blue-200 shadow-xs'
                   }`}
                 >
@@ -439,7 +439,7 @@ export const DownloadOptionsModal: React.FC<DownloadOptionsModalProps> = ({
                   <div className="flex items-center gap-2 flex-wrap">
                     <h4
                       className={`font-bold text-sm sm:text-base ${
-                        isDark ? 'text-white' : 'text-slate-900'
+                        isDark ? 'text-slate-900' : 'text-slate-900'
                       }`}
                     >
                       نسخة الحاسوب (Windows PC)
@@ -447,8 +447,8 @@ export const DownloadOptionsModal: React.FC<DownloadOptionsModalProps> = ({
                     <span
                       className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
                         isDark
-                          ? 'bg-blue-500/15 text-blue-300 border-blue-500/30'
-                          : 'bg-blue-100 text-blue-900 border-blue-300 font-extrabold'
+                          ? 'bg-blue-500/15 text-blue-600 border-blue-500/30'
+                          : 'bg-blue-100 text-blue-900 border-blue-200 font-extrabold'
                       }`}
                     >
                       كمبيوتر مكتبي / لابتوب
@@ -456,33 +456,33 @@ export const DownloadOptionsModal: React.FC<DownloadOptionsModalProps> = ({
                   </div>
                   <p
                     className={`text-xs mt-1 leading-relaxed ${
-                      isDark ? 'text-slate-300' : 'text-slate-700'
+                      isDark ? 'text-slate-600' : 'text-slate-700'
                     }`}
                   >
-                    مثبت مكتبي بصيغة <strong className="font-bold text-slate-900 dark:text-white">.exe</strong>، أو تثبيت فوري كتطبيق ويندوز رسمي مستقل عبر Microsoft Edge / Google Chrome بملء الشاشة مع كافة الصلاحيات.
+                    مثبت مكتبي بصيغة <strong className="font-bold text-slate-900 ">.exe</strong>، أو تثبيت فوري كتطبيق ويندوز رسمي مستقل عبر Microsoft Edge / Google Chrome بملء الشاشة مع كافة الصلاحيات.
                   </p>
                   <div className="mt-2.5 flex flex-wrap items-center gap-2 text-[11px] font-medium">
-                    <span className={`flex items-center gap-1 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
-                      <HardDrive className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+                    <span className={`flex items-center gap-1 ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
+                      <HardDrive className="w-3.5 h-3.5 text-blue-600 " />
                       الحجم: ~21 KB
                     </span>
-                    <span className="text-slate-400">•</span>
+                    <span className="text-slate-500">•</span>
                     <span className={`font-mono text-[10px] px-1.5 py-0.5 rounded border ${
                       isDark
-                        ? 'bg-slate-950/60 border-slate-700 text-slate-300'
+                        ? 'bg-card/60 border-slate-200 text-slate-600'
                         : 'bg-slate-100 border-slate-200 text-slate-700'
                     }`}>
                       MidlandOil-Assets-Desktop-Setup.exe
                     </span>
-                    <span className="text-slate-400">•</span>
+                    <span className="text-slate-500">•</span>
                     <button
                       type="button"
                       onClick={() => toggleInstruction('desktop')}
                       className={`font-bold text-[11px] flex items-center gap-1 cursor-pointer transition-colors ${
-                        isDark ? 'text-blue-400 hover:text-blue-300' : 'text-blue-700 hover:text-blue-900 underline underline-offset-2'
+                        isDark ? 'text-blue-600 hover:text-blue-600' : 'text-blue-700 hover:text-blue-900 underline underline-offset-2'
                       }`}
                     >
-                      <HelpCircle className="w-3.5 h-3.5 text-blue-500" />
+                      <HelpCircle className="w-3.5 h-3.5 text-blue-600" />
                       {activeInstructionTab === 'desktop' ? 'إخفاء طريقة التثبيت على الحاسوب' : 'طريقة تثبيته على الحاسوب'}
                     </button>
                   </div>
@@ -498,7 +498,7 @@ export const DownloadOptionsModal: React.FC<DownloadOptionsModalProps> = ({
                   className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold shadow-md hover:opacity-95 hover:shadow-lg transition-all active:scale-95 cursor-pointer border-2 border-blue-600 select-none"
                 >
                   <Download className="w-4 h-4 stroke-[2.5]" style={{ color: '#ffffff' }} />
-                  <span style={{ color: '#ffffff' }} className="font-extrabold text-white tracking-wide">
+                  <span style={{ color: '#ffffff' }} className="font-extrabold text-slate-900 tracking-wide">
                     تنزيل مثبت الحاسوب (.exe)
                   </span>
                 </button>
@@ -508,7 +508,7 @@ export const DownloadOptionsModal: React.FC<DownloadOptionsModalProps> = ({
                     type="button"
                     onClick={() => handleCopyLink('desktop')}
                     style={{ backgroundColor: '#f59e0b', color: '#0f172a' }}
-                    className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-extrabold shadow-md hover:bg-amber-400 transition-all active:scale-95 cursor-pointer border-2 border-amber-600 select-none"
+                    className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-extrabold shadow-md hover:bg-brand-800 transition-all active:scale-95 cursor-pointer border-2 border-brand-600 select-none"
                     title="نسخ رابط سريع لإرساله للموظفين للتثبيت المباشر على الكمبيوتر"
                   >
                     {copiedPlatform === 'desktop' ? (
@@ -529,12 +529,12 @@ export const DownloadOptionsModal: React.FC<DownloadOptionsModalProps> = ({
                     onClick={handleDownloadDesktopShortcut}
                     className={`px-3 py-2 rounded-xl text-xs font-bold border transition-colors cursor-pointer flex items-center gap-1.5 ${
                       isDark
-                        ? 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700'
+                        ? 'bg-slate-100 hover:bg-slate-100 text-slate-800 border-slate-200'
                         : 'bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-300'
                     }`}
                     title="تنزيل اختصار سريع لسطح المكتب (.url)"
                   >
-                    <FileCode className="w-3.5 h-3.5 text-blue-500" />
+                    <FileCode className="w-3.5 h-3.5 text-blue-600" />
                     <span>اختصار (.url)</span>
                   </button>
                 </div>
@@ -546,11 +546,11 @@ export const DownloadOptionsModal: React.FC<DownloadOptionsModalProps> = ({
               <div
                 className={`p-4 rounded-xl border text-xs leading-relaxed space-y-3 animate-fade-in ${
                   isDark
-                    ? 'bg-slate-950/90 border-slate-800 text-slate-300'
+                    ? 'bg-card/90 border-slate-200 text-slate-600'
                     : 'bg-blue-50/90 border-blue-200 text-slate-900 shadow-xs'
                 }`}
               >
-                <div className="font-bold flex items-center justify-between text-blue-800 dark:text-blue-400 text-sm">
+                <div className="font-bold flex items-center justify-between text-blue-800 text-sm">
                   <div className="flex items-center gap-1.5">
                     <Laptop className="w-4 h-4" />
                     <span>كيفية تثبيت التطبيق على جهاز الكمبيوتر وسطح المكتب (طريقتان معتمدتان):</span>
@@ -560,13 +560,13 @@ export const DownloadOptionsModal: React.FC<DownloadOptionsModalProps> = ({
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
                   {/* Method A: Direct via Edge / Chrome as Native App */}
                   <div className={`p-3 rounded-xl border ${
-                    isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-blue-300'
+                    isDark ? 'bg-card border-slate-200' : 'bg-card border-blue-200'
                   }`}>
-                    <div className="font-bold text-blue-700 dark:text-blue-300 mb-1 flex items-center gap-1.5">
+                    <div className="font-bold text-blue-700 mb-1 flex items-center gap-1.5">
                       <span className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center text-[10px] font-bold">1</span>
                       <span>التثبيت المكتبي الفوري (عبر Microsoft Edge أو Chrome):</span>
                     </div>
-                    <ol className="list-decimal list-inside space-y-1 pr-1 text-[11px] leading-relaxed text-slate-700 dark:text-slate-300">
+                    <ol className="list-decimal list-inside space-y-1 pr-1 text-[11px] leading-relaxed text-slate-700 ">
                       <li>افتح رابط النظام في متصفح <strong>Edge</strong> أو <strong>Chrome</strong> على جهاز الكمبيوتر.</li>
                       <li>ستظهر أيقونة تثبيت صغيرة في شريط العنوان أعلى المتصفح، أو اضغط قائمة المتصفح <strong>(⋯ أو ⋮)</strong>.</li>
                       <li>اختر <strong>«تطبيقات (Apps)»</strong> ثم اضغط <strong>«تثبيت هذا الموقع كتطبيق (Install site as app)»</strong>.</li>
@@ -577,13 +577,13 @@ export const DownloadOptionsModal: React.FC<DownloadOptionsModalProps> = ({
 
                   {/* Method B: Via Desktop Setup EXE */}
                   <div className={`p-3 rounded-xl border ${
-                    isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'
+                    isDark ? 'bg-card border-slate-200' : 'bg-card border-slate-200'
                   }`}>
-                    <div className="font-bold text-slate-900 dark:text-white mb-1 flex items-center gap-1.5">
-                      <span className="w-5 h-5 rounded-full bg-slate-800 text-white flex items-center justify-center text-[10px] font-bold">2</span>
+                    <div className="font-bold text-slate-900 mb-1 flex items-center gap-1.5">
+                      <span className="w-5 h-5 rounded-full bg-slate-100 text-slate-900 flex items-center justify-center text-[10px] font-bold">2</span>
                       <span>عبر تشغيل مثبت الحاسوب (.exe) أو ملف الاختصار (.url):</span>
                     </div>
-                    <ol className="list-decimal list-inside space-y-1 pr-1 text-[11px] leading-relaxed text-slate-700 dark:text-slate-300">
+                    <ol className="list-decimal list-inside space-y-1 pr-1 text-[11px] leading-relaxed text-slate-700 ">
                       <li>اضغط على زر <strong>«تنزيل مثبت الحاسوب (.exe)»</strong> أعلاه لحفظ ملف التثبيت.</li>
                       <li>انقر مرتين على الملف المحمل: <code>MidlandOil-Assets-Desktop-Setup.exe</code>.</li>
                       <li>إذا ظهرت نافذة حماية ويندوز SmartScreen، اضغط <strong>«المزيد من المعلومات»</strong> ثم <strong>«تشغيل على أية حال»</strong>.</li>
@@ -601,8 +601,8 @@ export const DownloadOptionsModal: React.FC<DownloadOptionsModalProps> = ({
           <div
             className={`p-4 sm:p-5 rounded-2xl border transition-all flex flex-col justify-between gap-3.5 shadow-sm ${
               isDark
-                ? 'bg-slate-800/80 border-slate-700 hover:border-slate-600'
-                : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50/50'
+                ? 'bg-slate-100 border-slate-200 hover:border-slate-200'
+                : 'bg-card border-slate-200 hover:border-slate-300 hover:bg-slate-50/50'
             }`}
           >
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
@@ -610,8 +610,8 @@ export const DownloadOptionsModal: React.FC<DownloadOptionsModalProps> = ({
                 <div
                   className={`p-3 rounded-2xl shrink-0 ${
                     isDark
-                      ? 'bg-slate-700 text-white border border-slate-600 shadow-xs'
-                      : 'bg-slate-900 text-white shadow-xs'
+                      ? 'bg-slate-100 text-slate-900 border border-slate-200 shadow-xs'
+                      : 'bg-card text-slate-900 shadow-xs'
                   }`}
                 >
                   <Apple className="w-6 h-6 stroke-[2.2]" />
@@ -620,7 +620,7 @@ export const DownloadOptionsModal: React.FC<DownloadOptionsModalProps> = ({
                   <div className="flex items-center gap-2 flex-wrap">
                     <h4
                       className={`font-bold text-sm sm:text-base ${
-                        isDark ? 'text-white' : 'text-slate-900'
+                        isDark ? 'text-slate-900' : 'text-slate-900'
                       }`}
                     >
                       نسخة الآيفون (Apple iOS)
@@ -628,7 +628,7 @@ export const DownloadOptionsModal: React.FC<DownloadOptionsModalProps> = ({
                     <span
                       className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
                         isDark
-                          ? 'bg-slate-800 text-slate-200 border-slate-700'
+                          ? 'bg-slate-100 text-slate-800 border-slate-200'
                           : 'bg-slate-200 text-slate-900 border-slate-300 font-extrabold'
                       }`}
                     >
@@ -637,33 +637,33 @@ export const DownloadOptionsModal: React.FC<DownloadOptionsModalProps> = ({
                   </div>
                   <p
                     className={`text-xs mt-1 leading-relaxed ${
-                      isDark ? 'text-slate-300' : 'text-slate-700'
+                      isDark ? 'text-slate-600' : 'text-slate-700'
                     }`}
                   >
-                    ملف تعريف رسمي بصيغة <strong className="font-bold text-slate-900 dark:text-white">.mobileconfig</strong> يمكن إرساله عبر واتساب أو تثبيته مباشرة كأيقونة على شاشة الآيفون لتعمل بملء الشاشة وبشكل مستقل.
+                    ملف تعريف رسمي بصيغة <strong className="font-bold text-slate-900 ">.mobileconfig</strong> يمكن إرساله عبر واتساب أو تثبيته مباشرة كأيقونة على شاشة الآيفون لتعمل بملء الشاشة وبشكل مستقل.
                   </p>
                   <div className="mt-2.5 flex flex-wrap items-center gap-2 text-[11px] font-medium">
-                    <span className={`flex items-center gap-1 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                    <span className={`flex items-center gap-1 ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
                       <HardDrive className="w-3.5 h-3.5 text-slate-500" />
                       الحجم: ~11 KB
                     </span>
-                    <span className="text-slate-400">•</span>
+                    <span className="text-slate-500">•</span>
                     <span className={`font-mono text-[10px] px-1.5 py-0.5 rounded border ${
                       isDark
-                        ? 'bg-slate-950/60 border-slate-700 text-slate-300'
+                        ? 'bg-card/60 border-slate-200 text-slate-600'
                         : 'bg-slate-100 border-slate-200 text-slate-700'
                     }`}>
                       MidlandOil-Assets-iOS.mobileconfig
                     </span>
-                    <span className="text-slate-400">•</span>
+                    <span className="text-slate-500">•</span>
                     <button
                       type="button"
                       onClick={() => toggleInstruction('ios')}
                       className={`font-bold text-[11px] flex items-center gap-1 cursor-pointer transition-colors ${
-                        isDark ? 'text-amber-400 hover:text-amber-300' : 'text-amber-800 hover:text-amber-950 underline underline-offset-2'
+                        isDark ? 'text-brand-700 hover:text-brand-700' : 'text-brand-800 hover:text-brand-800 underline underline-offset-2'
                       }`}
                     >
-                      <HelpCircle className="w-3.5 h-3.5 text-amber-500" />
+                      <HelpCircle className="w-3.5 h-3.5 text-brand-700" />
                       {activeInstructionTab === 'ios' ? 'إخفاء طريقة التثبيت على الآيفون' : 'طريقة تثبيته على الآيفون'}
                     </button>
                   </div>
@@ -676,10 +676,10 @@ export const DownloadOptionsModal: React.FC<DownloadOptionsModalProps> = ({
                   type="button"
                   onClick={handleDownloadIosProfile}
                   style={{ backgroundColor: '#0f172a', color: '#ffffff' }}
-                  className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold shadow-md hover:opacity-90 hover:shadow-lg transition-all active:scale-95 cursor-pointer border-2 border-slate-800 select-none"
+                  className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold shadow-md hover:opacity-90 hover:shadow-lg transition-all active:scale-95 cursor-pointer border-2 border-slate-200 select-none"
                 >
                   <Download className="w-4 h-4 stroke-[2.5]" style={{ color: '#ffffff' }} />
-                  <span style={{ color: '#ffffff' }} className="font-extrabold text-white tracking-wide">
+                  <span style={{ color: '#ffffff' }} className="font-extrabold text-slate-900 tracking-wide">
                     تنزيل ملف الآيفون (.mobileconfig)
                   </span>
                 </button>
@@ -688,7 +688,7 @@ export const DownloadOptionsModal: React.FC<DownloadOptionsModalProps> = ({
                   type="button"
                   onClick={() => handleCopyLink('ios')}
                   style={{ backgroundColor: '#f59e0b', color: '#0f172a' }}
-                  className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold shadow-md hover:bg-amber-400 transition-all active:scale-95 cursor-pointer border-2 border-amber-600 select-none"
+                  className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold shadow-md hover:bg-brand-800 transition-all active:scale-95 cursor-pointer border-2 border-brand-600 select-none"
                   title="نسخ رابط سريع لإرساله عبر واتساب والتثبيت في ثوانٍ"
                 >
                   {copiedPlatform === 'ios' ? (
@@ -711,11 +711,11 @@ export const DownloadOptionsModal: React.FC<DownloadOptionsModalProps> = ({
               <div
                 className={`p-4 rounded-xl border text-xs leading-relaxed space-y-3 animate-fade-in ${
                   isDark
-                    ? 'bg-slate-950/90 border-slate-800 text-slate-300'
-                    : 'bg-amber-50/90 border-amber-200 text-slate-900 shadow-xs'
+                    ? 'bg-card/90 border-slate-200 text-slate-600'
+                    : 'bg-brand-50 border-brand-200 text-slate-900 shadow-xs'
                 }`}
               >
-                <div className="font-bold flex items-center justify-between text-amber-800 dark:text-amber-400 text-sm">
+                <div className="font-bold flex items-center justify-between text-brand-800 text-sm">
                   <div className="flex items-center gap-1.5">
                     <Apple className="w-4 h-4" />
                     <span>كيفية تثبيت التطبيق على شاشة الآيفون (طريقتان معتمدتان):</span>
@@ -725,13 +725,13 @@ export const DownloadOptionsModal: React.FC<DownloadOptionsModalProps> = ({
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
                   {/* Method A: Direct via Safari (Fastest) */}
                   <div className={`p-3 rounded-xl border ${
-                    isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-amber-300'
+                    isDark ? 'bg-card border-slate-200' : 'bg-card border-brand-200'
                   }`}>
-                    <div className="font-bold text-amber-700 dark:text-amber-300 mb-1 flex items-center gap-1.5">
-                      <span className="w-5 h-5 rounded-full bg-amber-500 text-slate-950 flex items-center justify-center text-[10px] font-bold">1</span>
+                    <div className="font-bold text-brand-700 mb-1 flex items-center gap-1.5">
+                      <span className="w-5 h-5 rounded-full bg-brand-700 text-on-brand flex items-center justify-center text-[10px] font-bold">1</span>
                       <span>الطريقة الأسرع والأسهل (عبر متصفح Safari):</span>
                     </div>
-                    <ol className="list-decimal list-inside space-y-1 pr-1 text-[11px] leading-relaxed text-slate-700 dark:text-slate-300">
+                    <ol className="list-decimal list-inside space-y-1 pr-1 text-[11px] leading-relaxed text-slate-700 ">
                       <li>اضغط على زر <strong>«نسخ رابط التثبيت للآيفون»</strong> أعلاه وأرسله للموظف عبر واتساب.</li>
                       <li>يفتح الموظف الرابط في متصفح <strong>Safari</strong> على هاتفه.</li>
                       <li>يضغط على زر المشاركة <strong>(مشاركة ⬆️)</strong> في أسفل شاشة سفاري.</li>
@@ -742,13 +742,13 @@ export const DownloadOptionsModal: React.FC<DownloadOptionsModalProps> = ({
 
                   {/* Method B: Via .mobileconfig profile */}
                   <div className={`p-3 rounded-xl border ${
-                    isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'
+                    isDark ? 'bg-card border-slate-200' : 'bg-card border-slate-200'
                   }`}>
-                    <div className="font-bold text-slate-900 dark:text-white mb-1 flex items-center gap-1.5">
-                      <span className="w-5 h-5 rounded-full bg-slate-800 text-white flex items-center justify-center text-[10px] font-bold">2</span>
+                    <div className="font-bold text-slate-900 mb-1 flex items-center gap-1.5">
+                      <span className="w-5 h-5 rounded-full bg-slate-100 text-slate-900 flex items-center justify-center text-[10px] font-bold">2</span>
                       <span>طريقة تثبيت الملف (.mobileconfig) المرسل عبر واتساب:</span>
                     </div>
-                    <ol className="list-decimal list-inside space-y-1 pr-1 text-[11px] leading-relaxed text-slate-700 dark:text-slate-300">
+                    <ol className="list-decimal list-inside space-y-1 pr-1 text-[11px] leading-relaxed text-slate-700 ">
                       <li>في واتساب عند الضغط على الملف وظهور نافذة المعاينة: اضغط زر <strong>«المشاركة ⬆️»</strong> في الأسفل.</li>
                       <li>اختر <strong>«حفظ في الملفات (Save to Files)»</strong> ثم افتح تطبيق <strong>«الملفات Files»</strong> واضغط على الملف.</li>
                       <li>ستظهر رسالة نظام أبل: <em>«تم تنزيل ملف التعريف»</em>.</li>
@@ -766,12 +766,12 @@ export const DownloadOptionsModal: React.FC<DownloadOptionsModalProps> = ({
         <div
           className={`p-3.5 sm:p-4 border-t flex items-center justify-between gap-3 text-xs shrink-0 ${
             isDark
-              ? 'bg-slate-950/70 border-slate-800 text-slate-400'
+              ? 'bg-card/70 border-slate-200 text-slate-500'
               : 'bg-slate-50 border-slate-200 text-slate-700'
           }`}
         >
           <div className="flex items-center gap-2">
-            <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+            <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
             <span className="text-[11px] font-medium">
               حزم معتمدة رسمياً وآمنة لأجهزة الحاسوب وهواتف Android و iOS التابعة لشركة نفط الوسط
             </span>
@@ -781,8 +781,8 @@ export const DownloadOptionsModal: React.FC<DownloadOptionsModalProps> = ({
             onClick={onClose}
             className={`px-4 py-2 rounded-xl text-xs font-bold transition-colors cursor-pointer border ${
               isDark
-                ? 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700'
-                : 'bg-white hover:bg-slate-100 text-slate-800 border-slate-300 shadow-2xs'
+                ? 'bg-slate-100 hover:bg-slate-100 text-slate-800 border-slate-200'
+                : 'bg-card hover:bg-slate-100 text-slate-800 border-slate-300 shadow-2xs'
             }`}
           >
             إغلاق
@@ -792,11 +792,11 @@ export const DownloadOptionsModal: React.FC<DownloadOptionsModalProps> = ({
 
       {/* Floating Download Notification Toast */}
       {downloadToast && (
-        <div className="fixed bottom-6 start-6 z-[10000] p-4 rounded-2xl shadow-2xl bg-slate-900 border border-amber-500/40 text-white flex items-center gap-3 animate-fade-in max-w-sm">
-          <Download className="w-5 h-5 text-amber-400 shrink-0 animate-bounce" />
+        <div className="fixed bottom-6 start-6 z-[10000] p-4 rounded-2xl shadow-2xl bg-card border border-brand-200 text-slate-900 flex items-center gap-3 animate-fade-in max-w-sm">
+          <Download className="w-5 h-5 text-brand-700 shrink-0 animate-bounce" />
           <div className="text-xs">
-            <div className="font-bold text-amber-300">{downloadToast.title}</div>
-            <div className="text-slate-300 mt-0.5 leading-relaxed">{downloadToast.description}</div>
+            <div className="font-bold text-brand-700">{downloadToast.title}</div>
+            <div className="text-slate-600 mt-0.5 leading-relaxed">{downloadToast.description}</div>
           </div>
         </div>
       )}

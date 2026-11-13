@@ -204,42 +204,30 @@ export const LoginView: React.FC<LoginViewProps> = ({
 
   return (
     <div
-      className={`min-h-screen w-full flex flex-col justify-between relative overflow-x-hidden transition-colors duration-300 ${
-        isLight ? 'bg-slate-100 text-slate-900' : 'bg-slate-950 text-slate-100'
-      }`}
+      className="ds min-h-screen w-full flex flex-col justify-between relative overflow-x-hidden transition-colors duration-300 bg-page text-slate-900"
       dir="rtl"
     >
       {/* Background Graphic Grids & Atmospheric Ambient Glow */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden select-none">
         <div
-          className={`absolute top-0 right-1/4 w-96 h-96 rounded-full blur-3xl opacity-25 transition-opacity ${
-            isLight ? 'bg-amber-300' : 'bg-amber-500/20'
-          }`}
+          className={`absolute top-0 right-1/4 w-96 h-96 rounded-full blur-3xl opacity-25 transition-opacity bg-brand-700`}
         />
         <div
-          className={`absolute bottom-10 left-1/4 w-96 h-96 rounded-full blur-3xl opacity-20 transition-opacity ${
-            isLight ? 'bg-indigo-300' : 'bg-indigo-600/20'
-          }`}
+          className={`absolute bottom-10 left-1/4 w-96 h-96 rounded-full blur-3xl opacity-20 transition-opacity bg-indigo-300`}
         />
         <div
-          className={`absolute inset-0 opacity-[0.03] ${
-            isLight ? 'bg-grid-slate-900' : 'bg-grid-slate-100'
-          }`}
+          className={`absolute inset-0 opacity-[0.03] bg-grid-slate-900`}
         />
       </div>
 
       {/* Top Header Bar */}
       <header
-        className={`relative z-10 w-full px-4 sm:px-8 py-3.5 flex items-center justify-between border-b backdrop-blur-md transition-colors ${
-          isLight
-            ? 'bg-white/85 border-slate-200 shadow-xs'
-            : 'bg-slate-900/85 border-slate-800 shadow-md'
-        }`}
+        className={`relative z-10 w-full px-4 sm:px-8 py-3.5 flex items-center justify-between border-b backdrop-blur-md transition-colors bg-card/85 border-slate-200 shadow-xs`}
       >
         {/* Company & Ministry Identity */}
         <div className="flex items-center gap-3">
           {currentBranding.logoUrl ? (
-            <div className="w-11 h-11 rounded-xl bg-slate-900 border border-amber-500/40 flex items-center justify-center p-1 shadow-inner overflow-hidden shrink-0">
+            <div className="w-11 h-11 rounded-xl bg-card border border-brand-200 flex items-center justify-center p-1 shadow-inner overflow-hidden shrink-0">
               <img
                 src={currentBranding.logoUrl}
                 alt={currentBranding.companyName || 'Logo'}
@@ -248,29 +236,25 @@ export const LoginView: React.FC<LoginViewProps> = ({
               />
             </div>
           ) : (
-            <div className="w-11 h-11 rounded-xl bg-amber-500/15 border border-amber-500/40 flex items-center justify-center text-amber-500 font-bold shadow-inner shrink-0">
+            <div className="w-11 h-11 rounded-xl bg-brand-100 border border-brand-200 flex items-center justify-center text-brand-700 font-bold shadow-inner shrink-0">
               <ShieldCheck className="w-6 h-6" />
             </div>
           )}
           <div>
             <div className="flex items-center gap-2">
               <span
-                className={`font-black text-sm sm:text-base block tracking-tight ${
-                  isLight ? 'text-amber-700' : 'text-amber-400'
-                }`}
+                className={`font-black text-sm sm:text-base block tracking-tight text-brand-700`}
               >
                 {currentBranding.companyName || 'شركة نفط الوسط'}
               </span>
               {currentBranding.logoSubtext && (
-                <span className="text-[10px] bg-amber-500/15 text-amber-600 dark:text-amber-300 px-1.5 py-0.2 rounded border border-amber-500/30 font-bold">
+                <span className="text-[10px] bg-brand-100 text-brand-700 px-1.5 py-0.2 rounded border border-brand-200 font-bold">
                   {currentBranding.logoSubtext}
                 </span>
               )}
             </div>
             <span
-              className={`text-[11px] block font-semibold ${
-                isLight ? 'text-slate-500' : 'text-slate-400'
-              }`}
+              className={`text-[11px] block font-semibold text-slate-500`}
             >
               {currentBranding.countryName || 'جمهورية العراق'} • {currentBranding.ministryName || 'وزارة النفط العراقية'}
             </span>
@@ -282,11 +266,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
           onClick={onToggleTheme}
           type="button"
           id="login-theme-toggle-button"
-          className={`px-3 py-2 rounded-xl border text-xs font-bold flex items-center gap-2 transition cursor-pointer shadow-xs ${
-            isLight
-              ? 'bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-300'
-              : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700'
-          }`}
+          className={`px-3 py-2 rounded-xl border text-xs font-bold flex items-center gap-2 transition cursor-pointer shadow-xs bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-300`}
           title={isLight ? 'التحويل للوضع الداكن' : 'التحويل للوضع الفاتح'}
         >
           {isLight ? (
@@ -296,7 +276,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
             </>
           ) : (
             <>
-              <Sun className="w-4 h-4 text-amber-400" />
+              <Sun className="w-4 h-4 text-brand-700" />
               <span>الوضع الفاتح</span>
             </>
           )}
@@ -327,35 +307,31 @@ export const LoginView: React.FC<LoginViewProps> = ({
 
           return (
             <div
-              className={`mb-5 p-4 sm:p-5 rounded-3xl border shadow-xl animate-fadeIn space-y-3.5 transition-all ${
-                isLight
-                  ? 'bg-gradient-to-br from-amber-50 via-white to-slate-50 border-amber-300 text-slate-900 shadow-amber-500/10'
-                  : 'bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900 border-amber-500/40 text-white shadow-2xl'
-              }`}
+              className={`mb-5 p-4 sm:p-5 rounded-3xl border shadow-xl animate-fadeIn space-y-3.5 transition-all bg-brand-50 border-brand-200 text-slate-900 `}
             >
               {/* Header */}
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-2xl bg-amber-500 text-slate-950 flex items-center justify-center font-black shadow-lg shrink-0">
+                  <div className="w-10 h-10 rounded-2xl bg-brand-700 text-on-brand flex items-center justify-center font-black shadow-lg shrink-0">
                     <MapPin className="w-5 h-5" />
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="text-[11px] font-bold text-amber-600 dark:text-amber-400">
+                      <span className="text-[11px] font-bold text-brand-700 ">
                         {isRoom ? 'موقع الغرفة والمنشأة (مسح رمز QR للغرفة):' : 'موقع المنشأة الجغرافي (مسح رمز QR):'}
                       </span>
                       {grade && (
-                        <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                        <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-600 border border-emerald-500/30">
                           Grade {grade}
                         </span>
                       )}
                     </div>
-                    <h3 className="font-extrabold text-base text-slate-900 dark:text-slate-100 mt-0.5">
+                    <h3 className="font-extrabold text-base text-slate-900 mt-0.5">
                       {isRoom ? `${unitName} • ${roomName}` : unitName}
                     </h3>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                    <p className="text-xs text-slate-500 ">
                       {unitGov} {unitField ? `• ${unitField}` : ''} {floor ? `• ${floor}` : ''} • الرمز:{' '}
-                      <span className="font-mono font-bold text-amber-500">
+                      <span className="font-mono font-bold text-brand-700">
                         {toArabicDigits(isRoom && roomCode ? roomCode : pendingDeepLink.unit || '')}
                       </span>
                     </p>
@@ -364,21 +340,21 @@ export const LoginView: React.FC<LoginViewProps> = ({
               </div>
 
               {/* GPS Coordinates & Actions */}
-              <div className="bg-slate-950/70 dark:bg-slate-950/80 p-3 rounded-2xl border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+              <div className="bg-card/70 p-3 rounded-2xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                 <div className="flex items-center gap-2">
-                  <Compass className="w-4 h-4 text-amber-500 shrink-0" />
+                  <Compass className="w-4 h-4 text-brand-700 shrink-0" />
                   <div className="text-xs">
-                    <span className="text-slate-400">الإحداثيات GPS: </span>
-                    <span className="font-mono font-bold text-amber-400">
+                    <span className="text-slate-500">الإحداثيات GPS: </span>
+                    <span className="font-mono font-bold text-brand-700">
                       {toArabicDigits(lat.toFixed(5))}°, {toArabicDigits(lng.toFixed(5))}°
                     </span>
                   </div>
                   <button
                     type="button"
                     onClick={handleCopyGps}
-                    className="p-1 px-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] flex items-center gap-1 transition cursor-pointer"
+                    className="p-1 px-2 rounded-lg bg-slate-100 hover:bg-slate-100 text-slate-600 text-[10px] flex items-center gap-1 transition cursor-pointer"
                   >
-                    {copiedCoords ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                    {copiedCoords ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
                     <span>{copiedCoords ? 'تم النسخ' : 'نسخ'}</span>
                   </button>
                 </div>
@@ -396,7 +372,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
               </div>
 
               {/* Map Preview Embed */}
-              <div className="relative w-full h-44 rounded-2xl overflow-hidden border border-slate-800 shadow-inner bg-slate-950">
+              <div className="relative w-full h-44 rounded-2xl overflow-hidden border border-slate-200 shadow-inner bg-card">
                 <iframe
                   title="موقع المنشأة الجغرافي"
                   src={`https://www.openstreetmap.org/export/embed.html?bbox=${lng - 0.008}%2C${lat - 0.006}%2C${lng + 0.008}%2C${lat + 0.006}&layer=mapnik&marker=${lat}%2C${lng}`}
@@ -405,7 +381,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
                 />
               </div>
 
-              <div className="text-[11px] text-slate-500 dark:text-slate-400 text-center leading-relaxed">
+              <div className="text-[11px] text-slate-500 text-center leading-relaxed">
                 تم مسح رمز الوصول السريع من خارج النظام. يمكنك الانتقال الميداني لموقع المنشأة عبر خرائط Google أعلاه، أو تسجيل الدخول بحسابك بالأسفل لإجراء الكشف الفني وتسجيل الصيانة.
               </div>
             </div>
@@ -413,16 +389,12 @@ export const LoginView: React.FC<LoginViewProps> = ({
         })()}
 
         <div
-          className={`border rounded-3xl p-6 sm:p-8 shadow-2xl backdrop-blur-md transition-all ${
-            isLight
-              ? 'bg-white/95 border-slate-200 shadow-slate-300/60'
-              : 'bg-slate-900/90 border-slate-800 shadow-black/80'
-          }`}
+          className={`border rounded-3xl p-6 sm:p-8 shadow-2xl backdrop-blur-md transition-all bg-card/95 border-slate-200 shadow-slate-300/60`}
         >
           {/* Card Header & System Branding Title */}
           <div className="text-center space-y-2 mb-6">
             {currentBranding.logoUrl ? (
-              <div className="inline-flex w-16 h-16 rounded-2xl bg-slate-900 border border-amber-500/30 p-2 shadow-inner overflow-hidden mb-1 mx-auto items-center justify-center">
+              <div className="inline-flex w-16 h-16 rounded-2xl bg-card border border-brand-200 p-2 shadow-inner overflow-hidden mb-1 mx-auto items-center justify-center">
                 <img
                   src={currentBranding.logoUrl}
                   alt={currentBranding.companyName || 'Logo'}
@@ -431,21 +403,17 @@ export const LoginView: React.FC<LoginViewProps> = ({
                 />
               </div>
             ) : (
-              <div className="inline-flex p-3.5 rounded-2xl bg-amber-500/10 text-amber-500 border border-amber-500/30 mb-1 shadow-inner">
+              <div className="inline-flex p-3.5 rounded-2xl bg-brand-50 text-brand-700 border border-brand-200 mb-1 shadow-inner">
                 <Building2 className="w-8 h-8" />
               </div>
             )}
             <h2
-              className={`text-lg sm:text-xl font-black ${
-                isLight ? 'text-slate-900' : 'text-white'
-              }`}
+              className={`text-lg sm:text-xl font-black text-slate-900`}
             >
               تسجيل الدخول للنظام
             </h2>
             <p
-              className={`text-xs max-w-xs mx-auto leading-relaxed ${
-                isLight ? 'text-slate-600 font-medium' : 'text-slate-400'
-              }`}
+              className={`text-xs max-w-xs mx-auto leading-relaxed text-slate-600 font-medium`}
             >
               {currentBranding.systemName || 'السجل الرقمي الموحد للأصول الهندسية والإنشائية'}
             </p>
@@ -454,13 +422,9 @@ export const LoginView: React.FC<LoginViewProps> = ({
           {/* Error Alert Box */}
           {errorMessage && (
             <div
-              className={`mb-5 p-3.5 rounded-2xl border text-xs flex items-start gap-2.5 animate-in fade-in duration-200 ${
-                isLight
-                  ? 'bg-rose-50 border-rose-200 text-rose-800'
-                  : 'bg-rose-500/15 border-rose-500/30 text-rose-300'
-              }`}
+              className={`mb-5 p-3.5 rounded-2xl border text-xs flex items-start gap-2.5 animate-in fade-in duration-200 bg-rose-50 border-rose-200 text-rose-800`}
             >
-              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-500" />
+              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-600" />
               <div className="font-bold leading-relaxed">{errorMessage}</div>
             </div>
           )}
@@ -469,14 +433,12 @@ export const LoginView: React.FC<LoginViewProps> = ({
           {pendingUser ? (
             <form onSubmit={handleForcedPasswordChange} className="space-y-4">
               <div
-                className={`rounded-xl border px-3 py-2.5 text-xs font-bold leading-relaxed ${
-                  isLight ? 'bg-amber-50 border-amber-300 text-amber-900' : 'bg-amber-500/10 border-amber-500/30 text-amber-300'
-                }`}
+                className={`rounded-xl border px-3 py-2.5 text-xs font-bold leading-relaxed bg-brand-50 border-brand-200 text-brand-800`}
               >
                 حسابك «{pendingUser.name}» ما زال بكلمة المرور الافتراضية. اختر كلمة مرور جديدة (8 أحرف على الأقل) للمتابعة.
               </div>
               <div className="space-y-1.5">
-                <label className={`block text-xs font-bold ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                <label className={`block text-xs font-bold text-slate-700`}>
                   كلمة المرور الجديدة:
                 </label>
                 <input
@@ -488,13 +450,11 @@ export const LoginView: React.FC<LoginViewProps> = ({
                     setNewPassword(e.target.value);
                     if (errorMessage) setErrorMessage(null);
                   }}
-                  className={`w-full rounded-xl py-2.5 px-3 text-xs font-bold transition focus:outline-none focus:ring-2 focus:ring-amber-500 border ${
-                    isLight ? 'bg-slate-50 border-slate-300 text-slate-900 focus:bg-white' : 'bg-slate-950 border-slate-800 text-slate-100'
-                  }`}
+                  className={`w-full rounded-xl py-2.5 px-3 text-xs font-bold transition focus:outline-none focus:ring-2 focus:ring-brand-600 border bg-slate-50 border-slate-300 text-slate-900 focus:bg-card`}
                 />
               </div>
               <div className="space-y-1.5">
-                <label className={`block text-xs font-bold ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                <label className={`block text-xs font-bold text-slate-700`}>
                   تأكيد كلمة المرور الجديدة:
                 </label>
                 <input
@@ -505,15 +465,13 @@ export const LoginView: React.FC<LoginViewProps> = ({
                     setConfirmPassword(e.target.value);
                     if (errorMessage) setErrorMessage(null);
                   }}
-                  className={`w-full rounded-xl py-2.5 px-3 text-xs font-bold transition focus:outline-none focus:ring-2 focus:ring-amber-500 border ${
-                    isLight ? 'bg-slate-50 border-slate-300 text-slate-900 focus:bg-white' : 'bg-slate-950 border-slate-800 text-slate-100'
-                  }`}
+                  className={`w-full rounded-xl py-2.5 px-3 text-xs font-bold transition focus:outline-none focus:ring-2 focus:ring-brand-600 border bg-slate-50 border-slate-300 text-slate-900 focus:bg-card`}
                 />
               </div>
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full rounded-xl py-2.5 text-sm font-black bg-amber-500 hover:bg-amber-600 text-slate-950 transition disabled:opacity-60"
+                className="w-full rounded-xl py-2.5 text-sm font-black bg-brand-700 hover:bg-brand-800 text-on-brand transition disabled:opacity-60"
               >
                 {isLoading ? 'جارٍ الحفظ...' : 'حفظ كلمة المرور والدخول'}
               </button>
@@ -523,9 +481,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
             {/* Username Input */}
             <div className="space-y-1.5">
               <label
-                className={`block text-xs font-bold ${
-                  isLight ? 'text-slate-700' : 'text-slate-300'
-                }`}
+                className={`block text-xs font-bold text-slate-700`}
               >
                 اسم المستخدم / البريد الإلكتروني:
               </label>
@@ -539,22 +495,16 @@ export const LoginView: React.FC<LoginViewProps> = ({
                     if (errorMessage) setErrorMessage(null);
                   }}
                   placeholder="مثال: inspector أو admin أو اسمك المسجل"
-                  className={`w-full rounded-xl py-2.5 pr-10 pl-3 text-xs font-bold transition focus:outline-none focus:ring-2 focus:ring-amber-500 border ${
-                    isLight
-                      ? 'bg-slate-50 border-slate-300 text-slate-900 focus:bg-white placeholder:text-slate-400'
-                      : 'bg-slate-950 border-slate-800 text-slate-100 focus:border-amber-500/60 placeholder:text-slate-600'
-                  }`}
+                  className={`w-full rounded-xl py-2.5 pr-10 pl-3 text-xs font-bold transition focus:outline-none focus:ring-2 focus:ring-brand-600 border bg-slate-50 border-slate-300 text-slate-900 focus:bg-card placeholder:text-slate-400`}
                 />
-                <User className="w-4 h-4 text-slate-400 absolute right-3 top-3 pointer-events-none" />
+                <User className="w-4 h-4 text-slate-500 absolute right-3 top-3 pointer-events-none" />
               </div>
             </div>
 
             {/* Password Input */}
             <div className="space-y-1.5">
               <label
-                className={`block text-xs font-bold ${
-                  isLight ? 'text-slate-700' : 'text-slate-300'
-                }`}
+                className={`block text-xs font-bold text-slate-700`}
               >
                 كلمة المرور:
               </label>
@@ -568,21 +518,13 @@ export const LoginView: React.FC<LoginViewProps> = ({
                     if (errorMessage) setErrorMessage(null);
                   }}
                   placeholder="••••••••"
-                  className={`w-full rounded-xl py-2.5 pr-10 pl-10 text-xs font-bold transition focus:outline-none focus:ring-2 focus:ring-amber-500 border font-mono ${
-                    isLight
-                      ? 'bg-slate-50 border-slate-300 text-slate-900 focus:bg-white placeholder:text-slate-400'
-                      : 'bg-slate-950 border-slate-800 text-slate-100 focus:border-amber-500/60 placeholder:text-slate-600'
-                  }`}
+                  className={`w-full rounded-xl py-2.5 pr-10 pl-10 text-xs font-bold transition focus:outline-none focus:ring-2 focus:ring-brand-600 border font-mono bg-slate-50 border-slate-300 text-slate-900 focus:bg-card placeholder:text-slate-400`}
                 />
-                <Lock className="w-4 h-4 text-slate-400 absolute right-3 top-3 pointer-events-none" />
+                <Lock className="w-4 h-4 text-slate-500 absolute right-3 top-3 pointer-events-none" />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className={`absolute left-3 top-2.5 transition p-0.5 cursor-pointer ${
-                    isLight
-                      ? 'text-slate-400 hover:text-slate-700'
-                      : 'text-slate-400 hover:text-slate-200'
-                  }`}
+                  className={`absolute left-3 top-2.5 transition p-0.5 cursor-pointer text-slate-400 hover:text-slate-700`}
                   title={showPassword ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'}
                 >
                   {showPassword ? (
@@ -598,11 +540,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
             <button
               type="submit"
               disabled={isLoading}
-              className={`w-full font-black py-3 px-4 rounded-xl text-xs flex items-center justify-center gap-2 shadow-lg transition cursor-pointer disabled:opacity-50 mt-4 border ${
-                isLight
-                  ? 'bg-amber-500 hover:bg-amber-600 text-slate-950 border-amber-400/50 shadow-amber-500/20'
-                  : 'bg-amber-500 hover:bg-amber-400 text-slate-950 border-transparent shadow-amber-500/20'
-              }`}
+              className={`w-full font-black py-3 px-4 rounded-xl text-xs flex items-center justify-center gap-2 shadow-lg transition cursor-pointer disabled:opacity-50 mt-4 border bg-brand-700 hover:bg-brand-800 text-on-brand border-brand-200 `}
             >
               {isLoading ? (
                 <>
@@ -623,11 +561,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
 
       {/* Footer Info & Copyright */}
       <footer
-        className={`relative z-10 w-full py-4 px-6 text-center text-xs border-t backdrop-blur-sm transition-colors ${
-          isLight
-            ? 'border-slate-200/80 text-slate-600 bg-white/40'
-            : 'border-slate-800/40 text-slate-400 bg-slate-950/40'
-        }`}
+        className={`relative z-10 w-full py-4 px-6 text-center text-xs border-t backdrop-blur-sm transition-colors border-slate-200/80 text-slate-600 bg-card/40`}
       >
         <p className="font-semibold text-[11px] tracking-wide">
           {currentBranding.copyrightText || 'جميع الحقوق محفوظة © 2026 - شركة نفط الوسط • وزارة النفط العراقية'}

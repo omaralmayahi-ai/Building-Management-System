@@ -120,7 +120,7 @@ export const StatusBar: React.FC = () => {
       aria-live="polite"
       title={quality === 'offline' ? 'ما تُدخله الآن لن يُحفظ حتى يعود الاتصال' : undefined}
       className={cx(
-        'sticky top-0 z-40 flex h-[30px] items-center gap-x-5 overflow-hidden border-b px-4 text-xs print:hidden',
+        'ds-off sticky top-0 z-40 flex h-[30px] items-center gap-x-5 overflow-hidden border-b px-4 text-xs print:hidden',
         quality === 'offline'
           ? 'border-rose-200 bg-rose-50 text-rose-800 dark:border-rose-900 dark:bg-rose-950 dark:text-rose-200'
           : quality === 'weak'

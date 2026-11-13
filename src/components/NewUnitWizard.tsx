@@ -828,149 +828,149 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
     const printWin = window.open('', '_blank');
     if (printWin) {
       printWin.document.write(`
-        <html dir="rtl">
-          <head>
-            <title>لوحة الشريحة المعدنية والهوية القياسية - ${createdUnitWithQr.unit.code}</title>
-            <style>
-              @media print {
-                body { margin: 0; padding: 0; background: #fff; }
-                .plate-container { page-break-inside: avoid; }
-              }
-              body {
-                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                background: #f8fafc;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                min-height: 100vh;
-                padding: 20px;
-                box-sizing: border-box;
-              }
-              .plate-container {
-                width: 135mm;
-                min-height: 90mm;
-                background: #ffffff;
-                border: 4px solid #0f172a;
-                border-radius: 12px;
-                padding: 18px;
-                box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-                position: relative;
-                box-sizing: border-box;
-                direction: rtl;
-              }
-              .screw {
-                position: absolute;
-                width: 12px;
-                height: 12px;
-                border-radius: 50%;
-                background: #e2e8f0;
-                border: 1.5px solid #0f172a;
-              }
-              .screw-tl { top: 8px; right: 8px; }
-              .screw-tr { top: 8px; left: 8px; }
-              .screw-bl { bottom: 8px; right: 8px; }
-              .screw-br { bottom: 8px; left: 8px; }
-              .header {
-                text-align: center;
-                border-bottom: 2px solid #0f172a;
-                padding-bottom: 8px;
-                margin-bottom: 12px;
-              }
-              .header-title { font-size: 11px; font-weight: bold; color: #475569; margin: 0; }
-              .header-sub { font-size: 14px; font-weight: 900; color: #0f172a; margin: 3px 0 0 0; }
-              .body-grid {
-                display: flex;
-                gap: 16px;
-                align-items: center;
-              }
-              .info-side { flex: 1; text-align: right; }
-              .code-box {
-                background: #0f172a;
-                color: #f59e0b;
-                font-family: monospace;
-                font-size: 20px;
-                font-weight: 900;
-                padding: 8px 12px;
-                border-radius: 8px;
-                text-align: center;
-                letter-spacing: 1.5px;
-                margin-bottom: 10px;
-                border: 1px solid #d97706;
-              }
-              .unit-name {
-                font-size: 14px;
-                font-weight: 800;
-                color: #0f172a;
-                margin-bottom: 8px;
-                line-height: 1.3;
-              }
-              .meta-item {
-                font-size: 11px;
-                color: #334155;
-                margin-bottom: 4px;
-              }
-              .meta-item strong { color: #0f172a; }
-              .qr-side {
-                text-align: center;
-                shrink: 0;
-              }
-              .qr-side img {
-                width: 145px;
-                height: 145px;
-                border: 2px solid #0f172a;
-                border-radius: 8px;
-                padding: 4px;
-                background: #fff;
-              }
-              .footer-tag {
-                margin-top: 12px;
-                border-top: 1.5px solid #cbd5e1;
-                padding-top: 6px;
-                text-align: center;
-                font-size: 9.5px;
-                font-weight: bold;
-                color: #475569;
-              }
-            </style>
-          </head>
-          <body>
-            <div class="plate-container">
-              <div class="screw screw-tl"></div>
-              <div class="screw screw-tr"></div>
-              <div class="screw screw-bl"></div>
-              <div class="screw screw-br"></div>
+ <html dir="rtl">
+ <head>
+ <title>لوحة الشريحة المعدنية والهوية القياسية - ${createdUnitWithQr.unit.code}</title>
+ <style>
+ @media print {
+ body { margin: 0; padding: 0; background: #fff; }
+ .plate-container { page-break-inside: avoid; }
+ }
+ body {
+ font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+ background: #f8fafc;
+ display: flex;
+ justify-content: center;
+ align-items: center;
+ min-height: 100vh;
+ padding: 20px;
+ box-sizing: border-box;
+ }
+ .plate-container {
+ width: 135mm;
+ min-height: 90mm;
+ background: #ffffff;
+ border: 4px solid #0f172a;
+ border-radius: 12px;
+ padding: 18px;
+ box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+ position: relative;
+ box-sizing: border-box;
+ direction: rtl;
+ }
+ .screw {
+ position: absolute;
+ width: 12px;
+ height: 12px;
+ border-radius: 50%;
+ background: #e2e8f0;
+ border: 1.5px solid #0f172a;
+ }
+ .screw-tl { top: 8px; right: 8px; }
+ .screw-tr { top: 8px; left: 8px; }
+ .screw-bl { bottom: 8px; right: 8px; }
+ .screw-br { bottom: 8px; left: 8px; }
+ .header {
+ text-align: center;
+ border-bottom: 2px solid #0f172a;
+ padding-bottom: 8px;
+ margin-bottom: 12px;
+ }
+ .header-title { font-size: 11px; font-weight: bold; color: #475569; margin: 0; }
+ .header-sub { font-size: 14px; font-weight: 900; color: #0f172a; margin: 3px 0 0 0; }
+ .body-grid {
+ display: flex;
+ gap: 16px;
+ align-items: center;
+ }
+ .info-side { flex: 1; text-align: right; }
+ .code-box {
+ background: #0f172a;
+ color: #f59e0b;
+ font-family: monospace;
+ font-size: 20px;
+ font-weight: 900;
+ padding: 8px 12px;
+ border-radius: 8px;
+ text-align: center;
+ letter-spacing: 1.5px;
+ margin-bottom: 10px;
+ border: 1px solid #d97706;
+ }
+ .unit-name {
+ font-size: 14px;
+ font-weight: 800;
+ color: #0f172a;
+ margin-bottom: 8px;
+ line-height: 1.3;
+ }
+ .meta-item {
+ font-size: 11px;
+ color: #334155;
+ margin-bottom: 4px;
+ }
+ .meta-item strong { color: #0f172a; }
+ .qr-side {
+ text-align: center;
+ shrink: 0;
+ }
+ .qr-side img {
+ width: 145px;
+ height: 145px;
+ border: 2px solid #0f172a;
+ border-radius: 8px;
+ padding: 4px;
+ background: #fff;
+ }
+ .footer-tag {
+ margin-top: 12px;
+ border-top: 1.5px solid #cbd5e1;
+ padding-top: 6px;
+ text-align: center;
+ font-size: 9.5px;
+ font-weight: bold;
+ color: #475569;
+ }
+ </style>
+ </head>
+ <body>
+ <div class="plate-container">
+ <div class="screw screw-tl"></div>
+ <div class="screw screw-tr"></div>
+ <div class="screw screw-bl"></div>
+ <div class="screw screw-br"></div>
 
-              <div class="header">
-                <p class="header-title">جمهورية العراق • وزارة النفط • شركة نفط الوسط</p>
-                <h1 class="header-sub">شريحة الهوية القياسية الرسمية للأصل رقمياً</h1>
-              </div>
+ <div class="header">
+ <p class="header-title">جمهورية العراق • وزارة النفط • شركة نفط الوسط</p>
+ <h1 class="header-sub">شريحة الهوية القياسية الرسمية للأصل رقمياً</h1>
+ </div>
 
-              <div class="body-grid">
-                <div class="info-side">
-                  <div class="code-box">${createdUnitWithQr.unit.code}</div>
-                  <div class="unit-name">${createdUnitWithQr.unit.name}</div>
-                  <div class="meta-item"><strong>المحافظة والحقل:</strong> ${createdUnitWithQr.unit.governorate} - ${createdUnitWithQr.unit.field}</div>
-                  <div class="meta-item"><strong>سنة التشغيل:</strong> ${createdUnitWithQr.unit.constructionYear}</div>
-                  <div class="meta-item"><strong>رمز الأصل:</strong> ${createdUnitWithQr.unit.fixedAssetCode || 'غير مسجل'}</div>
-                  <div class="meta-item"><strong>الإحداثيات:</strong> ${createdUnitWithQr.unit.coordinates.lat.toFixed(4)}, ${createdUnitWithQr.unit.coordinates.lng.toFixed(4)}</div>
-                </div>
+ <div class="body-grid">
+ <div class="info-side">
+ <div class="code-box">${createdUnitWithQr.unit.code}</div>
+ <div class="unit-name">${createdUnitWithQr.unit.name}</div>
+ <div class="meta-item"><strong>المحافظة والحقل:</strong> ${createdUnitWithQr.unit.governorate} - ${createdUnitWithQr.unit.field}</div>
+ <div class="meta-item"><strong>سنة التشغيل:</strong> ${createdUnitWithQr.unit.constructionYear}</div>
+ <div class="meta-item"><strong>رمز الأصل:</strong> ${createdUnitWithQr.unit.fixedAssetCode || 'غير مسجل'}</div>
+ <div class="meta-item"><strong>الإحداثيات:</strong> ${createdUnitWithQr.unit.coordinates.lat.toFixed(4)}, ${createdUnitWithQr.unit.coordinates.lng.toFixed(4)}</div>
+ </div>
 
-                <div class="qr-side">
-                  <img src="${createdUnitWithQr.qrDataUrl}" alt="QR Code" />
-                  <div style="font-size: 9px; font-weight: bold; margin-top: 4px; color: #0f172a;">رمز المسح الفوري</div>
-                </div>
-              </div>
+ <div class="qr-side">
+ <img src="${createdUnitWithQr.qrDataUrl}" alt="QR Code" />
+ <div style="font-size: 9px; font-weight: bold; margin-top: 4px; color: #0f172a;">رمز المسح الفوري</div>
+ </div>
+ </div>
 
-              <div class="footer-tag">
-                شريحة معدنية قياسية مخصصة للتثبيت والطباعة والتثبيت على جدار / كرفان المنشأة النفطية
-              </div>
-            </div>
-            <script>
-              window.onload = function() { window.print(); }
-            </script>
-          </body>
-        </html>
-      `);
+ <div class="footer-tag">
+ شريحة معدنية قياسية مخصصة للتثبيت والطباعة والتثبيت على جدار / كرفان المنشأة النفطية
+ </div>
+ </div>
+ <script>
+ window.onload = function() { window.print(); }
+ </script>
+ </body>
+ </html>
+ `);
       printWin.document.close();
     }
   };
@@ -987,27 +987,23 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
 
   return (
     <div
-      className={`border rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden space-y-4 sm:space-y-6 pb-8 transition-colors ${
-        isLight ? 'bg-slate-50 border-slate-200 text-slate-900' : 'bg-slate-900 border-slate-800 text-slate-100'
-      }`}
+      className={`border rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden space-y-4 sm:space-y-6 pb-8 transition-colors bg-slate-50 border-slate-200 text-slate-900`}
     >
       {/* Page Header Window Toolbar */}
       <div
-        className={`p-3.5 sm:p-6 border-b flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4 sticky top-0 z-30 shadow-md transition-colors ${
-          isLight ? 'bg-white border-slate-200' : 'bg-slate-950 border-slate-800'
-        }`}
+        className={`p-3.5 sm:p-6 border-b flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4 sticky top-0 z-30 shadow-md transition-colors bg-card border-slate-200`}
       >
         <div>
           <div className="flex items-center gap-2">
-            <span className="bg-amber-500/20 text-amber-500 dark:text-amber-400 border border-amber-500/30 text-xs px-3 py-1 rounded-full font-black flex items-center gap-1.5">
+            <span className="bg-brand-100 text-brand-700 border border-brand-200 text-xs px-3 py-1 rounded-full font-black flex items-center gap-1.5">
               <Building2 className="w-3.5 h-3.5" />
               <span>تسجيل أصل جديد - نظام حركي ديناميكي</span>
             </span>
           </div>
-          <h2 className={`text-lg sm:text-2xl font-black mt-2 flex items-center gap-2 ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+          <h2 className={`text-lg sm:text-2xl font-black mt-2 flex items-center gap-2 text-slate-900`}>
             استمارة إدخال وحدة / مبنى / كرفان جديد
           </h2>
-          <p className={`text-xs mt-1 ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+          <p className={`text-xs mt-1 text-slate-500`}>
             نافذة تسجيل موحدة تضم كافة البيانات التعريفية والموقع الجغرافي والمواصفات الإنشائية والتقييم
           </p>
         </div>
@@ -1018,25 +1014,23 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
         {/* ==================== SECTION 1 ==================== */}
         <div
           ref={section1Ref}
-          className={`border rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 space-y-4 sm:space-y-5 scroll-mt-24 transition-colors ${
-            isLight ? 'bg-white border-slate-200 text-slate-900 shadow-xs' : 'bg-slate-950 border-slate-800 text-slate-100'
-          }`}
+          className={`border rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 space-y-4 sm:space-y-5 scroll-mt-24 transition-colors bg-card border-slate-200 text-slate-900 shadow-xs`}
         >
-          <div className={`flex items-center justify-between border-b pb-3 ${isLight ? 'border-slate-200' : 'border-slate-800/80'}`}>
+          <div className={`flex items-center justify-between border-b pb-3 border-slate-200`}>
             <div className="flex items-center gap-2.5 sm:gap-3">
-              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-amber-500 text-slate-950 font-black flex items-center justify-center text-xs sm:text-sm shadow">
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-brand-700 text-on-brand font-black flex items-center justify-center text-xs sm:text-sm shadow">
                 {toArabicDigits(1)}
               </div>
               <div>
-                <h3 className={`text-sm sm:text-base font-bold ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                <h3 className={`text-sm sm:text-base font-bold text-slate-900`}>
                   البيانات التعريفية والرمز والهوية القياسية
                 </h3>
-                <p className={`text-[11px] sm:text-xs ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                <p className={`text-[11px] sm:text-xs text-slate-500`}>
                   تحديد نوع المنشأة والاسم والرمز الموحد وسنة الإنشاء
                 </p>
               </div>
             </div>
-            <span className="text-[11px] font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-3 py-1 rounded-full">
+            <span className="text-[11px] font-bold text-brand-700 bg-brand-50 border border-brand-200 px-3 py-1 rounded-full">
               أساسي
             </span>
           </div>
@@ -1044,11 +1038,11 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
           <div className="space-y-4 text-xs">
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label className="block text-slate-300 font-bold">فئة ونوع المنشأة المرجعي:</label>
+                <label className="block text-slate-600 font-bold">فئة ونوع المنشأة المرجعي:</label>
                 <button
                   type="button"
                   onClick={() => setShowAddUnitTypeModal(true)}
-                  className="text-amber-400 hover:text-amber-300 font-bold text-[11px] flex items-center gap-1 cursor-pointer bg-amber-500/10 hover:bg-amber-500/20 px-2 py-0.5 rounded-md border border-amber-500/20 transition"
+                  className="text-brand-700 hover:text-brand-700 font-bold text-[11px] flex items-center gap-1 cursor-pointer bg-brand-50 hover:bg-brand-100 px-2 py-0.5 rounded-md border border-brand-200 transition"
                 >
                   <Plus className="w-3 h-3" />
                   <span>إضافة فئة جديدة</span>
@@ -1057,7 +1051,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
               <select
                 value={selectedUnitType}
                 onChange={(e) => setSelectedUnitType(e.target.value)}
-                className="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-slate-100 font-bold focus:border-amber-500 outline-none transition cursor-pointer"
+                className="w-full bg-card border border-slate-200 rounded-xl p-3 text-slate-800 font-bold focus:border-brand-600 outline-none transition cursor-pointer"
               >
                 <option value="">-- اختر فئة ونوع المنشأة المرجعي --</option>
                 {unitTypes
@@ -1072,25 +1066,25 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div>
-                <label className="block text-slate-300 font-bold mb-1.5">الاسم الكامل الرسمي للمنشأة / المبنى:</label>
+                <label className="block text-slate-600 font-bold mb-1.5">الاسم الكامل الرسمي للمنشأة / المبنى:</label>
                 <input
                   type="text"
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="مثال: مبنى إدارة حقل الأحدب الرئيسي - الجناح الغربي"
-                  className="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-slate-100 focus:border-amber-500 outline-none transition font-medium"
+                  className="w-full bg-card border border-slate-200 rounded-xl p-3 text-slate-800 focus:border-brand-600 outline-none transition font-medium"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-300 font-bold mb-1.5">سنة الإنشاء والتشغيل:</label>
+                <label className="block text-slate-600 font-bold mb-1.5">سنة الإنشاء والتشغيل:</label>
                 <input
                   type="number"
                   value={constructionYear}
                   onChange={(e) => setConstructionYear(e.target.value === '' ? '' : Number(e.target.value))}
                   placeholder="سنة الإنشاء والتشغيل (مثال: 2024)..."
-                  className="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-slate-100 focus:border-amber-500 outline-none transition font-mono"
+                  className="w-full bg-card border border-slate-200 rounded-xl p-3 text-slate-800 focus:border-brand-600 outline-none transition font-mono"
                 />
               </div>
             </div>
@@ -1115,19 +1109,15 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
 
               return (
                 <div
-                  className={`border rounded-2xl p-4 space-y-3.5 transition-colors ${
-                    isLight
-                      ? 'bg-indigo-50/50 border-indigo-200 shadow-xs'
-                      : 'bg-slate-900/90 border-slate-800'
-                  }`}
+                  className={`border rounded-2xl p-4 space-y-3.5 transition-colors bg-indigo-50/50 border-indigo-200 shadow-xs`}
                 >
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
-                      <Layers className={`w-4 h-4 shrink-0 ${isLight ? 'text-indigo-600' : 'text-indigo-400'}`} />
-                      <label className={`font-black text-xs ${isLight ? 'text-slate-800' : 'text-slate-200'}`}>
+                      <Layers className={`w-4 h-4 shrink-0 text-indigo-600`} />
+                      <label className={`font-black text-xs text-slate-800`}>
                         رمز الأصل في سجلات أصول الشركة:
                       </label>
-                      <span className="text-[10px] text-amber-500 font-bold bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full">
+                      <span className="text-[10px] text-brand-700 font-bold bg-brand-50 border border-brand-200 px-2 py-0.5 rounded-full">
                         (حقل اختياري / فريد)
                       </span>
                     </div>
@@ -1138,12 +1128,8 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                           <span
                             className={`text-[10px] px-2.5 py-0.5 rounded-full font-bold flex items-center gap-1 border ${
                               validation.isIdeal
-                                ? isLight
-                                  ? 'bg-emerald-500/15 text-emerald-700 border-emerald-500/30'
-                                  : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
-                                : isLight
-                                ? 'bg-amber-500/15 text-amber-700 border-amber-500/30'
-                                : 'bg-amber-500/20 text-amber-300 border-amber-500/30'
+                                ? 'bg-emerald-500/15 text-emerald-700 border-emerald-500/30'
+                                : 'bg-brand-100 text-brand-700 border-brand-200'
                             }`}
                           >
                             <CheckCircle2 className="w-3 h-3" />
@@ -1151,13 +1137,13 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                           </span>
                         )}
                         {!validation?.isValid && (
-                          <span className="bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/30 text-[10px] px-2.5 py-0.5 rounded-full font-bold flex items-center gap-1">
+                          <span className="bg-rose-500/20 text-rose-600 border border-rose-500/30 text-[10px] px-2.5 py-0.5 rounded-full font-bold flex items-center gap-1">
                             <AlertTriangle className="w-3 h-3" />
                             <span>{validation?.message}</span>
                           </span>
                         )}
                         {validation?.isValid && !isUnique && (
-                          <span className="bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/30 text-[10px] px-2.5 py-0.5 rounded-full font-bold flex items-center gap-1">
+                          <span className="bg-rose-500/20 text-rose-600 border border-rose-500/30 text-[10px] px-2.5 py-0.5 rounded-full font-bold flex items-center gap-1">
                             <AlertTriangle className="w-3 h-3" />
                             <span>رمز الأصل مكرر ومسجل مسبقاً لمنشأة أخرى!</span>
                           </span>
@@ -1181,11 +1167,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                             ? '123.1234.123 (أرقام مع فواصل للكرفانات)'
                             : '0123456789 (أرقام بدون فواصل للأبنية)'
                         }
-                        className={`w-full border rounded-xl p-3 font-mono font-bold text-sm tracking-wider outline-none transition focus:border-indigo-500 ${
-                          isLight
-                            ? 'bg-white border-slate-300 text-slate-900 placeholder:text-slate-400'
-                            : 'bg-slate-950 border-slate-700/80 text-slate-100 placeholder:text-slate-500 placeholder:text-xs'
-                        }`}
+                        className={`w-full border rounded-xl p-3 font-mono font-bold text-sm tracking-wider outline-none transition focus:border-indigo-500 bg-card border-slate-300 text-slate-900 placeholder:text-slate-400`}
                       />
                     </div>
 
@@ -1194,11 +1176,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                         <button
                           type="button"
                           onClick={() => setFixedAssetCode(formatToCaravanDottedCode(fixedAssetCode))}
-                          className={`text-[11px] px-3 py-2.5 rounded-xl font-bold transition flex items-center gap-1 cursor-pointer border ${
-                            isLight
-                              ? 'bg-indigo-600 hover:bg-indigo-700 text-white border-indigo-600 shadow-xs'
-                              : 'bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-300 border-indigo-500/40'
-                          }`}
+                          className={`text-[11px] px-3 py-2.5 rounded-xl font-bold transition flex items-center gap-1 cursor-pointer border bg-indigo-600 hover:bg-indigo-700 text-white border-indigo-600 shadow-xs`}
                           title="تحويل الأرقام إلى فورمات الكرفانات المنقط (مثال: 123.1234.123)"
                         >
                           <span>تحويل لكرفانات (123.1234.123)</span>
@@ -1209,11 +1187,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                         <button
                           type="button"
                           onClick={() => setFixedAssetCode(formatToBuildingContinuousCode(fixedAssetCode))}
-                          className={`text-[11px] px-3 py-2.5 rounded-xl font-bold transition flex items-center gap-1 cursor-pointer border ${
-                            isLight
-                              ? 'bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-600 shadow-xs'
-                              : 'bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-300 border-emerald-500/40'
-                          }`}
+                          className={`text-[11px] px-3 py-2.5 rounded-xl font-bold transition flex items-center gap-1 cursor-pointer border bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-600 shadow-xs`}
                           title="إزالة الفواصل والنقاط لفورمات الأبنية المتصل (مثال: 0123456789)"
                         >
                           <span>تحويل لأبنية (0123456789)</span>
@@ -1224,54 +1198,38 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
 
                   {/* صندوق معايير وتنسيق رمز الأصل */}
                   <div
-                    className={`p-3.5 rounded-xl border space-y-2.5 text-xs ${
-                      isLight
-                        ? 'bg-white/90 border-indigo-100/90 shadow-xs'
-                        : 'bg-slate-950/70 border-slate-800/80'
-                    }`}
+                    className={`p-3.5 rounded-xl border space-y-2.5 text-xs bg-card/90 border-indigo-100/90 shadow-xs`}
                   >
                     <p
-                      className={`font-bold flex items-center gap-1.5 text-[11px] ${
-                        isLight ? 'text-slate-800' : 'text-slate-300'
-                      }`}
+                      className={`font-bold flex items-center gap-1.5 text-[11px] text-slate-800`}
                     >
-                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500 inline-block"></span>
+                      <span className="w-1.5 h-1.5 rounded-full bg-brand-700 inline-block"></span>
                       <span>المعلومات داخل الحقل تكون بهذا الشكل:</span>
                     </p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
                       <div
-                        className={`flex items-center gap-2 p-2 rounded-lg border ${
-                          isLight
-                            ? 'bg-slate-50 border-slate-200'
-                            : 'bg-slate-900/90 border-slate-800/90'
-                        }`}
+                        className={`flex items-center gap-2 p-2 rounded-lg border bg-slate-50 border-slate-200`}
                       >
-                        <span className="font-mono text-emerald-600 dark:text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 shrink-0">
+                        <span className="font-mono text-emerald-600 font-bold bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 shrink-0">
                           0123456789
                         </span>
-                        <span className={isLight ? 'text-slate-700 font-medium' : 'text-slate-300 font-medium'}>
+                        <span className={'text-slate-700 font-medium'}>
                           أرقام بدون فواصل للأبنية
                         </span>
                       </div>
                       <div
-                        className={`flex items-center gap-2 p-2 rounded-lg border ${
-                          isLight
-                            ? 'bg-slate-50 border-slate-200'
-                            : 'bg-slate-900/90 border-slate-800/90'
-                        }`}
+                        className={`flex items-center gap-2 p-2 rounded-lg border bg-slate-50 border-slate-200`}
                       >
-                        <span className="font-mono text-cyan-600 dark:text-cyan-400 font-bold bg-cyan-500/10 px-2 py-0.5 rounded border border-cyan-500/20 shrink-0">
+                        <span className="font-mono text-cyan-600 font-bold bg-cyan-500/10 px-2 py-0.5 rounded border border-cyan-500/20 shrink-0">
                           123.1234.123
                         </span>
-                        <span className={isLight ? 'text-slate-700 font-medium' : 'text-slate-300 font-medium'}>
+                        <span className={'text-slate-700 font-medium'}>
                           أرقام مع فواصل للكرفانات
                         </span>
                       </div>
                     </div>
                     <p
-                      className={`text-[10.5px] leading-relaxed pt-0.5 ${
-                        isLight ? 'text-slate-500' : 'text-slate-400'
-                      }`}
+                      className={`text-[10.5px] leading-relaxed pt-0.5 text-slate-500`}
                     >
                       يتم اعتماد هذا الفورمات كتقييم لحالة إدخال رمز الأصل ومطابقته للتنسيق المثالي في سجلات أصول الشركة.
                     </p>
@@ -1287,25 +1245,23 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
         {/* ==================== SECTION 2 ==================== */}
         <div
           ref={section2Ref}
-          className={`border rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 space-y-4 sm:space-y-5 scroll-mt-24 transition-colors ${
-            isLight ? 'bg-white border-slate-200 text-slate-900 shadow-xs' : 'bg-slate-950 border-slate-800 text-slate-100'
-          }`}
+          className={`border rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 space-y-4 sm:space-y-5 scroll-mt-24 transition-colors bg-card border-slate-200 text-slate-900 shadow-xs`}
         >
-          <div className={`flex items-center justify-between border-b pb-3 ${isLight ? 'border-slate-200' : 'border-slate-800/80'}`}>
+          <div className={`flex items-center justify-between border-b pb-3 border-slate-200`}>
             <div className="flex items-center gap-2.5 sm:gap-3">
-              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-amber-500 text-slate-950 font-black flex items-center justify-center text-xs sm:text-sm shadow">
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-brand-700 text-on-brand font-black flex items-center justify-center text-xs sm:text-sm shadow">
                 {toArabicDigits(2)}
               </div>
               <div>
-                <h3 className={`text-sm sm:text-base font-bold ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                <h3 className={`text-sm sm:text-base font-bold text-slate-900`}>
                   الموقع والإحداثيات الجغرافية والخريطة التفاعلية
                 </h3>
-                <p className={`text-[11px] sm:text-xs ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                <p className={`text-[11px] sm:text-xs text-slate-500`}>
                   تحديد المحافظة، الحقل النفطي، وإحداثيات الموقع عبر خريطة حية أو إدخال يدوي
                 </p>
               </div>
             </div>
-            <span className="text-[11px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-full">
+            <span className="text-[11px] font-bold text-emerald-600 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-full">
               GPS حقيقي
             </span>
           </div>
@@ -1316,11 +1272,11 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
               {/* Governorate Dropdown */}
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-slate-300 font-bold">المحافظة العراقية:</label>
+                  <label className="text-slate-600 font-bold">المحافظة العراقية:</label>
                   <button
                     type="button"
                     onClick={() => setShowAddGovModal(true)}
-                    className="text-amber-400 hover:text-amber-300 text-[11px] font-bold flex items-center gap-1 bg-amber-500/10 hover:bg-amber-500/20 px-2.5 py-1 rounded-lg border border-amber-500/30 transition cursor-pointer"
+                    className="text-brand-700 hover:text-brand-700 text-[11px] font-bold flex items-center gap-1 bg-brand-50 hover:bg-brand-100 px-2.5 py-1 rounded-lg border border-brand-200 transition cursor-pointer"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     <span>إضافة محافظة جديدة</span>
@@ -1335,7 +1291,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                     if (firstFld) setFieldId(firstFld.id);
                     else setFieldId('');
                   }}
-                  className="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-slate-100 font-bold focus:border-amber-500 outline-none transition cursor-pointer"
+                  className="w-full bg-card border border-slate-200 rounded-xl p-3 text-slate-800 font-bold focus:border-brand-600 outline-none transition cursor-pointer"
                 >
                   <option value="">-- اختر المحافظة العراقية --</option>
                   {governorates
@@ -1351,11 +1307,11 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
               {/* Oilfield Dropdown */}
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-slate-300 font-bold">الحقل النفطي:</label>
+                  <label className="text-slate-600 font-bold">الحقل النفطي:</label>
                   <button
                     type="button"
                     onClick={() => setShowAddFieldModal(true)}
-                    className="text-amber-400 hover:text-amber-300 text-[11px] font-bold flex items-center gap-1 bg-amber-500/10 hover:bg-amber-500/20 px-2.5 py-1 rounded-lg border border-amber-500/30 transition cursor-pointer"
+                    className="text-brand-700 hover:text-brand-700 text-[11px] font-bold flex items-center gap-1 bg-brand-50 hover:bg-brand-100 px-2.5 py-1 rounded-lg border border-brand-200 transition cursor-pointer"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     <span>إضافة حقل نفطي جديد</span>
@@ -1364,7 +1320,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                 <select
                   value={fieldId}
                   onChange={(e) => setFieldId(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-slate-100 font-bold focus:border-amber-500 outline-none transition cursor-pointer"
+                  className="w-full bg-card border border-slate-200 rounded-xl p-3 text-slate-800 font-bold focus:border-brand-600 outline-none transition cursor-pointer"
                 >
                   <option value="">-- اختر الحقل النفطي --</option>
                   {availableOilfields.map((f) => (
@@ -1379,11 +1335,11 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
             {/* Live Interactive Map Component */}
             <div className="space-y-3 pt-2">
               <div className="flex items-center justify-between">
-                <label className={`font-bold flex items-center gap-2 text-sm ${isLight ? 'text-slate-900' : 'text-slate-200'}`}>
-                  <MapPin className="w-4 h-4 text-amber-500" />
+                <label className={`font-bold flex items-center gap-2 text-sm text-slate-900`}>
+                  <MapPin className="w-4 h-4 text-brand-700" />
                   <span>التحديد الجغرافي المباشر عبر الخريطة الحية:</span>
                 </label>
-                <span className={`text-[11px] ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                <span className={`text-[11px] text-slate-500`}>
                   يمكن تحديد الموقع بالنقر/السحب على الخريطة أو بإدخال القيم اليدوية أدناه
                 </span>
               </div>
@@ -1400,35 +1356,27 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
 
               {/* Manual Lat/Lng Inputs */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
-                <div className={`border rounded-2xl p-3.5 space-y-1 ${isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-900 border-slate-800'}`}>
-                  <label className={`block font-bold text-[11px] ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>خط العرض (GPS Latitude):</label>
+                <div className={`border rounded-2xl p-3.5 space-y-1 bg-slate-50 border-slate-200`}>
+                  <label className={`block font-bold text-[11px] text-slate-600`}>خط العرض (GPS Latitude):</label>
                   <input
                     type="number"
                     step="0.000001"
                     value={lat}
                     onChange={(e) => setLat(e.target.value === '' ? '' : Number(e.target.value))}
                     placeholder="مثال: 32.6189"
-                    className={`w-full border rounded-xl p-2.5 font-mono font-bold text-sm focus:border-amber-500 outline-none transition ${
-                      isLight
-                        ? 'bg-white border-slate-300 text-amber-600 placeholder-slate-400'
-                        : 'bg-slate-950 border-slate-800 text-amber-400 placeholder-slate-600'
-                    }`}
+                    className={`w-full border rounded-xl p-2.5 font-mono font-bold text-sm focus:border-brand-600 outline-none transition bg-card border-slate-300 text-brand-700 placeholder-slate-400`}
                   />
                 </div>
 
-                <div className={`border rounded-2xl p-3.5 space-y-1 ${isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-900 border-slate-800'}`}>
-                  <label className={`block font-bold text-[11px] ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>خط الطول (GPS Longitude):</label>
+                <div className={`border rounded-2xl p-3.5 space-y-1 bg-slate-50 border-slate-200`}>
+                  <label className={`block font-bold text-[11px] text-slate-600`}>خط الطول (GPS Longitude):</label>
                   <input
                     type="number"
                     step="0.000001"
                     value={lng}
                     onChange={(e) => setLng(e.target.value === '' ? '' : Number(e.target.value))}
                     placeholder="مثال: 45.7531"
-                    className={`w-full border rounded-xl p-2.5 font-mono font-bold text-sm focus:border-amber-500 outline-none transition ${
-                      isLight
-                        ? 'bg-white border-slate-300 text-amber-600 placeholder-slate-400'
-                        : 'bg-slate-950 border-slate-800 text-amber-400 placeholder-slate-600'
-                    }`}
+                    className={`w-full border rounded-xl p-2.5 font-mono font-bold text-sm focus:border-brand-600 outline-none transition bg-card border-slate-300 text-brand-700 placeholder-slate-400`}
                   />
                 </div>
               </div>
@@ -1437,28 +1385,28 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
         </div>
 
         {/* ==================== SECTION 3 ==================== */}
-        <div ref={section3Ref} className={`border rounded-3xl p-6 space-y-6 scroll-mt-24 transition-colors ${isLight ? 'bg-white border-slate-200 shadow-sm text-slate-900' : 'bg-slate-950 border-slate-800 text-slate-100'}`}>
-          <div className={`flex items-center justify-between border-b pb-3 ${isLight ? 'border-slate-200' : 'border-slate-800/80'}`}>
+        <div ref={section3Ref} className={`border rounded-3xl p-6 space-y-6 scroll-mt-24 transition-colors bg-card border-slate-200 shadow-sm text-slate-900`}>
+          <div className={`flex items-center justify-between border-b pb-3 border-slate-200`}>
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-xl bg-amber-500 text-slate-950 font-black flex items-center justify-center text-sm shadow">
+              <div className="w-8 h-8 rounded-xl bg-brand-700 text-on-brand font-black flex items-center justify-center text-sm shadow">
                 {toArabicDigits(3)}
               </div>
               <div>
-                <h3 className={`text-base font-bold ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>معلومات الإشغال، الطوابق وحصر الغرف والقاعات</h3>
-                <p className={`text-xs ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>تثبيت عدد الطوابق، تخصيص القاعات والغرف، وترقيمها وحفظ الجهات الشاغلة</p>
+                <h3 className={`text-base font-bold text-slate-900`}>معلومات الإشغال، الطوابق وحصر الغرف والقاعات</h3>
+                <p className={`text-xs text-slate-600`}>تثبيت عدد الطوابق، تخصيص القاعات والغرف، وترقيمها وحفظ الجهات الشاغلة</p>
               </div>
             </div>
           </div>
 
           {/* Core Building Dimensions & Area Controls */}
           <div className="space-y-4">
-            <div className={`p-4 rounded-2xl border ${isLight ? 'bg-amber-50/50 border-amber-200' : 'bg-slate-900/90 border-slate-800'} space-y-3`}>
+            <div className={`p-4 rounded-2xl border bg-brand-50 border-brand-200 space-y-3`}>
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <label className={`font-bold text-xs flex items-center gap-2 ${isLight ? 'text-amber-900' : 'text-amber-400'}`}>
+                <label className={`font-bold text-xs flex items-center gap-2 text-brand-800`}>
                   <Maximize2 className="w-4 h-4" />
                   <span>الأبعاد الهندسية والحساب التلقائي لمساحة الوحدة الكلية:</span>
                 </label>
-                <div className={`text-[11px] font-bold px-3 py-1 rounded-lg border font-mono ${isLight ? 'bg-amber-100 text-amber-900 border-amber-300' : 'bg-amber-500/20 text-amber-400 border-amber-500/30'}`}>
+                <div className={`text-[11px] font-bold px-3 py-1 rounded-lg border font-mono bg-brand-100 text-brand-800 border-brand-200`}>
                   المعادلة: الطول ({toArabicDigits(lengthM || 0)}م) × العرض ({toArabicDigits(widthM || 0)}م) = {toArabicDigits(areaSqM || 0)} م²
                   {buildingShape && buildingShape !== 'مستطيل' && buildingShape !== 'مربع' && ` [معامل الهندسة: ${toArabicDigits(getShapeFactor(buildingShape))}]`}
                 </div>
@@ -1466,7 +1414,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
 
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-xs">
                 <div>
-                  <label className={`block font-bold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>طول الوحدة (أمتار):</label>
+                  <label className={`block font-bold mb-1.5 text-slate-700`}>طول الوحدة (أمتار):</label>
                   <input
                     type="number"
                     min={1}
@@ -1474,12 +1422,12 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                     value={lengthM}
                     onChange={(e) => handleLengthChange(e.target.value)}
                     placeholder="الطول (أمتار)..."
-                    className={`w-full border rounded-xl p-2.5 font-bold font-mono text-sm focus:border-amber-500 outline-none transition ${isLight ? 'bg-white border-slate-300 text-slate-900' : 'bg-slate-950 border-slate-800 text-amber-400'}`}
+                    className={`w-full border rounded-xl p-2.5 font-bold font-mono text-sm focus:border-brand-600 outline-none transition bg-card border-slate-300 text-slate-900`}
                   />
                 </div>
 
                 <div>
-                  <label className={`block font-bold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>عرض الوحدة (أمتار):</label>
+                  <label className={`block font-bold mb-1.5 text-slate-700`}>عرض الوحدة (أمتار):</label>
                   <input
                     type="number"
                     min={1}
@@ -1487,12 +1435,12 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                     value={widthM}
                     onChange={(e) => handleWidthChange(e.target.value)}
                     placeholder="العرض (أمتار)..."
-                    className={`w-full border rounded-xl p-2.5 font-bold font-mono text-sm focus:border-amber-500 outline-none transition ${isLight ? 'bg-white border-slate-300 text-slate-900' : 'bg-slate-950 border-slate-800 text-amber-400'}`}
+                    className={`w-full border rounded-xl p-2.5 font-bold font-mono text-sm focus:border-brand-600 outline-none transition bg-card border-slate-300 text-slate-900`}
                   />
                 </div>
 
                 <div>
-                  <label className={`block font-bold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                  <label className={`block font-bold mb-1.5 text-slate-700`}>
                     ارتفاع السقف (أمتار):
                   </label>
                   <input
@@ -1503,19 +1451,19 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                     value={heightM}
                     onChange={(e) => setHeightM(e.target.value === '' ? '' : Number(e.target.value))}
                     placeholder="الارتفاع (مثال: 3)..."
-                    className={`w-full border rounded-xl p-2.5 font-bold font-mono text-sm focus:border-amber-500 outline-none transition ${isLight ? 'bg-white border-slate-300 text-slate-900' : 'bg-slate-950 border-slate-800 text-slate-100'}`}
+                    className={`w-full border rounded-xl p-2.5 font-bold font-mono text-sm focus:border-brand-600 outline-none transition bg-card border-slate-300 text-slate-900`}
                   />
                 </div>
 
                 <div>
-                  <label className={`block font-bold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>مساحة الوحدة الكلية (م²):</label>
+                  <label className={`block font-bold mb-1.5 text-slate-700`}>مساحة الوحدة الكلية (م²):</label>
                   <input
                     type="number"
                     min={10}
                     value={areaSqM}
                     onChange={(e) => setAreaSqM(e.target.value === '' ? '' : Number(e.target.value))}
                     placeholder="المساحة الكلية (م²)..."
-                    className={`w-full border rounded-xl p-2.5 font-black font-mono text-sm focus:border-amber-500 outline-none transition ${isLight ? 'bg-amber-100/50 border-amber-300 text-amber-900' : 'bg-slate-950 border-amber-500/50 text-amber-400'}`}
+                    className={`w-full border rounded-xl p-2.5 font-black font-mono text-sm focus:border-brand-600 outline-none transition bg-brand-100 border-brand-200 text-brand-800`}
                   />
                 </div>
               </div>
@@ -1523,7 +1471,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5 text-xs">
               <div>
-                <label className={`block font-bold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>عدد الطوابق الإجمالي للمبنى:</label>
+                <label className={`block font-bold mb-1.5 text-slate-700`}>عدد الطوابق الإجمالي للمبنى:</label>
                 <div className="flex items-center gap-2">
                   <input
                     type="number"
@@ -1532,21 +1480,21 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                     value={floorsCount}
                     onChange={(e) => setFloorsCount(e.target.value === '' ? '' : Math.max(1, Math.min(20, Number(e.target.value))))}
                     placeholder="عدد الطوابق (مثال: 1 أو 2)..."
-                    className={`w-full border rounded-xl p-3 font-bold text-sm focus:border-amber-500 outline-none transition ${isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-slate-900 border-slate-800 text-slate-100'}`}
+                    className={`w-full border rounded-xl p-3 font-bold text-sm focus:border-brand-600 outline-none transition bg-slate-50 border-slate-300 text-slate-900`}
                   />
-                  <span className={`text-xs font-bold whitespace-nowrap ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>طوابق</span>
+                  <span className={`text-xs font-bold whitespace-nowrap text-slate-600`}>طوابق</span>
                 </div>
               </div>
 
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <label className={`block font-bold ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                  <label className={`block font-bold text-slate-700`}>
                     الجهات الشاغلة للمنشأة (يمكن إضافة أكثر من جهة):
                   </label>
                   <button
                     type="button"
                     onClick={() => setShowAddDeptModal(true)}
-                    className={`text-[11px] font-bold hover:underline flex items-center gap-1 cursor-pointer ${isLight ? 'text-amber-700' : 'text-amber-400'}`}
+                    className={`text-[11px] font-bold hover:underline flex items-center gap-1 cursor-pointer text-brand-700`}
                   >
                     <Plus className="w-3 h-3" />
                     <span>إضافة جهة جديدة الى الهيكل التنظيمي</span>
@@ -1558,13 +1506,13 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                   <button
                     type="button"
                     onClick={() => setShowOrgChartModal(true)}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs sm:text-sm transition cursor-pointer shadow-md shadow-amber-500/20 active:scale-[0.99]"
+                    className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-brand-700 hover:bg-brand-800 text-on-brand font-black text-xs sm:text-sm transition cursor-pointer shadow-md active:scale-[0.99]"
                     title="فتح الهيكل التنظيمي المعتمد لاختيار وتحديد التشكيلات والجهات الشاغلة"
                   >
                     <Network className="w-4 h-4 text-slate-950" />
                     <span>عرض الهيكل التنظيمي لاختيار وتحديد التشكيلات والجهات الشاغلة</span>
                     {selectedDepartments.length > 0 && (
-                      <span className="px-2 py-0.5 rounded-full bg-slate-950 text-amber-300 text-[11px] font-black mr-1.5">
+                      <span className="px-2 py-0.5 rounded-full bg-card text-brand-700 text-[11px] font-black mr-1.5">
                         {toArabicDigits(selectedDepartments.length)} محددة
                       </span>
                     )}
@@ -1574,18 +1522,18 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                 {/* Selected Occupying Entities Display Cards/Chips */}
                 <div className="space-y-2 pt-1">
                   <div className="flex items-center justify-between text-[11px]">
-                    <span className={`font-bold ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                    <span className={`font-bold text-slate-600`}>
                       الجهات الشاغلة المخصصة للمنشأة ({toArabicDigits(selectedDepartments.length)}):
                     </span>
                     {selectedDepartments.length > 0 && (
-                      <span className={`text-[10px] ${isLight ? 'text-amber-800' : 'text-amber-400'}`}>
+                      <span className={`text-[10px] text-brand-800`}>
                         الجهة الأولى هي "الجهة الرئيسية"
                       </span>
                     )}
                   </div>
 
                   {selectedDepartments.length === 0 ? (
-                    <div className={`p-3 rounded-xl border border-dashed text-center text-xs ${isLight ? 'bg-amber-50/40 border-amber-200 text-slate-500' : 'bg-slate-900/40 border-slate-800 text-slate-400'}`}>
+                    <div className={`p-3 rounded-xl border border-dashed text-center text-xs bg-brand-50 border-brand-200 text-slate-500`}>
                       لم يتم اختيار جهات شاغلة بعد. اضغط على زر "عرض الهيكل التنظيمي" أعلاه لتحديد التشكيلات الشاغلة.
                     </div>
                   ) : (
@@ -1597,25 +1545,21 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                             key={deptName}
                             className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs transition shadow-xs ${
                               isPrimary
-                                ? isLight
-                                  ? 'bg-amber-100/90 border-amber-400 text-amber-950 font-bold'
-                                  : 'bg-amber-500/20 border-amber-500/40 text-amber-300 font-bold'
-                                : isLight
-                                  ? 'bg-white border-slate-300 text-slate-800 hover:border-slate-400'
-                                  : 'bg-slate-900 border-slate-700/80 text-slate-200'
+                                ? 'bg-brand-100 border-brand-200 text-brand-800 font-bold'
+                                : 'bg-card border-slate-300 text-slate-800 hover:border-slate-400'
                             }`}
                           >
-                            <Users className={`w-3.5 h-3.5 ${isPrimary ? 'text-amber-600' : 'text-slate-400'}`} />
+                            <Users className={`w-3.5 h-3.5 ${isPrimary ? 'text-brand-700' : 'text-slate-500'}`} />
                             <span className="truncate">{deptName}</span>
                             {isPrimary ? (
-                              <span className={`text-[10px] px-1.5 py-0.5 rounded font-black border ${isLight ? 'bg-amber-200 border-amber-400 text-amber-900' : 'bg-amber-500/30 border-amber-500/50 text-amber-300'}`}>
+                              <span className={`text-[10px] px-1.5 py-0.5 rounded font-black border bg-brand-100 border-brand-200 text-brand-800`}>
                                 رئيسية
                               </span>
                             ) : (
                               <button
                                 type="button"
                                 onClick={() => handleSetPrimaryDepartment(deptName)}
-                                className={`text-[10px] underline hover:no-underline transition cursor-pointer ${isLight ? 'text-slate-600 hover:text-amber-800' : 'text-slate-400 hover:text-amber-400'}`}
+                                className={`text-[10px] underline hover:no-underline transition cursor-pointer text-slate-600 hover:text-brand-800`}
                                 title="تعيين هذه الجهة كجهة شاغلة رئيسية للمنشأة"
                               >
                                 جعلها رئيسية
@@ -1624,7 +1568,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                             <button
                               type="button"
                               onClick={() => handleRemoveDepartment(deptName)}
-                              className="text-slate-400 hover:text-rose-500 p-0.5 rounded transition cursor-pointer ml-0.5"
+                              className="text-slate-500 hover:text-rose-600 p-0.5 rounded transition cursor-pointer ml-0.5"
                               title="إزالة الجهة الشاغلة"
                             >
                               <X className="w-3.5 h-3.5" />
@@ -1640,19 +1584,19 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
           </div>
 
           {/* Building Layout Shape Selection Section */}
-          <div className={`p-4 rounded-2xl border space-y-3 transition-colors ${isLight ? 'bg-amber-50/60 border-amber-200' : 'bg-slate-900/90 border-slate-800'}`}>
+          <div className={`p-4 rounded-2xl border space-y-3 transition-colors bg-brand-50 border-brand-200`}>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div>
-                <label className={`block font-bold text-xs ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                <label className={`block font-bold text-xs text-slate-900`}>
                   شكل وهندسة تصميم المبنى (Building Layout Shape):
                 </label>
-                <p className={`text-[11px] mt-0.5 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                <p className={`text-[11px] mt-0.5 text-slate-600`}>
                   اختر الشكل الهندسي المعماري للمبنى أو الكرفان من القائمة أو انقر المخطط المطلوب أدناه
                 </p>
               </div>
 
               <div className="flex items-center gap-2">
-                <span className={`text-xs font-mono font-bold px-3 py-1 rounded-lg border ${isLight ? 'bg-amber-100 text-amber-900 border-amber-300' : 'bg-amber-500/20 text-amber-400 border-amber-500/30'}`}>
+                <span className={`text-xs font-mono font-bold px-3 py-1 rounded-lg border bg-brand-100 text-brand-800 border-brand-200`}>
                   الشكل المحدد: {buildingShape || 'لم يحدد بعد'}
                 </span>
               </div>
@@ -1663,7 +1607,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
               <select
                 value={buildingShape}
                 onChange={(e) => handleShapeChange(e.target.value)}
-                className={`w-full border rounded-xl p-3 font-bold text-xs focus:border-amber-500 outline-none transition cursor-pointer ${isLight ? 'bg-white border-slate-300 text-slate-900' : 'bg-slate-950 border-slate-800 text-slate-100'}`}
+                className={`w-full border rounded-xl p-3 font-bold text-xs focus:border-brand-600 outline-none transition cursor-pointer bg-card border-slate-300 text-slate-900`}
               >
                 <option value="">-- اختر شكل وتصميم المبنى الهندسي --</option>
                 {BUILDING_SHAPE_OPTIONS.map((shp) => (
@@ -1685,12 +1629,8 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                     onClick={() => handleShapeChange(shp.id)}
                     className={`p-2.5 rounded-xl border text-right transition cursor-pointer flex flex-col justify-between space-y-1.5 ${
                       isSelected
-                        ? isLight
-                          ? 'bg-amber-500 text-slate-950 border-amber-600 shadow-sm font-black'
-                          : 'bg-amber-500 text-slate-950 border-amber-400 font-black shadow'
-                        : isLight
-                          ? 'bg-white border-slate-200 text-slate-800 hover:border-amber-400 hover:bg-amber-50/50'
-                          : 'bg-slate-950 border-slate-800 text-slate-300 hover:border-slate-700 hover:bg-slate-900/60'
+                        ? 'bg-brand-700 text-on-brand border-brand-600 shadow-sm font-black'
+                        : 'bg-card border-slate-200 text-slate-800 hover:border-brand-200 hover:bg-brand-50'
                     }`}
                   >
                     <div className="flex items-center justify-between w-full">
@@ -1702,7 +1642,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                     <div className="text-[11px] font-bold truncate leading-tight">
                       {shp.id}
                     </div>
-                    <div className={`text-[10px] line-clamp-1 opacity-80 ${isSelected ? 'text-slate-900' : isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                    <div className={`text-[10px] line-clamp-1 opacity-80 ${isSelected ? 'text-slate-900' : 'text-slate-500'}`}>
                       {shp.desc}
                     </div>
                   </button>
@@ -1714,10 +1654,10 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
           {/* Roof Design & Geometry Selection */}
           <div className="space-y-3 pt-2">
             <div className="flex items-center justify-between">
-              <label className={`block font-bold text-xs ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+              <label className={`block font-bold text-xs text-slate-900`}>
                 نوع السطح والتصميم المعماري للسقف (Roof Architecture):
               </label>
-              <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-lg border ${isLight ? 'bg-amber-100 text-amber-900 border-amber-300' : 'bg-amber-500/20 text-amber-400 border-amber-500/30'}`}>
+              <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-lg border bg-brand-100 text-brand-800 border-brand-200`}>
                 مساحة السقف مطابقة لقاعدة البناء 100%
               </span>
             </div>
@@ -1737,19 +1677,15 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                     onClick={() => setRoofType(rf.id as any)}
                     className={`p-3 rounded-xl border text-right transition cursor-pointer flex flex-col justify-between space-y-1 ${
                       isSelected
-                        ? isLight
-                          ? 'bg-amber-500 text-slate-950 border-amber-600 shadow-sm font-black'
-                          : 'bg-amber-500 text-slate-950 border-amber-400 font-black shadow'
-                        : isLight
-                          ? 'bg-white border-slate-200 text-slate-800 hover:border-amber-400'
-                          : 'bg-slate-950 border-slate-800 text-slate-300 hover:border-slate-700'
+                        ? 'bg-brand-700 text-on-brand border-brand-600 shadow-sm font-black'
+                        : 'bg-card border-slate-200 text-slate-800 hover:border-brand-200'
                     }`}
                   >
                     <div className="flex items-center justify-between w-full">
                       <span className="font-bold text-xs">{rf.name}</span>
                       {isSelected && <Check className="w-4 h-4 shrink-0 text-slate-950" />}
                     </div>
-                    <p className={`text-[10px] leading-relaxed ${isSelected ? 'text-slate-900 font-bold' : isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                    <p className={`text-[10px] leading-relaxed ${isSelected ? 'text-slate-900 font-bold' : 'text-slate-500'}`}>
                       {rf.desc}
                     </p>
                   </button>
@@ -1763,19 +1699,19 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
             {/* Header: Title, View Switcher & Action Buttons */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3">
               <div className="flex items-center gap-2 min-w-0">
-                <div className="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-500 flex items-center justify-center shrink-0">
+                <div className="w-8 h-8 rounded-xl bg-brand-100 text-brand-700 flex items-center justify-center shrink-0">
                   <Layers className="w-4 h-4" />
                 </div>
                 <div className="min-w-0">
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    <h4 className={`text-sm sm:text-base font-black truncate ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                    <h4 className={`text-sm sm:text-base font-black truncate text-slate-900`}>
                       تفاصيل وحصر غرف وقاعات المبنى
                     </h4>
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30">
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-brand-100 text-brand-700 border border-brand-200">
                       {toArabicDigits(rooms.length)} غرفة مسجلة
                     </span>
                   </div>
-                  <p className={`text-[11px] truncate ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                  <p className={`text-[11px] truncate text-slate-500`}>
                     تقسيم داخلي تفصيلي، أرقام الغرف، الرموز القياسية، وتخصيص الجهات الشاغلة
                   </p>
                 </div>
@@ -1784,14 +1720,14 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
               {/* Right controls: View Mode Switcher + Action Buttons */}
               <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap sm:flex-nowrap">
                 {/* View Mode Switcher */}
-                <div className={`flex items-center p-1 rounded-xl border shrink-0 ${isLight ? 'bg-slate-100 border-slate-200' : 'bg-slate-950 border-slate-800'}`}>
+                <div className={`flex items-center p-1 rounded-xl border shrink-0 bg-slate-100 border-slate-200`}>
                   <button
                     type="button"
                     onClick={() => setRoomsViewMode('cards')}
                     className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${
                       roomsViewMode === 'cards'
-                        ? 'bg-amber-500 text-slate-950 shadow-xs'
-                        : isLight ? 'text-slate-600 hover:text-slate-900' : 'text-slate-400 hover:text-slate-100'
+                        ? 'bg-brand-700 text-on-brand shadow-xs'
+                        : 'text-slate-600 hover:text-slate-900'
                     }`}
                   >
                     <LayoutGrid className="w-3.5 h-3.5" />
@@ -1802,8 +1738,8 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                     onClick={() => setRoomsViewMode('table')}
                     className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${
                       roomsViewMode === 'table'
-                        ? 'bg-amber-500 text-slate-950 shadow-xs'
-                        : isLight ? 'text-slate-600 hover:text-slate-900' : 'text-slate-400 hover:text-slate-100'
+                        ? 'bg-brand-700 text-on-brand shadow-xs'
+                        : 'text-slate-600 hover:text-slate-900'
                     }`}
                   >
                     <TableIcon className="w-3.5 h-3.5" />
@@ -1814,35 +1750,27 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                 <button
                   type="button"
                   onClick={handleRegenerateAllRoomCodes}
-                  className={`px-2.5 py-1.5 rounded-xl border text-xs font-bold flex items-center gap-1.5 transition cursor-pointer shrink-0 ${
-                    isLight
-                      ? 'bg-white hover:bg-slate-100 text-slate-700 border-slate-300'
-                      : 'bg-slate-900 hover:bg-slate-800 text-slate-300 border-slate-800'
-                  }`}
+                  className={`px-2.5 py-1.5 rounded-xl border text-xs font-bold flex items-center gap-1.5 transition cursor-pointer shrink-0 bg-card hover:bg-slate-100 text-slate-700 border-slate-300`}
                   title="إعادة ترقيم وتسلسل جميع رموز الغرف القياسية وفق الطوابق"
                 >
-                  <RefreshCw className="w-3.5 h-3.5 text-amber-500" />
+                  <RefreshCw className="w-3.5 h-3.5 text-brand-700" />
                   <span className="hidden sm:inline">ترقيم الرموز</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={handleGenerateRecommendedRooms}
-                  className={`px-2.5 py-1.5 rounded-xl border text-xs font-bold flex items-center gap-1.5 transition cursor-pointer shrink-0 ${
-                    isLight
-                      ? 'bg-white hover:bg-slate-100 text-indigo-700 border-indigo-200'
-                      : 'bg-slate-900 hover:bg-slate-800 text-indigo-300 border-slate-800'
-                  }`}
+                  className={`px-2.5 py-1.5 rounded-xl border text-xs font-bold flex items-center gap-1.5 transition cursor-pointer shrink-0 bg-card hover:bg-slate-100 text-indigo-700 border-indigo-200`}
                   title="توليد توزيع مقترح تلقائياً لغرف المبنى وفق الطوابق"
                 >
-                  <Layers className="w-3.5 h-3.5 text-indigo-400" />
+                  <Layers className="w-3.5 h-3.5 text-indigo-600" />
                   <span className="hidden sm:inline">توليد مقترح</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => handleAddRoom()}
-                  className="bg-amber-500 hover:bg-amber-400 text-slate-950 px-3 py-1.5 rounded-xl text-xs font-black flex items-center gap-1.5 transition cursor-pointer shadow-sm shrink-0"
+                  className="bg-brand-700 hover:bg-brand-800 text-on-brand px-3 py-1.5 rounded-xl text-xs font-black flex items-center gap-1.5 transition cursor-pointer shadow-sm shrink-0"
                 >
                   <Plus className="w-4 h-4" />
                   <span>إضافة غرفة</span>
@@ -1852,33 +1780,33 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
 
             {/* Quick Metrics Summary Bar (5 Stat Cards) */}
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 text-xs">
-              <div className={`p-2.5 rounded-xl border ${isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-900/60 border-slate-800'}`}>
-                <span className="text-[10px] text-slate-400 block font-bold">إجمالي الغرف</span>
-                <span className="text-base font-black text-amber-500 font-mono">
+              <div className={`p-2.5 rounded-xl border bg-slate-50 border-slate-200`}>
+                <span className="text-[10px] text-slate-500 block font-bold">إجمالي الغرف</span>
+                <span className="text-base font-black text-brand-700 font-mono">
                   {toArabicDigits(rooms.length)}
                 </span>
               </div>
-              <div className={`p-2.5 rounded-xl border ${isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-900/60 border-slate-800'}`}>
-                <span className="text-[10px] text-slate-400 block font-bold">المساحة المحصورة</span>
-                <span className={`text-base font-black font-mono ${isLight ? 'text-slate-900' : 'text-slate-200'}`}>
+              <div className={`p-2.5 rounded-xl border bg-slate-50 border-slate-200`}>
+                <span className="text-[10px] text-slate-500 block font-bold">المساحة المحصورة</span>
+                <span className={`text-base font-black font-mono text-slate-900`}>
                   {toArabicDigits(rooms.reduce((acc, r) => acc + (Number(r.areaSqM) || 0), 0))} م²
                 </span>
               </div>
-              <div className={`p-2.5 rounded-xl border ${isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-900/60 border-slate-800'}`}>
-                <span className="text-[10px] text-slate-400 block font-bold">إجمالي الطاقة الاستيعابية</span>
-                <span className="text-base font-black text-sky-500 dark:text-sky-400 font-mono">
+              <div className={`p-2.5 rounded-xl border bg-slate-50 border-slate-200`}>
+                <span className="text-[10px] text-slate-500 block font-bold">إجمالي الطاقة الاستيعابية</span>
+                <span className="text-base font-black text-sky-600 font-mono">
                   {toArabicDigits(rooms.reduce((acc, r) => acc + (Number(r.capacity) || Number(r.occupantsCount) || 0), 0))} فرد
                 </span>
               </div>
-              <div className={`p-2.5 rounded-xl border ${isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-900/60 border-slate-800'}`}>
-                <span className="text-[10px] text-slate-400 block font-bold">الغرف المشغولة</span>
-                <span className="text-base font-black text-emerald-500 dark:text-emerald-400 font-mono">
+              <div className={`p-2.5 rounded-xl border bg-slate-50 border-slate-200`}>
+                <span className="text-[10px] text-slate-500 block font-bold">الغرف المشغولة</span>
+                <span className="text-base font-black text-emerald-600 font-mono">
                   {toArabicDigits(rooms.filter((r) => r.status === 'Active' && !isRoomVacant(r.occupiedBy)).length)}
                 </span>
               </div>
-              <div className={`p-2.5 rounded-xl border ${isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-900/60 border-slate-800'} col-span-2 sm:col-span-1`}>
-                <span className="text-[10px] text-slate-400 block font-bold">الغرف المتوقفة</span>
-                <span className="text-base font-black text-rose-500 dark:text-rose-400 font-mono">
+              <div className={`p-2.5 rounded-xl border bg-slate-50 border-slate-200 col-span-2 sm:col-span-1`}>
+                <span className="text-[10px] text-slate-500 block font-bold">الغرف المتوقفة</span>
+                <span className="text-base font-black text-rose-600 font-mono">
                   {toArabicDigits(rooms.filter((r) => r.status === 'Stopped').length)}
                 </span>
               </div>
@@ -1894,18 +1822,14 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                     value={roomSearchQuery}
                     onChange={(e) => setRoomSearchQuery(e.target.value)}
                     placeholder="ابحث بالاسم، الرمز، أو الجهة..."
-                    className={`w-full text-xs rounded-xl py-2 pl-7 pr-8 border outline-none font-medium transition ${
-                      isLight
-                        ? 'bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:border-amber-500'
-                        : 'bg-slate-950 border-slate-800 text-slate-100 placeholder-slate-500 focus:border-amber-500'
-                    }`}
+                    className={`w-full text-xs rounded-xl py-2 pl-7 pr-8 border outline-none font-medium transition bg-card border-slate-300 text-slate-900 placeholder-slate-400 focus:border-brand-600`}
                   />
-                  <Search className="w-3.5 h-3.5 absolute right-2.5 top-3 text-slate-400 pointer-events-none" />
+                  <Search className="w-3.5 h-3.5 absolute right-2.5 top-3 text-slate-500 pointer-events-none" />
                   {roomSearchQuery && (
                     <button
                       type="button"
                       onClick={() => setRoomSearchQuery('')}
-                      className="absolute left-2.5 top-2.5 text-slate-400 hover:text-rose-400 cursor-pointer"
+                      className="absolute left-2.5 top-2.5 text-slate-500 hover:text-rose-600 cursor-pointer"
                     >
                       <X className="w-3.5 h-3.5" />
                     </button>
@@ -1915,16 +1839,14 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                 {/* Floor Filters (Horizontal scrolling chips) */}
                 {availableFloors.length > 1 && (
                   <div className="flex items-center gap-1 overflow-x-auto scrollbar-none py-0.5">
-                    <span className="text-[10px] text-slate-400 font-bold shrink-0 ml-1">الطابق:</span>
+                    <span className="text-[10px] text-slate-500 font-bold shrink-0 ml-1">الطابق:</span>
                     <button
                       type="button"
                       onClick={() => setRoomFloorFilter('all')}
                       className={`px-2 py-0.5 rounded-lg text-[10px] font-bold shrink-0 transition cursor-pointer ${
                         roomFloorFilter === 'all'
-                          ? 'bg-amber-500 text-slate-950 font-black'
-                          : isLight
-                          ? 'bg-white text-slate-600 border border-slate-200'
-                          : 'bg-slate-950 text-slate-400 border border-slate-800'
+                          ? 'bg-brand-700 text-on-brand font-black'
+                          : 'bg-card text-slate-600 border border-slate-200'
                       }`}
                     >
                       الكل
@@ -1936,10 +1858,8 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                         onClick={() => setRoomFloorFilter(flr)}
                         className={`px-2 py-0.5 rounded-lg text-[10px] font-bold shrink-0 transition cursor-pointer ${
                           roomFloorFilter === flr
-                            ? 'bg-amber-500 text-slate-950 font-black'
-                            : isLight
-                            ? 'bg-white text-slate-600 border border-slate-200'
-                            : 'bg-slate-950 text-slate-400 border border-slate-800'
+                            ? 'bg-brand-700 text-on-brand font-black'
+                            : 'bg-card text-slate-600 border border-slate-200'
                         }`}
                       >
                         {flr}
@@ -1952,15 +1872,15 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
 
             {/* Warning Banner after re-generating codes */}
             {roomCodeChangeWarning && (
-              <div className="p-3 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-700 dark:text-amber-300 flex items-start justify-between gap-2 text-xs font-bold animate-fadeIn">
+              <div className="p-3 rounded-xl bg-brand-100 border border-brand-200 text-brand-700 flex items-start justify-between gap-2 text-xs font-bold animate-fadeIn">
                 <div className="flex items-center gap-2">
-                  <AlertTriangle className="w-4 h-4 shrink-0 text-amber-500" />
+                  <AlertTriangle className="w-4 h-4 shrink-0 text-brand-700" />
                   <span>{roomCodeChangeWarning}</span>
                 </div>
                 <button
                   type="button"
                   onClick={() => setRoomCodeChangeWarning(null)}
-                  className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-0.5 cursor-pointer"
+                  className="text-slate-500 hover:text-slate-600 p-0.5 cursor-pointer"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
@@ -1970,14 +1890,12 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
             {/* Empty States */}
             {rooms.length === 0 ? (
               <div
-                className={`p-6 sm:p-8 text-center text-xs border border-dashed rounded-2xl flex flex-col items-center justify-center gap-2.5 ${
-                  isLight ? 'border-slate-300 text-slate-500 bg-white' : 'border-slate-800 text-slate-400 bg-slate-950/60'
-                }`}
+                className={`p-6 sm:p-8 text-center text-xs border border-dashed rounded-2xl flex flex-col items-center justify-center gap-2.5 border-slate-300 text-slate-500 bg-card`}
               >
-                <div className="w-10 h-10 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-500 flex items-center justify-center">
+                <div className="w-10 h-10 rounded-2xl bg-brand-50 border border-brand-200 text-brand-700 flex items-center justify-center">
                   <Layers className="w-5 h-5" />
                 </div>
-                <div className={`font-bold text-sm ${isLight ? 'text-slate-900' : 'text-slate-200'}`}>لا توجد غرف مخصصة لهذه المنشأة حالياً</div>
+                <div className={`font-bold text-sm text-slate-900`}>لا توجد غرف مخصصة لهذه المنشأة حالياً</div>
                 <p className="max-w-sm text-xs opacity-80">
                   يمكنك توليد التوزيع القياسي المقترح تلقائياً لجميع الطوابق أو الضغط على "إضافة غرفة جديدة".
                 </p>
@@ -1993,7 +1911,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                   <button
                     type="button"
                     onClick={() => handleAddRoom()}
-                    className="bg-amber-500 hover:bg-amber-400 text-slate-950 px-3.5 py-2 rounded-xl text-xs font-black flex items-center gap-1.5 transition cursor-pointer shadow-md"
+                    className="bg-brand-700 hover:bg-brand-800 text-on-brand px-3.5 py-2 rounded-xl text-xs font-black flex items-center gap-1.5 transition cursor-pointer shadow-md"
                   >
                     <Plus className="w-4 h-4" />
                     <span>إضافة غرفة جديدة الآن</span>
@@ -2002,9 +1920,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
               </div>
             ) : filteredRooms.length === 0 ? (
               <div
-                className={`p-6 text-center text-xs border border-dashed rounded-xl ${
-                  isLight ? 'border-slate-300 text-slate-500 bg-white' : 'border-slate-800 text-slate-400 bg-slate-950'
-                }`}
+                className={`p-6 text-center text-xs border border-dashed rounded-xl border-slate-300 text-slate-500 bg-card`}
               >
                 <p className="font-bold">لا توجد غرف تطابق البحث أو الفلتر المحدد</p>
                 <button
@@ -2013,7 +1929,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                     setRoomSearchQuery('');
                     setRoomFloorFilter('all');
                   }}
-                  className="mt-2 text-amber-500 font-bold underline cursor-pointer"
+                  className="mt-2 text-brand-700 font-bold underline cursor-pointer"
                 >
                   إلغاء الفلتر وعرض الكل
                 </button>
@@ -2035,23 +1951,19 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                       key={rm.id}
                       className={`rounded-2xl border p-3 sm:p-4 space-y-2.5 transition shadow-xs hover:shadow-sm relative ${
                         isStopped
-                          ? isLight
-                            ? 'bg-rose-50/50 border-rose-300 ring-1 ring-rose-200'
-                            : 'bg-rose-950/20 border-rose-800/80 ring-1 ring-rose-500/20'
-                          : isLight
-                          ? 'bg-white border-slate-200 hover:border-slate-300'
-                          : 'bg-slate-950/80 border-slate-800 hover:border-slate-700'
+                          ? 'bg-rose-50/50 border-rose-200 ring-1 ring-rose-200'
+                          : 'bg-card border-slate-200 hover:border-slate-300'
                       }`}
                     >
                       {/* Card Header: Room Index, Standard Code, QR, Regenerate, Status toggle & Delete */}
-                      <div className="flex items-center justify-between gap-1.5 pb-2 border-b border-slate-200 dark:border-slate-800/80">
+                      <div className="flex items-center justify-between gap-1.5 pb-2 border-b border-slate-200 ">
                         {/* Right side: Code Badge & Actions */}
                         <div className="flex items-center gap-1.5 min-w-0">
-                          <span className="w-5 h-5 rounded-md bg-amber-500 text-slate-950 text-[10px] font-black flex items-center justify-center shrink-0">
+                          <span className="w-5 h-5 rounded-md bg-brand-700 text-on-brand text-[10px] font-black flex items-center justify-center shrink-0">
                             {toArabicDigits(idx + 1)}
                           </span>
                           <span
-                            className="font-mono font-black text-[11px] text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-lg border border-amber-500/25 shrink-0"
+                            className="font-mono font-black text-[11px] text-brand-700 bg-brand-50 px-2 py-0.5 rounded-lg border border-brand-200 shrink-0"
                             dir="ltr"
                             title={`رمز الغرفة القياسي: ${roomComputedCode}`}
                           >
@@ -2060,7 +1972,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                           <button
                             type="button"
                             onClick={() => setSelectedRoomForQr({ ...rm, code: roomComputedCode })}
-                            className="p-1 rounded-lg bg-amber-500/10 hover:bg-amber-500 text-amber-500 hover:text-slate-950 transition cursor-pointer shrink-0"
+                            className="p-1 rounded-lg bg-brand-50 hover:bg-brand-800 text-brand-700 hover:text-on-brand transition cursor-pointer shrink-0"
                             title="استعراض وطباعة بطاقة QR للغرفة"
                           >
                             <QrCode className="w-3.5 h-3.5" />
@@ -2068,7 +1980,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                           <button
                             type="button"
                             onClick={() => handleRegenerateSingleRoomCode(rm.id)}
-                            className="p-1 rounded-lg bg-slate-500/10 hover:bg-slate-700 text-slate-400 hover:text-white transition cursor-pointer shrink-0"
+                            className="p-1 rounded-lg bg-slate-500/10 hover:bg-slate-100 text-slate-500 hover:text-slate-900 transition cursor-pointer shrink-0"
                             title="إعادة توليد الرمز القياسي لهذه الغرفة"
                           >
                             <RefreshCw className="w-3 h-3" />
@@ -2082,8 +1994,8 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                             onClick={() => handleUpdateRoom(rm.id, 'status', isStopped ? 'Active' : 'Stopped')}
                             className={`text-[10.5px] px-2 py-0.5 rounded-full font-bold border transition cursor-pointer shrink-0 ${
                               isStopped
-                                ? 'bg-rose-500/20 text-rose-500 border-rose-500/40 hover:bg-rose-500/30'
-                                : 'bg-emerald-500/20 text-emerald-500 border-emerald-500/40 hover:bg-emerald-500/30'
+                                ? 'bg-rose-500/20 text-rose-600 border-rose-500/40 hover:bg-rose-500/30'
+                                : 'bg-emerald-500/20 text-emerald-600 border-emerald-500/40 hover:bg-emerald-500/30'
                             }`}
                             title={isStopped ? 'انقر لتفعيل الغرفة' : 'انقر لإيقاف الغرفة'}
                           >
@@ -2093,7 +2005,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                           <button
                             type="button"
                             onClick={() => handleDeleteRoom(rm.id)}
-                            className="p-1 text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 rounded-lg transition cursor-pointer shrink-0"
+                            className="p-1 text-slate-500 hover:text-rose-600 hover:bg-rose-500/10 rounded-lg transition cursor-pointer shrink-0"
                             title="حذف هذه الغرفة"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -2103,7 +2015,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
 
                       {/* Room Name Input */}
                       <div>
-                        <label className={`block text-[10px] font-bold mb-1 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                        <label className={`block text-[10px] font-bold mb-1 text-slate-600`}>
                           اسم الغرفة / القاعة:
                         </label>
                         <input
@@ -2111,40 +2023,32 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                           value={rm.name}
                           onChange={(e) => handleUpdateRoom(rm.id, 'name', e.target.value)}
                           placeholder="مثال: مكتب المهندس المقيم / غرفة الاجتماعات"
-                          className={`w-full border rounded-xl px-2.5 py-1.5 text-xs font-bold outline-none transition focus:border-amber-500 ${
-                            isLight
-                              ? 'bg-slate-50 border-slate-300 text-slate-900 focus:bg-white'
-                              : 'bg-slate-900 border-slate-800 text-slate-100 focus:bg-slate-950'
-                          }`}
+                          className={`w-full border rounded-xl px-2.5 py-1.5 text-xs font-bold outline-none transition focus:border-brand-600 bg-slate-50 border-slate-300 text-slate-900 focus:bg-card`}
                         />
                       </div>
 
                       {/* 3-Field Specifications Grid: Type, Floor, Area */}
                       <div className="grid grid-cols-3 gap-1.5 sm:gap-2 text-xs">
                         <div>
-                          <label className={`block text-[9.5px] font-bold mb-0.5 truncate ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                          <label className={`block text-[9.5px] font-bold mb-0.5 truncate text-slate-600`}>
                             نوع الاستخدام:
                           </label>
                           <input
                             type="text"
                             value={rm.type}
                             onChange={(e) => handleUpdateRoom(rm.id, 'type', e.target.value)}
-                            className={`w-full border rounded-lg px-2 py-1 text-xs outline-none transition focus:border-amber-500 ${
-                              isLight ? 'bg-slate-50 border-slate-300 text-slate-900 focus:bg-white' : 'bg-slate-900 border-slate-800 text-slate-100 focus:bg-slate-950'
-                            }`}
+                            className={`w-full border rounded-lg px-2 py-1 text-xs outline-none transition focus:border-brand-600 bg-slate-50 border-slate-300 text-slate-900 focus:bg-card`}
                           />
                         </div>
 
                         <div>
-                          <label className={`block text-[9.5px] font-bold mb-0.5 truncate ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                          <label className={`block text-[9.5px] font-bold mb-0.5 truncate text-slate-600`}>
                             الطابق:
                           </label>
                           <select
                             value={rm.floor}
                             onChange={(e) => handleUpdateRoom(rm.id, 'floor', e.target.value)}
-                            className={`w-full border rounded-lg px-2 py-1 text-xs font-bold outline-none transition focus:border-amber-500 cursor-pointer ${
-                              isLight ? 'bg-slate-50 border-slate-300 text-slate-900 focus:bg-white' : 'bg-slate-900 border-slate-800 text-slate-100 focus:bg-slate-950'
-                            }`}
+                            className={`w-full border rounded-lg px-2 py-1 text-xs font-bold outline-none transition focus:border-brand-600 cursor-pointer bg-slate-50 border-slate-300 text-slate-900 focus:bg-card`}
                           >
                             {Array.from({ length: Math.max(1, Number(floorsCount) || 1) }, (_, i) => `الطابق ${i + 1}`).map((flr) => (
                               <option key={flr} value={flr}>{flr}</option>
@@ -2153,7 +2057,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                         </div>
 
                         <div>
-                          <label className={`block text-[9.5px] font-bold mb-0.5 truncate ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                          <label className={`block text-[9.5px] font-bold mb-0.5 truncate text-slate-600`}>
                             المساحة (م²):
                           </label>
                           <input
@@ -2161,23 +2065,21 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                             min="1"
                             value={rm.areaSqM}
                             onChange={(e) => handleUpdateRoom(rm.id, 'areaSqM', Number(e.target.value))}
-                            className={`w-full border rounded-lg px-2 py-1 text-xs font-bold outline-none transition focus:border-amber-500 ${
-                              isLight ? 'bg-slate-50 border-slate-300 text-slate-900 focus:bg-white' : 'bg-slate-900 border-slate-800 text-amber-400 focus:bg-slate-950'
-                            }`}
+                            className={`w-full border rounded-lg px-2 py-1 text-xs font-bold outline-none transition focus:border-brand-600 bg-slate-50 border-slate-300 text-slate-900 focus:bg-card`}
                           />
                         </div>
                       </div>
 
                       {/* Occupancy / Capacity & Department Selection */}
-                      <div className="space-y-1.5 pt-1.5 border-t border-slate-200/80 dark:border-slate-800/60">
+                      <div className="space-y-1.5 pt-1.5 border-t border-slate-200/80 ">
                         {/* Occupancy or Capacity Row */}
                         <div className="flex items-center justify-between text-xs gap-2">
-                          <span className={`text-[10px] font-bold shrink-0 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                          <span className={`text-[10px] font-bold shrink-0 text-slate-600`}>
                             الإشغال والسعة:
                           </span>
 
                           {isNonOcc ? (
-                            <span className="text-slate-400 text-[10px] px-2 py-0.5 bg-slate-500/10 rounded-lg border border-slate-500/20 truncate">
+                            <span className="text-slate-500 text-[10px] px-2 py-0.5 bg-slate-500/10 rounded-lg border border-slate-500/20 truncate">
                               — (غير مخصص للإشغال البشري)
                             </span>
                           ) : isCap ? (
@@ -2188,11 +2090,9 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                                 placeholder="السعة"
                                 value={rm.capacity ?? ''}
                                 onChange={(e) => handleUpdateRoom(rm.id, 'capacity', Number(e.target.value) || 0)}
-                                className={`w-14 sm:w-16 border rounded-lg px-2 py-0.5 text-xs font-bold outline-none text-center ${
-                                  isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-slate-900 border-slate-800 text-slate-100'
-                                }`}
+                                className={`w-14 sm:w-16 border rounded-lg px-2 py-0.5 text-xs font-bold outline-none text-center bg-slate-50 border-slate-300 text-slate-900`}
                               />
-                              <span className="text-[10px] text-sky-500 font-bold whitespace-nowrap">طاقة استيعابية</span>
+                              <span className="text-[10px] text-sky-600 font-bold whitespace-nowrap">طاقة استيعابية</span>
                             </div>
                           ) : (
                             <div className="flex items-center gap-1.5 shrink-0">
@@ -2202,13 +2102,11 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                                 placeholder="الشاغلين"
                                 value={rm.occupantsCount ?? ''}
                                 onChange={(e) => handleUpdateRoom(rm.id, 'occupantsCount', Number(e.target.value) || 0)}
-                                className={`w-14 sm:w-16 border rounded-lg px-2 py-0.5 text-xs font-bold outline-none text-center ${
-                                  isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-slate-900 border-slate-800 text-slate-100'
-                                }`}
+                                className={`w-14 sm:w-16 border rounded-lg px-2 py-0.5 text-xs font-bold outline-none text-center bg-slate-50 border-slate-300 text-slate-900`}
                               />
-                              <span className="text-[10px] text-emerald-500 font-bold whitespace-nowrap">شاغل</span>
+                              <span className="text-[10px] text-emerald-600 font-bold whitespace-nowrap">شاغل</span>
                               {isVacant && (
-                                <span className="text-[9.5px] text-amber-500 font-bold mr-1">(شاغرة)</span>
+                                <span className="text-[9.5px] text-brand-700 font-bold mr-1">(شاغرة)</span>
                               )}
                             </div>
                           )}
@@ -2216,7 +2114,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
 
                         {/* Occupying Department Selector */}
                         <div>
-                          <label className={`block text-[10px] font-bold mb-0.5 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                          <label className={`block text-[10px] font-bold mb-0.5 text-slate-600`}>
                             الجهة الشاغلة المخصصة للغرفة:
                           </label>
                           <select
@@ -2230,11 +2128,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                                 handleUpdateRoom(rm.id, 'status', 'Active');
                               }
                             }}
-                            className={`w-full border rounded-xl px-2.5 py-1.5 text-xs outline-none cursor-pointer transition font-medium ${
-                              isLight
-                                ? 'bg-slate-50 border-slate-300 text-slate-900 focus:border-amber-500'
-                                : 'bg-slate-900 border-slate-800 text-slate-100 focus:border-amber-500'
-                            }`}
+                            className={`w-full border rounded-xl px-2.5 py-1.5 text-xs outline-none cursor-pointer transition font-medium bg-slate-50 border-slate-300 text-slate-900 focus:border-brand-600`}
                           >
                             <option value="">🏢 شاغرة (بدون إشغال / فارغة)</option>
                             {selectedDepartments.length > 0 ? (
@@ -2257,10 +2151,8 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
 
                       {/* Stopped Reason Box (Only if stopped) */}
                       {isStopped && (
-                        <div className={`p-2 rounded-xl border text-xs space-y-1 animate-in fade-in duration-150 ${
-                          isLight ? 'bg-rose-100/60 border-rose-300' : 'bg-rose-950/40 border-rose-900/60'
-                        }`}>
-                          <label className="block text-[10px] font-black text-rose-600 dark:text-rose-400">
+                        <div className={`p-2 rounded-xl border text-xs space-y-1 animate-in fade-in duration-150 bg-rose-100/60 border-rose-200`}>
+                          <label className="block text-[10px] font-black text-rose-600 ">
                             سبب التوقف وملاحظات العطل:
                           </label>
                           <input
@@ -2268,11 +2160,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                             placeholder="أدخل سبب التوقف أو متطلبات الصيانة..."
                             value={rm.notes || ''}
                             onChange={(e) => handleUpdateRoom(rm.id, 'notes', e.target.value)}
-                            className={`w-full border rounded-lg px-2 py-1 text-xs outline-none font-bold transition ${
-                              isLight
-                                ? 'bg-white border-rose-300 text-rose-900 placeholder-rose-400 focus:border-rose-500'
-                                : 'bg-slate-950 border-rose-800 text-rose-200 placeholder-rose-500/50 focus:border-rose-500'
-                            }`}
+                            className={`w-full border rounded-lg px-2 py-1 text-xs outline-none font-bold transition bg-card border-rose-200 text-rose-900 placeholder-rose-400 focus:border-rose-500`}
                           />
                         </div>
                       )}
@@ -2286,7 +2174,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
               /* ========================================================================= */
               <div className="space-y-2">
                 {/* Subtle helper banner on mobile */}
-                <div className="md:hidden p-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-500 text-[11px] font-medium flex items-center justify-between gap-1.5">
+                <div className="md:hidden p-2 rounded-xl bg-brand-50 border border-brand-200 text-brand-700 text-[11px] font-medium flex items-center justify-between gap-1.5">
                   <span>💡 مرّر الجدول أفقياً لتعديل كافة الأعمدة، أو بدّل إلى وضع "بطاقات" لتحكم أسهل باللمس.</span>
                   <button
                     type="button"
@@ -2298,15 +2186,11 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                 </div>
 
                 <div
-                  className={`overflow-x-auto border rounded-2xl shadow-xs scrollbar-thin ${
-                    isLight ? 'border-slate-200 bg-white' : 'border-slate-800 bg-slate-950'
-                  }`}
+                  className={`overflow-x-auto border rounded-2xl shadow-xs scrollbar-thin border-slate-200 bg-card`}
                 >
                   <table className="w-full text-right text-xs min-w-[850px]">
                     <thead
-                      className={`font-black border-b sticky top-0 z-10 ${
-                        isLight ? 'bg-slate-100 text-slate-700 border-slate-200' : 'bg-slate-900 text-slate-300 border-slate-800'
-                      }`}
+                      className={`font-black border-b sticky top-0 z-10 bg-slate-100 text-slate-700 border-slate-200`}
                     >
                       <tr>
                         <th className="p-2.5 w-10 text-center">#</th>
@@ -2322,7 +2206,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                         <th className="p-2.5 text-center w-12">حذف</th>
                       </tr>
                     </thead>
-                    <tbody className={`divide-y ${isLight ? 'divide-slate-200' : 'divide-slate-800/60'}`}>
+                    <tbody className={`divide-y divide-slate-200`}>
                       {filteredRooms.map((rm, idx) => {
                         const isStopped = rm.status === 'Stopped' || rm.status === 'متوقفة';
                         const roomComputedCode = (rm.code && rm.code.trim()) ? rm.code.trim() : generateRoomCode(code || 'UNIT', extractFloorNumber(rm.floor), getRoomTypeCode(rm.type), rm.sequenceNumber || 101, true);
@@ -2335,11 +2219,11 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                             key={rm.id}
                             className={`transition ${
                               isStopped
-                                ? isLight ? 'bg-rose-50/60' : 'bg-rose-950/20'
-                                : isLight ? 'hover:bg-slate-50' : 'hover:bg-slate-900/40'
+                                ? 'bg-rose-50/60'
+                                : 'hover:bg-slate-50'
                             }`}
                           >
-                            <td className="p-2 text-center font-bold text-slate-400 font-mono text-[11px]">
+                            <td className="p-2 text-center font-bold text-slate-500 font-mono text-[11px]">
                               {toArabicDigits(idx + 1)}
                             </td>
 
@@ -2348,21 +2232,19 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                                 type="text"
                                 value={rm.name}
                                 onChange={(e) => handleUpdateRoom(rm.id, 'name', e.target.value)}
-                                className={`w-full border rounded-lg px-2.5 py-1 text-xs outline-none font-bold ${
-                                  isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-slate-900 border-slate-800 text-slate-100'
-                                }`}
+                                className={`w-full border rounded-lg px-2.5 py-1 text-xs outline-none font-bold bg-slate-50 border-slate-300 text-slate-900`}
                               />
                             </td>
 
                             <td className="p-2">
                               <div className="flex items-center gap-1.5 whitespace-nowrap">
-                                <span className="font-mono font-black text-[11px] text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-lg border border-amber-500/20 shrink-0" dir="ltr">
+                                <span className="font-mono font-black text-[11px] text-brand-700 bg-brand-50 px-2 py-0.5 rounded-lg border border-brand-200 shrink-0" dir="ltr">
                                   {roomComputedCode}
                                 </span>
                                 <button
                                   type="button"
                                   onClick={() => setSelectedRoomForQr({ ...rm, code: roomComputedCode })}
-                                  className="p-1 rounded-lg bg-amber-500/10 hover:bg-amber-500 text-amber-500 hover:text-slate-950 transition cursor-pointer shrink-0"
+                                  className="p-1 rounded-lg bg-brand-50 hover:bg-brand-800 text-brand-700 hover:text-on-brand transition cursor-pointer shrink-0"
                                   title="استعراض وطباعة بطاقة QR للغرفة"
                                 >
                                   <QrCode className="w-3.5 h-3.5" />
@@ -2370,7 +2252,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                                 <button
                                   type="button"
                                   onClick={() => handleRegenerateSingleRoomCode(rm.id)}
-                                  className="p-1 rounded-lg bg-slate-500/10 hover:bg-slate-700 text-slate-400 hover:text-white transition cursor-pointer shrink-0"
+                                  className="p-1 rounded-lg bg-slate-500/10 hover:bg-slate-100 text-slate-500 hover:text-slate-900 transition cursor-pointer shrink-0"
                                   title="إعادة توليد الرمز القياسي لهذه الغرفة"
                                 >
                                   <RefreshCw className="w-3.5 h-3.5" />
@@ -2383,9 +2265,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                                 type="text"
                                 value={rm.type}
                                 onChange={(e) => handleUpdateRoom(rm.id, 'type', e.target.value)}
-                                className={`w-full border rounded-lg px-2 py-1 text-xs outline-none ${
-                                  isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-slate-900 border-slate-800 text-slate-100'
-                                }`}
+                                className={`w-full border rounded-lg px-2 py-1 text-xs outline-none bg-slate-50 border-slate-300 text-slate-900`}
                               />
                             </td>
 
@@ -2393,9 +2273,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                               <select
                                 value={rm.floor}
                                 onChange={(e) => handleUpdateRoom(rm.id, 'floor', e.target.value)}
-                                className={`w-full border rounded-lg px-2 py-1 text-xs font-bold outline-none cursor-pointer ${
-                                  isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-slate-900 border-slate-800 text-slate-100'
-                                }`}
+                                className={`w-full border rounded-lg px-2 py-1 text-xs font-bold outline-none cursor-pointer bg-slate-50 border-slate-300 text-slate-900`}
                               >
                                 {Array.from({ length: Math.max(1, Number(floorsCount) || 1) }, (_, i) => `الطابق ${i + 1}`).map((flr) => (
                                   <option key={flr} value={flr}>{flr}</option>
@@ -2408,15 +2286,13 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                                 type="number"
                                 value={rm.areaSqM}
                                 onChange={(e) => handleUpdateRoom(rm.id, 'areaSqM', Number(e.target.value))}
-                                className={`w-full border rounded-lg px-2 py-1 text-xs font-bold outline-none ${
-                                  isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-slate-900 border-slate-800 text-amber-400'
-                                }`}
+                                className={`w-full border rounded-lg px-2 py-1 text-xs font-bold outline-none bg-slate-50 border-slate-300 text-slate-900`}
                               />
                             </td>
 
                             <td className="p-2">
                               {isNonOcc ? (
-                                <span className="text-slate-400 text-[11px] font-normal px-2 py-1 bg-slate-500/5 rounded-lg border border-slate-500/10 block text-center">
+                                <span className="text-slate-500 text-[11px] font-normal px-2 py-1 bg-slate-500/5 rounded-lg border border-slate-500/10 block text-center">
                                   — (غير مخصص)
                                 </span>
                               ) : isCap ? (
@@ -2426,11 +2302,9 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                                     min="0"
                                     value={rm.capacity ?? ''}
                                     onChange={(e) => handleUpdateRoom(rm.id, 'capacity', Number(e.target.value) || 0)}
-                                    className={`w-14 border rounded-lg px-1.5 py-1 text-xs font-bold outline-none text-center ${
-                                      isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-slate-900 border-slate-800 text-slate-100'
-                                    }`}
+                                    className={`w-14 border rounded-lg px-1.5 py-1 text-xs font-bold outline-none text-center bg-slate-50 border-slate-300 text-slate-900`}
                                   />
-                                  <span className="text-[10px] text-sky-500 font-bold whitespace-nowrap">طاقة</span>
+                                  <span className="text-[10px] text-sky-600 font-bold whitespace-nowrap">طاقة</span>
                                 </div>
                               ) : (
                                 <div className="flex items-center gap-1">
@@ -2439,11 +2313,9 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                                     min="0"
                                     value={rm.occupantsCount ?? ''}
                                     onChange={(e) => handleUpdateRoom(rm.id, 'occupantsCount', Number(e.target.value) || 0)}
-                                    className={`w-14 border rounded-lg px-1.5 py-1 text-xs font-bold outline-none text-center ${
-                                      isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-slate-900 border-slate-800 text-slate-100'
-                                    }`}
+                                    className={`w-14 border rounded-lg px-1.5 py-1 text-xs font-bold outline-none text-center bg-slate-50 border-slate-300 text-slate-900`}
                                   />
-                                  <span className="text-[10px] text-emerald-500 font-bold whitespace-nowrap">شاغل</span>
+                                  <span className="text-[10px] text-emerald-600 font-bold whitespace-nowrap">شاغل</span>
                                 </div>
                               )}
                             </td>
@@ -2460,9 +2332,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                                     handleUpdateRoom(rm.id, 'status', 'Active');
                                   }
                                 }}
-                                className={`w-full border rounded-lg px-2 py-1 text-xs outline-none cursor-pointer ${
-                                  isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-slate-900 border-slate-800 text-slate-100'
-                                }`}
+                                className={`w-full border rounded-lg px-2 py-1 text-xs outline-none cursor-pointer bg-slate-50 border-slate-300 text-slate-900`}
                               >
                                 <option value="">🏢 شاغرة (بدون إشغال)</option>
                                 {selectedDepartments.map((deptName, deptIdx) => (
@@ -2482,8 +2352,8 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                                 onChange={(e) => handleUpdateRoom(rm.id, 'status', e.target.value)}
                                 className={`w-full border rounded-lg px-2 py-1 text-xs font-bold outline-none cursor-pointer ${
                                   isStopped
-                                    ? 'bg-rose-500/20 text-rose-500 border-rose-500/40'
-                                    : 'bg-emerald-500/20 text-emerald-500 border-emerald-500/40'
+                                    ? 'bg-rose-500/20 text-rose-600 border-rose-500/40'
+                                    : 'bg-emerald-500/20 text-emerald-600 border-emerald-500/40'
                                 }`}
                               >
                                 <option value="Active">🟢 فعالة</option>
@@ -2501,12 +2371,8 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                                 placeholder={isStopped ? 'أدخل سبب التوقف...' : 'ملاحظات...'}
                                 className={`w-full border rounded-lg px-2 py-1 text-xs outline-none ${
                                   isStopped
-                                    ? isLight
-                                      ? 'bg-rose-50 border-rose-300 text-rose-900'
-                                      : 'bg-rose-950/40 border-rose-800 text-rose-200'
-                                    : isLight
-                                    ? 'bg-slate-50 border-slate-300 text-slate-900'
-                                    : 'bg-slate-900 border-slate-800 text-slate-100'
+                                    ? 'bg-rose-50 border-rose-200 text-rose-900'
+                                    : 'bg-slate-50 border-slate-300 text-slate-900'
                                 }`}
                               />
                             </td>
@@ -2515,7 +2381,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                               <button
                                 type="button"
                                 onClick={() => handleDeleteRoom(rm.id)}
-                                className="p-1 text-slate-400 hover:text-rose-500 transition cursor-pointer"
+                                className="p-1 text-slate-500 hover:text-rose-600 transition cursor-pointer"
                                 title="حذف الغرفة"
                               >
                                 <Trash2 className="w-3.5 h-3.5 mx-auto" />
@@ -2535,20 +2401,18 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
         {/* ==================== SECTION 4 ==================== */}
         <div
           ref={section4Ref}
-          className={`border rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 space-y-4 sm:space-y-6 scroll-mt-24 transition-colors ${
-            isLight ? 'bg-white border-slate-200 text-slate-900 shadow-xs' : 'bg-slate-950 border-slate-800 text-slate-100'
-          }`}
+          className={`border rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 space-y-4 sm:space-y-6 scroll-mt-24 transition-colors bg-card border-slate-200 text-slate-900 shadow-xs`}
         >
-          <div className={`flex items-center justify-between border-b pb-3 ${isLight ? 'border-slate-200' : 'border-slate-800/80'}`}>
+          <div className={`flex items-center justify-between border-b pb-3 border-slate-200`}>
             <div className="flex items-center gap-2.5 sm:gap-3">
-              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-amber-500 text-slate-950 font-black flex items-center justify-center text-xs sm:text-sm shadow">
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-brand-700 text-on-brand font-black flex items-center justify-center text-xs sm:text-sm shadow">
                 {toArabicDigits(4)}
               </div>
               <div>
-                <h3 className={`text-sm sm:text-base font-bold ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                <h3 className={`text-sm sm:text-base font-bold text-slate-900`}>
                   التقييم الهندسي المبدئي والمرفقات الرسمية
                 </h3>
-                <p className={`text-[11px] sm:text-xs ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                <p className={`text-[11px] sm:text-xs text-slate-500`}>
                   تحديد درجة الحالة الهندسية وإرفاق المحاضر والمخططات الرسمية
                 </p>
               </div>
@@ -2558,15 +2422,15 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
           <div className="space-y-5 text-xs">
             {/* Condition Grade Selection (Daylight Cards) */}
             <div>
-              <label className="block text-slate-100 font-bold mb-2.5 text-xs flex items-center justify-between">
+              <label className="block text-slate-800 font-bold mb-2.5 text-xs flex items-center justify-between">
                 <span>درجة التقييم الهندسي (Condition Grade):</span>
-                <span className="text-amber-400 font-normal text-[11px]">حدد تصنيف حالة المبنى/الكرفان</span>
+                <span className="text-brand-700 font-normal text-[11px]">حدد تصنيف حالة المبنى/الكرفان</span>
               </label>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {[
                   { grade: 'A', label: 'ممتاز', desc: 'جديد / مطابق كلياً للمواصفات', color: 'border-emerald-500 text-emerald-700 bg-emerald-50' },
                   { grade: 'B', label: 'جيد جداً', desc: 'صالح للعمل / حالة ممتازة', color: 'border-blue-500 text-blue-700 bg-blue-50' },
-                  { grade: 'C', label: 'مقبول', desc: 'صيانة بسيطة / تشغيل اعتيادي', color: 'border-amber-500 text-amber-800 bg-amber-50' },
+                  { grade: 'C', label: 'مقبول', desc: 'صيانة بسيطة / تشغيل اعتيادي', color: 'border-brand-600 text-brand-800 bg-brand-50' },
                   { grade: 'D', label: 'حرج', desc: 'يحتاج صيانة جذريّة وعمرة', color: 'border-rose-500 text-rose-800 bg-rose-50' },
                 ].map((item) => {
                   const isSelected = conditionGrade === item.grade;
@@ -2577,15 +2441,15 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                       onClick={() => setConditionGrade(item.grade as ConditionGrade)}
                       className={`p-3.5 rounded-2xl font-bold transition-all duration-200 cursor-pointer flex flex-col items-center justify-center text-center gap-1.5 shadow-sm border ${
                         isSelected
-                          ? 'bg-amber-500 text-slate-950 border-amber-400 ring-2 ring-amber-400/40 shadow-lg scale-[1.02]'
-                          : 'bg-white hover:bg-slate-50 text-slate-800 border-slate-300 hover:border-amber-400/60'
+                          ? 'bg-brand-700 text-on-brand border-brand-200 ring-2 ring-brand-600/40 shadow-lg scale-[1.02]'
+                          : 'bg-card hover:bg-slate-50 text-slate-800 border-slate-300 hover:border-brand-200'
                       }`}
                     >
                       <div className="flex items-center gap-1.5">
                         <span className={`text-base font-black ${isSelected ? 'text-slate-950' : 'text-slate-900'}`}>
                           Grade {item.grade}
                         </span>
-                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-black ${isSelected ? 'bg-slate-950 text-amber-400' : item.color}`}>
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-black ${isSelected ? 'bg-card text-brand-700' : item.color}`}>
                           {item.label}
                         </span>
                       </div>
@@ -2600,17 +2464,17 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
 
             {/* Official Attachments Uploader & List */}
             <div className="space-y-3 pt-2">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-900 border border-slate-800 p-4 rounded-2xl">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-card border border-slate-200 p-4 rounded-2xl">
                 <div>
-                  <label className="text-slate-100 font-bold flex items-center gap-2 text-sm">
-                    <Paperclip className="w-4 h-4 text-amber-400" />
+                  <label className="text-slate-800 font-bold flex items-center gap-2 text-sm">
+                    <Paperclip className="w-4 h-4 text-brand-700" />
                     <span>المرفقات والوثائق الرسمية المعتمدة:</span>
                   </label>
-                  <p className="text-[11px] text-amber-400/90 font-medium mt-1">
+                  <p className="text-[11px] text-brand-700 font-medium mt-1">
                     يمكن رفع الملفات الخاصة بالـ (صور بكافة أنواعها وامتداداتها - PDF - فيديو بكافة أنواعه وامتداداته) فقط
                   </p>
                 </div>
-                <label className="bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs px-4 py-2 rounded-xl font-bold flex items-center gap-2 cursor-pointer transition shadow shrink-0">
+                <label className="bg-brand-700 hover:bg-brand-800 text-on-brand text-xs px-4 py-2 rounded-xl font-bold flex items-center gap-2 cursor-pointer transition shadow shrink-0">
                   <UploadCloud className="w-4 h-4" />
                   <span>إرفاق ملف جديد</span>
                   <input type="file" accept="image/*,application/pdf,video/*" onChange={handleFileUpload} className="hidden" />
@@ -2627,21 +2491,21 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                     return (
                       <div
                         key={file.id}
-                        className="bg-slate-900 border border-slate-800 rounded-2xl p-3.5 flex items-center justify-between gap-3 shadow-xs hover:border-slate-700 transition"
+                        className="bg-card border border-slate-200 rounded-2xl p-3.5 flex items-center justify-between gap-3 shadow-xs hover:border-slate-200 transition"
                       >
                         <div className="flex items-center gap-3 overflow-hidden">
-                          <div className="w-9 h-9 rounded-xl bg-slate-800 text-amber-400 flex items-center justify-center shrink-0">
+                          <div className="w-9 h-9 rounded-xl bg-slate-100 text-brand-700 flex items-center justify-center shrink-0">
                             {isImage ? (
-                              <Image className="w-5 h-5 text-emerald-400" />
+                              <Image className="w-5 h-5 text-emerald-600" />
                             ) : isVideo ? (
-                              <Film className="w-5 h-5 text-purple-400" />
+                              <Film className="w-5 h-5 text-purple-600" />
                             ) : (
-                              <FileText className="w-5 h-5 text-amber-400" />
+                              <FileText className="w-5 h-5 text-brand-700" />
                             )}
                           </div>
                           <div className="overflow-hidden">
-                            <p className="font-bold text-slate-200 truncate text-xs">{file.name}</p>
-                            <p className="text-[10px] text-slate-400">
+                            <p className="font-bold text-slate-800 truncate text-xs">{file.name}</p>
+                            <p className="text-[10px] text-slate-500">
                               {file.type} • {file.size} • {file.uploadDate}
                             </p>
                           </div>
@@ -2651,7 +2515,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                           <button
                             type="button"
                             onClick={() => handleViewAttachment(file)}
-                            className="bg-slate-800 hover:bg-amber-500/10 text-slate-300 hover:text-amber-400 p-2 rounded-xl transition cursor-pointer border border-slate-700/80"
+                            className="bg-slate-100 hover:bg-brand-50 text-slate-600 hover:text-brand-700 p-2 rounded-xl transition cursor-pointer border border-slate-200"
                             title="عرض / معاينة المرفق"
                           >
                             <Eye className="w-3.5 h-3.5" />
@@ -2660,7 +2524,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                           <button
                             type="button"
                             onClick={() => handleDownloadAttachment(file)}
-                            className="bg-slate-800 hover:bg-emerald-500/10 text-slate-300 hover:text-emerald-400 p-2 rounded-xl transition cursor-pointer border border-slate-700/80"
+                            className="bg-slate-100 hover:bg-emerald-500/10 text-slate-600 hover:text-emerald-600 p-2 rounded-xl transition cursor-pointer border border-slate-200"
                             title="تنزيل المرفق"
                           >
                             <Download className="w-3.5 h-3.5" />
@@ -2669,7 +2533,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                           <button
                             type="button"
                             onClick={() => handleRemoveAttachment(file.id)}
-                            className="bg-slate-800 hover:bg-rose-500/10 text-slate-400 hover:text-rose-400 p-2 rounded-xl transition cursor-pointer border border-slate-700/80"
+                            className="bg-slate-100 hover:bg-rose-500/10 text-slate-500 hover:text-rose-600 p-2 rounded-xl transition cursor-pointer border border-slate-200"
                             title="حذف المرفق"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -2680,7 +2544,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                   })}
                 </div>
               ) : (
-                <div className="border border-dashed border-slate-800 rounded-2xl p-6 text-center text-slate-500 text-xs">
+                <div className="border border-dashed border-slate-200 rounded-2xl p-6 text-center text-slate-500 text-xs">
                   لا توجد مرفقات رسمية مضافة حتى الآن
                 </div>
               )}
@@ -2690,18 +2554,12 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
 
         {/* ==================== BOTTOM FORM ACTIONS ==================== */}
         <div
-          className={`border rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 transition-colors ${
-            isLight ? 'bg-white border-slate-200 shadow-xs' : 'bg-slate-950 border-slate-800'
-          }`}
+          className={`border rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 transition-colors bg-card border-slate-200 shadow-xs`}
         >
           <button
             type="button"
             onClick={onCancel}
-            className={`w-full sm:w-auto text-xs px-6 py-3 rounded-xl font-bold transition cursor-pointer border flex items-center justify-center gap-2 ${
-              isLight
-                ? 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300'
-                : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-700'
-            }`}
+            className={`w-full sm:w-auto text-xs px-6 py-3 rounded-xl font-bold transition cursor-pointer border flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300`}
           >
             <ArrowRight className="w-4 h-4" />
             <span>تراجع / إلغاء</span>
@@ -2709,7 +2567,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
 
           <button
             type="submit"
-            className="w-full sm:w-auto bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs sm:text-sm px-8 py-3 rounded-xl font-black shadow-lg shadow-emerald-500/20 transition cursor-pointer flex items-center justify-center gap-2 active:scale-98"
+            className="w-full sm:w-auto bg-brand-700 hover:bg-brand-800 text-on-brand text-xs sm:text-sm px-8 py-3 rounded-xl font-black shadow-lg transition cursor-pointer flex items-center justify-center gap-2 active:scale-98"
           >
             <CheckCircle2 className="w-5 h-5" />
             <span>حفظ الوحدة وتوليد الهوية القياسية</span>
@@ -2718,68 +2576,68 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
 
         {/* ==================== GENERATED STRUCTURAL CODE & QR CODE SECTION (Post-Save) ==================== */}
         {createdUnitWithQr && (
-          <div className="bg-slate-950 border-2 border-amber-500/50 rounded-3xl p-6 sm:p-8 space-y-6 shadow-2xl shadow-amber-500/10 text-slate-100 animate-in fade-in duration-300">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+          <div className="bg-card border-2 border-brand-200 rounded-3xl p-6 sm:p-8 space-y-6 shadow-2xl text-slate-800 animate-in fade-in duration-300">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-amber-500 text-slate-950 flex items-center justify-center font-black">
+                <div className="w-10 h-10 rounded-2xl bg-brand-700 text-on-brand flex items-center justify-center font-black">
                   <QrCode className="w-6 h-6" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-black text-amber-400">تم حفظ الوحدة وتوليد الرمز الهيكلي ورمز QR بنجاح!</h3>
-                  <p className="text-xs text-slate-400">الرمز الموحد ورمز الوصول السريع جاهزان للطباعة على شريحة معدنية والتثبيت الميداني</p>
+                  <h3 className="text-lg font-black text-brand-700">تم حفظ الوحدة وتوليد الرمز الهيكلي ورمز QR بنجاح!</h3>
+                  <p className="text-xs text-slate-500">الرمز الموحد ورمز الوصول السريع جاهزان للطباعة على شريحة معدنية والتثبيت الميداني</p>
                 </div>
               </div>
-              <span className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs px-3.5 py-1.5 rounded-full font-bold flex items-center gap-1.5 shrink-0 self-start md:self-auto">
+              <span className="bg-emerald-500/20 text-emerald-600 border border-emerald-500/30 text-xs px-3.5 py-1.5 rounded-full font-bold flex items-center gap-1.5 shrink-0 self-start md:self-auto">
                 <CheckCircle2 className="w-4 h-4" />
                 <span>محفوظة في السجل الرقمي</span>
               </span>
             </div>
 
             {/* Grid displaying Generated Structural Code and QR Code */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center bg-slate-900 border border-slate-800 rounded-2xl p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center bg-card border border-slate-200 rounded-2xl p-6">
               {/* Structural Code Box */}
               <div className="space-y-3">
-                <span className="text-xs font-bold text-slate-400 block uppercase tracking-wider">
+                <span className="text-xs font-bold text-slate-500 block uppercase tracking-wider">
                   الرمز الهيكلي الموحد المولد (Code):
                 </span>
-                <div className="bg-slate-950 border-2 border-amber-500/60 rounded-2xl p-4 text-center font-mono text-2xl sm:text-3xl font-black text-amber-400 tracking-widest shadow-inner">
+                <div className="bg-card border-2 border-brand-200 rounded-2xl p-4 text-center font-mono text-2xl sm:text-3xl font-black text-brand-700 tracking-widest shadow-inner">
                   {createdUnitWithQr.unit.code}
                 </div>
-                <div className="text-xs text-slate-300 space-y-1 pt-1">
+                <div className="text-xs text-slate-600 space-y-1 pt-1">
                   <p><strong>اسم المنشأة:</strong> {createdUnitWithQr.unit.name}</p>
                   <p><strong>الموقع الميداني:</strong> {createdUnitWithQr.unit.governorate} • {createdUnitWithQr.unit.field}</p>
                   <p><strong>سنة الإنشاء:</strong> {createdUnitWithQr.unit.constructionYear}</p>
                   {createdUnitWithQr.unit.fixedAssetCode && (
-                    <p className="text-indigo-400 font-mono font-bold"><strong>رمز الأصل:</strong> {createdUnitWithQr.unit.fixedAssetCode}</p>
+                    <p className="text-indigo-600 font-mono font-bold"><strong>رمز الأصل:</strong> {createdUnitWithQr.unit.fixedAssetCode}</p>
                   )}
                 </div>
               </div>
 
               {/* QR Code Box */}
-              <div className="flex flex-col items-center justify-center space-y-3 border-t md:border-t-0 md:border-r border-slate-800 pt-4 md:pt-0 md:pr-6">
-                <span className="text-xs font-bold text-slate-400 block">
+              <div className="flex flex-col items-center justify-center space-y-3 border-t md:border-t-0 md:border-r border-slate-200 pt-4 md:pt-0 md:pr-6">
+                <span className="text-xs font-bold text-slate-500 block">
                   رمز الوصول السريع (QR Code):
                 </span>
-                <div className="bg-white p-3 rounded-2xl border-2 border-amber-500/50 shadow-md">
+                <div className="bg-card p-3 rounded-2xl border-2 border-brand-200 shadow-md">
                   <img
                     src={createdUnitWithQr.qrDataUrl}
                     alt="QR Code"
                     className="w-40 h-40 object-contain"
                   />
                 </div>
-                <p className="text-[11px] text-slate-400 text-center font-medium">
+                <p className="text-[11px] text-slate-500 text-center font-medium">
                   يتضمن كافة البيانات التعريفية والموقع الجغرافي للمسح الفوري
                 </p>
               </div>
             </div>
 
             {/* Bottom Actions: Print Metallic Plate, Download QR, Finish */}
-            <div className="flex flex-wrap items-center justify-between gap-4 pt-2 border-t border-slate-800/80">
+            <div className="flex flex-wrap items-center justify-between gap-4 pt-2 border-t border-slate-200">
               <div className="flex flex-wrap items-center gap-3">
                 <button
                   type="button"
                   onClick={handlePrintQrCard}
-                  className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs px-6 py-3.5 rounded-xl shadow-lg shadow-amber-500/20 transition cursor-pointer flex items-center gap-2"
+                  className="bg-brand-700 hover:bg-brand-800 text-on-brand font-black text-xs px-6 py-3.5 rounded-xl shadow-lg transition cursor-pointer flex items-center gap-2"
                 >
                   <Printer className="w-4 h-4" />
                   <span>طباعة الشريحة المعدنية / الرمز والهوية</span>
@@ -2788,9 +2646,9 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                 <button
                   type="button"
                   onClick={handleDownloadQrImage}
-                  className="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold text-xs px-5 py-3.5 rounded-xl transition cursor-pointer flex items-center gap-2"
+                  className="bg-slate-100 hover:bg-slate-100 text-slate-800 border border-slate-200 font-bold text-xs px-5 py-3.5 rounded-xl transition cursor-pointer flex items-center gap-2"
                 >
-                  <Download className="w-4 h-4 text-amber-400" />
+                  <Download className="w-4 h-4 text-brand-700" />
                   <span>تحميل صورة الرمز (PNG)</span>
                 </button>
               </div>
@@ -2810,17 +2668,17 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
 
       {/* ==================== MODAL: Add New Governorate ==================== */}
       {showAddGovModal && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 w-full max-w-md shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <h3 className="font-bold text-slate-100 flex items-center gap-2">
-                <Plus className="w-4 h-4 text-amber-400" />
+        <div className="fixed inset-0 z-50 bg-card/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-card border border-slate-200 rounded-3xl p-6 w-full max-w-md shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+              <h3 className="font-bold text-slate-800 flex items-center gap-2">
+                <Plus className="w-4 h-4 text-brand-700" />
                 <span>إضافة محافظة عراقية جديدة</span>
               </h3>
               <button
                 type="button"
                 onClick={() => setShowAddGovModal(false)}
-                className="text-slate-400 hover:text-slate-100 cursor-pointer"
+                className="text-slate-500 hover:text-slate-800 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -2828,41 +2686,41 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
 
             <div className="space-y-4 text-xs">
               <div>
-                <label className="block text-slate-300 font-bold mb-1">اسم المحافظة:</label>
+                <label className="block text-slate-600 font-bold mb-1">اسم المحافظة:</label>
                 <input
                   type="text"
                   required
                   value={newGovNameAr}
                   onChange={(e) => setNewGovNameAr(e.target.value)}
                   placeholder="مثال: محافظة كركوك"
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-slate-100"
+                  className="w-full bg-card border border-slate-200 rounded-xl p-2.5 text-slate-800"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-300 font-bold mb-1">الرمز الموحد (Code):</label>
+                <label className="block text-slate-600 font-bold mb-1">الرمز الموحد (Code):</label>
                 <input
                   type="text"
                   required
                   value={newGovCode}
                   onChange={(e) => setNewGovCode(e.target.value)}
                   placeholder="مثال: KIR"
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-amber-400 font-mono font-bold"
+                  className="w-full bg-card border border-slate-200 rounded-xl p-2.5 text-brand-700 font-mono font-bold"
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-200">
                 <button
                   type="button"
                   onClick={() => setShowAddGovModal(false)}
-                  className="bg-slate-800 text-slate-300 px-4 py-2 rounded-xl font-bold cursor-pointer"
+                  className="bg-slate-100 text-slate-600 px-4 py-2 rounded-xl font-bold cursor-pointer"
                 >
                   إلغاء
                 </button>
                 <button
                   type="button"
                   onClick={() => handleSaveNewGov()}
-                  className="bg-amber-500 hover:bg-amber-400 text-slate-950 px-5 py-2 rounded-xl font-bold cursor-pointer shadow"
+                  className="bg-brand-700 hover:bg-brand-800 text-on-brand px-5 py-2 rounded-xl font-bold cursor-pointer shadow"
                 >
                   حفظ واختيار المحافظة
                 </button>
@@ -2874,17 +2732,17 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
 
       {/* ==================== MODAL: Add New Oilfield ==================== */}
       {showAddFieldModal && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 w-full max-w-md shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <h3 className="font-bold text-slate-100 flex items-center gap-2">
-                <Plus className="w-4 h-4 text-amber-400" />
+        <div className="fixed inset-0 z-50 bg-card/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-card border border-slate-200 rounded-3xl p-6 w-full max-w-md shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+              <h3 className="font-bold text-slate-800 flex items-center gap-2">
+                <Plus className="w-4 h-4 text-brand-700" />
                 <span>إضافة حقل نفطي جديد</span>
               </h3>
               <button
                 type="button"
                 onClick={() => setShowAddFieldModal(false)}
-                className="text-slate-400 hover:text-slate-100 cursor-pointer"
+                className="text-slate-500 hover:text-slate-800 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -2892,41 +2750,41 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
 
             <div className="space-y-4 text-xs">
               <div>
-                <label className="block text-slate-300 font-bold mb-1">اسم الحقل النفطي:</label>
+                <label className="block text-slate-600 font-bold mb-1">اسم الحقل النفطي:</label>
                 <input
                   type="text"
                   required
                   value={newFieldNameAr}
                   onChange={(e) => setNewFieldNameAr(e.target.value)}
                   placeholder="مثال: حقل مجنون النفطي"
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-slate-100"
+                  className="w-full bg-card border border-slate-200 rounded-xl p-2.5 text-slate-800"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-300 font-bold mb-1">الرمز الموحد (Code):</label>
+                <label className="block text-slate-600 font-bold mb-1">الرمز الموحد (Code):</label>
                 <input
                   type="text"
                   required
                   value={newFieldCode}
                   onChange={(e) => setNewFieldCode(e.target.value)}
                   placeholder="مثال: MAJ"
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-amber-400 font-mono font-bold"
+                  className="w-full bg-card border border-slate-200 rounded-xl p-2.5 text-brand-700 font-mono font-bold"
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-200">
                 <button
                   type="button"
                   onClick={() => setShowAddFieldModal(false)}
-                  className="bg-slate-800 text-slate-300 px-4 py-2 rounded-xl font-bold cursor-pointer"
+                  className="bg-slate-100 text-slate-600 px-4 py-2 rounded-xl font-bold cursor-pointer"
                 >
                   إلغاء
                 </button>
                 <button
                   type="button"
                   onClick={() => handleSaveNewOilfield()}
-                  className="bg-amber-500 hover:bg-amber-400 text-slate-950 px-5 py-2 rounded-xl font-bold cursor-pointer shadow"
+                  className="bg-brand-700 hover:bg-brand-800 text-on-brand px-5 py-2 rounded-xl font-bold cursor-pointer shadow"
                 >
                   حفظ واختيار الحقل
                 </button>
@@ -2938,17 +2796,17 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
 
       {/* ==================== MODAL: Add New Reference Unit Type ==================== */}
       {showAddUnitTypeModal && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 w-full max-w-md shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <h3 className="font-bold text-slate-100 flex items-center gap-2">
-                <Plus className="w-4 h-4 text-amber-400" />
+        <div className="fixed inset-0 z-50 bg-card/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-card border border-slate-200 rounded-3xl p-6 w-full max-w-md shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+              <h3 className="font-bold text-slate-800 flex items-center gap-2">
+                <Plus className="w-4 h-4 text-brand-700" />
                 <span>إضافة فئة ونوع منشأة مرجعي جديد</span>
               </h3>
               <button
                 type="button"
                 onClick={() => setShowAddUnitTypeModal(false)}
-                className="text-slate-400 hover:text-slate-100 cursor-pointer"
+                className="text-slate-500 hover:text-slate-800 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -2956,48 +2814,48 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
 
             <div className="space-y-4 text-xs">
               <div>
-                <label className="block text-slate-300 font-bold mb-1">اسم فئة المنشأة (بالعربية):</label>
+                <label className="block text-slate-600 font-bold mb-1">اسم فئة المنشأة (بالعربية):</label>
                 <input
                   type="text"
                   required
                   value={newUtNameAr}
                   onChange={(e) => setNewUtNameAr(e.target.value)}
                   placeholder="مثال: وحدة معالجة المياه"
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-slate-100"
+                  className="w-full bg-card border border-slate-200 rounded-xl p-2.5 text-slate-800"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-300 font-bold mb-1">رمز الفئة (Code):</label>
+                <label className="block text-slate-600 font-bold mb-1">رمز الفئة (Code):</label>
                 <input
                   type="text"
                   required
                   value={newUtCode}
                   onChange={(e) => setNewUtCode(e.target.value.toUpperCase())}
                   placeholder="مثال: WTP"
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-amber-400 font-mono font-bold"
+                  className="w-full bg-card border border-slate-200 rounded-xl p-2.5 text-brand-700 font-mono font-bold"
                 />
               </div>
 
-              <div className="flex items-center gap-3 bg-slate-950 p-3 rounded-xl border border-slate-800">
+              <div className="flex items-center gap-3 bg-card p-3 rounded-xl border border-slate-200">
                 <input
                   type="checkbox"
                   id="multiStoryCheck"
                   checked={newUtMultiStory}
                   onChange={(e) => setNewUtMultiStory(e.target.checked)}
-                  className="w-4 h-4 accent-amber-500 rounded cursor-pointer"
+                  className="w-4 h-4 accent-brand-700 rounded cursor-pointer"
                 />
-                <label htmlFor="multiStoryCheck" className="text-slate-300 font-bold cursor-pointer">
+                <label htmlFor="multiStoryCheck" className="text-slate-600 font-bold cursor-pointer">
                   منشأة متعددة الطوابق
                 </label>
               </div>
 
               <div>
-                <label className="block text-slate-300 font-bold mb-1">نوع السقف الافتراضي:</label>
+                <label className="block text-slate-600 font-bold mb-1">نوع السقف الافتراضي:</label>
                 <select
                   value={newUtDefaultRoof}
                   onChange={(e) => setNewUtDefaultRoof(e.target.value as any)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-slate-100"
+                  className="w-full bg-card border border-slate-200 rounded-xl p-2.5 text-slate-800"
                 >
                   <option value="ساندويج بانل">ساندويج بانل</option>
                   <option value="كونكريت">كونكريت</option>
@@ -3005,18 +2863,18 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                 </select>
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-200">
                 <button
                   type="button"
                   onClick={() => setShowAddUnitTypeModal(false)}
-                  className="bg-slate-800 text-slate-300 px-4 py-2 rounded-xl font-bold cursor-pointer"
+                  className="bg-slate-100 text-slate-600 px-4 py-2 rounded-xl font-bold cursor-pointer"
                 >
                   إلغاء
                 </button>
                 <button
                   type="button"
                   onClick={() => handleSaveNewUnitType()}
-                  className="bg-amber-500 hover:bg-amber-400 text-slate-950 px-5 py-2 rounded-xl font-bold cursor-pointer shadow"
+                  className="bg-brand-700 hover:bg-brand-800 text-on-brand px-5 py-2 rounded-xl font-bold cursor-pointer shadow"
                 >
                   حفظ واختيار الفئة
                 </button>
@@ -3036,22 +2894,22 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
       )}
       {/* ==================== MODAL: Success & Generated QR Code ==================== */}
       {createdUnitWithQr && (
-        <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-slate-900 border border-amber-500/40 rounded-3xl p-6 sm:p-8 w-full max-w-xl space-y-6 shadow-2xl relative text-center">
+        <div className="fixed inset-0 z-50 bg-card/85 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-card border border-brand-200 rounded-3xl p-6 sm:p-8 w-full max-w-xl space-y-6 shadow-2xl relative text-center">
             {/* Header / Success Indicator */}
             <div className="space-y-2">
-              <div className="w-14 h-14 bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 rounded-2xl flex items-center justify-center mx-auto shadow-lg">
+              <div className="w-14 h-14 bg-emerald-500/20 text-emerald-600 border border-emerald-500/40 rounded-2xl flex items-center justify-center mx-auto shadow-lg">
                 <CheckCircle2 className="w-8 h-8" />
               </div>
-              <h2 className="text-xl font-black text-slate-100">تم حفظ الأصل وتوليد رمز QR بنجاح!</h2>
-              <p className="text-xs text-slate-400">
+              <h2 className="text-xl font-black text-slate-800">تم حفظ الأصل وتوليد رمز QR بنجاح!</h2>
+              <p className="text-xs text-slate-500">
                 تم تسجيل الوحدة في السجل الهيكلي الرقمي وتوليد رمز الوصول السريع المعتمد للمتابعة الميدانية.
               </p>
             </div>
 
             {/* Generated QR Code Display Box */}
-            <div className="bg-white border-2 border-amber-400/80 rounded-2xl p-5 max-w-xs mx-auto shadow-xl space-y-3">
-              <div className="text-slate-950 font-black text-xs tracking-wider font-mono bg-amber-100 py-1.5 px-3 rounded-lg border border-amber-300/80">
+            <div className="bg-card border-2 border-brand-200 rounded-2xl p-5 max-w-xs mx-auto shadow-xl space-y-3">
+              <div className="text-slate-950 font-black text-xs tracking-wider font-mono bg-brand-100 py-1.5 px-3 rounded-lg border border-brand-200">
                 {createdUnitWithQr.unit.code}
               </div>
               <img
@@ -3065,22 +2923,22 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
             </div>
 
             {/* Unit Info Summary */}
-            <div className="bg-slate-950 border border-slate-800 rounded-2xl p-4 text-xs text-right grid grid-cols-2 gap-3 font-medium">
+            <div className="bg-card border border-slate-200 rounded-2xl p-4 text-xs text-right grid grid-cols-2 gap-3 font-medium">
               <div>
                 <span className="text-slate-500 block mb-0.5">الحقل والمحافظة:</span>
-                <span className="text-slate-200 font-bold">{createdUnitWithQr.unit.governorate} • {createdUnitWithQr.unit.field}</span>
+                <span className="text-slate-800 font-bold">{createdUnitWithQr.unit.governorate} • {createdUnitWithQr.unit.field}</span>
               </div>
               <div>
                 <span className="text-slate-500 block mb-0.5">نوع المنشأة:</span>
-                <span className="text-slate-200 font-bold">{createdUnitWithQr.unit.type === 'caravan' ? 'كرفان موقعي' : 'مبنى ثابت'}</span>
+                <span className="text-slate-800 font-bold">{createdUnitWithQr.unit.type === 'caravan' ? 'كرفان موقعي' : 'مبنى ثابت'}</span>
               </div>
               <div>
                 <span className="text-slate-500 block mb-0.5">درجة التقييم:</span>
-                <span className="text-amber-400 font-bold">Grade {createdUnitWithQr.unit.conditionGrade}</span>
+                <span className="text-brand-700 font-bold">Grade {createdUnitWithQr.unit.conditionGrade}</span>
               </div>
               <div>
                 <span className="text-slate-500 block mb-0.5">الإحداثيات الجغرافية:</span>
-                <span className="text-slate-300 font-mono">{createdUnitWithQr.unit.coordinates.lat.toFixed(4)}, {createdUnitWithQr.unit.coordinates.lng.toFixed(4)}</span>
+                <span className="text-slate-600 font-mono">{createdUnitWithQr.unit.coordinates.lat.toFixed(4)}, {createdUnitWithQr.unit.coordinates.lng.toFixed(4)}</span>
               </div>
             </div>
 
@@ -3089,7 +2947,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
               <button
                 type="button"
                 onClick={handlePrintQrCard}
-                className="w-full sm:w-auto bg-slate-800 hover:bg-slate-700 text-amber-400 border border-slate-700 px-5 py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-2 cursor-pointer transition shadow"
+                className="w-full sm:w-auto bg-slate-100 hover:bg-slate-100 text-brand-700 border border-slate-200 px-5 py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-2 cursor-pointer transition shadow"
               >
                 <Printer className="w-4 h-4" />
                 <span>طباعة بطاقة QR</span>
@@ -3098,7 +2956,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
               <button
                 type="button"
                 onClick={handleDownloadQrImage}
-                className="w-full sm:w-auto bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-slate-700 px-5 py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-2 cursor-pointer transition shadow"
+                className="w-full sm:w-auto bg-slate-100 hover:bg-slate-100 text-emerald-600 border border-slate-200 px-5 py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-2 cursor-pointer transition shadow"
               >
                 <Download className="w-4 h-4" />
                 <span>تحميل صورة QR</span>
@@ -3107,7 +2965,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
               <button
                 type="button"
                 onClick={handleFinishAndNavigate}
-                className="w-full sm:w-auto bg-amber-500 hover:bg-amber-400 text-slate-950 px-6 py-2.5 rounded-xl font-black text-xs flex items-center justify-center gap-2 cursor-pointer transition shadow-lg"
+                className="w-full sm:w-auto bg-brand-700 hover:bg-brand-800 text-on-brand px-6 py-2.5 rounded-xl font-black text-xs flex items-center justify-center gap-2 cursor-pointer transition shadow-lg"
               >
                 <CheckCircle2 className="w-4 h-4" />
                 <span>انتقال إلى إدارة الوحـدات</span>

@@ -15,35 +15,35 @@ export const ExportDossierModal: React.FC<ExportDossierModalProps> = ({ unit, br
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-2xl w-full p-3 sm:p-6 space-y-3.5 sm:space-y-6 text-xs text-slate-200 my-auto max-h-[95vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 bg-card/80 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
+      <div className="bg-card border border-slate-200 rounded-2xl max-w-2xl w-full p-3 sm:p-6 space-y-3.5 sm:space-y-6 text-xs text-slate-800 my-auto max-h-[95vh] overflow-y-auto">
         {/* Top Actions */}
-        <div className="flex items-center justify-between gap-2 pb-2.5 sm:pb-3 border-b border-slate-800">
+        <div className="flex items-center justify-between gap-2 pb-2.5 sm:pb-3 border-b border-slate-200">
           <div className="flex items-center gap-2 min-w-0">
             {branding?.logoUrl ? (
               <img src={branding.logoUrl} alt="Logo" className="w-5 h-5 object-contain shrink-0" />
             ) : (
-              <ShieldCheck className="w-5 h-5 text-amber-400 shrink-0" />
+              <ShieldCheck className="w-5 h-5 text-brand-700 shrink-0" />
             )}
-            <span className="font-bold text-slate-100 text-xs sm:text-sm truncate">الاضبارة الفنية الرسمية للمنشأة</span>
+            <span className="font-bold text-slate-800 text-xs sm:text-sm truncate">الاضبارة الفنية الرسمية للمنشأة</span>
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={handlePrint}
-              className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-2.5 sm:px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 shadow cursor-pointer"
+              className="bg-brand-700 hover:bg-brand-800 text-on-brand font-bold px-2.5 sm:px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 shadow cursor-pointer"
             >
               <Printer className="w-4 h-4" />
               <span>طباعة</span>
             </button>
-            <button onClick={onClose} className="text-slate-400 hover:text-white p-1 rounded-lg transition cursor-pointer">
+            <button onClick={onClose} className="text-slate-500 hover:text-slate-900 p-1 rounded-lg transition cursor-pointer">
               ✕
             </button>
           </div>
         </div>
 
         {/* Printable Official Document Sheet */}
-        <div className="bg-white text-slate-950 p-3.5 sm:p-6 rounded-xl space-y-4 sm:space-y-5 border shadow-2xl font-sans print:p-0 print:border-none relative">
+        <div className="bg-card text-slate-950 p-3.5 sm:p-6 rounded-xl space-y-4 sm:space-y-5 border shadow-2xl font-sans print:p-0 print:border-none relative">
           {/* Header */}
           <div className="text-center border-b-2 border-slate-950 pb-4 space-y-1 relative">
             {branding?.logoUrl && (
@@ -59,7 +59,7 @@ export const ExportDossierModal: React.FC<ExportDossierModalProps> = ({ unit, br
             <h1 className="text-base sm:text-lg font-black tracking-wide text-slate-950">
               {branding?.companyName || 'شركة نفط الوسط (Midland Oil Company)'}
             </h1>
-            <h2 className="text-xs sm:text-sm font-bold text-amber-700">
+            <h2 className="text-xs sm:text-sm font-bold text-brand-700">
               {branding?.systemName || 'هيئة التفتيش والسلامة الهندسية - الاضبارة الفنية للأصول'}
             </h2>
             <div className="text-[10px] text-slate-500 font-mono mt-1">تاريخ الإصدار: {getServerDateFormatted()}</div>
@@ -69,7 +69,7 @@ export const ExportDossierModal: React.FC<ExportDossierModalProps> = ({ unit, br
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 border p-3 rounded-lg bg-slate-50 font-mono text-xs">
             <div>
               <span className="text-slate-500 block text-[10px]">رمز المنشأة الموحد (System Code):</span>
-              <span className="font-bold text-amber-800 text-sm">{unit.code}</span>
+              <span className="font-bold text-brand-800 text-sm">{unit.code}</span>
             </div>
             <div>
               <span className="text-slate-500 block text-[10px]">رمز الأصل في السجلات (Fixed Asset Code):</span>
@@ -98,7 +98,7 @@ export const ExportDossierModal: React.FC<ExportDossierModalProps> = ({ unit, br
               <div>عدد الطوابق: <strong className="font-bold">{unit.floorsCount}</strong></div>
               <div>الجهة الشاغلة: <strong className="font-bold">{unit.department}</strong></div>
               {unit.buildingShape && (
-                <div className="col-span-1 sm:col-span-2">شكل وتصميم المبنى: <strong className="font-bold text-amber-800">{unit.buildingShape}</strong></div>
+                <div className="col-span-1 sm:col-span-2">شكل وتصميم المبنى: <strong className="font-bold text-brand-800">{unit.buildingShape}</strong></div>
               )}
               <div className="col-span-1 sm:col-span-2">الإحداثيات (GPS): <strong className="font-mono">{unit.coordinates.lat}° N, {unit.coordinates.lng}° E</strong></div>
               <div className="col-span-1 sm:col-span-2">العنوان الميداني: <strong>{unit.sectorAddress}</strong></div>

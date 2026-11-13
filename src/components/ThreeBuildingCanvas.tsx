@@ -1597,7 +1597,7 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
   return (
     <div
       ref={containerRef}
-      className={`transition-all duration-300 ${
+      className={`ds-off transition-all duration-300 ${
         isFullscreen
           ? `fixed inset-0 z-50 w-screen h-screen ${isNightMode ? 'bg-slate-950' : 'bg-slate-100'} flex flex-col p-2 space-y-2 overflow-hidden`
           : 'space-y-3'

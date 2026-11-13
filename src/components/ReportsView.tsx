@@ -1441,45 +1441,45 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
         const i = item.data;
         const bg = idx % 2 === 1 ? 'background-color: #f8fafc;' : 'background-color: #ffffff;';
         rows += `
-          <tr style="${bg}">
-            <td style="text-align: center; font-weight: bold; font-family: monospace;">${toArabicDigits(item.indexInSection + 1)}</td>
-            <td style="line-height: 1.45;">
-              <div style="font-weight: bold; font-family: monospace; color: #78350f; font-size: 8.5pt;">${toArabicDigits(i.unitCode)}</div>
-              <div style="font-weight: bold; color: #0f172a; font-size: 8.5pt;">${i.unitName || i.title || '-'}</div>
-              <div style="font-size: 7.5pt; color: #64748b;">${translateField(i.field)} / ${translateGovernorate(i.governorate)}</div>
-            </td>
-            <td><b>${translateInspectionType(i.inspectionType)}</b> <span style="font-size: 8pt; color: #475569;">(${translateFrequency(i.frequency)})</span></td>
-            <td style="font-family: monospace; color: #475569;">${toArabicDigits(i.lastInspectionDate || 'غير مسجل')}</td>
-            <td style="font-family: monospace; font-weight: bold; color: #0369a1;">${toArabicDigits(i.nextDueDate)}</td>
-            <td style="font-weight: 600; color: #0f172a;">${getCleanInspectorName(i.inspectorName, i.performedByName, users)}</td>
-            <td style="text-align: center; font-weight: 600; color: #0f172a;">
-              ${translateInspectionStatus(i.status)}${i.conditionGradeGiven ? ` - الدرجة ${i.conditionGradeGiven}` : ''}
-            </td>
-            <td style="font-size: 8pt; color: #334155;">${i.findings || i.notes || '-'}</td>
-            <td style="font-size: 8pt; color: #78350f; font-weight: 600;">${i.recommendations || '-'}</td>
-            <td style="text-align: center; font-size: 8pt;">${i.reportFileName ? `📎 ${i.reportFileName}` : (i.reportFileUrl ? '📎 ملف مرفق' : '-')}</td>
+ <tr style="${bg}">
+ <td style="text-align: center; font-weight: bold; font-family: monospace;">${toArabicDigits(item.indexInSection + 1)}</td>
+ <td style="line-height: 1.45;">
+ <div style="font-weight: bold; font-family: monospace; color: #78350f; font-size: 8.5pt;">${toArabicDigits(i.unitCode)}</div>
+ <div style="font-weight: bold; color: #0f172a; font-size: 8.5pt;">${i.unitName || i.title || '-'}</div>
+ <div style="font-size: 7.5pt; color: #64748b;">${translateField(i.field)} / ${translateGovernorate(i.governorate)}</div>
+ </td>
+ <td><b>${translateInspectionType(i.inspectionType)}</b> <span style="font-size: 8pt; color: #475569;">(${translateFrequency(i.frequency)})</span></td>
+ <td style="font-family: monospace; color: #475569;">${toArabicDigits(i.lastInspectionDate || 'غير مسجل')}</td>
+ <td style="font-family: monospace; font-weight: bold; color: #0369a1;">${toArabicDigits(i.nextDueDate)}</td>
+ <td style="font-weight: 600; color: #0f172a;">${getCleanInspectorName(i.inspectorName, i.performedByName, users)}</td>
+ <td style="text-align: center; font-weight: 600; color: #0f172a;">
+ ${translateInspectionStatus(i.status)}${i.conditionGradeGiven ? ` - الدرجة ${i.conditionGradeGiven}` : ''}
+ </td>
+ <td style="font-size: 8pt; color: #334155;">${i.findings || i.notes || '-'}</td>
+ <td style="font-size: 8pt; color: #78350f; font-weight: 600;">${i.recommendations || '-'}</td>
+ <td style="text-align: center; font-size: 8pt;">${i.reportFileName ? `📎 ${i.reportFileName}` : (i.reportFileUrl ? '📎 ملف مرفق' : '-')}</td>
           </tr>
         `;
       });
       return `
-        <table>
-          <thead>
-            <tr>
-              <th style="width: 25px; text-align: center;">#</th>
-              <th style="min-width: 140px;">بيانات المنشأة والموقع</th>
-              <th>نوع ودورية الكشف</th>
-              <th>تاريخ الكشف السابق</th>
-              <th>تاريخ الاستحقاق</th>
-              <th>القائم بالكشف</th>
-              <th style="text-align: center;">الحالة والتقييم</th>
-              <th>الملاحظات والنتائج</th>
-              <th>التوصيات والإجراءات</th>
-              <th style="text-align: center;">المرفق</th>
-            </tr>
-          </thead>
-          <tbody>${rows}</tbody>
-        </table>
-      `;
+ <table>
+ <thead>
+ <tr>
+ <th style="width: 25px; text-align: center;">#</th>
+ <th style="min-width: 140px;">بيانات المنشأة والموقع</th>
+ <th>نوع ودورية الكشف</th>
+ <th>تاريخ الكشف السابق</th>
+ <th>تاريخ الاستحقاق</th>
+ <th>القائم بالكشف</th>
+ <th style="text-align: center;">الحالة والتقييم</th>
+ <th>الملاحظات والنتائج</th>
+ <th>التوصيات والإجراءات</th>
+ <th style="text-align: center;">المرفق</th>
+ </tr>
+ </thead>
+ <tbody>${rows}</tbody>
+ </table>
+ `;
     }
 
     if (page.sectionKey === 'maintenance') {
@@ -1489,58 +1489,58 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
         const m = item.data;
         const bg = idx % 2 === 1 ? 'background-color: #f8fafc;' : 'background-color: #ffffff;';
         rows += `
-          <tr style="${bg}">
-            <td style="text-align: center; font-weight: bold; font-family: monospace;">${toArabicDigits(item.indexInSection + 1)}</td>
-            <td style="font-weight: bold; font-family: monospace; color: #78350f;">${toArabicDigits(m.id)}</td>
-            <td style="line-height: 1.45;">
-              <div style="font-weight: bold; font-family: monospace; color: #78350f; font-size: 8.5pt;">${toArabicDigits(m.unitCode)}</div>
-              ${m.roomCode ? `
+ <tr style="${bg}">
+ <td style="text-align: center; font-weight: bold; font-family: monospace;">${toArabicDigits(item.indexInSection + 1)}</td>
+ <td style="font-weight: bold; font-family: monospace; color: #78350f;">${toArabicDigits(m.id)}</td>
+ <td style="line-height: 1.45;">
+ <div style="font-weight: bold; font-family: monospace; color: #78350f; font-size: 8.5pt;">${toArabicDigits(m.unitCode)}</div>
+ ${m.roomCode ? `
                 <div style="display: inline-block; background-color: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; border-radius: 3px; padding: 1px 4px; font-size: 7.5pt; font-weight: bold; font-family: monospace; margin-top: 2px;">
                   🚪 غرفة: ${toArabicDigits(m.roomCode)}
                 </div>
               ` : ''}
-            </td>
-            <td style="font-weight: bold; color: #78350f;">${m.maintenanceDepartment || 'الصيانة العامة'}</td>
-            <td style="font-weight: 600; color: #0f172a;">${m.issue}</td>
-            <td>${translateField(m.field)}</td>
-            <td style="text-align: center; font-weight: bold;">${translatePriority(m.priority)}</td>
-            <td style="font-weight: 600; color: #0f172a;">${getCleanReporterName(m.reportedBy)}</td>
-            <td style="font-family: monospace;">${formatDateOnly(m.createdAt)}</td>
-            <td style="font-family: monospace;">${getCompletionOrCancellationDate(m.completedAt, m.status)}</td>
-            <td style="text-align: center; font-size: 8pt;">${
-              m.attachments && m.attachments.length > 1
-                ? `📷 ${toArabicDigits(m.attachments.length)} مرفقات`
+ </td>
+ <td style="font-weight: bold; color: #78350f;">${m.maintenanceDepartment || 'الصيانة العامة'}</td>
+ <td style="font-weight: 600; color: #0f172a;">${m.issue}</td>
+ <td>${translateField(m.field)}</td>
+ <td style="text-align: center; font-weight: bold;">${translatePriority(m.priority)}</td>
+ <td style="font-weight: 600; color: #0f172a;">${getCleanReporterName(m.reportedBy)}</td>
+ <td style="font-family: monospace;">${formatDateOnly(m.createdAt)}</td>
+ <td style="font-family: monospace;">${getCompletionOrCancellationDate(m.completedAt, m.status)}</td>
+ <td style="text-align: center; font-size: 8pt;">${
+ m.attachments && m.attachments.length > 1
+ ? `📷 ${toArabicDigits(m.attachments.length)} مرفقات`
                 : m.attachmentName
                 ? `📷 ${m.attachmentName}`
-                : m.attachmentUrl
-                ? '📷 صورة مرفقة'
-                : '-'
-            }</td>
-            <td style="text-align: center; font-weight: bold; color: #78350f;">${translateMaintenanceStatus(m.status)}</td>
-          </tr>
-        `;
+ : m.attachmentUrl
+ ? '📷 صورة مرفقة'
+ : '-'
+ }</td>
+ <td style="text-align: center; font-weight: bold; color: #78350f;">${translateMaintenanceStatus(m.status)}</td>
+ </tr>
+ `;
       });
       return `
-        <table>
-          <thead>
-            <tr>
-              <th style="width: 25px; text-align: center;">#</th>
-              <th>رقم الطلب</th>
-              <th>رمز المنشأة</th>
-              <th>جهة الصيانة</th>
-              <th>وصف العطل / البلاغ</th>
-              <th>الحقل</th>
-              <th style="text-align: center;">درجة الأهمية</th>
-              <th>محرر الطلب</th>
-              <th>تاريخ البلاغ</th>
-              <th>تاريخ الإنجاز/الإلغاء</th>
-              <th style="text-align: center;">المرفق / الصورة</th>
-              <th style="text-align: center;">حالة البلاغ</th>
-            </tr>
-          </thead>
-          <tbody>${rows}</tbody>
-        </table>
-      `;
+ <table>
+ <thead>
+ <tr>
+ <th style="width: 25px; text-align: center;">#</th>
+ <th>رقم الطلب</th>
+ <th>رمز المنشأة</th>
+ <th>جهة الصيانة</th>
+ <th>وصف العطل / البلاغ</th>
+ <th>الحقل</th>
+ <th style="text-align: center;">درجة الأهمية</th>
+ <th>محرر الطلب</th>
+ <th>تاريخ البلاغ</th>
+ <th>تاريخ الإنجاز/الإلغاء</th>
+ <th style="text-align: center;">المرفق / الصورة</th>
+ <th style="text-align: center;">حالة البلاغ</th>
+ </tr>
+ </thead>
+ <tbody>${rows}</tbody>
+ </table>
+ `;
     }
 
     if (page.sectionKey === 'units') {
@@ -1551,51 +1551,51 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
         const stats = getUnitOccupancyStats(u, selectedOrgEntity);
         const bg = idx % 2 === 1 ? 'background-color: #f8fafc;' : 'background-color: #ffffff;';
         rows += `
-          <tr style="${bg}">
-            <td style="text-align: center; font-weight: bold; font-family: monospace;">${toArabicDigits(item.indexInSection + 1)}</td>
-            <td style="font-weight: bold; font-family: monospace; color: #78350f;">
-              <div>${toArabicDigits(u.code)}</div>
-              ${u.fixedAssetCode ? `<div style="font-size: 10px; color: #4338ca; font-weight: bold; margin-top: 2px;">أصل: ${u.fixedAssetCode}</div>` : ''}
-            </td>
-            <td style="font-weight: bold; color: #0f172a;">${u.name}</td>
-            <td>
-              <div style="font-weight: bold; color: #0f172a;">${translateGovernorate(u.governorate) || u.governorate}</div>
-              <div style="font-size: 8.5pt; color: #64748b;">${translateField(u.field) || u.field}</div>
-            </td>
-            <td>${translateUnitType(u.type)}</td>
-            <td style="font-weight: 600; font-size: 8.5pt;">
-              ${stats.allOccupants && stats.allOccupants.length > 0 ? stats.allOccupants.map((occ: string) => `<div style="margin-bottom: 2px;">• ${occ}</div>`).join('') : (stats.entity || 'عام / غير محدد')}
-            </td>
-            <td style="text-align: center; font-weight: bold; font-family: monospace; color: #059669;">${toArabicDigits(stats.occupiedRoomsCount)}</td>
-            <td style="text-align: center; font-weight: bold; font-family: monospace; color: #d97706;">${stats.vacantRoomsCount > 0 ? `${toArabicDigits(stats.vacantRoomsCount)} فارغة` : '0'}</td>
-            <td style="text-align: center; font-family: monospace;">${toArabicDigits(stats.totalRooms)}</td>
-            <td style="font-family: monospace;">${toArabicDigits(u.constructionYear)}</td>
-            <td style="font-family: monospace;">${u.totalAreaSqM ? `${toArabicDigits(u.totalAreaSqM)} م²` : '-'}</td>
-            <td style="text-align: center; font-weight: 600; color: #0f172a;">${formatGradeArabic(u.conditionGrade)}</td>
-          </tr>
-        `;
+ <tr style="${bg}">
+ <td style="text-align: center; font-weight: bold; font-family: monospace;">${toArabicDigits(item.indexInSection + 1)}</td>
+ <td style="font-weight: bold; font-family: monospace; color: #78350f;">
+ <div>${toArabicDigits(u.code)}</div>
+ ${u.fixedAssetCode ? `<div style="font-size: 10px; color: #4338ca; font-weight: bold; margin-top: 2px;">أصل: ${u.fixedAssetCode}</div>` : ''}
+ </td>
+ <td style="font-weight: bold; color: #0f172a;">${u.name}</td>
+ <td>
+ <div style="font-weight: bold; color: #0f172a;">${translateGovernorate(u.governorate) || u.governorate}</div>
+ <div style="font-size: 8.5pt; color: #64748b;">${translateField(u.field) || u.field}</div>
+ </td>
+ <td>${translateUnitType(u.type)}</td>
+ <td style="font-weight: 600; font-size: 8.5pt;">
+ ${stats.allOccupants && stats.allOccupants.length > 0 ? stats.allOccupants.map((occ: string) => `<div style="margin-bottom: 2px;">• ${occ}</div>`).join('') : (stats.entity || 'عام / غير محدد')}
+ </td>
+ <td style="text-align: center; font-weight: bold; font-family: monospace; color: #059669;">${toArabicDigits(stats.occupiedRoomsCount)}</td>
+ <td style="text-align: center; font-weight: bold; font-family: monospace; color: #d97706;">${stats.vacantRoomsCount > 0 ? `${toArabicDigits(stats.vacantRoomsCount)} فارغة` : '0'}</td>
+ <td style="text-align: center; font-family: monospace;">${toArabicDigits(stats.totalRooms)}</td>
+ <td style="font-family: monospace;">${toArabicDigits(u.constructionYear)}</td>
+ <td style="font-family: monospace;">${u.totalAreaSqM ? `${toArabicDigits(u.totalAreaSqM)} م²` : '-'}</td>
+ <td style="text-align: center; font-weight: 600; color: #0f172a;">${formatGradeArabic(u.conditionGrade)}</td>
+ </tr>
+ `;
       });
       return `
-        <table>
-          <thead>
-            <tr>
-              <th style="width: 25px; text-align: center;">#</th>
-              <th>رمز المنشأة</th>
-              <th>اسم المنشأة</th>
-              <th>المحافظة والحقل</th>
-              <th>نوع المنشأة</th>
-              <th>الجهة الشاغلة</th>
-              <th style="text-align: center;">المشغولة</th>
-              <th style="text-align: center;">الشاغرة (فارغة)</th>
-              <th style="text-align: center;">الإجمالي</th>
-              <th>سنة الإنشاء</th>
-              <th>المساحة (م²)</th>
-              <th style="text-align: center;">التقييم</th>
-            </tr>
-          </thead>
-          <tbody>${rows}</tbody>
-        </table>
-      `;
+ <table>
+ <thead>
+ <tr>
+ <th style="width: 25px; text-align: center;">#</th>
+ <th>رمز المنشأة</th>
+ <th>اسم المنشأة</th>
+ <th>المحافظة والحقل</th>
+ <th>نوع المنشأة</th>
+ <th>الجهة الشاغلة</th>
+ <th style="text-align: center;">المشغولة</th>
+ <th style="text-align: center;">الشاغرة (فارغة)</th>
+ <th style="text-align: center;">الإجمالي</th>
+ <th>سنة الإنشاء</th>
+ <th>المساحة (م²)</th>
+ <th style="text-align: center;">التقييم</th>
+ </tr>
+ </thead>
+ <tbody>${rows}</tbody>
+ </table>
+ `;
     }
 
     // Decommissioned Units Section Table
@@ -1605,37 +1605,37 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
       const d = item.data;
       const bg = idx % 2 === 1 ? 'background-color: #fff1f2;' : 'background-color: #ffffff;';
       rows += `
-        <tr style="${bg}">
-          <td style="text-align: center; font-weight: bold; font-family: monospace;">${toArabicDigits(item.indexInSection + 1)}</td>
-          <td style="font-weight: bold; font-family: monospace; color: #9f1239;">${toArabicDigits(d.code)}</td>
-          <td style="font-weight: bold; color: #0f172a;">${d.name}</td>
-          <td>${translateField(d.field)} / ${translateGovernorate(d.governorate)}</td>
-          <td>${d.department}</td>
-          <td style="font-family: monospace;">${toArabicDigits(d.constructionYear)}</td>
-          <td style="font-family: monospace; font-weight: bold; color: #881337;">${toArabicDigits(d.decommissionedAt || '2026')}</td>
-          <td style="font-size: 8pt;">${d.decommissionReason || 'محضر لجان فنية وشطب هندسي'}</td>
-          <td style="text-align: center; font-weight: bold; color: #9f1239;">مشطوبة ومجمدة</td>
-        </tr>
-      `;
+ <tr style="${bg}">
+ <td style="text-align: center; font-weight: bold; font-family: monospace;">${toArabicDigits(item.indexInSection + 1)}</td>
+ <td style="font-weight: bold; font-family: monospace; color: #9f1239;">${toArabicDigits(d.code)}</td>
+ <td style="font-weight: bold; color: #0f172a;">${d.name}</td>
+ <td>${translateField(d.field)} / ${translateGovernorate(d.governorate)}</td>
+ <td>${d.department}</td>
+ <td style="font-family: monospace;">${toArabicDigits(d.constructionYear)}</td>
+ <td style="font-family: monospace; font-weight: bold; color: #881337;">${toArabicDigits(d.decommissionedAt || '2026')}</td>
+ <td style="font-size: 8pt;">${d.decommissionReason || 'محضر لجان فنية وشطب هندسي'}</td>
+ <td style="text-align: center; font-weight: bold; color: #9f1239;">مشطوبة ومجمدة</td>
+ </tr>
+ `;
     });
     return `
-      <table>
-        <thead>
-          <tr style="background-color: #ffe4e6; color: #881337;">
-            <th style="width: 30px; text-align: center;">#</th>
-            <th>رمز المنشأة</th>
-            <th>اسم المنشأة</th>
-            <th>الحقل / المحافظة</th>
-            <th>الجهة الشاغلة السابقة</th>
-            <th>سنة الإنشاء</th>
-            <th>تاريخ الشطب</th>
-            <th>سبب الشطب والتجميد</th>
-            <th style="text-align: center;">الحالة الرسمية</th>
-          </tr>
-        </thead>
-        <tbody>${rows}</tbody>
-      </table>
-    `;
+ <table>
+ <thead>
+ <tr style="background-color: #ffe4e6; color: #881337;">
+ <th style="width: 30px; text-align: center;">#</th>
+ <th>رمز المنشأة</th>
+ <th>اسم المنشأة</th>
+ <th>الحقل / المحافظة</th>
+ <th>الجهة الشاغلة السابقة</th>
+ <th>سنة الإنشاء</th>
+ <th>تاريخ الشطب</th>
+ <th>سبب الشطب والتجميد</th>
+ <th style="text-align: center;">الحالة الرسمية</th>
+ </tr>
+ </thead>
+ <tbody>${rows}</tbody>
+ </table>
+ `;
   }, [
     translateField,
     translateGovernorate,
@@ -1693,10 +1693,10 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
             .join('')}
         </div>
       ` : `
-        <div class="continuation-header">
-          <div>
-            <b>${companyName}</b> | <span style="color: #78350f; font-weight: bold;">${reportTitle}</span>
-            ${page.sectionNumberText ? ` - <b>${page.sectionNumberText}: ${page.sectionTitle}</b>` : ''}
+ <div class="continuation-header">
+ <div>
+ <b>${companyName}</b> | <span style="color: #78350f; font-weight: bold;">${reportTitle}</span>
+ ${page.sectionNumberText ? ` - <b>${page.sectionNumberText}: ${page.sectionTitle}</b>` : ''}
           </div>
           <div>تاريخ الطباعة: <b>${printTimestamp}</b></div>
         </div>
@@ -1736,270 +1736,270 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
     return `<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="utf-8">
-  <title>${reportTitle} - ${companyName}</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap');
-    
-    @page {
-      size: A4 landscape;
-      margin: 8mm;
-    }
-    
-    * {
-      box-sizing: border-box;
-      -webkit-print-color-adjust: exact !important;
-      print-color-adjust: exact !important;
-    }
-    
-    body {
-      margin: 0;
-      padding: 0;
-      background-color: #f1f5f9;
-      color: #0f172a;
-      font-family: 'Cairo', system-ui, -apple-system, sans-serif;
-      font-size: 9.5pt;
-      line-height: 1.4;
-      direction: rtl;
-    }
-    
-    /* Screen Toolbar */
-    .top-action-bar {
-      position: sticky;
-      top: 0;
-      z-index: 1000;
-      background-color: #0f172a;
-      color: #ffffff;
-      padding: 12px 24px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    }
-    .top-action-bar button {
-      cursor: pointer;
-      font-family: 'Cairo', sans-serif;
-      font-weight: 800;
-      font-size: 13px;
-      padding: 8px 18px;
-      border-radius: 8px;
-      border: none;
-      transition: all 0.2s ease;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .btn-print {
-      background-color: #f59e0b;
-      color: #0f172a;
-    }
-    .btn-print:hover {
-      background-color: #d97706;
-    }
-    .btn-close {
-      background-color: #334155;
-      color: #ffffff;
-    }
-    .btn-close:hover {
-      background-color: #475569;
-    }
-    
-    /* Page Container */
-    .sheet-page {
-      background: #ffffff;
-      width: 297mm;
-      min-height: 210mm;
-      margin: 16px auto;
-      padding: 8mm 10mm;
-      border-radius: 6px;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-    }
-    
-    .page-body {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-    
-    /* Header Styles */
-    .official-header {
-      border-bottom: 2px solid #0f172a;
-      padding-bottom: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .header-right {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    .logo-img {
-      width: 55px;
-      height: 55px;
-      object-fit: contain;
-    }
-    .logo-fallback {
-      width: 48px;
-      height: 48px;
-      background: #fef3c7;
-      border: 1px solid #d97706;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 900;
-      color: #78350f;
-      font-size: 16px;
-    }
-    .country-line { font-size: 8.5pt; font-weight: 700; color: #475569; }
-    .company-line { font-size: 13pt; font-weight: 900; color: #78350f; margin: 2px 0; }
-    .system-line { font-size: 8.5pt; font-weight: 700; color: #1e293b; }
-    .header-left {
-      text-align: left;
-      font-size: 8.5pt;
-      font-family: monospace;
-      line-height: 1.5;
-    }
-    
-    .continuation-header {
-      border-bottom: 1px solid #94a3b8;
-      padding: 6px 10px;
-      background-color: #f8fafc;
-      border-radius: 4px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-size: 8.5pt;
-    }
-    
-    /* Banners & KPIs */
-    .filters-banner {
-      background: #f1f5f9;
-      border: 1px solid #cbd5e1;
-      padding: 5px 8px;
-      border-radius: 4px;
-      font-size: 8pt;
-    }
-    .kpi-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 8px;
-      text-align: center;
-    }
-    .kpi-box {
-      border: 1px solid #cbd5e1;
-      border-radius: 4px;
-      background: #f8fafc;
-      padding: 4px 6px;
-    }
-    .kpi-label { font-size: 7.5pt; color: #475569; font-weight: bold; }
-    .kpi-val { font-size: 11pt; font-weight: 900; color: #0f172a; }
-    
-    /* Section Badge */
-    .section-banner {
-      border-bottom: 1px solid #cbd5e1;
-      padding-bottom: 4px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-top: 4px;
-    }
-    .section-title { font-size: 9.5pt; font-weight: 900; color: #0f172a; }
-    .section-count { font-size: 8pt; color: #64748b; font-family: monospace; }
-    
-    /* Tables */
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 7.5pt;
-      text-align: right;
-    }
-    th, td {
-      border: 1px solid #94a3b8;
-      padding: 3px 5px;
-    }
-    th {
-      background-color: #e2e8f0;
-      color: #0f172a;
-      font-weight: 800;
-    }
-    
-    /* Footer */
-    .official-footer {
-      border-top: 1px solid #cbd5e1;
-      padding-top: 6px;
-      margin-top: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-size: 7.5pt;
-      color: #64748b;
-    }
-    
-    /* Print Rules */
-    @media print {
-      body {
-        background: #ffffff !important;
-        padding: 0 !important;
-      }
-      .top-action-bar {
-        display: none !important;
-      }
-      .sheet-page {
-        margin: 0 !important;
-        padding: 0 !important;
-        box-shadow: none !important;
-        border-radius: 0 !important;
-        width: 100% !important;
-        min-height: 190mm !important;
-      }
-      .page-break {
-        page-break-after: always !important;
-        break-after: page !important;
-      }
-      tr {
-        page-break-inside: avoid !important;
-        break-inside: avoid !important;
-      }
-    }
-  </style>
+ <meta charset="utf-8">
+ <title>${reportTitle} - ${companyName}</title>
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <style>
+ @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap');
+ 
+ @page {
+ size: A4 landscape;
+ margin: 8mm;
+ }
+ 
+ * {
+ box-sizing: border-box;
+ -webkit-print-color-adjust: exact !important;
+ print-color-adjust: exact !important;
+ }
+ 
+ body {
+ margin: 0;
+ padding: 0;
+ background-color: #f1f5f9;
+ color: #0f172a;
+ font-family: 'Cairo', system-ui, -apple-system, sans-serif;
+ font-size: 9.5pt;
+ line-height: 1.4;
+ direction: rtl;
+ }
+ 
+ /* Screen Toolbar */
+ .top-action-bar {
+ position: sticky;
+ top: 0;
+ z-index: 1000;
+ background-color: #0f172a;
+ color: #ffffff;
+ padding: 12px 24px;
+ display: flex;
+ align-items: center;
+ justify-content: space-between;
+ box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+ }
+ .top-action-bar button {
+ cursor: pointer;
+ font-family: 'Cairo', sans-serif;
+ font-weight: 800;
+ font-size: 13px;
+ padding: 8px 18px;
+ border-radius: 8px;
+ border: none;
+ transition: all 0.2s ease;
+ display: inline-flex;
+ align-items: center;
+ gap: 8px;
+ }
+ .btn-print {
+ background-color: #f59e0b;
+ color: #0f172a;
+ }
+ .btn-print:hover {
+ background-color: #d97706;
+ }
+ .btn-close {
+ background-color: #334155;
+ color: #ffffff;
+ }
+ .btn-close:hover {
+ background-color: #475569;
+ }
+ 
+ /* Page Container */
+ .sheet-page {
+ background: #ffffff;
+ width: 297mm;
+ min-height: 210mm;
+ margin: 16px auto;
+ padding: 8mm 10mm;
+ border-radius: 6px;
+ box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+ display: flex;
+ flex-direction: column;
+ justify-content: space-between;
+ }
+ 
+ .page-body {
+ flex: 1;
+ display: flex;
+ flex-direction: column;
+ gap: 10px;
+ }
+ 
+ /* Header Styles */
+ .official-header {
+ border-bottom: 2px solid #0f172a;
+ padding-bottom: 8px;
+ display: flex;
+ align-items: center;
+ justify-content: space-between;
+ }
+ .header-right {
+ display: flex;
+ align-items: center;
+ gap: 12px;
+ }
+ .logo-img {
+ width: 55px;
+ height: 55px;
+ object-fit: contain;
+ }
+ .logo-fallback {
+ width: 48px;
+ height: 48px;
+ background: #fef3c7;
+ border: 1px solid #d97706;
+ border-radius: 8px;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ font-weight: 900;
+ color: #78350f;
+ font-size: 16px;
+ }
+ .country-line { font-size: 8.5pt; font-weight: 700; color: #475569; }
+ .company-line { font-size: 13pt; font-weight: 900; color: #78350f; margin: 2px 0; }
+ .system-line { font-size: 8.5pt; font-weight: 700; color: #1e293b; }
+ .header-left {
+ text-align: left;
+ font-size: 8.5pt;
+ font-family: monospace;
+ line-height: 1.5;
+ }
+ 
+ .continuation-header {
+ border-bottom: 1px solid #94a3b8;
+ padding: 6px 10px;
+ background-color: #f8fafc;
+ border-radius: 4px;
+ display: flex;
+ align-items: center;
+ justify-content: space-between;
+ font-size: 8.5pt;
+ }
+ 
+ /* Banners & KPIs */
+ .filters-banner {
+ background: #f1f5f9;
+ border: 1px solid #cbd5e1;
+ padding: 5px 8px;
+ border-radius: 4px;
+ font-size: 8pt;
+ }
+ .kpi-grid {
+ display: grid;
+ grid-template-columns: repeat(4, 1fr);
+ gap: 8px;
+ text-align: center;
+ }
+ .kpi-box {
+ border: 1px solid #cbd5e1;
+ border-radius: 4px;
+ background: #f8fafc;
+ padding: 4px 6px;
+ }
+ .kpi-label { font-size: 7.5pt; color: #475569; font-weight: bold; }
+ .kpi-val { font-size: 11pt; font-weight: 900; color: #0f172a; }
+ 
+ /* Section Badge */
+ .section-banner {
+ border-bottom: 1px solid #cbd5e1;
+ padding-bottom: 4px;
+ display: flex;
+ align-items: center;
+ justify-content: space-between;
+ margin-top: 4px;
+ }
+ .section-title { font-size: 9.5pt; font-weight: 900; color: #0f172a; }
+ .section-count { font-size: 8pt; color: #64748b; font-family: monospace; }
+ 
+ /* Tables */
+ table {
+ width: 100%;
+ border-collapse: collapse;
+ font-size: 7.5pt;
+ text-align: right;
+ }
+ th, td {
+ border: 1px solid #94a3b8;
+ padding: 3px 5px;
+ }
+ th {
+ background-color: #e2e8f0;
+ color: #0f172a;
+ font-weight: 800;
+ }
+ 
+ /* Footer */
+ .official-footer {
+ border-top: 1px solid #cbd5e1;
+ padding-top: 6px;
+ margin-top: 8px;
+ display: flex;
+ align-items: center;
+ justify-content: space-between;
+ font-size: 7.5pt;
+ color: #64748b;
+ }
+ 
+ /* Print Rules */
+ @media print {
+ body {
+ background: #ffffff !important;
+ padding: 0 !important;
+ }
+ .top-action-bar {
+ display: none !important;
+ }
+ .sheet-page {
+ margin: 0 !important;
+ padding: 0 !important;
+ box-shadow: none !important;
+ border-radius: 0 !important;
+ width: 100% !important;
+ min-height: 190mm !important;
+ }
+ .page-break {
+ page-break-after: always !important;
+ break-after: page !important;
+ }
+ tr {
+ page-break-inside: avoid !important;
+ break-inside: avoid !important;
+ }
+ }
+ </style>
 </head>
 <body>
-  <div class="top-action-bar">
-    <div style="font-weight: 900; font-size: 14px; display: flex; align-items: center; gap: 8px;">
-      <span>📑 وثيقة التقرير الرسمي: ${reportTitle}</span>
-      <span style="background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 4px; font-size: 11px;">${toArabicDigits(totalPages)} صفحات A4</span>
-    </div>
-    <div style="display: flex; align-items: center; gap: 10px;">
-      <button class="btn-print" onclick="window.focus(); window.print();">
-        🖨️ طباعة المستند الآن (Ctrl + P)
-      </button>
-      <button class="btn-close" onclick="window.close();">
-        ❌ إغلاق النافذة
-      </button>
-    </div>
-  </div>
-  
-  ${pagesHtml}
+ <div class="top-action-bar">
+ <div style="font-weight: 900; font-size: 14px; display: flex; align-items: center; gap: 8px;">
+ <span>📑 وثيقة التقرير الرسمي: ${reportTitle}</span>
+ <span style="background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 4px; font-size: 11px;">${toArabicDigits(totalPages)} صفحات A4</span>
+ </div>
+ <div style="display: flex; align-items: center; gap: 10px;">
+ <button class="btn-print" onclick="window.focus(); window.print();">
+ 🖨️ طباعة المستند الآن (Ctrl + P)
+ </button>
+ <button class="btn-close" onclick="window.close();">
+ ❌ إغلاق النافذة
+ </button>
+ </div>
+ </div>
+ 
+ ${pagesHtml}
 
-  <script>
-    window.addEventListener('DOMContentLoaded', function() {
-      setTimeout(function() {
-        try {
-          window.focus();
-          window.print();
-        } catch(e) {
-          console.error(e);
-        }
-      }, 500);
-    });
-  </script>
+ <script>
+ window.addEventListener('DOMContentLoaded', function() {
+ setTimeout(function() {
+ try {
+ window.focus();
+ window.print();
+ } catch(e) {
+ console.error(e);
+ }
+ }, 500);
+ });
+ </script>
 </body>
 </html>`;
   }, [
@@ -2141,12 +2141,12 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
               if (item.type !== 'inspection') return null;
               const i = item.data;
               return (
-                <tr key={`insp-row-${i.id}`} className={rowIdx % 2 === 1 ? 'bg-slate-50' : 'bg-white'}>
+                <tr key={`insp-row-${i.id}`} className={rowIdx % 2 === 1 ? 'bg-slate-50' : 'bg-card'}>
                   <td className="border border-slate-400 p-1.5 text-center font-mono font-bold text-slate-700">
                     {toArabicDigits(item.indexInSection + 1)}
                   </td>
                   <td className="border border-slate-400 p-1.5 leading-snug">
-                    <div className="font-bold font-mono text-amber-900 text-[10px]">{toArabicDigits(i.unitCode)}</div>
+                    <div className="font-bold font-mono text-brand-800 text-[10px]">{toArabicDigits(i.unitCode)}</div>
                     <div className="font-bold text-slate-900 text-[9.5px]">{i.unitName || i.title || '-'}</div>
                     <div className="text-[8.5px] text-slate-600">{translateField(i.field)} / {translateGovernorate(i.governorate)}</div>
                   </td>
@@ -2170,7 +2170,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                   <td className="border border-slate-400 p-1.5 text-[8.5px] max-w-[130px] truncate" title={i.findings || i.notes}>
                     {i.findings || i.notes || '-'}
                   </td>
-                  <td className="border border-slate-400 p-1.5 text-[8.5px] max-w-[130px] font-semibold text-amber-900 truncate" title={i.recommendations}>
+                  <td className="border border-slate-400 p-1.5 text-[8.5px] max-w-[130px] font-semibold text-brand-800 truncate" title={i.recommendations}>
                     {i.recommendations || '-'}
                   </td>
                   <td className="border border-slate-400 p-1.5 text-center whitespace-nowrap">
@@ -2195,7 +2195,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                         <span>معاينة</span>
                       </button>
                     ) : (
-                      <span className="text-slate-400">-</span>
+                      <span className="text-slate-500">-</span>
                     )}
                   </td>
                 </tr>
@@ -2230,22 +2230,22 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
               if (item.type !== 'maintenance') return null;
               const m = item.data;
               return (
-                <tr key={`maint-row-${m.id}`} className={rowIdx % 2 === 1 ? 'bg-slate-50' : 'bg-white'}>
+                <tr key={`maint-row-${m.id}`} className={rowIdx % 2 === 1 ? 'bg-slate-50' : 'bg-card'}>
                   <td className="border border-slate-400 p-1.5 text-center font-mono font-bold text-slate-700">
                     {toArabicDigits(item.indexInSection + 1)}
                   </td>
-                  <td className="border border-slate-400 p-1.5 font-bold font-mono text-amber-900">
+                  <td className="border border-slate-400 p-1.5 font-bold font-mono text-brand-800">
                     {toArabicDigits(m.id)}
                   </td>
                   <td className="border border-slate-400 p-1.5 leading-snug">
-                    <div className="font-mono font-bold text-amber-900">{toArabicDigits(m.unitCode)}</div>
+                    <div className="font-mono font-bold text-brand-800">{toArabicDigits(m.unitCode)}</div>
                     {m.roomCode && (
-                      <div className="inline-block mt-0.5 px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-300 text-[8.5px] font-bold font-mono">
+                      <div className="inline-block mt-0.5 px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200 text-[8.5px] font-bold font-mono">
                         🚪 غرفة: {toArabicDigits(m.roomCode)}
                       </div>
                     )}
                   </td>
-                  <td className="border border-slate-400 p-1.5 font-semibold text-amber-900">
+                  <td className="border border-slate-400 p-1.5 font-semibold text-brand-800">
                     {m.maintenanceDepartment || 'الصيانة العامة'}
                   </td>
                   <td className="border border-slate-400 p-1.5 font-semibold text-slate-900">
@@ -2283,7 +2283,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                           : [];
 
                       if (reqAttachments.length === 0) {
-                        return <span className="text-slate-400">-</span>;
+                        return <span className="text-slate-500">-</span>;
                       }
 
                       if (reqAttachments.length === 1) {
@@ -2307,7 +2307,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                                 unitCode: m.unitCode,
                               });
                             }}
-                            className="text-amber-800 hover:text-amber-950 font-bold underline cursor-pointer text-[9px] inline-flex items-center gap-1"
+                            className="text-brand-800 hover:text-brand-800 font-bold underline cursor-pointer text-[9px] inline-flex items-center gap-1"
                             title="معاينة الصورة المرفقة"
                           >
                             <Eye className="w-3 h-3" />
@@ -2333,7 +2333,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                               unitCode: m.unitCode,
                             });
                           }}
-                          className="text-amber-800 hover:text-amber-950 font-bold underline cursor-pointer text-[9px] inline-flex items-center gap-1 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-300"
+                          className="text-brand-800 hover:text-brand-800 font-bold underline cursor-pointer text-[9px] inline-flex items-center gap-1 bg-brand-50 px-1.5 py-0.5 rounded border border-brand-200"
                           title="عرض جميع الصور المحملة مع الطلب"
                         >
                           <Layers className="w-3 h-3" />
@@ -2342,7 +2342,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                       );
                     })()}
                   </td>
-                  <td className="border border-slate-400 p-1.5 text-center font-bold text-amber-900">
+                  <td className="border border-slate-400 p-1.5 text-center font-bold text-brand-800">
                     {translateMaintenanceStatus(m.status)}
                   </td>
                 </tr>
@@ -2365,7 +2365,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
               <th className="border border-slate-400 p-1.5">نوع المنشأة</th>
               <th className="border border-slate-400 p-1.5">الجهة الشاغلة</th>
               <th className="border border-slate-400 p-1.5 text-center font-bold text-emerald-800">المشغولة</th>
-              <th className="border border-slate-400 p-1.5 text-center font-bold text-amber-800">الشاغرة (فارغة)</th>
+              <th className="border border-slate-400 p-1.5 text-center font-bold text-brand-800">الشاغرة (فارغة)</th>
               <th className="border border-slate-400 p-1.5 text-center">إجمالي الغرف</th>
               <th className="border border-slate-400 p-1.5 font-mono">سنة الإنشاء</th>
               <th className="border border-slate-400 p-1.5 font-mono">المساحة (م²)</th>
@@ -2378,11 +2378,11 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
               const u = item.data;
               const stats = getUnitOccupancyStats(u, selectedOrgEntity);
               return (
-                <tr key={`unit-row-${u.id}`} className={rowIdx % 2 === 1 ? 'bg-slate-50' : 'bg-white'}>
+                <tr key={`unit-row-${u.id}`} className={rowIdx % 2 === 1 ? 'bg-slate-50' : 'bg-card'}>
                   <td className="border border-slate-400 p-1.5 text-center font-mono font-bold text-slate-700">
                     {toArabicDigits(item.indexInSection + 1)}
                   </td>
-                  <td className="border border-slate-400 p-1.5 font-bold font-mono text-amber-900">
+                  <td className="border border-slate-400 p-1.5 font-bold font-mono text-brand-800">
                     <div>{toArabicDigits(u.code)}</div>
                     {u.fixedAssetCode && (
                       <div className="text-[9.5px] text-indigo-700 font-bold tracking-tight mt-0.5">
@@ -2405,7 +2405,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                       <div className="space-y-0.5">
                         {stats.allOccupants.map((occ: string, oIdx: number) => (
                           <div key={oIdx} className="leading-tight flex items-start gap-1">
-                            <span className="text-amber-700 font-bold">•</span>
+                            <span className="text-brand-700 font-bold">•</span>
                             <span>{occ}</span>
                           </div>
                         ))}
@@ -2417,7 +2417,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                   <td className="border border-slate-400 p-1.5 text-center font-mono font-bold text-emerald-800">
                     {toArabicDigits(stats.occupiedRoomsCount)}
                   </td>
-                  <td className="border border-slate-400 p-1.5 text-center font-mono font-bold text-amber-800">
+                  <td className="border border-slate-400 p-1.5 text-center font-mono font-bold text-brand-800">
                     {stats.vacantRoomsCount > 0 ? `${toArabicDigits(stats.vacantRoomsCount)} فارغة` : '0'}
                   </td>
                   <td className="border border-slate-400 p-1.5 text-center font-mono text-slate-700">
@@ -2443,7 +2443,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
     // Decommissioned Units Table
     return (
       <table className="w-full border-collapse border border-slate-400 text-[9.5px] text-right">
-        <thead className="bg-rose-100 font-bold text-rose-950">
+        <thead className="bg-rose-100 font-bold text-rose-900">
           <tr>
             <th className="border border-slate-400 p-1.5 w-9 text-center">#</th>
             <th className="border border-slate-400 p-1.5 font-mono">رمز المنشأة</th>
@@ -2461,7 +2461,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
             if (item.type !== 'decommissioned') return null;
             const d = item.data;
             return (
-              <tr key={`decom-row-${d.id}`} className={rowIdx % 2 === 1 ? 'bg-rose-50/70' : 'bg-white'}>
+              <tr key={`decom-row-${d.id}`} className={rowIdx % 2 === 1 ? 'bg-rose-50/70' : 'bg-card'}>
                 <td className="border border-slate-400 p-1.5 text-center font-mono font-bold text-slate-700">
                   {toArabicDigits(item.indexInSection + 1)}
                 </td>
@@ -2501,84 +2501,84 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
     <div className="space-y-5">
       {/* Global Embedded Print CSS for Direct Multi-Page A4 Landscape Printing */}
       <style>{`
-        @media print {
-          @page {
-            size: A4 landscape;
-            margin: 8mm;
-          }
-          * {
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
-          }
-          html, body {
-            background: #ffffff !important;
-            color: #0f172a !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            height: auto !important;
-            min-height: auto !important;
-            overflow: visible !important;
-            font-family: 'Cairo', system-ui, -apple-system, sans-serif !important;
-          }
-          /* Hide non-printable app UI elements */
-          aside,
-          nav,
-          header,
-          button,
-          input,
-          select,
-          .print-hidden-element,
-          .print-modal-overlay,
-          .print-modal-header,
-          .reports-screen-ui {
-            display: none !important;
-          }
-          /* Ensure printable container is shown cleanly */
-          #full-official-report-printable {
-            display: block !important;
-            position: static !important;
-            width: 100% !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            background: #ffffff !important;
-          }
-          .print-page-sheet {
-            display: flex !important;
-            flex-direction: column !important;
-            justify-content: space-between !important;
-            width: 100% !important;
-            min-height: 185mm !important;
-            page-break-inside: avoid !important;
-            break-inside: avoid !important;
-          }
-          .page-break {
-            page-break-after: always !important;
-            break-after: page !important;
-          }
-          table {
-            width: 100% !important;
-            border-collapse: collapse !important;
-          }
-          tr {
-            page-break-inside: avoid !important;
-            break-inside: avoid !important;
-          }
-          th, td {
-            border: 1px solid #94a3b8 !important;
-            padding: 3.5px 5px !important;
-            text-align: right !important;
-            font-size: 7.8pt !important;
-          }
-          th {
-            background-color: #e2e8f0 !important;
-            color: #0f172a !important;
-            font-weight: 800 !important;
-          }
-          tr:nth-child(even) {
-            background-color: #f8fafc !important;
-          }
-        }
-      `}</style>
+ @media print {
+ @page {
+ size: A4 landscape;
+ margin: 8mm;
+ }
+ * {
+ -webkit-print-color-adjust: exact !important;
+ print-color-adjust: exact !important;
+ }
+ html, body {
+ background: #ffffff !important;
+ color: #0f172a !important;
+ margin: 0 !important;
+ padding: 0 !important;
+ height: auto !important;
+ min-height: auto !important;
+ overflow: visible !important;
+ font-family: 'Cairo', system-ui, -apple-system, sans-serif !important;
+ }
+ /* Hide non-printable app UI elements */
+ aside,
+ nav,
+ header,
+ button,
+ input,
+ select,
+ .print-hidden-element,
+ .print-modal-overlay,
+ .print-modal-header,
+ .reports-screen-ui {
+ display: none !important;
+ }
+ /* Ensure printable container is shown cleanly */
+ #full-official-report-printable {
+ display: block !important;
+ position: static !important;
+ width: 100% !important;
+ margin: 0 !important;
+ padding: 0 !important;
+ background: #ffffff !important;
+ }
+ .print-page-sheet {
+ display: flex !important;
+ flex-direction: column !important;
+ justify-content: space-between !important;
+ width: 100% !important;
+ min-height: 185mm !important;
+ page-break-inside: avoid !important;
+ break-inside: avoid !important;
+ }
+ .page-break {
+ page-break-after: always !important;
+ break-after: page !important;
+ }
+ table {
+ width: 100% !important;
+ border-collapse: collapse !important;
+ }
+ tr {
+ page-break-inside: avoid !important;
+ break-inside: avoid !important;
+ }
+ th, td {
+ border: 1px solid #94a3b8 !important;
+ padding: 3.5px 5px !important;
+ text-align: right !important;
+ font-size: 7.8pt !important;
+ }
+ th {
+ background-color: #e2e8f0 !important;
+ color: #0f172a !important;
+ font-weight: 800 !important;
+ }
+ tr:nth-child(even) {
+ background-color: #f8fafc !important;
+ }
+ }
+ `}</style>
 
       {/* Full Multi-Page Document Container (Hidden on screen, Visible on Print) */}
       <div id="full-official-report-printable" className="hidden print:block w-full">
@@ -2589,7 +2589,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
           return (
             <div
               key={`full-print-page-${page.pageNumber}`}
-              className={`print-page-sheet w-full bg-white text-slate-900 font-sans text-xs flex flex-col justify-between ${
+              className={`print-page-sheet w-full bg-card text-slate-900 font-sans text-xs flex flex-col justify-between ${
                 !isLastPage ? 'page-break' : ''
               }`}
               style={{
@@ -2605,20 +2605,20 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                       {logoUrl ? (
                         <img src={logoUrl} alt="Logo" className="w-16 h-16 object-contain" />
                       ) : (
-                        <div className="w-14 h-14 bg-amber-100 border border-amber-600 rounded-lg flex items-center justify-center font-black text-amber-900 text-xl">
+                        <div className="w-14 h-14 bg-brand-100 border border-brand-600 rounded-lg flex items-center justify-center font-black text-brand-800 text-xl">
                           {companyName.slice(0, 2)}
                         </div>
                       )}
                       <div>
                         <h1 className="text-xs font-black text-slate-700">{countryName} - {ministryName}</h1>
-                        <h2 className="text-base font-black text-amber-900 mt-0.5">{companyName}</h2>
+                        <h2 className="text-base font-black text-brand-800 mt-0.5">{companyName}</h2>
                         <p className="text-[11px] font-bold text-slate-800">{systemName}</p>
                       </div>
                     </div>
 
                     <div className="text-left font-mono text-[11px] text-slate-800 space-y-0.5">
                       <p className="font-bold">تاريخ الطباعة: {getServerDateFormatted()}</p>
-                      <p>نوع التقرير: <span className="font-bold text-amber-900">{reportTitle}</span></p>
+                      <p>نوع التقرير: <span className="font-bold text-brand-800">{reportTitle}</span></p>
                       <p>إجمالي السجلات: <span className="font-bold">{toArabicDigits(totalFilteredRecords)}</span></p>
                     </div>
                   </div>
@@ -2626,11 +2626,11 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                   <div className="border-b border-slate-400 pb-2 flex items-center justify-between text-slate-700 bg-slate-50 px-3 py-1.5 rounded">
                     <div className="flex items-center gap-2">
                       <span className="font-bold text-slate-900">{companyName}</span>
-                      <span className="text-slate-400">|</span>
-                      <span className="font-semibold text-amber-900">{reportTitle}</span>
+                      <span className="text-slate-500">|</span>
+                      <span className="font-semibold text-brand-800">{reportTitle}</span>
                       {page.sectionNumberText && (
                         <>
-                          <span className="text-slate-400">-</span>
+                          <span className="text-slate-500">-</span>
                           <span className="font-bold text-slate-800">{page.sectionNumberText}: {page.sectionTitle}</span>
                         </>
                       )}
@@ -2665,15 +2665,15 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                 <div className="space-y-1.5 pt-1">
                   <div className="flex items-center justify-between border-b border-slate-300 pb-1">
                     <div className="flex items-center gap-2">
-                      {page.sectionKey === 'inspections' && <CalendarCheck className="w-4 h-4 text-amber-700" />}
-                      {page.sectionKey === 'maintenance' && <Wrench className="w-4 h-4 text-amber-700" />}
-                      {page.sectionKey === 'units' && <Box className="w-4 h-4 text-amber-700" />}
+                      {page.sectionKey === 'inspections' && <CalendarCheck className="w-4 h-4 text-brand-700" />}
+                      {page.sectionKey === 'maintenance' && <Wrench className="w-4 h-4 text-brand-700" />}
+                      {page.sectionKey === 'units' && <Box className="w-4 h-4 text-brand-700" />}
                       {page.sectionKey === 'decommissioned' && <Archive className="w-4 h-4 text-rose-700" />}
                       <h4 className="font-black text-xs text-slate-900">
                         {page.sectionNumberText ? `${page.sectionNumberText}: ` : ''}
                         {page.sectionTitle}
                         {page.totalPagesInSection > 1 && (
-                          <span className="text-[10px] font-bold text-amber-800 mr-1.5">
+                          <span className="text-[10px] font-bold text-brand-800 mr-1.5">
                             (صفحة {toArabicDigits(page.pageIndexInSection)} من {toArabicDigits(page.totalPagesInSection)} لهذا القسم)
                           </span>
                         )}
@@ -2704,22 +2704,22 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
       </div>
       {/* Main Screen Control Bar & Header (Hidden on Print) */}
       <div className="reports-screen-ui print:hidden space-y-5">
-        <div className={`p-4 md:p-5 rounded-2xl border ${isLight ? 'bg-white border-slate-200 shadow-sm' : 'bg-slate-900 border-slate-800'} space-y-4`}>
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+        <div className={`p-4 md:p-5 rounded-2xl border bg-card border-slate-200 shadow-sm space-y-4`}>
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-4">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-500 flex items-center justify-center shrink-0 shadow-inner">
+            <div className="w-12 h-12 rounded-xl bg-brand-50 border border-brand-200 text-brand-700 flex items-center justify-center shrink-0 shadow-inner">
               <FileText className="w-6 h-6" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className={`text-xl font-black ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                <h2 className={`text-xl font-black text-slate-900`}>
                   التقارير
                 </h2>
-                <span className="bg-amber-500/20 text-amber-400 text-xs font-bold px-2.5 py-0.5 rounded-full border border-amber-500/30">
+                <span className="bg-brand-100 text-brand-700 text-xs font-bold px-2.5 py-0.5 rounded-full border border-brand-200">
                   {companyName}
                 </span>
               </div>
-              <p className={`text-xs mt-1 ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+              <p className={`text-xs mt-1 text-slate-500`}>
                 تقارير معتمدة لنتائج الكشف الدوري، بلاغات الصيانة، وحصر تقييم جودة الأصول
               </p>
             </div>
@@ -2728,7 +2728,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
           {/* Action Buttons */}
           <div className="flex flex-wrap items-center gap-2 print:hidden relative w-full sm:w-auto">
             {printSuccessFeedback && (
-              <div className="absolute -top-9 left-0 sm:left-auto sm:right-0 bg-amber-500 text-slate-950 text-[11px] font-black px-3 py-1 rounded-lg shadow-lg flex items-center gap-1.5 animate-bounce z-20 border border-amber-400">
+              <div className="absolute -top-9 left-0 sm:left-auto sm:right-0 bg-brand-700 text-on-brand text-[11px] font-black px-3 py-1 rounded-lg shadow-lg flex items-center gap-1.5 animate-bounce z-20 border border-brand-200">
                 <Printer className="w-3.5 h-3.5" />
                 <span>{printSuccessFeedback}</span>
               </div>
@@ -2736,11 +2736,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
 
             <button
               onClick={handleExportCSV}
-              className={`flex-1 sm:flex-initial justify-center font-bold px-3.5 py-2.5 rounded-xl text-xs flex items-center gap-1.5 transition border cursor-pointer min-h-[40px] ${
-                isLight
-                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
-                  : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20'
-              }`}
+              className={`flex-1 sm:flex-initial justify-center font-bold px-3.5 py-2.5 rounded-xl text-xs flex items-center gap-1.5 transition border cursor-pointer min-h-[40px] bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100`}
               title="تصدير جدول السجلات الحالية كملف Excel / CSV"
             >
               <Download className="w-4 h-4 shrink-0" />
@@ -2753,7 +2749,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
               <button
                 type="button"
                 onClick={() => handlePrintAction('preview')}
-                className="w-full justify-center font-black px-3.5 sm:px-4 py-2.5 rounded-r-xl text-xs flex items-center gap-2 transition border border-l-0 cursor-pointer bg-amber-500 text-slate-950 border-amber-400 hover:bg-amber-400 active:scale-95 shadow-sm select-none min-h-[40px]"
+                className="w-full justify-center font-black px-3.5 sm:px-4 py-2.5 rounded-r-xl text-xs flex items-center gap-2 transition border border-l-0 cursor-pointer bg-brand-700 text-on-brand border-brand-200 hover:bg-brand-800 active:scale-95 shadow-sm select-none min-h-[40px]"
                 title="معاينة الصفحات والتحقق من التنسيق الرسمي قبل الطباعة"
               >
                 <Eye className="w-4 h-4 shrink-0" />
@@ -2764,7 +2760,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
               <button
                 type="button"
                 onClick={() => setShowPrintDropdown((prev) => !prev)}
-                className="px-2.5 py-2.5 rounded-l-xl text-xs font-bold transition border border-r-0 border-amber-400 bg-amber-500 hover:bg-amber-400 text-slate-950 cursor-pointer flex items-center justify-center min-h-[40px]"
+                className="px-2.5 py-2.5 rounded-l-xl text-xs font-bold transition border border-r-0 border-brand-200 bg-brand-700 hover:bg-brand-800 text-on-brand cursor-pointer flex items-center justify-center min-h-[40px]"
                 title="خيارات إضافية"
               >
                 <ChevronDown className={`w-3.5 h-3.5 transition-transform ${showPrintDropdown ? 'rotate-180' : ''}`} />
@@ -2778,18 +2774,14 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                     onClick={() => setShowPrintDropdown(false)}
                   />
                   <div
-                    className={`absolute left-0 top-full mt-1.5 w-60 rounded-xl border shadow-xl z-50 p-1.5 space-y-1 ${
-                      isLight ? 'bg-white border-slate-200' : 'bg-slate-900 border-slate-700'
-                    }`}
+                    className={`absolute left-0 top-full mt-1.5 w-60 rounded-xl border shadow-xl z-50 p-1.5 space-y-1 bg-card border-slate-200`}
                   >
                     <button
                       type="button"
                       onClick={() => handlePrintAction('preview')}
-                      className={`w-full text-right px-3 py-2 rounded-lg text-xs font-bold flex items-center gap-2.5 transition cursor-pointer ${
-                        isLight ? 'hover:bg-amber-50 text-slate-800' : 'hover:bg-slate-800 text-slate-200'
-                      }`}
+                      className={`w-full text-right px-3 py-2 rounded-lg text-xs font-bold flex items-center gap-2.5 transition cursor-pointer hover:bg-brand-50 text-slate-800`}
                     >
-                      <Eye className="w-4 h-4 text-amber-500" />
+                      <Eye className="w-4 h-4 text-brand-700" />
                       <div>
                         <div className="font-black">معاينة الصفحات تفاعلياً</div>
                         <div className="text-[10px] text-slate-500 font-normal">تصفح صفحات التقرير صفحة بصفحة</div>
@@ -2799,11 +2791,9 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                     <button
                       type="button"
                       onClick={() => handlePrintAction('window')}
-                      className={`w-full text-right px-3 py-2 rounded-lg text-xs font-bold flex items-center gap-2.5 transition cursor-pointer ${
-                        isLight ? 'hover:bg-amber-50 text-slate-800' : 'hover:bg-slate-800 text-slate-200'
-                      }`}
+                      className={`w-full text-right px-3 py-2 rounded-lg text-xs font-bold flex items-center gap-2.5 transition cursor-pointer hover:bg-brand-50 text-slate-800`}
                     >
-                      <Printer className="w-4 h-4 text-sky-500" />
+                      <Printer className="w-4 h-4 text-sky-600" />
                       <div>
                         <div className="font-black">معاينة الطباعة / PDF</div>
                         <div className="text-[10px] text-slate-500 font-normal">مستند مستقل جاهز للطباعة والحفظ PDF</div>
@@ -2817,11 +2807,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
             <button
               onClick={handleResetFilters}
               title="إعادة ضبط الفلاتر"
-              className={`p-2.5 rounded-xl text-xs flex items-center justify-center transition border cursor-pointer min-h-[40px] shrink-0 ${
-                isLight
-                  ? 'bg-slate-100 text-slate-600 border-slate-300 hover:bg-slate-200'
-                  : 'bg-slate-800 text-slate-400 border-slate-700 hover:text-white'
-              }`}
+              className={`p-2.5 rounded-xl text-xs flex items-center justify-center transition border cursor-pointer min-h-[40px] shrink-0 bg-slate-100 text-slate-600 border-slate-300 hover:bg-slate-200`}
             >
               <RotateCcw className="w-4 h-4" />
             </button>
@@ -2830,23 +2816,23 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
 
         {/* Report Domain Category Tabs */}
         {isRoleMaintenance ? (
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 gap-3">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3.5 rounded-xl bg-brand-50 border border-brand-200 gap-3">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-amber-500/20 text-amber-400">
+              <div className="p-2 rounded-lg bg-brand-100 text-brand-700">
                 <Wrench className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-slate-100 flex items-center gap-2">
+                <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
                   <span>تقارير وأوامر الصيانة الموجهة إلى:</span>
-                  <span className="text-amber-400 font-black underline decoration-amber-500/40">{userMaintDept || 'جهة الصيانة المحددة'}</span>
+                  <span className="text-brand-700 font-black underline decoration-brand-700">{userMaintDept || 'جهة الصيانة المحددة'}</span>
                 </h3>
-                <p className="text-[11px] text-slate-400 mt-0.5">
+                <p className="text-[11px] text-slate-500 mt-0.5">
                   استعراض وطباعة وتصدير كافة بلاغات وأوامر الصيانة الخاصة باختصاصكم فقط
                 </p>
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <span className="bg-amber-500 text-slate-950 font-black px-3 py-1.5 rounded-lg text-xs shadow">
+              <span className="bg-brand-700 text-on-brand font-black px-3 py-1.5 rounded-lg text-xs shadow">
                 {toArabicDigits(filteredMaintenance.length)} بلاغ صيانة
               </span>
             </div>
@@ -2857,60 +2843,52 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
               onClick={() => setActiveTab('all')}
               className={`px-3 sm:px-4 py-2 rounded-xl flex items-center gap-1.5 sm:gap-2 transition cursor-pointer shrink-0 ${
                 activeTab === 'all'
-                  ? 'bg-amber-500 text-slate-950 font-black shadow'
-                  : isLight
-                  ? 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                  : 'bg-slate-800/80 text-slate-300 hover:bg-slate-800'
+                  ? 'bg-brand-700 text-on-brand font-black shadow'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
               }`}
             >
               <Layers className="w-4 h-4" />
               <span>التقرير الشامل التجميعي</span>
-              <span className="bg-slate-950/20 px-1.5 py-0.5 rounded text-[10px]">{toArabicDigits(totalFilteredRecords)}</span>
+              <span className="bg-card/20 px-1.5 py-0.5 rounded text-[10px]">{toArabicDigits(totalFilteredRecords)}</span>
             </button>
 
             <button
               onClick={() => setActiveTab('inspections')}
               className={`px-4 py-2 rounded-xl flex items-center gap-2 whitespace-nowrap transition cursor-pointer shrink-0 ${
                 activeTab === 'inspections'
-                  ? 'bg-amber-500 text-slate-950 font-black shadow'
-                  : isLight
-                  ? 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                  : 'bg-slate-800/80 text-slate-300 hover:bg-slate-800'
+                  ? 'bg-brand-700 text-on-brand font-black shadow'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
               }`}
             >
               <CalendarCheck className="w-4 h-4" />
               <span>الكشوفات والمعاينة الدورية</span>
-              <span className="bg-slate-950/20 px-1.5 py-0.5 rounded text-[10px]">{toArabicDigits(filteredInspections.length)}</span>
+              <span className="bg-card/20 px-1.5 py-0.5 rounded text-[10px]">{toArabicDigits(filteredInspections.length)}</span>
             </button>
 
             <button
               onClick={() => setActiveTab('maintenance')}
               className={`px-4 py-2 rounded-xl flex items-center gap-2 whitespace-nowrap transition cursor-pointer shrink-0 ${
                 activeTab === 'maintenance'
-                  ? 'bg-amber-500 text-slate-950 font-black shadow'
-                  : isLight
-                  ? 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                  : 'bg-slate-800/80 text-slate-300 hover:bg-slate-800'
+                  ? 'bg-brand-700 text-on-brand font-black shadow'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
               }`}
             >
               <Wrench className="w-4 h-4" />
               <span>الصيانة ومتابعتها</span>
-              <span className="bg-slate-950/20 px-1.5 py-0.5 rounded text-[10px]">{toArabicDigits(filteredMaintenance.length)}</span>
+              <span className="bg-card/20 px-1.5 py-0.5 rounded text-[10px]">{toArabicDigits(filteredMaintenance.length)}</span>
             </button>
 
             <button
               onClick={() => setActiveTab('units')}
               className={`px-4 py-2 rounded-xl flex items-center gap-2 whitespace-nowrap transition cursor-pointer shrink-0 ${
                 activeTab === 'units'
-                  ? 'bg-amber-500 text-slate-950 font-black shadow'
-                  : isLight
-                  ? 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                  : 'bg-slate-800/80 text-slate-300 hover:bg-slate-800'
+                  ? 'bg-brand-700 text-on-brand font-black shadow'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
               }`}
             >
               <Box className="w-4 h-4" />
               <span>الأصول والوحدات</span>
-              <span className="bg-slate-950/20 px-1.5 py-0.5 rounded text-[10px]">{toArabicDigits(filteredUnits.length)}</span>
+              <span className="bg-card/20 px-1.5 py-0.5 rounded text-[10px]">{toArabicDigits(filteredUnits.length)}</span>
             </button>
 
             <button
@@ -2918,9 +2896,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
               className={`px-4 py-2 rounded-xl flex items-center gap-2 whitespace-nowrap transition cursor-pointer shrink-0 ${
                 activeTab === 'decommissioned'
                   ? 'bg-rose-600 text-white font-black shadow'
-                  : isLight
-                  ? 'bg-rose-50 text-rose-800 border border-rose-200 hover:bg-rose-100'
-                  : 'bg-rose-950/30 text-rose-400 border border-rose-900/40 hover:bg-rose-900/50'
+                  : 'bg-rose-50 text-rose-800 border border-rose-200 hover:bg-rose-100'
               }`}
             >
               <Archive className="w-4 h-4" />
@@ -2931,14 +2907,14 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
         )}
 
         {/* Dynamic Multi-Filters Panel */}
-        <div className={`p-4 rounded-xl border ${isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-950/60 border-slate-800'} space-y-3`}>
-          <div className="flex items-center justify-between text-xs font-bold text-amber-500">
+        <div className={`p-4 rounded-xl border bg-slate-50 border-slate-200 space-y-3`}>
+          <div className="flex items-center justify-between text-xs font-bold text-brand-700">
             <span className="flex items-center gap-1.5">
               <Filter className="w-4 h-4" />
               <span>فلاتر البحث والتصفية المتقدمة:</span>
             </span>
             {presetFilter !== 'all' && (
-              <span className="bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded border border-amber-500/30 text-[11px]">
+              <span className="bg-brand-100 text-brand-700 px-2 py-0.5 rounded border border-brand-200 text-[11px]">
                 فلتر سريع نشط
               </span>
             )}
@@ -2946,13 +2922,13 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
 
           {/* Quick Presets Bar */}
           <div className="flex items-center gap-1.5 flex-wrap text-xs">
-            <span className={`text-[11px] font-semibold ${isLight ? 'text-slate-500' : 'text-slate-400'} shrink-0`}>فلاتر سريعة:</span>
+            <span className={`text-[11px] font-semibold text-slate-500 shrink-0`}>فلاتر سريعة:</span>
             <button
               onClick={() => setPresetFilter('all')}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer min-h-[34px] ${
                 presetFilter === 'all'
-                  ? 'bg-slate-800 text-amber-400 border border-amber-500/40'
-                  : 'bg-slate-800/40 text-slate-400 hover:text-white'
+                  ? 'bg-slate-100 text-brand-700 border border-brand-200'
+                  : 'bg-slate-100 text-slate-500 hover:text-slate-900'
               }`}
             >
               الكل
@@ -2961,8 +2937,8 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
               onClick={() => setPresetFilter('current_month')}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer min-h-[34px] ${
                 presetFilter === 'current_month'
-                  ? 'bg-amber-500 text-slate-950 font-bold'
-                  : 'bg-slate-800/40 text-slate-400 hover:text-white'
+                  ? 'bg-brand-700 text-on-brand font-bold'
+                  : 'bg-slate-100 text-slate-500 hover:text-slate-900'
               }`}
             >
               📅 الشهر الحالي
@@ -2971,8 +2947,8 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
               onClick={() => setPresetFilter('current_quarter')}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer min-h-[34px] ${
                 presetFilter === 'current_quarter'
-                  ? 'bg-amber-500 text-slate-950 font-bold'
-                  : 'bg-slate-800/40 text-slate-400 hover:text-white'
+                  ? 'bg-brand-700 text-on-brand font-bold'
+                  : 'bg-slate-100 text-slate-500 hover:text-slate-900'
               }`}
             >
               📊 الربع الحالي
@@ -2981,8 +2957,8 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
               onClick={() => setPresetFilter('current_year')}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer min-h-[34px] ${
                 presetFilter === 'current_year'
-                  ? 'bg-amber-500 text-slate-950 font-bold'
-                  : 'bg-slate-800/40 text-slate-400 hover:text-white'
+                  ? 'bg-brand-700 text-on-brand font-bold'
+                  : 'bg-slate-100 text-slate-500 hover:text-slate-900'
               }`}
             >
               📆 السنة الحالية
@@ -2999,8 +2975,8 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
               }}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer flex items-center gap-1 min-h-[34px] ${
                 presetFilter === 'vacant_rooms_only'
-                  ? 'bg-amber-500 text-slate-950 font-bold shadow'
-                  : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20 border border-amber-500/30'
+                  ? 'bg-brand-700 text-on-brand font-bold shadow'
+                  : 'bg-brand-50 text-brand-700 hover:bg-brand-100 border border-brand-200'
               }`}
             >
               🚪 حصر الغرف الشاغرة (فارغة)
@@ -3008,10 +2984,10 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
           </div>
 
           {/* Detailed Inputs Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2.5 pt-2 border-t border-slate-800/60">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2.5 pt-2 border-t border-slate-200">
             {/* Search Keyword */}
             <div className="space-y-1 sm:col-span-2">
-              <label className={`text-[11px] font-bold ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>بحث بالنص / الكود / التشكيل:</label>
+              <label className={`text-[11px] font-bold text-slate-600`}>بحث بالنص / الكود / التشكيل:</label>
               <div className="relative">
                 <Search className="w-3.5 h-3.5 absolute right-2.5 top-3 text-slate-500" />
                 <input
@@ -3019,31 +2995,27 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                   value={searchKeyword}
                   onChange={(e) => setSearchKeyword(e.target.value)}
                   placeholder="ابحث بالرمز، الاسم، التشكيل، الفحص، المقاول..."
-                  className={`w-full pr-8 pl-3 py-2 text-xs rounded-lg border outline-none transition min-h-[38px] ${
-                    isLight ? 'bg-white border-slate-300 text-slate-800 focus:border-amber-500' : 'bg-slate-900 border-slate-800 text-slate-200 focus:border-amber-500'
-                  }`}
+                  className={`w-full pr-8 pl-3 py-2 text-xs rounded-lg border outline-none transition min-h-[38px] bg-card border-slate-300 text-slate-800 focus:border-brand-600`}
                 />
               </div>
             </div>
 
             {/* Org Entity / Department Select */}
             <div className="space-y-1">
-              <label className={`text-[11px] font-bold ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>التشكيل / الجهة الشاغلة:</label>
+              <label className={`text-[11px] font-bold text-slate-600`}>التشكيل / الجهة الشاغلة:</label>
               <div className="flex items-center gap-1.5">
                 <button
                   type="button"
                   onClick={() => setShowOrgPickerModal(true)}
                   className={`w-full px-3 py-2 text-xs rounded-lg border font-bold transition flex items-center justify-between gap-2 cursor-pointer shadow-sm min-h-[38px] ${
                     selectedOrgEntity !== 'all'
-                      ? 'bg-amber-500 text-slate-950 border-amber-400 font-black ring-1 ring-amber-400'
-                      : isLight
-                      ? 'bg-white hover:bg-slate-50 border-slate-300 text-slate-700'
-                      : 'bg-slate-900 hover:bg-slate-800 border-slate-800 text-slate-200'
+                      ? 'bg-brand-700 text-on-brand border-brand-200 font-black ring-1 ring-brand-600'
+                      : 'bg-card hover:bg-slate-50 border-slate-300 text-slate-700'
                   }`}
                   title="فتح صفحة التشكيلات للاختيار منها"
                 >
                   <div className="flex items-center gap-1.5 truncate">
-                    <Network className={`w-3.5 h-3.5 shrink-0 ${selectedOrgEntity !== 'all' ? 'text-slate-950' : 'text-amber-500'}`} />
+                    <Network className={`w-3.5 h-3.5 shrink-0 ${selectedOrgEntity !== 'all' ? 'text-slate-950' : 'text-brand-700'}`} />
                     <span className="truncate">
                       {selectedOrgEntity !== 'all' ? selectedOrgEntity : 'اختيار التشكيل / الجهة الشاغلة...'}
                     </span>
@@ -3055,7 +3027,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                   <button
                     type="button"
                     onClick={() => setSelectedOrgEntity('all')}
-                    className="p-2 rounded-lg border border-red-500/30 text-red-500 hover:bg-red-500/10 transition cursor-pointer shrink-0 min-h-[38px] flex items-center justify-center"
+                    className="p-2 rounded-lg border border-red-500/30 text-red-600 hover:bg-red-500/10 transition cursor-pointer shrink-0 min-h-[38px] flex items-center justify-center"
                     title="إلغاء تصفية التشكيل"
                   >
                     <X className="w-3.5 h-3.5" />
@@ -3066,13 +3038,11 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
 
             {/* Governorate Select */}
             <div className="space-y-1">
-              <label className={`text-[11px] font-bold ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>المحافظة:</label>
+              <label className={`text-[11px] font-bold text-slate-600`}>المحافظة:</label>
               <select
                 value={selectedGovernorate}
                 onChange={(e) => handleGovernorateChange(e.target.value)}
-                className={`w-full px-2.5 py-2 text-xs rounded-lg border outline-none transition min-h-[38px] ${
-                  isLight ? 'bg-white border-slate-300 text-slate-800' : 'bg-slate-900 border-slate-800 text-slate-200'
-                }`}
+                className={`w-full px-2.5 py-2 text-xs rounded-lg border outline-none transition min-h-[38px] bg-card border-slate-300 text-slate-800`}
               >
                 <option value="all">كافة المحافظات</option>
                 {activeGovernoratesList.map((g) => (
@@ -3085,13 +3055,11 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
 
             {/* Field Select */}
             <div className="space-y-1">
-              <label className={`text-[11px] font-bold ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>الحقل النفطي:</label>
+              <label className={`text-[11px] font-bold text-slate-600`}>الحقل النفطي:</label>
               <select
                 value={selectedField}
                 onChange={(e) => setSelectedField(e.target.value)}
-                className={`w-full px-2.5 py-2 text-xs rounded-lg border outline-none transition min-h-[38px] ${
-                  isLight ? 'bg-white border-slate-300 text-slate-800' : 'bg-slate-900 border-slate-800 text-slate-200'
-                }`}
+                className={`w-full px-2.5 py-2 text-xs rounded-lg border outline-none transition min-h-[38px] bg-card border-slate-300 text-slate-800`}
               >
                 <option value="all">جميع الحقول</option>
                 {displayedOilfieldsList.map((f) => (
@@ -3105,14 +3073,14 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
             {/* Occupancy / Vacancy Filter (Shown for All & Units) */}
             {(activeTab === 'all' || activeTab === 'units') && (
               <div className="space-y-1">
-                <label className={`text-[11px] font-bold ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>حالة الإشغال / الغرف الشاغرة:</label>
+                <label className={`text-[11px] font-bold text-slate-600`}>حالة الإشغال / الغرف الشاغرة:</label>
                 <select
                   value={selectedOccupancyFilter}
                   onChange={(e) => setSelectedOccupancyFilter(e.target.value as any)}
                   className={`w-full px-2.5 py-2 text-xs rounded-lg border outline-none transition font-semibold min-h-[38px] ${
                     selectedOccupancyFilter !== 'all'
-                      ? isLight ? 'bg-amber-50 border-amber-400 text-amber-900' : 'bg-amber-950/40 border-amber-500 text-amber-300'
-                      : isLight ? 'bg-white border-slate-300 text-slate-800' : 'bg-slate-900 border-slate-800 text-slate-200'
+                      ? 'bg-brand-50 border-brand-200 text-brand-800'
+                      : 'bg-card border-slate-300 text-slate-800'
                   }`}
                 >
                   <option value="all">كافة حالات الإشغال (شامل)</option>
@@ -3126,13 +3094,11 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
             {/* Condition Grade (Shown for All, Inspections, Units) */}
             {(activeTab === 'all' || activeTab === 'inspections' || activeTab === 'units') && (
               <div className="space-y-1">
-                <label className={`text-[11px] font-bold ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>التقييم الإنشائي:</label>
+                <label className={`text-[11px] font-bold text-slate-600`}>التقييم الإنشائي:</label>
                 <select
                   value={selectedGrade}
                   onChange={(e) => setSelectedGrade(e.target.value)}
-                  className={`w-full px-2.5 py-2 text-xs rounded-lg border outline-none transition min-h-[38px] ${
-                    isLight ? 'bg-white border-slate-300 text-slate-800' : 'bg-slate-900 border-slate-800 text-slate-200'
-                  }`}
+                  className={`w-full px-2.5 py-2 text-xs rounded-lg border outline-none transition min-h-[38px] bg-card border-slate-300 text-slate-800`}
                 >
                   <option value="all">جميع الدرجات</option>
                   <option value="A">الدرجة A - ممتاز</option>
@@ -3146,13 +3112,11 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
             {/* Inspection Status Filter (Shown for All & Inspections) */}
             {(activeTab === 'all' || activeTab === 'inspections') && (
               <div className="space-y-1">
-                <label className={`text-[11px] font-bold ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>حالة الكشف الدوري:</label>
+                <label className={`text-[11px] font-bold text-slate-600`}>حالة الكشف الدوري:</label>
                 <select
                   value={selectedInspectionStatus}
                   onChange={(e) => setSelectedInspectionStatus(e.target.value)}
-                  className={`w-full px-2.5 py-2 text-xs rounded-lg border outline-none transition min-h-[38px] ${
-                    isLight ? 'bg-white border-slate-300 text-slate-800' : 'bg-slate-900 border-slate-800 text-slate-200'
-                  }`}
+                  className={`w-full px-2.5 py-2 text-xs rounded-lg border outline-none transition min-h-[38px] bg-card border-slate-300 text-slate-800`}
                 >
                   <option value="all">جميع حالات الكشف</option>
                   <option value="completed">مكتمل وموثق</option>
@@ -3165,13 +3129,11 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
             {/* Maintenance Status Filter (Shown for All & Maintenance) */}
             {(activeTab === 'all' || activeTab === 'maintenance') && (
               <div className="space-y-1">
-                <label className={`text-[11px] font-bold ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>حالة الصيانة:</label>
+                <label className={`text-[11px] font-bold text-slate-600`}>حالة الصيانة:</label>
                 <select
                   value={selectedMaintenanceStatus}
                   onChange={(e) => setSelectedMaintenanceStatus(e.target.value)}
-                  className={`w-full px-2.5 py-2 text-xs rounded-lg border outline-none transition min-h-[38px] ${
-                    isLight ? 'bg-white border-slate-300 text-slate-800' : 'bg-slate-900 border-slate-800 text-slate-200'
-                  }`}
+                  className={`w-full px-2.5 py-2 text-xs rounded-lg border outline-none transition min-h-[38px] bg-card border-slate-300 text-slate-800`}
                 >
                   <option value="all">جميع حالات الصيانة</option>
                   <option value="completed">منجز</option>
@@ -3184,27 +3146,23 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
 
             {/* Date From */}
             <div className="space-y-1">
-              <label className={`text-[11px] font-bold ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>من تاريخ:</label>
+              <label className={`text-[11px] font-bold text-slate-600`}>من تاريخ:</label>
               <input
                 type="date"
                 value={dateFrom}
                 onChange={(e) => setDateFrom(e.target.value)}
-                className={`w-full px-2 py-2 text-xs rounded-lg border outline-none transition min-h-[38px] ${
-                  isLight ? 'bg-white border-slate-300 text-slate-800' : 'bg-slate-900 border-slate-800 text-slate-200'
-                }`}
+                className={`w-full px-2 py-2 text-xs rounded-lg border outline-none transition min-h-[38px] bg-card border-slate-300 text-slate-800`}
               />
             </div>
 
             {/* Date To */}
             <div className="space-y-1">
-              <label className={`text-[11px] font-bold ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>إلى تاريخ:</label>
+              <label className={`text-[11px] font-bold text-slate-600`}>إلى تاريخ:</label>
               <input
                 type="date"
                 value={dateTo}
                 onChange={(e) => setDateTo(e.target.value)}
-                className={`w-full px-2 py-2 text-xs rounded-lg border outline-none transition min-h-[38px] ${
-                  isLight ? 'bg-white border-slate-300 text-slate-800' : 'bg-slate-900 border-slate-800 text-slate-200'
-                }`}
+                className={`w-full px-2 py-2 text-xs rounded-lg border outline-none transition min-h-[38px] bg-card border-slate-300 text-slate-800`}
               />
             </div>
           </div>
@@ -3212,15 +3170,13 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
 
         {/* Dynamic Screen KPI Summary & Active Filters Banner */}
         <div
-          className={`p-3.5 rounded-xl border flex flex-col md:flex-row items-start md:items-center justify-between gap-3 ${
-            isLight ? 'bg-amber-50/70 border-amber-200' : 'bg-slate-950/80 border-slate-800'
-          }`}
+          className={`p-3.5 rounded-xl border flex flex-col md:flex-row items-start md:items-center justify-between gap-3 bg-brand-50 border-brand-200`}
         >
           <div className="flex items-center gap-2 text-xs flex-1">
-            <span className={`font-black shrink-0 ${isLight ? 'text-amber-900' : 'text-amber-400'}`}>
+            <span className={`font-black shrink-0 text-brand-800`}>
               الفلاتر المطبقة:
             </span>
-            <span className={`font-semibold ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+            <span className={`font-semibold text-slate-700`}>
               {activeFiltersSummary}
             </span>
           </div>
@@ -3228,11 +3184,9 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
             {reportKpis.map((kpi, kIdx) => (
               <div
                 key={`screen-kpi-${kIdx}`}
-                className={`px-3 py-1.5 rounded-lg border text-center text-xs ${
-                  isLight ? 'bg-white border-amber-200 shadow-xs' : 'bg-slate-900 border-slate-800'
-                }`}
+                className={`px-3 py-1.5 rounded-lg border text-center text-xs bg-card border-brand-200 shadow-xs`}
               >
-                <span className={`text-[10px] font-bold block ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                <span className={`text-[10px] font-bold block text-slate-500`}>
                   {kpi.label}
                 </span>
                 <span className="text-xs font-black" style={{ color: kpi.color }}>
@@ -3248,15 +3202,15 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
 
       {/* SECTION 1: Periodic Inspections Table */}
       {(activeTab === 'all' || activeTab === 'inspections') && (
-        <div className={`p-3.5 sm:p-4 rounded-2xl border ${isLight ? 'bg-white border-slate-200 shadow-sm' : 'bg-slate-900 border-slate-800'} space-y-3`}>
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-800/80 pb-3 gap-1.5">
+        <div className={`p-3.5 sm:p-4 rounded-2xl border bg-card border-slate-200 shadow-sm space-y-3`}>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-200 pb-3 gap-1.5">
             <div className="flex items-center gap-2">
-              <CalendarCheck className="w-5 h-5 text-amber-500 shrink-0" />
-              <h3 className={`font-bold text-xs sm:text-sm ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+              <CalendarCheck className="w-5 h-5 text-brand-700 shrink-0" />
+              <h3 className={`font-bold text-xs sm:text-sm text-slate-900`}>
                 1. تقرير وتاريخ الكشوفات والمعاينة الدورية ({toArabicDigits(filteredInspections.length)} سجل)
               </h3>
             </div>
-            <span className="text-[11px] text-amber-500 font-mono font-bold self-start sm:self-auto">الكشوفات الدورية للاصول</span>
+            <span className="text-[11px] text-brand-700 font-mono font-bold self-start sm:self-auto">الكشوفات الدورية للاصول</span>
           </div>
 
           {filteredInspections.length === 0 ? (
@@ -3270,30 +3224,26 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                 {filteredInspections.map((item) => (
                   <div
                     key={item.id}
-                    className={`p-3 rounded-xl border space-y-2.5 transition ${
-                      isLight ? 'bg-white border-slate-200 shadow-xs' : 'bg-slate-950/70 border-slate-800 shadow-xs'
-                    }`}
+                    className={`p-3 rounded-xl border space-y-2.5 transition bg-card border-slate-200 shadow-xs`}
                   >
                     {/* Header */}
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="font-mono font-bold text-xs text-amber-500">{toArabicDigits(item.unitCode)}</span>
-                          <span className={`text-[10px] ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                          <span className="font-mono font-bold text-xs text-brand-700">{toArabicDigits(item.unitCode)}</span>
+                          <span className={`text-[10px] text-slate-500`}>
                             {translateField(item.field)} / {translateGovernorate(item.governorate)}
                           </span>
                         </div>
-                        <h4 className={`font-extrabold text-xs sm:text-sm mt-0.5 ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                        <h4 className={`font-extrabold text-xs sm:text-sm mt-0.5 text-slate-900`}>
                           {item.unitName || 'غير مسمى'}
                         </h4>
                         <div className="flex items-center gap-1.5 mt-1 flex-wrap">
-                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                            isLight ? 'bg-amber-50 text-amber-900 border border-amber-200' : 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
-                          }`}>
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold bg-brand-50 text-brand-800 border border-brand-200`}>
                             {item.title} ({item.frequency === 'monthly' ? 'شهري' : item.frequency === 'quarterly' ? 'ربع سنوي' : 'سنوي'})
                           </span>
                           {item.conditionGradeGiven && (
-                            <span className="font-mono font-bold text-[10px] px-1.5 py-0.5 bg-slate-800 text-amber-400 border border-slate-700 rounded">
+                            <span className="font-mono font-bold text-[10px] px-1.5 py-0.5 bg-slate-100 text-brand-700 border border-slate-200 rounded">
                               الدرجة {item.conditionGradeGiven}
                             </span>
                           )}
@@ -3304,10 +3254,10 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                         <span
                           className={`px-2 py-0.5 rounded text-[10px] font-bold inline-block ${
                             item.status === 'completed'
-                              ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                              ? 'bg-emerald-500/20 text-emerald-600 border border-emerald-500/30'
                               : item.status === 'overdue'
-                              ? 'bg-red-500/20 text-red-400 border border-red-500/30'
-                              : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                              ? 'bg-red-500/20 text-red-600 border border-red-500/30'
+                              : 'bg-brand-100 text-brand-700 border border-brand-200'
                           }`}
                         >
                           {item.status === 'completed' ? 'مكتمل وموثق' : item.status === 'overdue' ? 'متأخر' : 'مجدول'}
@@ -3316,20 +3266,20 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                     </div>
 
                     {/* Dates Grid */}
-                    <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-slate-200/60 dark:border-slate-800/60">
+                    <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-slate-200/60 ">
                       <div>
-                        <span className="text-slate-400 text-[10px] block">الكشف السابق:</span>
+                        <span className="text-slate-500 text-[10px] block">الكشف السابق:</span>
                         <span className="font-mono text-[11px] font-medium">{toArabicDigits(item.lastInspectionDate || 'غير مسجل')}</span>
                       </div>
                       <div>
-                        <span className="text-slate-400 text-[10px] block">الموعد القادم:</span>
-                        <span className="font-mono text-[11px] font-bold text-sky-400">{toArabicDigits(item.nextDueDate)}</span>
+                        <span className="text-slate-500 text-[10px] block">الموعد القادم:</span>
+                        <span className="font-mono text-[11px] font-bold text-sky-600">{toArabicDigits(item.nextDueDate)}</span>
                       </div>
                     </div>
 
                     {/* Inspector */}
-                    <div className="flex items-center justify-between text-xs pt-2 border-t border-slate-200/60 dark:border-slate-800/60">
-                      <span className="text-slate-400 text-[10px]">القائم بالكشف:</span>
+                    <div className="flex items-center justify-between text-xs pt-2 border-t border-slate-200/60 ">
+                      <span className="text-slate-500 text-[10px]">القائم بالكشف:</span>
                       <span className="font-semibold text-xs">
                         {getCleanInspectorName(item.inspectorName, item.performedByName, users)}
                       </span>
@@ -3337,9 +3287,9 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
 
                     {/* Findings & Notes */}
                     {(item.findings || item.notes) && (
-                      <div className={`p-2.5 rounded-xl text-xs space-y-1 ${isLight ? 'bg-slate-50 border border-slate-200' : 'bg-slate-950 border border-slate-800'}`}>
-                        <span className="font-bold text-[10px] text-slate-400 block">الملاحظات والنتائج:</span>
-                        <p className={`text-[11px] leading-relaxed ${isLight ? 'text-slate-800' : 'text-slate-200'}`}>
+                      <div className={`p-2.5 rounded-xl text-xs space-y-1 bg-slate-50 border border-slate-200`}>
+                        <span className="font-bold text-[10px] text-slate-500 block">الملاحظات والنتائج:</span>
+                        <p className={`text-[11px] leading-relaxed text-slate-800`}>
                           {item.findings || item.notes}
                         </p>
                       </div>
@@ -3347,7 +3297,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
 
                     {/* Recommendations */}
                     {item.recommendations && (
-                      <div className={`p-2.5 rounded-xl text-xs space-y-1 ${isLight ? 'bg-amber-50/70 border border-amber-200 text-amber-900' : 'bg-amber-500/10 border border-amber-500/30 text-amber-300'}`}>
+                      <div className={`p-2.5 rounded-xl text-xs space-y-1 bg-brand-50 border border-brand-200 text-brand-800`}>
                         <span className="font-bold text-[10px] opacity-80 block">التوصيات والإجراءات:</span>
                         <p className="text-[11px] leading-relaxed font-semibold">
                           {item.recommendations}
@@ -3356,8 +3306,8 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                     )}
 
                     {/* Attachment Preview */}
-                    <div className="pt-2 border-t border-slate-200/60 dark:border-slate-800/60 flex items-center justify-between">
-                      <span className="text-slate-400 text-[10px]">المرفق:</span>
+                    <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between">
+                      <span className="text-slate-500 text-[10px]">المرفق:</span>
                       {item.reportFileName || item.reportFileUrl ? (
                         <button
                           type="button"
@@ -3372,11 +3322,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                               size: '1.5 MB',
                             });
                           }}
-                          className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition cursor-pointer border min-h-[38px] ${
-                            isLight
-                              ? 'bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100'
-                              : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 hover:bg-emerald-500/30'
-                          }`}
+                          className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition cursor-pointer border min-h-[38px] bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100`}
                         >
                           <Eye className="w-3.5 h-3.5" />
                           <span>معاينة التقرير المرفق</span>
@@ -3392,7 +3338,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
               {/* Desktop Table View */}
               <div className="hidden md:block overflow-x-auto">
                 <table className="w-full text-right text-xs">
-                  <thead className={`border-b ${isLight ? 'bg-slate-100 border-slate-200 text-slate-700' : 'bg-slate-950 border-slate-800 text-slate-400'} font-bold`}>
+                  <thead className={`border-b bg-slate-100 border-slate-200 text-slate-700 font-bold`}>
                     <tr>
                       <th className="p-2.5 min-w-[140px]">بيانات المنشأة والموقع</th>
                       <th className="p-2.5">نوع ودورية الكشف</th>
@@ -3405,13 +3351,13 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                       <th className="p-2.5 text-center">المرفقات / الصور</th>
                     </tr>
                   </thead>
-                  <tbody className={`divide-y ${isLight ? 'divide-slate-200 text-slate-800' : 'divide-slate-800 text-slate-300'}`}>
+                  <tbody className={`divide-y divide-slate-200 text-slate-800`}>
                     {filteredInspections.map((item) => (
-                      <tr key={item.id} className={isLight ? 'hover:bg-slate-50' : 'hover:bg-slate-800/40'}>
+                      <tr key={item.id} className={'hover:bg-slate-50'}>
                         <td className="p-2.5 leading-snug whitespace-nowrap">
-                          <div className="font-mono font-bold text-amber-500">{toArabicDigits(item.unitCode)}</div>
-                          <div className={`font-bold ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>{item.unitName || 'غير مسمى'}</div>
-                          <div className={`text-[11px] ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                          <div className="font-mono font-bold text-brand-700">{toArabicDigits(item.unitCode)}</div>
+                          <div className={`font-bold text-slate-900`}>{item.unitName || 'غير مسمى'}</div>
+                          <div className={`text-[11px] text-slate-500`}>
                             {translateField(item.field)} / {translateGovernorate(item.governorate)}
                           </div>
                         </td>
@@ -3420,7 +3366,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                           <div className="text-[10px] text-slate-500">{item.frequency === 'monthly' ? 'شهري' : item.frequency === 'quarterly' ? 'ربع سنوي' : 'سنوي'}</div>
                         </td>
                         <td className="p-2.5 font-mono whitespace-nowrap">{toArabicDigits(item.lastInspectionDate || 'غير مسجل')}</td>
-                        <td className="p-2.5 font-mono whitespace-nowrap font-bold text-sky-400">{toArabicDigits(item.nextDueDate)}</td>
+                        <td className="p-2.5 font-mono whitespace-nowrap font-bold text-sky-600">{toArabicDigits(item.nextDueDate)}</td>
                         <td className="p-2.5 whitespace-nowrap font-semibold">
                           {getCleanInspectorName(item.inspectorName, item.performedByName, users)}
                         </td>
@@ -3428,24 +3374,24 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                           <span
                             className={`px-2 py-0.5 rounded text-[10px] font-bold ${
                               item.status === 'completed'
-                                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                                ? 'bg-emerald-500/20 text-emerald-600 border border-emerald-500/30'
                                 : item.status === 'overdue'
-                                ? 'bg-red-500/20 text-red-400 border border-red-500/30'
-                                : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                                ? 'bg-red-500/20 text-red-600 border border-red-500/30'
+                                : 'bg-brand-100 text-brand-700 border border-brand-200'
                             }`}
                           >
                             {item.status === 'completed' ? 'مكتمل وموثق' : item.status === 'overdue' ? 'متأخر' : 'مجدول'}
                           </span>
                           {item.conditionGradeGiven && (
-                            <span className="mr-1 font-mono font-bold text-[10px] px-1.5 py-0.5 bg-slate-800 text-amber-400 border border-slate-700 rounded">
+                            <span className="mr-1 font-mono font-bold text-[10px] px-1.5 py-0.5 bg-slate-100 text-brand-700 border border-slate-200 rounded">
                               الدرجة {item.conditionGradeGiven}
                             </span>
                           )}
                         </td>
-                        <td className="p-2.5 max-w-xs text-[11px] text-slate-300 truncate" title={item.findings || item.notes}>
+                        <td className="p-2.5 max-w-xs text-[11px] text-slate-600 truncate" title={item.findings || item.notes}>
                           {item.findings || item.notes || 'لا توجد ملاحظات'}
                         </td>
-                        <td className="p-2.5 max-w-xs text-[11px] font-semibold text-amber-400 truncate" title={item.recommendations}>
+                        <td className="p-2.5 max-w-xs text-[11px] font-semibold text-brand-700 truncate" title={item.recommendations}>
                           {item.recommendations || 'لا توجد توصيات'}
                         </td>
                         <td className="p-2.5 text-center whitespace-nowrap">
@@ -3463,11 +3409,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                                   size: '1.5 MB',
                                 });
                               }}
-                              className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold transition cursor-pointer border shadow-sm ${
-                                isLight
-                                  ? 'bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100'
-                                  : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 hover:bg-emerald-500/30'
-                              }`}
+                              className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold transition cursor-pointer border shadow-sm bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100`}
                               title="معاينة الملف المرفق أو الصورة"
                             >
                               <Eye className="w-3.5 h-3.5" />
@@ -3489,15 +3431,15 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
 
       {/* SECTION 2: Maintenance Request & SLA History Table */}
       {(activeTab === 'all' || activeTab === 'maintenance') && (
-        <div className={`p-3.5 sm:p-4 rounded-2xl border ${isLight ? 'bg-white border-slate-200 shadow-sm' : 'bg-slate-900 border-slate-800'} space-y-3`}>
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-800/80 pb-3 gap-1.5">
+        <div className={`p-3.5 sm:p-4 rounded-2xl border bg-card border-slate-200 shadow-sm space-y-3`}>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-200 pb-3 gap-1.5">
             <div className="flex items-center gap-2">
-              <Wrench className="w-5 h-5 text-amber-500 shrink-0" />
-              <h3 className={`font-bold text-xs sm:text-sm ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+              <Wrench className="w-5 h-5 text-brand-700 shrink-0" />
+              <h3 className={`font-bold text-xs sm:text-sm text-slate-900`}>
                 2. تقرير بلاغات الصيانة ومتابعتها ({toArabicDigits(filteredMaintenance.length)} طلب)
               </h3>
             </div>
-            <span className="text-[11px] text-amber-500 font-mono font-bold self-start sm:self-auto">إدارة الصيانة والتشغيل</span>
+            <span className="text-[11px] text-brand-700 font-mono font-bold self-start sm:self-auto">إدارة الصيانة والتشغيل</span>
           </div>
 
           {filteredMaintenance.length === 0 ? (
@@ -3526,16 +3468,14 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                   return (
                     <div
                       key={req.id}
-                      className={`p-3 rounded-xl border space-y-2.5 transition ${
-                        isLight ? 'bg-white border-slate-200 shadow-xs' : 'bg-slate-950/70 border-slate-800 shadow-xs'
-                      }`}
+                      className={`p-3 rounded-xl border space-y-2.5 transition bg-card border-slate-200 shadow-xs`}
                     >
                       <div className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-mono font-bold text-xs text-amber-500">#{toArabicDigits(req.id)}</span>
-                          <span className="font-mono font-bold text-xs text-slate-400">({toArabicDigits(req.unitCode)})</span>
+                          <span className="font-mono font-bold text-xs text-brand-700">#{toArabicDigits(req.id)}</span>
+                          <span className="font-mono font-bold text-xs text-slate-500">({toArabicDigits(req.unitCode)})</span>
                           {req.roomCode && (
-                            <span className="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-[9px] font-mono font-bold">
+                            <span className="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 border border-emerald-500/30 text-[9px] font-mono font-bold">
                               غرفة: {toArabicDigits(req.roomCode)}
                             </span>
                           )}
@@ -3543,10 +3483,10 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                         <span
                           className={`px-2 py-0.5 rounded text-[10px] font-bold shrink-0 ${
                             req.priority === 'critical'
-                              ? 'bg-red-500/20 text-red-400 border border-red-500/30'
+                              ? 'bg-red-500/20 text-red-600 border border-red-500/30'
                               : req.priority === 'normal'
-                              ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                              : 'bg-slate-800 text-slate-300'
+                              ? 'bg-brand-100 text-brand-700 border border-brand-200'
+                              : 'bg-slate-100 text-slate-600'
                           }`}
                         >
                           {req.priority === 'critical' ? 'حرج جدًا' : req.priority === 'normal' ? 'متوسط' : 'منخفض'}
@@ -3554,36 +3494,34 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                       </div>
 
                       <div>
-                        <h4 className={`font-bold text-xs leading-relaxed ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                        <h4 className={`font-bold text-xs leading-relaxed text-slate-900`}>
                           {req.issue}
                         </h4>
-                        <span className={`inline-block mt-1 px-2 py-0.5 rounded-lg text-[10px] font-bold border ${
-                          isLight ? 'bg-amber-50 text-amber-900 border-amber-200' : 'bg-amber-500/10 text-amber-400 border-amber-500/30'
-                        }`}>
+                        <span className={`inline-block mt-1 px-2 py-0.5 rounded-lg text-[10px] font-bold border bg-brand-50 text-brand-800 border-brand-200`}>
                           {req.maintenanceDepartment || 'الصيانة العامة'}
                         </span>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-slate-200/60 dark:border-slate-800/60">
+                      <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-slate-200/60 ">
                         <div>
-                          <span className="text-slate-400 text-[10px] block">محرر الطلب:</span>
+                          <span className="text-slate-500 text-[10px] block">محرر الطلب:</span>
                           <span className="font-semibold text-[11px]">{getCleanReporterName(req.reportedBy)}</span>
                         </div>
                         <div>
-                          <span className="text-slate-400 text-[10px] block">تاريخ البلاغ:</span>
+                          <span className="text-slate-500 text-[10px] block">تاريخ البلاغ:</span>
                           <span className="font-mono text-[11px]">{formatDateOnly(req.createdAt)}</span>
                         </div>
                         <div>
-                          <span className="text-slate-400 text-[10px] block">الإنجاز / الإلغاء:</span>
+                          <span className="text-slate-500 text-[10px] block">الإنجاز / الإلغاء:</span>
                           <span className="font-mono text-[11px]">{getCompletionOrCancellationDate(req.completedAt, req.status)}</span>
                         </div>
                         <div>
-                          <span className="text-slate-400 text-[10px] block">المدة:</span>
-                          <span className="font-bold text-[11px] text-amber-400">{calculateMaintenanceDurationDays(req.createdAt, req.completedAt, req.status)}</span>
+                          <span className="text-slate-500 text-[10px] block">المدة:</span>
+                          <span className="font-bold text-[11px] text-brand-700">{calculateMaintenanceDurationDays(req.createdAt, req.completedAt, req.status)}</span>
                         </div>
                       </div>
 
-                      <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-200/60 dark:border-slate-800/60">
+                      <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-200/60 ">
                         <div>
                           {reqAttachments.length > 0 ? (
                             <button
@@ -3602,11 +3540,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                                   unitCode: req.unitCode,
                                 });
                               }}
-                              className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition cursor-pointer border min-h-[38px] ${
-                                isLight
-                                  ? 'bg-amber-50 text-amber-800 border-amber-300 hover:bg-amber-100'
-                                  : 'bg-amber-500/20 text-amber-300 border-amber-500/40 hover:bg-amber-500/30'
-                              }`}
+                              className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition cursor-pointer border min-h-[38px] bg-brand-50 text-brand-800 border-brand-200 hover:bg-brand-100`}
                             >
                               <Eye className="w-3.5 h-3.5" />
                               <span>معاينة المرفق ({toArabicDigits(reqAttachments.length)})</span>
@@ -3618,15 +3552,15 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
 
                         <div>
                           {req.status === 'completed' ? (
-                            <span className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">منجز</span>
+                            <span className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-emerald-500/20 text-emerald-600 border border-emerald-500/30">منجز</span>
                           ) : req.status === 'rejected' ? (
-                            <span className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-rose-500/20 text-rose-400 border border-rose-500/30">مرفوض</span>
+                            <span className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-rose-500/20 text-rose-600 border border-rose-500/30">مرفوض</span>
                           ) : req.status === 'cancelled' ? (
-                            <span className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-slate-500/20 text-slate-400 border border-slate-500/30">ملغى</span>
+                            <span className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-slate-500/20 text-slate-500 border border-slate-500/30">ملغى</span>
                           ) : req.status === 'overdue' ? (
-                            <span className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-red-500/20 text-red-400 border border-red-500/30">متأخر</span>
+                            <span className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-red-500/20 text-red-600 border border-red-500/30">متأخر</span>
                           ) : (
-                            <span className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">قيد المعالجة</span>
+                            <span className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-brand-100 text-brand-700 border border-brand-200">قيد المعالجة</span>
                           )}
                         </div>
                       </div>
@@ -3638,7 +3572,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
               {/* Desktop Table View */}
               <div className="hidden md:block overflow-x-auto">
                 <table className="w-full text-right text-xs">
-                  <thead className={`border-b ${isLight ? 'bg-slate-100 border-slate-200 text-slate-700' : 'bg-slate-950 border-slate-800 text-slate-400'} font-bold`}>
+                  <thead className={`border-b bg-slate-100 border-slate-200 text-slate-700 font-bold`}>
                     <tr>
                       <th className="p-2.5">رقم الطلب</th>
                       <th className="p-2.5">رمز المنشأة</th>
@@ -3653,28 +3587,28 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                       <th className="p-2.5">الحالة الحالية</th>
                     </tr>
                   </thead>
-                  <tbody className={`divide-y ${isLight ? 'divide-slate-200 text-slate-800' : 'divide-slate-800 text-slate-300'}`}>
+                  <tbody className={`divide-y divide-slate-200 text-slate-800`}>
                     {filteredMaintenance.map((req) => (
-                    <tr key={req.id} className={isLight ? 'hover:bg-slate-50' : 'hover:bg-slate-800/40'}>
-                      <td className="p-2.5 font-mono font-bold text-amber-500 whitespace-nowrap">{toArabicDigits(req.id)}</td>
+                    <tr key={req.id} className={'hover:bg-slate-50'}>
+                      <td className="p-2.5 font-mono font-bold text-brand-700 whitespace-nowrap">{toArabicDigits(req.id)}</td>
                       <td className="p-2.5 leading-snug whitespace-nowrap">
-                        <div className="font-mono font-bold text-amber-500">{toArabicDigits(req.unitCode)}</div>
+                        <div className="font-mono font-bold text-brand-700">{toArabicDigits(req.unitCode)}</div>
                         {req.roomCode && (
-                          <div className="inline-block mt-0.5 px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-[9px] font-mono font-bold">
+                          <div className="inline-block mt-0.5 px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 border border-emerald-500/30 text-[9px] font-mono font-bold">
                             🚪 غرفة: {toArabicDigits(req.roomCode)}
                           </div>
                         )}
                       </td>
-                      <td className="p-2.5 font-semibold text-amber-400 whitespace-nowrap">{req.maintenanceDepartment || 'الصيانة العامة'}</td>
+                      <td className="p-2.5 font-semibold text-brand-700 whitespace-nowrap">{req.maintenanceDepartment || 'الصيانة العامة'}</td>
                       <td className="p-2.5 font-bold max-w-xs">{req.issue}</td>
                       <td className="p-2.5 whitespace-nowrap">
                         <span
                           className={`px-2 py-0.5 rounded text-[10px] font-bold ${
                             req.priority === 'critical'
-                              ? 'bg-red-500/20 text-red-400 border border-red-500/30'
+                              ? 'bg-red-500/20 text-red-600 border border-red-500/30'
                               : req.priority === 'normal'
-                              ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                              : 'bg-slate-800 text-slate-300'
+                              ? 'bg-brand-100 text-brand-700 border border-brand-200'
+                              : 'bg-slate-100 text-slate-600'
                           }`}
                         >
                           {req.priority === 'critical' ? 'حرج جدًا' : req.priority === 'normal' ? 'متوسط' : 'منخفض'}
@@ -3685,7 +3619,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                       </td>
                       <td className="p-2.5 font-mono whitespace-nowrap">{formatDateOnly(req.createdAt)}</td>
                       <td className="p-2.5 font-mono whitespace-nowrap">{getCompletionOrCancellationDate(req.completedAt, req.status)}</td>
-                      <td className="p-2.5 font-bold text-amber-400 whitespace-nowrap">{calculateMaintenanceDurationDays(req.createdAt, req.completedAt, req.status)}</td>
+                      <td className="p-2.5 font-bold text-brand-700 whitespace-nowrap">{calculateMaintenanceDurationDays(req.createdAt, req.completedAt, req.status)}</td>
                       <td className="p-2.5 text-center whitespace-nowrap">
                         {(() => {
                           const reqAttachments: ReportAttachment[] =
@@ -3727,11 +3661,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                                     unitCode: req.unitCode,
                                   });
                                 }}
-                                className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold transition cursor-pointer border shadow-sm ${
-                                  isLight
-                                    ? 'bg-amber-50 text-amber-800 border-amber-300 hover:bg-amber-100'
-                                    : 'bg-amber-500/20 text-amber-300 border-amber-500/40 hover:bg-amber-500/30'
-                                }`}
+                                className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold transition cursor-pointer border shadow-sm bg-brand-50 text-brand-800 border-brand-200 hover:bg-brand-100`}
                                 title="معاينة الصورة المرفقة بطلب الصيانة"
                               >
                                 <Eye className="w-3.5 h-3.5" />
@@ -3761,18 +3691,18 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                                         unitCode: req.unitCode,
                                       });
                                     }}
-                                    className="w-6 h-6 rounded-md overflow-hidden border border-amber-500/40 hover:border-amber-400 bg-black/40 transition hover:scale-110 cursor-pointer shrink-0 shadow-xs flex items-center justify-center"
+                                    className="w-6 h-6 rounded-md overflow-hidden border border-brand-200 hover:border-brand-200 bg-black/40 transition hover:scale-110 cursor-pointer shrink-0 shadow-xs flex items-center justify-center"
                                     title={`معاينة الصورة ${toArabicDigits(idx + 1)}`}
                                   >
                                     {att.url && (att.url.startsWith('data:image/') || att.name.match(/\.(jpeg|jpg|png|webp|gif|svg)$/i)) ? (
                                       <img src={att.url} alt={att.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                                     ) : (
-                                      <FileText className="w-3 h-3 text-amber-400" />
+                                      <FileText className="w-3 h-3 text-brand-700" />
                                     )}
                                   </button>
                                 ))}
                                 {reqAttachments.length > 3 && (
-                                  <span className="w-6 h-6 rounded-md bg-slate-800 text-amber-400 border border-slate-700 font-mono text-[9px] font-bold flex items-center justify-center">
+                                  <span className="w-6 h-6 rounded-md bg-slate-100 text-brand-700 border border-slate-200 font-mono text-[9px] font-bold flex items-center justify-center">
                                     +{toArabicDigits(reqAttachments.length - 3)}
                                   </span>
                                 )}
@@ -3793,14 +3723,10 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                                     unitCode: req.unitCode,
                                   });
                                 }}
-                                className={`px-2 py-0.5 rounded text-[9px] font-bold transition cursor-pointer border flex items-center gap-1 ${
-                                  isLight
-                                    ? 'bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100'
-                                    : 'bg-amber-500/10 text-amber-300 border-amber-500/30 hover:bg-amber-500/20'
-                                }`}
+                                className={`px-2 py-0.5 rounded text-[9px] font-bold transition cursor-pointer border flex items-center gap-1 bg-brand-50 text-brand-800 border-brand-200 hover:bg-brand-100`}
                                 title="عرض جميع الصور المحملة مع الطلب"
                               >
-                                <Layers className="w-2.5 h-2.5 text-amber-400" />
+                                <Layers className="w-2.5 h-2.5 text-brand-700" />
                                 <span>عرض الكل ({toArabicDigits(reqAttachments.length)} صور)</span>
                               </button>
                             </div>
@@ -3809,15 +3735,15 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                       </td>
                       <td className="p-2.5 whitespace-nowrap font-bold">
                         {req.status === 'completed' ? (
-                          <span className="text-emerald-400">منجز</span>
+                          <span className="text-emerald-600">منجز</span>
                         ) : req.status === 'rejected' ? (
-                          <span className="text-rose-400">مرفوض</span>
+                          <span className="text-rose-600">مرفوض</span>
                         ) : req.status === 'cancelled' ? (
-                          <span className="text-slate-400">ملغى</span>
+                          <span className="text-slate-500">ملغى</span>
                         ) : req.status === 'overdue' ? (
-                          <span className="text-red-400">متأخر</span>
+                          <span className="text-red-600">متأخر</span>
                         ) : (
-                          <span className="text-amber-400">قيد المعالجة</span>
+                          <span className="text-brand-700">قيد المعالجة</span>
                         )}
                       </td>
                     </tr>
@@ -3832,25 +3758,23 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
 
       {/* SECTION 3: Units & Infrastructure Inventory Table */}
       {(activeTab === 'all' || activeTab === 'units') && (
-        <div className={`p-3.5 sm:p-4 rounded-2xl border ${isLight ? 'bg-white border-slate-200 shadow-sm' : 'bg-slate-900 border-slate-800'} space-y-3`}>
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-800/80 pb-3 gap-1.5">
+        <div className={`p-3.5 sm:p-4 rounded-2xl border bg-card border-slate-200 shadow-sm space-y-3`}>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-200 pb-3 gap-1.5">
             <div className="flex items-center gap-2">
-              <Box className="w-5 h-5 text-amber-500 shrink-0" />
-              <h3 className={`font-bold text-xs sm:text-sm ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+              <Box className="w-5 h-5 text-brand-700 shrink-0" />
+              <h3 className={`font-bold text-xs sm:text-sm text-slate-900`}>
                 3. تقرير حصر الأصول والمنشآت ({toArabicDigits(filteredUnits.length)} منشأة)
               </h3>
             </div>
-            <span className="text-[11px] text-amber-500 font-mono font-bold self-start sm:self-auto">السجل العام للاصول</span>
+            <span className="text-[11px] text-brand-700 font-mono font-bold self-start sm:self-auto">السجل العام للاصول</span>
           </div>
 
           {/* Org Entity Filter Highlight Banner */}
           {selectedOrgEntity !== 'all' && (
-            <div className={`p-3 px-4 rounded-xl border flex flex-wrap items-center justify-between gap-3 text-xs ${
-              isLight ? 'bg-amber-50 border-amber-200 text-slate-800' : 'bg-slate-950 border-amber-500/30 text-slate-200'
-            }`}>
+            <div className={`p-3 px-4 rounded-xl border flex flex-wrap items-center justify-between gap-3 text-xs bg-brand-50 border-brand-200 text-slate-800`}>
               <div className="flex items-center gap-2">
-                <Users className="w-4 h-4 text-amber-500 shrink-0" />
-                <span className="font-bold text-amber-600 dark:text-amber-400">
+                <Users className="w-4 h-4 text-brand-700 shrink-0" />
+                <span className="font-bold text-brand-700 ">
                   حصر إشغال التشكيل: <span className="underline decoration-amber-500 underline-offset-4">{selectedOrgEntity}</span>
                 </span>
                 <span className="text-slate-500 text-[11px]">
@@ -3858,7 +3782,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="px-3 py-1 rounded-lg bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 font-bold font-mono text-xs">
+                <span className="px-3 py-1 rounded-lg bg-brand-100 text-brand-700 border border-brand-200 font-bold font-mono text-xs">
                   إجمالي الغرف الشاغلة للتشكيل: {toArabicDigits(
                     filteredUnits.reduce((acc, u) => acc + getUnitOccupancyStats(u, selectedOrgEntity).occupiedRoomsCount, 0)
                   )} غرفة
@@ -3879,31 +3803,25 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                 return (
                   <div
                     key={u.id}
-                    className={`p-3.5 rounded-xl border space-y-3 transition ${
-                      isLight ? 'bg-white border-slate-200 shadow-xs' : 'bg-slate-950/70 border-slate-800 shadow-xs'
-                    }`}
+                    className={`p-3.5 rounded-xl border space-y-3 transition bg-card border-slate-200 shadow-xs`}
                   >
                     {/* Header: Code + Asset + Type + Condition Grade */}
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
                         <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className="font-mono font-bold text-xs text-amber-500">
+                          <span className="font-mono font-bold text-xs text-brand-700">
                             {toArabicDigits(u.code)}
                           </span>
                           {u.fixedAssetCode && (
-                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${
-                              isLight ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-indigo-950/40 text-indigo-300 border-indigo-800/60'
-                            }`}>
+                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border bg-indigo-50 text-indigo-700 border-indigo-200`}>
                               أصل: {u.fixedAssetCode}
                             </span>
                           )}
-                          <span className={`text-[10px] px-1.5 py-0.5 rounded ${
-                            isLight ? 'bg-slate-100 text-slate-600' : 'bg-slate-800 text-slate-400'
-                          }`}>
+                          <span className={`text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600`}>
                             {translateUnitType(u.type)}
                           </span>
                         </div>
-                        <h4 className={`font-black text-sm mt-1 leading-snug ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                        <h4 className={`font-black text-sm mt-1 leading-snug text-slate-900`}>
                           {u.name}
                         </h4>
                       </div>
@@ -3911,12 +3829,12 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                       <span
                         className={`px-2.5 py-1 rounded-lg text-[10px] font-black shrink-0 ${
                           u.conditionGrade === 'A'
-                            ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                            ? 'bg-emerald-500/20 text-emerald-600 border border-emerald-500/30'
                             : u.conditionGrade === 'B'
-                            ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
+                            ? 'bg-blue-500/20 text-blue-600 border border-blue-500/30'
                             : u.conditionGrade === 'C'
-                            ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                            : 'bg-red-500/20 text-red-400 border border-red-500/30'
+                            ? 'bg-brand-100 text-brand-700 border border-brand-200'
+                            : 'bg-red-500/20 text-red-600 border border-red-500/30'
                         }`}
                       >
                         الدرجة {u.conditionGrade}
@@ -3924,39 +3842,39 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                     </div>
 
                     {/* Location & Occupants Grid */}
-                    <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-slate-200/60 dark:border-slate-800/60">
+                    <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-slate-200/60 ">
                       <div>
-                        <span className="text-slate-400 text-[10px] block">المحافظة والحقل:</span>
-                        <span className={`font-bold text-[11px] block mt-0.5 ${isLight ? 'text-slate-800' : 'text-slate-200'}`}>
+                        <span className="text-slate-500 text-[10px] block">المحافظة والحقل:</span>
+                        <span className={`font-bold text-[11px] block mt-0.5 text-slate-800`}>
                           {translateGovernorate(u.governorate) || u.governorate}
                         </span>
-                        <span className="text-[10px] text-slate-400 block">
+                        <span className="text-[10px] text-slate-500 block">
                           {translateField(u.field) || u.field}
                         </span>
                       </div>
                       <div>
-                        <span className="text-slate-400 text-[10px] block">الجهة الشاغلة:</span>
+                        <span className="text-slate-500 text-[10px] block">الجهة الشاغلة:</span>
                         {selectedOrgEntity !== 'all' ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 mt-0.5">
-                            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-brand-50 text-brand-700 border border-brand-200 mt-0.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-brand-700 shrink-0" />
                             <span className="truncate">{selectedOrgEntity}</span>
                           </span>
                         ) : stats.allOccupants && stats.allOccupants.length > 0 ? (
                           <div className="space-y-0.5 mt-0.5">
                             {stats.allOccupants.slice(0, 2).map((occ: string, oIdx: number) => (
                               <div key={oIdx} className="text-[11px] font-semibold truncate flex items-center gap-1">
-                                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
+                                <span className="w-1.5 h-1.5 rounded-full bg-brand-700 shrink-0" />
                                 <span className="truncate">{occ}</span>
                               </div>
                             ))}
                             {stats.allOccupants.length > 2 && (
-                              <span className="text-[10px] text-slate-400 block font-mono">
+                              <span className="text-[10px] text-slate-500 block font-mono">
                                 +{toArabicDigits(stats.allOccupants.length - 2)} تشكيلات أخرى
                               </span>
                             )}
                           </div>
                         ) : (
-                          <span className="font-semibold text-slate-400 text-[11px] block mt-0.5">
+                          <span className="font-semibold text-slate-500 text-[11px] block mt-0.5">
                             {stats.entity || 'عام / غير محدد'}
                           </span>
                         )}
@@ -3964,26 +3882,24 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                     </div>
 
                     {/* Occupancy Stats 3-Box Grid */}
-                    <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-200/60 dark:border-slate-800/60 text-center">
+                    <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-200/60 text-center">
                       <div className={`p-2 rounded-lg border ${
                         selectedOrgEntity !== 'all'
-                          ? 'bg-amber-500/10 border-amber-500/30'
+                          ? 'bg-brand-50 border-brand-200'
                           : 'bg-emerald-500/10 border-emerald-500/20'
                       }`}>
-                        <span className="text-[10px] text-slate-400 block font-bold">
+                        <span className="text-[10px] text-slate-500 block font-bold">
                           {selectedOrgEntity !== 'all' ? 'غرف التشكيل' : 'المشغولة'}
                         </span>
-                        <span className="text-xs font-black font-mono text-emerald-500 dark:text-emerald-400">
+                        <span className="text-xs font-black font-mono text-emerald-600 ">
                           {toArabicDigits(stats.occupiedRoomsCount)} غرفة
                         </span>
                       </div>
 
                       <div className={`p-2 rounded-lg border ${
                         stats.vacantRoomsCount > 0
-                          ? isLight
-                            ? 'bg-amber-100 text-amber-950 border-amber-300 font-bold'
-                            : 'bg-amber-950/60 text-amber-300 border-amber-500/40 font-bold'
-                          : 'bg-slate-100 dark:bg-slate-800/40 text-slate-400 border-slate-200 dark:border-slate-800'
+                          ? 'bg-brand-100 text-brand-800 border-brand-200 font-bold'
+                          : 'bg-slate-100 text-slate-500 border-slate-200 '
                       }`}>
                         <span className="text-[10px] opacity-80 block font-bold">الشاغرة (فارغة)</span>
                         <span className="text-xs font-black font-mono">
@@ -3991,27 +3907,27 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                         </span>
                       </div>
 
-                      <div className="p-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60">
-                        <span className="text-[10px] text-slate-400 block font-bold">إجمالي الغرف</span>
-                        <span className="text-xs font-black font-mono text-slate-700 dark:text-slate-300">
+                      <div className="p-2 rounded-lg border border-slate-200 bg-slate-50 ">
+                        <span className="text-[10px] text-slate-500 block font-bold">إجمالي الغرف</span>
+                        <span className="text-xs font-black font-mono text-slate-700 ">
                           {toArabicDigits(stats.totalRooms)} غرفة
                         </span>
                       </div>
                     </div>
 
                     {/* Specs: Year, Area, Equipment */}
-                    <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-200/60 dark:border-slate-800/60 text-[11px] font-mono">
+                    <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-200/60 text-[11px] font-mono">
                       <div>
-                        <span className="text-slate-400 text-[10px] block">سنة الإنشاء:</span>
-                        <span className="font-bold text-slate-700 dark:text-slate-300">{toArabicDigits(u.constructionYear)}</span>
+                        <span className="text-slate-500 text-[10px] block">سنة الإنشاء:</span>
+                        <span className="font-bold text-slate-700 ">{toArabicDigits(u.constructionYear)}</span>
                       </div>
                       <div>
-                        <span className="text-slate-400 text-[10px] block">المساحة:</span>
-                        <span className="font-bold text-slate-700 dark:text-slate-300">{toArabicDigits(u.totalAreaSqM)} م²</span>
+                        <span className="text-slate-500 text-[10px] block">المساحة:</span>
+                        <span className="font-bold text-slate-700 ">{toArabicDigits(u.totalAreaSqM)} م²</span>
                       </div>
                       <div>
-                        <span className="text-slate-400 text-[10px] block">المعدات:</span>
-                        <span className="font-bold text-slate-700 dark:text-slate-300">{toArabicDigits(u.equipment.length)} معدة</span>
+                        <span className="text-slate-500 text-[10px] block">المعدات:</span>
+                        <span className="font-bold text-slate-700 ">{toArabicDigits(u.equipment.length)} معدة</span>
                       </div>
                     </div>
                   </div>
@@ -4023,17 +3939,17 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
           {/* Desktop Table View */}
           <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-right text-xs">
-              <thead className={`border-b ${isLight ? 'bg-slate-100 border-slate-200 text-slate-700' : 'bg-slate-950 border-slate-800 text-slate-400'} font-bold`}>
+              <thead className={`border-b bg-slate-100 border-slate-200 text-slate-700 font-bold`}>
                 <tr>
                   <th className="p-2.5">رمز المنشأة</th>
                   <th className="p-2.5">اسم المنشأة</th>
                   <th className="p-2.5">المحافظة والحقل</th>
                   <th className="p-2.5">التقييم الإنشائي</th>
                   <th className="p-2.5">الجهة الشاغلة</th>
-                  <th className="p-2.5 text-center font-black text-emerald-600 dark:text-emerald-400">
+                  <th className="p-2.5 text-center font-black text-emerald-600 ">
                     {selectedOrgEntity !== 'all' ? 'الغرف الشاغلة للتشكيل' : 'الغرف المشغولة'}
                   </th>
-                  <th className="p-2.5 text-center font-black text-amber-600 dark:text-amber-400">
+                  <th className="p-2.5 text-center font-black text-brand-700 ">
                     الغرف الشاغرة (فارغة)
                   </th>
                   <th className="p-2.5 text-center">إجمالي الغرف</th>
@@ -4042,7 +3958,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                   <th className="p-2.5">المعدات</th>
                 </tr>
               </thead>
-              <tbody className={`divide-y ${isLight ? 'divide-slate-200 text-slate-800' : 'divide-slate-800 text-slate-300'}`}>
+              <tbody className={`divide-y divide-slate-200 text-slate-800`}>
                 {filteredUnits.length === 0 ? (
                   <tr>
                     <td colSpan={11} className="p-6 text-center text-slate-500 font-semibold">
@@ -4053,11 +3969,11 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                   filteredUnits.map((u) => {
                     const stats = getUnitOccupancyStats(u, selectedOrgEntity);
                     return (
-                      <tr key={u.id} className={isLight ? 'hover:bg-slate-50' : 'hover:bg-slate-800/40'}>
+                      <tr key={u.id} className={'hover:bg-slate-50'}>
                         <td className="p-2.5 font-mono font-bold whitespace-nowrap">
-                          <div className="text-amber-500">{toArabicDigits(u.code)}</div>
+                          <div className="text-brand-700">{toArabicDigits(u.code)}</div>
                           {u.fixedAssetCode && (
-                            <div className="text-[10px] text-indigo-500 dark:text-indigo-400 font-bold mt-0.5">
+                            <div className="text-[10px] text-indigo-600 font-bold mt-0.5">
                               أصل: {u.fixedAssetCode}
                             </div>
                           )}
@@ -4067,10 +3983,10 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                           <span className="text-[10px] text-slate-500 font-normal">{translateUnitType(u.type)}</span>
                         </td>
                         <td className="p-2.5 whitespace-nowrap">
-                          <div className={`font-bold text-xs ${isLight ? 'text-slate-800' : 'text-slate-200'}`}>
+                          <div className={`font-bold text-xs text-slate-800`}>
                             {translateGovernorate(u.governorate) || u.governorate}
                           </div>
-                          <div className={`text-[11px] ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                          <div className={`text-[11px] text-slate-500`}>
                             {translateField(u.field) || u.field}
                           </div>
                         </td>
@@ -4078,12 +3994,12 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                           <span
                             className={`px-2 py-0.5 rounded text-[10px] font-black ${
                               u.conditionGrade === 'A'
-                                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                                ? 'bg-emerald-500/20 text-emerald-600 border border-emerald-500/30'
                                 : u.conditionGrade === 'B'
-                                ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
+                                ? 'bg-blue-500/20 text-blue-600 border border-blue-500/30'
                                 : u.conditionGrade === 'C'
-                                ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                                : 'bg-red-500/20 text-red-400 border border-red-500/30'
+                                ? 'bg-brand-100 text-brand-700 border border-brand-200'
+                                : 'bg-red-500/20 text-red-600 border border-red-500/30'
                             }`}
                           >
                             الدرجة {u.conditionGrade}
@@ -4091,8 +4007,8 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                         </td>
                         <td className="p-2.5">
                           {selectedOrgEntity !== 'all' ? (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30">
-                              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-brand-50 text-brand-700 border border-brand-200">
+                              <span className="w-1.5 h-1.5 rounded-full bg-brand-700 shrink-0" />
                               <span className="truncate">{selectedOrgEntity}</span>
                             </span>
                           ) : stats.allOccupants && stats.allOccupants.length > 0 ? (
@@ -4100,12 +4016,10 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                               {stats.allOccupants.map((occ: string, oIdx: number) => (
                                 <div
                                   key={oIdx}
-                                  className={`text-[11px] font-semibold leading-tight flex items-start gap-1.5 ${
-                                    isLight ? 'text-slate-800' : 'text-slate-200'
-                                  }`}
+                                  className={`text-[11px] font-semibold leading-tight flex items-start gap-1.5 text-slate-800`}
                                   title={occ}
                                 >
-                                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0 mt-1" />
+                                  <span className="w-1.5 h-1.5 rounded-full bg-brand-700 shrink-0 mt-1" />
                                   <span className="whitespace-normal leading-tight">{occ}</span>
                                 </div>
                               ))}
@@ -4118,14 +4032,14 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                           <div className="inline-flex flex-col items-center">
                             <span className={`px-2.5 py-0.5 rounded text-[11px] font-black font-mono border ${
                               selectedOrgEntity !== 'all'
-                                ? 'bg-amber-500/20 text-amber-600 dark:text-amber-400 border-amber-500/40 shadow-xs'
-                                : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
+                                ? 'bg-brand-100 text-brand-700 border-brand-200 shadow-xs'
+                                : 'bg-emerald-500/10 text-emerald-600 border-emerald-500/30'
                             }`}>
                               {toArabicDigits(stats.occupiedRoomsCount)} غرف
                             </span>
                             {selectedOrgEntity !== 'all' && stats.occupiedRooms.length > 0 && (
                               <span
-                                className="text-[9.5px] text-slate-400 max-w-[140px] truncate block mt-0.5"
+                                className="text-[9.5px] text-slate-500 max-w-[140px] truncate block mt-0.5"
                                 title={stats.occupiedRooms.map((r) => r.name).join(' ، ')}
                               >
                                 {stats.occupiedRooms.map((r) => r.name).slice(0, 2).join('، ')}
@@ -4138,10 +4052,8 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                           <div className="inline-flex flex-col items-center">
                             <span className={`px-2.5 py-0.5 rounded text-[11px] font-black font-mono border ${
                               stats.vacantRoomsCount > 0
-                                ? isLight
-                                  ? 'bg-amber-100/90 text-amber-900 border-amber-400 shadow-xs font-bold'
-                                  : 'bg-amber-950/70 text-amber-300 border-amber-500/50 shadow-xs font-bold'
-                                : 'bg-slate-100 dark:bg-slate-800/60 text-slate-400 border-slate-300 dark:border-slate-700/60'
+                                ? 'bg-brand-100 text-brand-800 border-brand-200 shadow-xs font-bold'
+                                : 'bg-slate-100 text-slate-500 border-slate-300 '
                             }`}>
                               {stats.vacantRoomsCount > 0 ? (
                                 <span className="flex items-center gap-1">
@@ -4153,9 +4065,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                             </span>
                             {stats.vacantRooms.length > 0 && (
                               <span
-                                className={`text-[9.5px] max-w-[140px] truncate block mt-0.5 ${
-                                  isLight ? 'text-amber-800 font-semibold' : 'text-amber-400 font-semibold'
-                                }`}
+                                className={`text-[9.5px] max-w-[140px] truncate block mt-0.5 text-brand-800 font-semibold`}
                                 title={stats.vacantRooms.map((r) => r.name).join(' ، ')}
                               >
                                 {stats.vacantRooms.map((r) => r.name).slice(0, 2).join('، ')}
@@ -4164,12 +4074,12 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                             )}
                           </div>
                         </td>
-                        <td className="p-2.5 font-mono text-center text-slate-400 whitespace-nowrap">
+                        <td className="p-2.5 font-mono text-center text-slate-500 whitespace-nowrap">
                           {toArabicDigits(stats.totalRooms)} غرفة
                         </td>
                         <td className="p-2.5 font-mono whitespace-nowrap">{toArabicDigits(u.constructionYear)}</td>
                         <td className="p-2.5 font-mono whitespace-nowrap">{toArabicDigits(u.totalAreaSqM)} م²</td>
-                        <td className="p-2.5 text-[11px] text-slate-400 whitespace-nowrap font-mono">
+                        <td className="p-2.5 text-[11px] text-slate-500 whitespace-nowrap font-mono">
                           {toArabicDigits(u.equipment.length)} معدة
                         </td>
                       </tr>
@@ -4184,15 +4094,15 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
 
       {/* SECTION 4: Decommissioned Units Table */}
       {(activeTab === 'all' || activeTab === 'decommissioned') && (
-        <div className={`p-3.5 sm:p-4 rounded-2xl border ${isLight ? 'bg-white border-slate-200 shadow-sm' : 'bg-slate-900 border-slate-800'} space-y-3`}>
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-800/80 pb-3 gap-1.5">
+        <div className={`p-3.5 sm:p-4 rounded-2xl border bg-card border-slate-200 shadow-sm space-y-3`}>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-200 pb-3 gap-1.5">
             <div className="flex items-center gap-2">
-              <Archive className="w-5 h-5 text-rose-500 shrink-0" />
-              <h3 className={`font-bold text-xs sm:text-sm ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+              <Archive className="w-5 h-5 text-rose-600 shrink-0" />
+              <h3 className={`font-bold text-xs sm:text-sm text-slate-900`}>
                 4. سجل وتقارير الوحدات والمنشآت المشطوبة والمجمدة عن الخدمة ({toArabicDigits(decommissionedUnits.length)} منشأة)
               </h3>
             </div>
-            <span className="text-[11px] text-rose-500 font-mono font-bold self-start sm:self-auto">الاصول المشطوبة و المجمدة</span>
+            <span className="text-[11px] text-rose-600 font-mono font-bold self-start sm:self-auto">الاصول المشطوبة و المجمدة</span>
           </div>
 
           {/* Mobile Cards for Decommissioned Units */}
@@ -4205,25 +4115,21 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
               decommissionedUnits.map((u) => (
                 <div
                   key={u.id}
-                  className={`p-3.5 rounded-xl border space-y-2.5 transition ${
-                    isLight ? 'bg-rose-50/40 border-rose-200 shadow-xs' : 'bg-rose-950/20 border-rose-900/40 shadow-xs'
-                  }`}
+                  className={`p-3.5 rounded-xl border space-y-2.5 transition bg-rose-50/40 border-rose-200 shadow-xs`}
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
                       <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="font-mono font-bold text-xs text-rose-500">
+                        <span className="font-mono font-bold text-xs text-rose-600">
                           {toArabicDigits(u.code)}
                         </span>
                         {u.fixedAssetCode && (
-                          <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${
-                            isLight ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-indigo-950/40 text-indigo-300 border-indigo-800/60'
-                          }`}>
+                          <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border bg-indigo-50 text-indigo-700 border-indigo-200`}>
                             أصل: {u.fixedAssetCode}
                           </span>
                         )}
                       </div>
-                      <h4 className={`font-black text-sm mt-1 leading-snug ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                      <h4 className={`font-black text-sm mt-1 leading-snug text-slate-900`}>
                         {u.name}
                       </h4>
                     </div>
@@ -4234,36 +4140,34 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-rose-200/60 dark:border-rose-900/40">
+                  <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-rose-200/60 ">
                     <div>
-                      <span className="text-slate-400 text-[10px] block">الحقل / المحافظة:</span>
-                      <span className={`font-bold text-[11px] block mt-0.5 ${isLight ? 'text-slate-800' : 'text-slate-200'}`}>
+                      <span className="text-slate-500 text-[10px] block">الحقل / المحافظة:</span>
+                      <span className={`font-bold text-[11px] block mt-0.5 text-slate-800`}>
                         {translateField(u.field)} / {translateGovernorate(u.governorate)}
                       </span>
                     </div>
                     <div>
-                      <span className="text-slate-400 text-[10px] block">الجهة السابقة:</span>
-                      <span className={`font-bold text-[11px] block mt-0.5 ${isLight ? 'text-slate-800' : 'text-slate-200'}`}>
+                      <span className="text-slate-500 text-[10px] block">الجهة السابقة:</span>
+                      <span className={`font-bold text-[11px] block mt-0.5 text-slate-800`}>
                         {u.department || '-'}
                       </span>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-rose-200/60 dark:border-rose-900/40">
+                  <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-rose-200/60 ">
                     <div>
-                      <span className="text-slate-400 text-[10px] block">سنة الإنشاء:</span>
+                      <span className="text-slate-500 text-[10px] block">سنة الإنشاء:</span>
                       <span className="font-mono text-[11px] font-bold">{toArabicDigits(u.constructionYear)}</span>
                     </div>
                     <div>
-                      <span className="text-slate-400 text-[10px] block">تاريخ الشطب والتجميد:</span>
-                      <span className="font-mono text-[11px] font-black text-amber-500">{toArabicDigits(u.decommissionedAt || '2026')}</span>
+                      <span className="text-slate-500 text-[10px] block">تاريخ الشطب والتجميد:</span>
+                      <span className="font-mono text-[11px] font-black text-brand-700">{toArabicDigits(u.decommissionedAt || '2026')}</span>
                     </div>
                   </div>
 
-                  <div className={`p-2.5 rounded-xl text-xs space-y-1 ${
-                    isLight ? 'bg-white border border-rose-200 text-slate-800' : 'bg-slate-950 border border-rose-900/50 text-slate-200'
-                  }`}>
-                    <span className="font-bold text-[10px] text-rose-500 block">سبب الشطب والتجميد التوثيقي:</span>
+                  <div className={`p-2.5 rounded-xl text-xs space-y-1 bg-card border border-rose-200 text-slate-800`}>
+                    <span className="font-bold text-[10px] text-rose-600 block">سبب الشطب والتجميد التوثيقي:</span>
                     <p className="text-[11px] leading-relaxed font-semibold">
                       {u.decommissionReason || 'تم الشطب بموجب محضر الفحص الفني والإنشائي ولجان الجرد'}
                     </p>
@@ -4276,7 +4180,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
           {/* Desktop Table View */}
           <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-right text-xs">
-              <thead className={`border-b ${isLight ? 'bg-slate-100 border-slate-200 text-slate-700' : 'bg-slate-950 border-slate-800 text-slate-400'} font-bold`}>
+              <thead className={`border-b bg-slate-100 border-slate-200 text-slate-700 font-bold`}>
                 <tr>
                   <th className="p-2.5">رمز المنشأة</th>
                   <th className="p-2.5">اسم المنشأة المشطوبة</th>
@@ -4287,7 +4191,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                   <th className="p-2.5">سبب الشطب والتجميد التوثيقي</th>
                 </tr>
               </thead>
-              <tbody className={`divide-y ${isLight ? 'divide-slate-200 text-slate-800' : 'divide-slate-800 text-slate-300'}`}>
+              <tbody className={`divide-y divide-slate-200 text-slate-800`}>
                 {decommissionedUnits.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="p-6 text-center text-slate-500 font-semibold">
@@ -4296,26 +4200,26 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                   </tr>
                 ) : (
                   decommissionedUnits.map((u) => (
-                    <tr key={u.id} className={isLight ? 'hover:bg-rose-50/50' : 'hover:bg-rose-950/20'}>
+                    <tr key={u.id} className={'hover:bg-rose-50/50'}>
                       <td className="p-2.5 font-mono font-bold whitespace-nowrap">
-                        <div className="text-rose-500">{toArabicDigits(u.code)}</div>
+                        <div className="text-rose-600">{toArabicDigits(u.code)}</div>
                         {u.fixedAssetCode && (
-                          <div className="text-[10px] text-indigo-500 dark:text-indigo-400 font-bold mt-0.5">
+                          <div className="text-[10px] text-indigo-600 font-bold mt-0.5">
                             أصل: {u.fixedAssetCode}
                           </div>
                         )}
                       </td>
                       <td className="p-2.5 font-bold whitespace-nowrap">{u.name}</td>
-                      <td className="p-2.5 text-slate-400 whitespace-nowrap">{u.field} / {u.governorate}</td>
-                      <td className="p-2.5 text-slate-400 whitespace-nowrap">{u.department}</td>
+                      <td className="p-2.5 text-slate-500 whitespace-nowrap">{u.field} / {u.governorate}</td>
+                      <td className="p-2.5 text-slate-500 whitespace-nowrap">{u.department}</td>
                       <td className="p-2.5 whitespace-nowrap">
                         <span className="px-2 py-0.5 rounded text-[10px] font-black bg-rose-600 text-white flex items-center gap-1 w-fit">
                           <Archive className="w-3 h-3" />
                           <span>مشطوبة ومجمدة</span>
                         </span>
                       </td>
-                      <td className="p-2.5 font-mono whitespace-nowrap font-bold text-amber-500">{toArabicDigits(u.decommissionedAt || '2026')}</td>
-                      <td className="p-2.5 max-w-md text-slate-300 font-semibold">{u.decommissionReason || 'تم الشطب بموجب محضر الفحص الفني والإنشائي'}</td>
+                      <td className="p-2.5 font-mono whitespace-nowrap font-bold text-brand-700">{toArabicDigits(u.decommissionedAt || '2026')}</td>
+                      <td className="p-2.5 max-w-md text-slate-600 font-semibold">{u.decommissionReason || 'تم الشطب بموجب محضر الفحص الفني والإنشائي'}</td>
                     </tr>
                   ))
                 )}
@@ -4330,21 +4234,17 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
       {showPrintModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/60 backdrop-blur-sm overflow-y-auto print-modal-overlay">
           <div
-            className={`w-full max-w-6xl max-h-[94vh] rounded-2xl flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 border print-modal-wrapper ${
-              isLight ? 'bg-slate-100 border-slate-300 text-slate-900' : 'bg-slate-900 border-slate-700 text-white'
-            }`}
+            className={`w-full max-w-6xl max-h-[94vh] rounded-2xl flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 border print-modal-wrapper bg-slate-100 border-slate-300 text-slate-900`}
           >
             {/* Modal Header Bar (Hidden in Print) */}
             <div
-              className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 sm:px-5 sm:py-3.5 border-b print:hidden shrink-0 print-modal-header ${
-                isLight ? 'bg-white border-slate-200 text-slate-900' : 'bg-slate-950 border-slate-800 text-slate-100'
-              }`}
+              className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 sm:px-5 sm:py-3.5 border-b print:hidden shrink-0 print-modal-header bg-card border-slate-200 text-slate-900`}
             >
               {/* Top row: Title and Mobile Close button */}
               <div className="flex items-center justify-between gap-2 w-full sm:w-auto">
                 <div className="flex items-center gap-2">
-                  <FileText className={`w-5 h-5 shrink-0 ${isLight ? 'text-amber-600' : 'text-amber-500'}`} />
-                  <h3 className={`font-black text-xs sm:text-sm ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                  <FileText className={`w-5 h-5 shrink-0 text-brand-700`} />
+                  <h3 className={`font-black text-xs sm:text-sm text-slate-900`}>
                     معاينة وثيقة التقرير الرسمي المعتمد
                   </h3>
                 </div>
@@ -4352,11 +4252,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                 <button
                   type="button"
                   onClick={() => setShowPrintModal(false)}
-                  className={`p-1.5 rounded-xl transition cursor-pointer sm:hidden ${
-                    isLight
-                      ? 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
-                      : 'text-slate-400 hover:text-white hover:bg-slate-800'
-                  }`}
+                  className={`p-1.5 rounded-xl transition cursor-pointer sm:hidden text-slate-500 hover:text-slate-900 hover:bg-slate-100`}
                   title="إغلاق المعاينة"
                 >
                   <X className="w-5 h-5" />
@@ -4366,9 +4262,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
               {/* Action and Navigation Row */}
               <div className="flex flex-wrap sm:flex-nowrap items-center justify-between sm:justify-end gap-2 w-full sm:w-auto">
                 {/* Page Indicator Badge */}
-                <div className={`px-2.5 py-1.5 rounded-lg text-xs font-bold border flex items-center gap-1 shrink-0 ${
-                  isLight ? 'bg-amber-50 text-amber-900 border-amber-200' : 'bg-amber-950/40 text-amber-400 border-amber-800/60'
-                }`}>
+                <div className={`px-2.5 py-1.5 rounded-lg text-xs font-bold border flex items-center gap-1 shrink-0 bg-brand-50 text-brand-800 border-brand-200`}>
                   <span>صفحة</span>
                   <span className="font-mono">{toArabicDigits(previewPage)}</span>
                   <span>من</span>
@@ -4377,19 +4271,15 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                 </div>
 
                 {/* Pagination Controls */}
-                <div className={`flex items-center rounded-xl border p-0.5 shrink-0 ${
-                  isLight ? 'bg-slate-100 border-slate-300' : 'bg-slate-800 border-slate-700'
-                }`}>
+                <div className={`flex items-center rounded-xl border p-0.5 shrink-0 bg-slate-100 border-slate-300`}>
                   <button
                     type="button"
                     onClick={() => setPreviewPage((p) => Math.max(1, p - 1))}
                     disabled={previewPage <= 1}
                     className={`p-1.5 rounded-lg transition text-xs font-bold flex items-center gap-1 ${
                       previewPage <= 1
-                        ? 'opacity-40 cursor-not-allowed text-slate-400'
-                        : isLight
-                        ? 'hover:bg-white text-slate-800 shadow-sm cursor-pointer'
-                        : 'hover:bg-slate-700 text-slate-200 cursor-pointer'
+                        ? 'opacity-40 cursor-not-allowed text-slate-500'
+                        : 'hover:bg-card text-slate-800 shadow-sm cursor-pointer'
                     }`}
                     title="الصفحة السابقة"
                   >
@@ -4397,7 +4287,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                     <span className="hidden md:inline">السابق</span>
                   </button>
 
-                  <div className="px-2 font-mono text-xs font-bold select-none text-slate-700 dark:text-slate-300">
+                  <div className="px-2 font-mono text-xs font-bold select-none text-slate-700 ">
                     {toArabicDigits(previewPage)}
                   </div>
 
@@ -4407,10 +4297,8 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                     disabled={previewPage >= totalPages}
                     className={`p-1.5 rounded-lg transition text-xs font-bold flex items-center gap-1 ${
                       previewPage >= totalPages
-                        ? 'opacity-40 cursor-not-allowed text-slate-400'
-                        : isLight
-                        ? 'hover:bg-white text-slate-800 shadow-sm cursor-pointer'
-                        : 'hover:bg-slate-700 text-slate-200 cursor-pointer'
+                        ? 'opacity-40 cursor-not-allowed text-slate-500'
+                        : 'hover:bg-card text-slate-800 shadow-sm cursor-pointer'
                     }`}
                     title="الصفحة التالية"
                   >
@@ -4422,7 +4310,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                 <button
                   type="button"
                   onClick={() => handlePrintAction('window')}
-                  className="px-3 sm:px-4 py-1.5 sm:py-2 bg-amber-500 hover:bg-amber-400 active:scale-95 text-slate-950 font-black text-xs rounded-xl flex items-center gap-1.5 transition shadow cursor-pointer select-none border border-amber-400 shrink-0 min-h-[36px]"
+                  className="px-3 sm:px-4 py-1.5 sm:py-2 bg-brand-700 hover:bg-brand-800 active:scale-95 text-on-brand font-black text-xs rounded-xl flex items-center gap-1.5 transition shadow cursor-pointer select-none border border-brand-200 shrink-0 min-h-[36px]"
                   title="معاينة الطباعة في نافذة مخصصة للطباعة وتصدير PDF"
                 >
                   <Printer className="w-4 h-4" />
@@ -4432,11 +4320,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                 <button
                   type="button"
                   onClick={() => setShowPrintModal(false)}
-                  className={`hidden sm:flex p-2 rounded-xl transition cursor-pointer shrink-0 ${
-                    isLight
-                      ? 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
-                      : 'text-slate-400 hover:text-white hover:bg-slate-800'
-                  }`}
+                  className={`hidden sm:flex p-2 rounded-xl transition cursor-pointer shrink-0 text-slate-500 hover:text-slate-900 hover:bg-slate-100`}
                   title="إغلاق المعاينة"
                 >
                   <X className="w-5 h-5" />
@@ -4446,12 +4330,10 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
 
             {/* Printable Document Body - A4 Landscape Formatted */}
             <div
-              className={`p-2 sm:p-6 overflow-y-auto flex flex-col items-center print-modal-scroll w-full ${
-                isLight ? 'bg-slate-200/80' : 'bg-slate-950/60'
-              }`}
+              className={`p-2 sm:p-6 overflow-y-auto flex flex-col items-center print-modal-scroll w-full bg-slate-200/80`}
             >
               {/* Mobile Scroll Hint */}
-              <div className="sm:hidden w-full max-w-5xl mb-2 text-center text-[10px] font-semibold text-slate-500 flex items-center justify-center gap-1 bg-white/60 dark:bg-slate-900/60 py-1 px-2 rounded-lg border border-slate-300 dark:border-slate-800">
+              <div className="sm:hidden w-full max-w-5xl mb-2 text-center text-[10px] font-semibold text-slate-500 flex items-center justify-center gap-1 bg-card/60 py-1 px-2 rounded-lg border border-slate-300 ">
                 <span>💡 يمكنك التمرير أفقياً لمعاينة ورقة A4 الرسمية بالكامل أو الضغط على معاينة الطباعة</span>
               </div>
 
@@ -4459,7 +4341,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
               <div className="w-full overflow-x-auto flex justify-center pb-4">
                 <div
                   id="printable-report-area"
-                  className="min-w-[700px] sm:min-w-0 w-full max-w-5xl bg-white text-slate-900 p-4 sm:p-8 rounded-lg shadow-xl border border-slate-300 font-sans text-xs space-y-4 min-h-[580px] flex flex-col justify-between"
+                  className="min-w-[700px] sm:min-w-0 w-full max-w-5xl bg-card text-slate-900 p-4 sm:p-8 rounded-lg shadow-xl border border-slate-300 font-sans text-xs space-y-4 min-h-[580px] flex flex-col justify-between"
                   style={{
                     aspectRatio: '297 / 210', // A4 Landscape ratio
                   }}
@@ -4472,20 +4354,20 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                         {logoUrl ? (
                           <img src={logoUrl} alt="Logo" className="w-16 h-16 object-contain" />
                         ) : (
-                          <div className="w-14 h-14 bg-amber-100 border border-amber-600 rounded-lg flex items-center justify-center font-black text-amber-900 text-xl">
+                          <div className="w-14 h-14 bg-brand-100 border border-brand-600 rounded-lg flex items-center justify-center font-black text-brand-800 text-xl">
                             {companyName.slice(0, 2)}
                           </div>
                         )}
                         <div>
                           <h1 className="text-xs font-black text-slate-700">{countryName} - {ministryName}</h1>
-                          <h2 className="text-base font-black text-amber-900 mt-0.5">{companyName}</h2>
+                          <h2 className="text-base font-black text-brand-800 mt-0.5">{companyName}</h2>
                           <p className="text-[11px] font-bold text-slate-800">{systemName}</p>
                         </div>
                       </div>
 
                       <div className="text-left font-mono text-[11px] text-slate-800 space-y-0.5">
                         <p className="font-bold">تاريخ الطباعة: {getServerDateFormatted()}</p>
-                        <p>نوع التقرير: <span className="font-bold text-amber-900">{reportTitle}</span></p>
+                        <p>نوع التقرير: <span className="font-bold text-brand-800">{reportTitle}</span></p>
                         <p>عدد السجلات: <span className="font-bold">{toArabicDigits(totalFilteredRecords)}</span></p>
                       </div>
                     </div>
@@ -4494,11 +4376,11 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                     <div className="border-b border-slate-400 pb-2 flex items-center justify-between text-slate-700 bg-slate-50 px-3 py-1.5 rounded">
                       <div className="flex items-center gap-2">
                         <span className="font-bold text-slate-900">{companyName}</span>
-                        <span className="text-slate-400">|</span>
-                        <span className="font-semibold text-amber-900">{reportTitle}</span>
+                        <span className="text-slate-500">|</span>
+                        <span className="font-semibold text-brand-800">{reportTitle}</span>
                         {activePageData.sectionNumberText && (
                           <>
-                            <span className="text-slate-400">-</span>
+                            <span className="text-slate-500">-</span>
                             <span className="font-bold text-slate-800">{activePageData.sectionNumberText}: {activePageData.sectionTitle}</span>
                           </>
                         )}
@@ -4535,15 +4417,15 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                   <div className="space-y-1.5 pt-1">
                     <div className="flex items-center justify-between border-b border-slate-300 pb-1">
                       <div className="flex items-center gap-2">
-                        {activePageData.sectionKey === 'inspections' && <CalendarCheck className="w-4 h-4 text-amber-700" />}
-                        {activePageData.sectionKey === 'maintenance' && <Wrench className="w-4 h-4 text-amber-700" />}
-                        {activePageData.sectionKey === 'units' && <Box className="w-4 h-4 text-amber-700" />}
+                        {activePageData.sectionKey === 'inspections' && <CalendarCheck className="w-4 h-4 text-brand-700" />}
+                        {activePageData.sectionKey === 'maintenance' && <Wrench className="w-4 h-4 text-brand-700" />}
+                        {activePageData.sectionKey === 'units' && <Box className="w-4 h-4 text-brand-700" />}
                         {activePageData.sectionKey === 'decommissioned' && <Archive className="w-4 h-4 text-rose-700" />}
                         <h4 className="font-black text-xs text-slate-900">
                           {activePageData.sectionNumberText ? `${activePageData.sectionNumberText}: ` : ''}
                           {activePageData.sectionTitle}
                           {activePageData.totalPagesInSection > 1 && (
-                            <span className="text-[10px] font-bold text-amber-800 mr-1.5">
+                            <span className="text-[10px] font-bold text-brand-800 mr-1.5">
                               (صفحة {toArabicDigits(activePageData.pageIndexInSection)} من {toArabicDigits(activePageData.totalPagesInSection)} لهذا القسم)
                             </span>
                           )}

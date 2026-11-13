@@ -189,7 +189,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     <aside
       className={cx(
         isCollapsed ? 'w-[76px]' : 'w-64',
-        'bg-sidebar shrink-0 hidden md:flex flex-col select-none sticky top-[91px] self-start h-[calc(100vh-91px)] overflow-y-auto overflow-x-hidden transition-[width] duration-200 z-20 print:hidden rounded-b-xl',
+        'ds-off bg-sidebar shrink-0 hidden md:flex flex-col select-none sticky top-[91px] self-start h-[calc(100vh-91px)] overflow-y-auto overflow-x-hidden transition-[width] duration-200 z-20 print:hidden rounded-b-xl',
         light ? 'border-l border-slate-200 text-slate-700 dark:border-white/10 dark:text-slate-200' : 'text-white'
       )}
     >

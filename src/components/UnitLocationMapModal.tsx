@@ -163,61 +163,61 @@ export const UnitLocationMapModal: React.FC<UnitLocationMapModalProps> = ({
     const customIcon = L.divIcon({
       className: 'custom-unit-modal-marker',
       html: `
-        <div style="
-          position: relative;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          cursor: pointer;
-          filter: drop-shadow(0 6px 16px rgba(0,0,0,0.6));
-        ">
-          <!-- Pin Teardrop Body -->
-          <div style="
-            background: ${typeConfig.gradient};
-            width: 42px;
-            height: 42px;
-            border-radius: 50% 50% 50% 0;
-            transform: rotate(-45deg);
-            border: 3px solid #ffffff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: inset 0 2px 5px rgba(255,255,255,0.3);
-            position: relative;
-          ">
-            <!-- Inner Vector Icon (unrotated) -->
-            <div style="
-              transform: rotate(45deg);
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              width: 100%;
-              height: 100%;
-            ">
-              ${typeConfig.iconSvg}
-            </div>
-          </div>
+ <div style="
+ position: relative;
+ display: flex;
+ flex-direction: column;
+ align-items: center;
+ cursor: pointer;
+ filter: drop-shadow(0 6px 16px rgba(0,0,0,0.6));
+ ">
+ <!-- Pin Teardrop Body -->
+ <div style="
+ background: ${typeConfig.gradient};
+ width: 42px;
+ height: 42px;
+ border-radius: 50% 50% 50% 0;
+ transform: rotate(-45deg);
+ border: 3px solid #ffffff;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ box-shadow: inset 0 2px 5px rgba(255,255,255,0.3);
+ position: relative;
+ ">
+ <!-- Inner Vector Icon (unrotated) -->
+ <div style="
+ transform: rotate(45deg);
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ width: 100%;
+ height: 100%;
+ ">
+ ${typeConfig.iconSvg}
+ </div>
+ </div>
 
-          <!-- Condition Grade Mini Badge -->
-          <div style="
-            position: absolute;
-            top: -4px;
-            right: -4px;
-            background: ${gradeColor};
-            color: #ffffff;
-            border: 2px solid #ffffff;
-            border-radius: 9999px;
-            font-size: 10px;
-            font-weight: 900;
-            font-family: monospace;
-            padding: 1px 5px;
-            line-height: 14px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.5);
-          ">
-            ${unit.conditionGrade}
-          </div>
-        </div>
-      `,
+ <!-- Condition Grade Mini Badge -->
+ <div style="
+ position: absolute;
+ top: -4px;
+ right: -4px;
+ background: ${gradeColor};
+ color: #ffffff;
+ border: 2px solid #ffffff;
+ border-radius: 9999px;
+ font-size: 10px;
+ font-weight: 900;
+ font-family: monospace;
+ padding: 1px 5px;
+ line-height: 14px;
+ box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+ ">
+ ${unit.conditionGrade}
+ </div>
+ </div>
+ `,
       iconSize: [42, 48],
       iconAnchor: [21, 48],
       popupAnchor: [0, -48],
@@ -225,14 +225,14 @@ export const UnitLocationMapModal: React.FC<UnitLocationMapModalProps> = ({
 
     const displayName = isRoom && roomDetails?.roomName ? roomDetails.roomName : unit.name;
     const popupHtml = `
-      <div style="font-family: sans-serif; direction: rtl; text-align: right; min-width: 200px; padding: 4px;">
-        <div style="font-weight: 900; font-size: 13px; color: #0f172a; margin-bottom: 3px;">${displayName}</div>
-        <div style="font-size: 11px; color: #64748b; margin-bottom: 6px;">${unit.field} (${unit.governorate}) • رمز: ${unit.code}</div>
-        <a href="${googleMapsUrl}" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center; gap: 4px; background: #059669; color: #ffffff; padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: bold; text-decoration: none; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
-          <span>🧭 فتح الاتجاهات في Google Maps</span>
-        </a>
-      </div>
-    `;
+ <div style="font-family: sans-serif; direction: rtl; text-align: right; min-width: 200px; padding: 4px;">
+ <div style="font-weight: 900; font-size: 13px; color: #0f172a; margin-bottom: 3px;">${displayName}</div>
+ <div style="font-size: 11px; color: #64748b; margin-bottom: 6px;">${unit.field} (${unit.governorate}) • رمز: ${unit.code}</div>
+ <a href="${googleMapsUrl}" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center; gap: 4px; background: #059669; color: #ffffff; padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: bold; text-decoration: none; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+ <span>🧭 فتح الاتجاهات في Google Maps</span>
+ </a>
+ </div>
+ `;
 
     L.marker([lat, lng], { icon: customIcon }).addTo(map).bindPopup(popupHtml);
 
@@ -258,39 +258,31 @@ export const UnitLocationMapModal: React.FC<UnitLocationMapModalProps> = ({
   return (
     <div
       id="modal-unit-location-map"
-      className={`fixed inset-0 z-50 backdrop-blur-md flex items-center justify-center p-3 sm:p-5 animate-fadeIn ${
-        isLight ? 'bg-slate-900/60' : 'bg-slate-950/85'
-      }`}
+      className={`fixed inset-0 z-50 backdrop-blur-md flex items-center justify-center p-3 sm:p-5 animate-fadeIn bg-slate-900/60`}
     >
       <div
-        className={`border rounded-3xl max-w-3xl w-full flex flex-col max-h-[92vh] shadow-2xl overflow-hidden transition-all ${
-          isLight
-            ? 'bg-white border-slate-200 text-slate-900 shadow-slate-300/50'
-            : 'bg-slate-900 border-slate-800 text-white'
-        }`}
+        className={`border rounded-3xl max-w-3xl w-full flex flex-col max-h-[92vh] shadow-2xl overflow-hidden transition-all bg-card border-slate-200 text-slate-900 shadow-slate-300/50`}
       >
         {/* Header */}
         <div
-          className={`p-3 sm:p-5 border-b flex items-center justify-between shrink-0 transition-colors ${
-            isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-950/60 border-slate-800'
-          }`}
+          className={`p-3 sm:p-5 border-b flex items-center justify-between shrink-0 transition-colors bg-slate-50 border-slate-200`}
         >
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-amber-500 text-slate-950 flex items-center justify-center font-bold shadow-lg shrink-0">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-brand-700 text-on-brand flex items-center justify-center font-bold shadow-lg shrink-0">
               <MapPin className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-                <span className="font-mono text-amber-500 font-bold text-[11px] sm:text-xs">
+                <span className="font-mono text-brand-700 font-bold text-[11px] sm:text-xs">
                   {isRoom && roomDetails?.roomCode ? roomDetails.roomCode : toArabicDigits(unit.code)}
                 </span>
                 <span
-                  className="px-1.5 sm:px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold text-white shadow-sm shrink-0"
+                  className="px-1.5 sm:px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold text-slate-900 shadow-sm shrink-0"
                   style={{ backgroundColor: gradeColor }}
                 >
                   Grade {unit.conditionGrade}
                 </span>
-                <span className="text-[10px] sm:text-[11px] font-bold px-1.5 sm:px-2 py-0.5 rounded-md bg-blue-500/15 border border-blue-500/30 text-blue-600 dark:text-blue-400 shrink-0">
+                <span className="text-[10px] sm:text-[11px] font-bold px-1.5 sm:px-2 py-0.5 rounded-md bg-blue-500/15 border border-blue-500/30 text-blue-600 shrink-0">
                   {isRoom ? 'موقع الغرفة' : 'موقع المنشأة'}
                 </span>
               </div>
@@ -302,11 +294,7 @@ export const UnitLocationMapModal: React.FC<UnitLocationMapModalProps> = ({
 
           <button
             onClick={onClose}
-            className={`p-1.5 sm:p-2 rounded-xl transition cursor-pointer shrink-0 ${
-              isLight
-                ? 'hover:bg-slate-200 text-slate-500'
-                : 'hover:bg-slate-800 text-slate-400 hover:text-white'
-            }`}
+            className={`p-1.5 sm:p-2 rounded-xl transition cursor-pointer shrink-0 hover:bg-slate-200 text-slate-500`}
             title="إغلاق النافذة"
           >
             <X className="w-5 h-5" />
@@ -315,22 +303,18 @@ export const UnitLocationMapModal: React.FC<UnitLocationMapModalProps> = ({
 
         {/* 4 Required Information Cards Panel */}
         <div
-          className={`p-2.5 sm:p-4 border-b transition-colors ${
-            isLight ? 'bg-amber-50/70 border-amber-200' : 'bg-amber-500/10 border-amber-500/20'
-          }`}
+          className={`p-2.5 sm:p-4 border-b transition-colors bg-brand-50 border-brand-200`}
         >
           {isRoom ? (
             /* Room Scan: 4 Required Information Elements (2x2 on mobile, 4 in row on lg) */
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-2.5">
               {/* 1. اسم المنشأة */}
-              <div className={`p-2 sm:p-2.5 rounded-xl border flex items-center gap-2 sm:gap-2.5 min-w-0 ${
-                isLight ? 'bg-white border-amber-200 text-slate-800' : 'bg-slate-900/90 border-amber-500/30 text-slate-100'
-              }`}>
-                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-blue-500/15 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+              <div className={`p-2 sm:p-2.5 rounded-xl border flex items-center gap-2 sm:gap-2.5 min-w-0 bg-card border-brand-200 text-slate-800`}>
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-blue-500/15 text-blue-600 flex items-center justify-center shrink-0">
                   <Building className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="text-[9px] sm:text-[10px] text-slate-400 font-medium">اسم المنشأة</div>
+                  <div className="text-[9px] sm:text-[10px] text-slate-500 font-medium">اسم المنشأة</div>
                   <div className="text-[11px] sm:text-xs font-black truncate" title={unit.name}>
                     {unit.name}
                   </div>
@@ -338,47 +322,41 @@ export const UnitLocationMapModal: React.FC<UnitLocationMapModalProps> = ({
               </div>
 
               {/* 2. الطابق */}
-              <div className={`p-2 sm:p-2.5 rounded-xl border flex items-center gap-2 sm:gap-2.5 min-w-0 ${
-                isLight ? 'bg-white border-amber-200 text-slate-800' : 'bg-slate-900/90 border-amber-500/30 text-slate-100'
-              }`}>
-                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+              <div className={`p-2 sm:p-2.5 rounded-xl border flex items-center gap-2 sm:gap-2.5 min-w-0 bg-card border-brand-200 text-slate-800`}>
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-emerald-500/15 text-emerald-600 flex items-center justify-center shrink-0">
                   <Layers className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="text-[9px] sm:text-[10px] text-slate-400 font-medium">الطابق</div>
-                  <div className="text-[11px] sm:text-xs font-black text-emerald-600 dark:text-emerald-400 truncate">
+                  <div className="text-[9px] sm:text-[10px] text-slate-500 font-medium">الطابق</div>
+                  <div className="text-[11px] sm:text-xs font-black text-emerald-600 truncate">
                     {roomDetails?.floor || 'الطابق 1'}
                   </div>
                 </div>
               </div>
 
               {/* 3. رمز الغرفة */}
-              <div className={`p-2 sm:p-2.5 rounded-xl border flex items-center gap-2 sm:gap-2.5 min-w-0 ${
-                isLight ? 'bg-white border-amber-200 text-slate-800' : 'bg-slate-900/90 border-amber-500/30 text-slate-100'
-              }`}>
-                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+              <div className={`p-2 sm:p-2.5 rounded-xl border flex items-center gap-2 sm:gap-2.5 min-w-0 bg-card border-brand-200 text-slate-800`}>
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-brand-100 text-brand-700 flex items-center justify-center shrink-0">
                   <DoorClosed className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="text-[9px] sm:text-[10px] text-slate-400 font-medium">رمز الغرفة</div>
-                  <div className="text-[11px] sm:text-xs font-mono font-black text-amber-600 dark:text-amber-400 truncate">
+                  <div className="text-[9px] sm:text-[10px] text-slate-500 font-medium">رمز الغرفة</div>
+                  <div className="text-[11px] sm:text-xs font-mono font-black text-brand-700 truncate">
                     {roomDetails?.roomCode || roomDetails?.roomName || '—'}
                   </div>
                 </div>
               </div>
 
               {/* 4. الجهة الشاغلة */}
-              <div className={`p-2 sm:p-2.5 rounded-xl border flex items-center gap-2 sm:gap-2.5 min-w-0 ${
-                isLight ? 'bg-white border-amber-200 text-slate-800' : 'bg-slate-900/90 border-amber-500/30 text-slate-100'
-              }`}>
-                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-sky-500/15 text-sky-600 dark:text-sky-400 flex items-center justify-center shrink-0">
+              <div className={`p-2 sm:p-2.5 rounded-xl border flex items-center gap-2 sm:gap-2.5 min-w-0 bg-card border-brand-200 text-slate-800`}>
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-sky-500/15 text-sky-600 flex items-center justify-center shrink-0">
                   <UserCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="text-[9px] sm:text-[10px] text-slate-400 font-medium">الجهة الشاغلة</div>
+                  <div className="text-[9px] sm:text-[10px] text-slate-500 font-medium">الجهة الشاغلة</div>
                   <div
                     className={`text-[11px] sm:text-xs font-black truncate ${
-                      isRoomVacant(roomDetails?.occupiedBy) ? 'text-amber-500' : 'text-sky-600 dark:text-sky-400'
+                      isRoomVacant(roomDetails?.occupiedBy) ? 'text-brand-700' : 'text-sky-600 '
                     }`}
                     title={isRoomVacant(roomDetails?.occupiedBy) ? 'شاغرة' : (roomDetails?.occupiedBy || 'شاغرة')}
                   >
@@ -391,14 +369,12 @@ export const UnitLocationMapModal: React.FC<UnitLocationMapModalProps> = ({
             /* Facility Scan: Facility Details (2x2 on mobile, 4 in row on lg) */
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-2.5">
               {/* 1. اسم المنشأة */}
-              <div className={`p-2 sm:p-2.5 rounded-xl border flex items-center gap-2 sm:gap-2.5 min-w-0 ${
-                isLight ? 'bg-white border-amber-200 text-slate-800' : 'bg-slate-900/90 border-amber-500/30 text-slate-100'
-              }`}>
-                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-blue-500/15 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+              <div className={`p-2 sm:p-2.5 rounded-xl border flex items-center gap-2 sm:gap-2.5 min-w-0 bg-card border-brand-200 text-slate-800`}>
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-blue-500/15 text-blue-600 flex items-center justify-center shrink-0">
                   <Building className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="text-[9px] sm:text-[10px] text-slate-400 font-medium">اسم المنشأة</div>
+                  <div className="text-[9px] sm:text-[10px] text-slate-500 font-medium">اسم المنشأة</div>
                   <div className="text-[11px] sm:text-xs font-black truncate" title={unit.name}>
                     {unit.name}
                   </div>
@@ -406,19 +382,17 @@ export const UnitLocationMapModal: React.FC<UnitLocationMapModalProps> = ({
               </div>
 
               {/* 2. رمز المنشأة ورمز الأصل */}
-              <div className={`p-2 sm:p-2.5 rounded-xl border flex items-center gap-2 sm:gap-2.5 min-w-0 ${
-                isLight ? 'bg-white border-amber-200 text-slate-800' : 'bg-slate-900/90 border-amber-500/30 text-slate-100'
-              }`}>
-                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+              <div className={`p-2 sm:p-2.5 rounded-xl border flex items-center gap-2 sm:gap-2.5 min-w-0 bg-card border-brand-200 text-slate-800`}>
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-brand-100 text-brand-700 flex items-center justify-center shrink-0">
                   <Compass className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="text-[9px] sm:text-[10px] text-slate-400 font-medium">رمز المنشأة {unit.fixedAssetCode ? '/ الأصل' : ''}</div>
-                  <div className="text-[11px] sm:text-xs font-mono font-black text-amber-600 dark:text-amber-400 truncate">
+                  <div className="text-[9px] sm:text-[10px] text-slate-500 font-medium">رمز المنشأة {unit.fixedAssetCode ? '/ الأصل' : ''}</div>
+                  <div className="text-[11px] sm:text-xs font-mono font-black text-brand-700 truncate">
                     {unit.code}
                   </div>
                   {unit.fixedAssetCode && (
-                    <div className="text-[9px] sm:text-[10px] font-mono font-bold text-indigo-600 dark:text-indigo-400 truncate">
+                    <div className="text-[9px] sm:text-[10px] font-mono font-bold text-indigo-600 truncate">
                       أصل: {unit.fixedAssetCode}
                     </div>
                   )}
@@ -426,30 +400,26 @@ export const UnitLocationMapModal: React.FC<UnitLocationMapModalProps> = ({
               </div>
 
               {/* 3. الموقع والمحافظة */}
-              <div className={`p-2 sm:p-2.5 rounded-xl border flex items-center gap-2 sm:gap-2.5 min-w-0 ${
-                isLight ? 'bg-white border-amber-200 text-slate-800' : 'bg-slate-900/90 border-amber-500/30 text-slate-100'
-              }`}>
-                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+              <div className={`p-2 sm:p-2.5 rounded-xl border flex items-center gap-2 sm:gap-2.5 min-w-0 bg-card border-brand-200 text-slate-800`}>
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-emerald-500/15 text-emerald-600 flex items-center justify-center shrink-0">
                   <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="text-[9px] sm:text-[10px] text-slate-400 font-medium">المحافظة والحقل</div>
-                  <div className="text-[11px] sm:text-xs font-black text-emerald-600 dark:text-emerald-400 truncate">
+                  <div className="text-[9px] sm:text-[10px] text-slate-500 font-medium">المحافظة والحقل</div>
+                  <div className="text-[11px] sm:text-xs font-black text-emerald-600 truncate">
                     {unit.field} ({unit.governorate})
                   </div>
                 </div>
               </div>
 
               {/* 4. الجهة الشاغلة / التابعة */}
-              <div className={`p-2 sm:p-2.5 rounded-xl border flex items-center gap-2 sm:gap-2.5 min-w-0 ${
-                isLight ? 'bg-white border-amber-200 text-slate-800' : 'bg-slate-900/90 border-amber-500/30 text-slate-100'
-              }`}>
-                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-sky-500/15 text-sky-600 dark:text-sky-400 flex items-center justify-center shrink-0">
+              <div className={`p-2 sm:p-2.5 rounded-xl border flex items-center gap-2 sm:gap-2.5 min-w-0 bg-card border-brand-200 text-slate-800`}>
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-sky-500/15 text-sky-600 flex items-center justify-center shrink-0">
                   <UserCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="text-[9px] sm:text-[10px] text-slate-400 font-medium">الجهة الشاغلة</div>
-                  <div className="text-[11px] sm:text-xs font-black text-sky-600 dark:text-sky-400 truncate" title={unit.department}>
+                  <div className="text-[9px] sm:text-[10px] text-slate-500 font-medium">الجهة الشاغلة</div>
+                  <div className="text-[11px] sm:text-xs font-black text-sky-600 truncate" title={unit.department}>
                     {unit.department || 'غير محدد'}
                   </div>
                 </div>
@@ -460,9 +430,7 @@ export const UnitLocationMapModal: React.FC<UnitLocationMapModalProps> = ({
 
         {/* Map Type Bar & Layer Switch */}
         <div
-          className={`px-4 sm:px-5 py-2.5 border-b flex flex-wrap items-center justify-between gap-2.5 text-xs ${
-            isLight ? 'bg-slate-100/90 border-slate-200' : 'bg-slate-950/70 border-slate-800'
-          }`}
+          className={`px-4 sm:px-5 py-2.5 border-b flex flex-wrap items-center justify-between gap-2.5 text-xs bg-slate-100/90 border-slate-200`}
         >
           <div className="flex items-center gap-2">
             <a
@@ -477,14 +445,14 @@ export const UnitLocationMapModal: React.FC<UnitLocationMapModalProps> = ({
             </a>
           </div>
 
-          <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800">
+          <div className="flex items-center gap-1 bg-card p-1 rounded-xl border border-slate-200">
             <button
               type="button"
               onClick={() => setMapType('satellite')}
               className={`px-3 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${
                 mapType === 'satellite'
-                  ? 'bg-amber-500 text-slate-950 shadow'
-                  : 'text-slate-400 hover:text-slate-200'
+                  ? 'bg-brand-700 text-on-brand shadow'
+                  : 'text-slate-500 hover:text-slate-800'
               }`}
             >
               أقمار صناعية
@@ -494,8 +462,8 @@ export const UnitLocationMapModal: React.FC<UnitLocationMapModalProps> = ({
               onClick={() => setMapType('streets')}
               className={`px-3 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${
                 mapType === 'streets'
-                  ? 'bg-amber-500 text-slate-950 shadow'
-                  : 'text-slate-400 hover:text-slate-200'
+                  ? 'bg-brand-700 text-on-brand shadow'
+                  : 'text-slate-500 hover:text-slate-800'
               }`}
             >
               شوارع
@@ -504,30 +472,28 @@ export const UnitLocationMapModal: React.FC<UnitLocationMapModalProps> = ({
         </div>
 
         {/* Leaflet Map Body */}
-        <div className="relative flex-1 min-h-[350px] sm:min-h-[400px] bg-slate-950">
+        <div className="relative flex-1 min-h-[350px] sm:min-h-[400px] bg-card">
           <div ref={mapContainerRef} className="w-full h-full min-h-[350px] sm:min-h-[400px] z-0" />
 
           {/* Quick Coordinate Overlay */}
-          <div className="absolute bottom-3 right-3 z-[400] bg-slate-950/90 backdrop-blur-sm border border-slate-800 px-3 py-2 rounded-xl text-xs font-mono text-slate-200 flex items-center gap-2 shadow-2xl">
-            <Compass className="w-4 h-4 text-amber-400" />
+          <div className="absolute bottom-3 right-3 z-[400] bg-card/90 backdrop-blur-sm border border-slate-200 px-3 py-2 rounded-xl text-xs font-mono text-slate-800 flex items-center gap-2 shadow-2xl">
+            <Compass className="w-4 h-4 text-brand-700" />
             <span>
               {lat.toFixed(6)}° N, {lng.toFixed(6)}° E
             </span>
             <button
               onClick={handleCopyCoords}
-              className="p-1 rounded-lg hover:bg-slate-800 text-slate-300 hover:text-amber-400 transition cursor-pointer mr-1"
+              className="p-1 rounded-lg hover:bg-slate-100 text-slate-600 hover:text-brand-700 transition cursor-pointer mr-1"
               title="نسخ الإحداثيات"
             >
-              {copiedCoords ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+              {copiedCoords ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
             </button>
           </div>
         </div>
 
         {/* Footer: Prominent Navigation and Close */}
         <div
-          className={`p-4 sm:p-5 border-t flex flex-wrap items-center justify-between gap-3 shrink-0 ${
-            isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-950/80 border-slate-800'
-          }`}
+          className={`p-4 sm:p-5 border-t flex flex-wrap items-center justify-between gap-3 shrink-0 bg-slate-50 border-slate-200`}
         >
           <div className="flex items-center gap-2">
             <a
@@ -546,11 +512,7 @@ export const UnitLocationMapModal: React.FC<UnitLocationMapModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className={`px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition border cursor-pointer ${
-                isLight
-                  ? 'bg-slate-200 hover:bg-slate-300 border-slate-300 text-slate-800'
-                  : 'bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-200'
-              }`}
+              className={`px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition border cursor-pointer bg-slate-200 hover:bg-slate-300 border-slate-300 text-slate-800`}
             >
               إغلاق
             </button>

@@ -46,71 +46,71 @@ const LEVEL_CONFIG: Record<string, LevelMeta> = {
     label: 'الإدارة العليا',
     shortLabel: 'إدارة',
     icon: Shield,
-    color: 'text-amber-500',
-    bgLight: 'bg-amber-100 border-amber-300',
-    bgDark: 'bg-amber-500/20 border-amber-500/40',
-    badgeBgLight: 'bg-amber-100 text-amber-900 border-amber-300',
-    badgeBgDark: 'bg-amber-500/20 text-amber-300 border-amber-500/40',
+    color: 'text-brand-700',
+    bgLight: 'bg-brand-100 border-brand-200',
+    bgDark: 'bg-brand-100 border-brand-200',
+    badgeBgLight: 'bg-brand-100 text-brand-800 border-brand-200',
+    badgeBgDark: 'bg-brand-100 text-brand-700 border-brand-200',
   },
   deputy_director: {
     label: 'معاون المدير العام',
     shortLabel: 'معاون',
     icon: Briefcase,
-    color: 'text-amber-400',
-    bgLight: 'bg-amber-50 border-amber-200',
-    bgDark: 'bg-amber-500/10 border-amber-500/30',
-    badgeBgLight: 'bg-amber-50 text-amber-900 border-amber-300',
-    badgeBgDark: 'bg-amber-500/15 text-amber-300 border-amber-500/30',
+    color: 'text-brand-700',
+    bgLight: 'bg-brand-50 border-brand-200',
+    bgDark: 'bg-brand-50 border-brand-200',
+    badgeBgLight: 'bg-brand-50 text-brand-800 border-brand-200',
+    badgeBgDark: 'bg-brand-100 text-brand-700 border-brand-200',
   },
   commission: {
     label: 'هيئة',
     shortLabel: 'هيئة',
     icon: Building2,
-    color: 'text-emerald-500',
-    bgLight: 'bg-emerald-100 border-emerald-300',
+    color: 'text-emerald-600',
+    bgLight: 'bg-emerald-100 border-emerald-200',
     bgDark: 'bg-emerald-500/20 border-emerald-500/40',
-    badgeBgLight: 'bg-emerald-100 text-emerald-900 border-emerald-300',
-    badgeBgDark: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40',
+    badgeBgLight: 'bg-emerald-100 text-emerald-900 border-emerald-200',
+    badgeBgDark: 'bg-emerald-500/20 text-emerald-600 border-emerald-500/40',
   },
   central_dept: {
     label: 'قسم مركزي',
     shortLabel: 'مركزي',
     icon: Layers,
-    color: 'text-cyan-500',
-    bgLight: 'bg-cyan-100 border-cyan-300',
+    color: 'text-cyan-600',
+    bgLight: 'bg-cyan-100 border-cyan-200',
     bgDark: 'bg-cyan-500/20 border-cyan-500/40',
-    badgeBgLight: 'bg-cyan-100 text-cyan-900 border-cyan-300',
-    badgeBgDark: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40',
+    badgeBgLight: 'bg-cyan-100 text-cyan-900 border-cyan-200',
+    badgeBgDark: 'bg-cyan-500/20 text-cyan-600 border-cyan-500/40',
   },
   department: {
     label: 'قسم',
     shortLabel: 'قسم',
     icon: FolderTree,
-    color: 'text-blue-500',
-    bgLight: 'bg-blue-100 border-blue-300',
+    color: 'text-blue-600',
+    bgLight: 'bg-blue-100 border-blue-200',
     bgDark: 'bg-blue-500/20 border-blue-500/40',
-    badgeBgLight: 'bg-blue-100 text-blue-900 border-blue-300',
-    badgeBgDark: 'bg-blue-500/20 text-blue-300 border-blue-500/40',
+    badgeBgLight: 'bg-blue-100 text-blue-900 border-blue-200',
+    badgeBgDark: 'bg-blue-500/20 text-blue-600 border-blue-500/40',
   },
   section: {
     label: 'شعبة',
     shortLabel: 'شعبة',
     icon: Folder,
-    color: 'text-purple-500',
-    bgLight: 'bg-purple-100 border-purple-300',
+    color: 'text-purple-600',
+    bgLight: 'bg-purple-100 border-purple-200',
     bgDark: 'bg-purple-500/20 border-purple-500/40',
-    badgeBgLight: 'bg-purple-100 text-purple-900 border-purple-300',
-    badgeBgDark: 'bg-purple-500/20 text-purple-300 border-purple-500/40',
+    badgeBgLight: 'bg-purple-100 text-purple-900 border-purple-200',
+    badgeBgDark: 'bg-purple-500/20 text-purple-600 border-purple-500/40',
   },
   unit: {
     label: 'وحدة إدارية',
     shortLabel: 'وحدة',
     icon: Box,
-    color: 'text-slate-400',
+    color: 'text-slate-500',
     bgLight: 'bg-slate-100 border-slate-300',
-    bgDark: 'bg-slate-800 border-slate-700',
+    bgDark: 'bg-slate-100 border-slate-200',
     badgeBgLight: 'bg-slate-100 text-slate-700 border-slate-300',
-    badgeBgDark: 'bg-slate-800 text-slate-300 border-slate-700',
+    badgeBgDark: 'bg-slate-100 text-slate-600 border-slate-200',
   },
 };
 
@@ -294,10 +294,8 @@ export const OrgEntityPickerModal: React.FC<OrgEntityPickerModalProps> = ({
           onClick={() => handleSelect(node.nameAr)}
           className={`group flex items-center justify-between p-2 sm:p-2.5 my-1 rounded-xl border transition-all cursor-pointer min-w-0 ${
             isSelected
-              ? 'bg-amber-500 text-slate-950 border-amber-400 font-black shadow-md ring-2 ring-amber-400/40'
-              : isLight
-              ? 'bg-white hover:bg-amber-50/70 border-slate-200 text-slate-800 hover:border-amber-300'
-              : 'bg-slate-900/90 hover:bg-slate-800/80 border-slate-800 text-slate-200 hover:border-amber-500/40'
+              ? 'bg-brand-700 text-on-brand border-brand-200 font-black shadow-md ring-2 ring-brand-600/40'
+              : 'bg-card hover:bg-brand-50 border-slate-200 text-slate-800 hover:border-brand-200'
           }`}
           style={{
             marginRight: isMobileScreen ? `${mobileIndent}px` : `${desktopIndent}px`,
@@ -314,10 +312,8 @@ export const OrgEntityPickerModal: React.FC<OrgEntityPickerModalProps> = ({
                 }}
                 className={`p-1 sm:p-1.5 rounded-lg transition shrink-0 ${
                   isSelected
-                    ? 'bg-slate-950/20 text-slate-950 hover:bg-slate-950/30'
-                    : isLight
-                    ? 'hover:bg-slate-200 text-slate-600'
-                    : 'hover:bg-slate-700 text-slate-400'
+                    ? 'bg-card/20 text-slate-950 hover:bg-card/30'
+                    : 'hover:bg-slate-200 text-slate-600'
                 }`}
                 title={isExpanded ? 'طي الفروع' : 'توسيع الفروع'}
               >
@@ -330,11 +326,9 @@ export const OrgEntityPickerModal: React.FC<OrgEntityPickerModalProps> = ({
             {/* Level Icon with Theme Color */}
             <div
               className={`w-7 h-7 sm:w-8 sm:h-8 rounded-xl border flex items-center justify-center shrink-0 shadow-2xs ${
-                isSelected
-                  ? 'bg-slate-950 text-amber-400 border-slate-800'
-                  : isLight
-                  ? `${lvl.bgLight} ${lvl.color}`
-                  : `${lvl.bgDark} ${lvl.color}`
+ isSelected
+ ? 'bg-card text-brand-700 border-slate-200'
+ : `${lvl.bgLight} ${lvl.color}`
               }`}
               title={lvl.label}
             >
@@ -344,11 +338,11 @@ export const OrgEntityPickerModal: React.FC<OrgEntityPickerModalProps> = ({
             {/* Texts */}
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-1.5 min-w-0">
-                <span className={`text-xs sm:text-sm font-black truncate leading-tight ${isSelected ? 'text-slate-950' : isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                <span className={`text-xs sm:text-sm font-black truncate leading-tight ${isSelected ? 'text-slate-950' : 'text-slate-900'}`}>
                   {node.nameAr}
                 </span>
                 {isSelected && (
-                  <span className="bg-slate-950 text-amber-400 text-[9px] sm:text-[10px] px-1.5 py-0.2 rounded-full font-black flex items-center gap-0.5 shrink-0 shadow-xs">
+                  <span className="bg-card text-brand-700 text-[9px] sm:text-[10px] px-1.5 py-0.2 rounded-full font-black flex items-center gap-0.5 shrink-0 shadow-xs">
                     <Check className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                     محدد
                   </span>
@@ -359,10 +353,8 @@ export const OrgEntityPickerModal: React.FC<OrgEntityPickerModalProps> = ({
                 {/* Level badge */}
                 <span className={`px-1.5 py-0.2 rounded font-bold border text-[9px] sm:text-[9.5px] shrink-0 ${
                   isSelected
-                    ? 'bg-slate-900 text-amber-300 border-slate-700'
-                    : isLight
-                    ? lvl.badgeBgLight
-                    : lvl.badgeBgDark
+                    ? 'bg-card text-brand-700 border-slate-200'
+                    : lvl.badgeBgLight
                 }`}>
                   {lvl.label}
                 </span>
@@ -370,10 +362,8 @@ export const OrgEntityPickerModal: React.FC<OrgEntityPickerModalProps> = ({
                 {node.code && (
                   <span className={`font-mono text-[9px] sm:text-[9.5px] px-1 py-0.2 rounded border font-semibold shrink-0 ${
                     isSelected
-                      ? 'bg-slate-900/10 text-slate-950 border-slate-900/20'
-                      : isLight
-                      ? 'bg-slate-100 text-slate-600 border-slate-200'
-                      : 'bg-slate-800/80 text-slate-400 border-slate-700'
+                      ? 'bg-card/10 text-slate-950 border-slate-900/20'
+                      : 'bg-slate-100 text-slate-600 border-slate-200'
                   }`}>
                     {node.code}
                   </span>
@@ -394,10 +384,8 @@ export const OrgEntityPickerModal: React.FC<OrgEntityPickerModalProps> = ({
               <span
                 className={`text-[9.5px] sm:text-[10px] px-1.5 sm:px-2 py-0.5 rounded-full font-bold shrink-0 ${
                   isSelected
-                    ? 'bg-slate-950/20 text-slate-950 font-black'
-                    : isLight
-                    ? 'bg-slate-100 text-slate-600 border border-slate-200'
-                    : 'bg-slate-800 text-slate-400 border border-slate-700'
+                    ? 'bg-card/20 text-slate-950 font-black'
+                    : 'bg-slate-100 text-slate-600 border border-slate-200'
                 }`}
               >
                 {toArabicDigits(children.length)} فروع
@@ -411,19 +399,19 @@ export const OrgEntityPickerModal: React.FC<OrgEntityPickerModalProps> = ({
               }}
               className={`text-[10px] sm:text-xs px-2 sm:px-2.5 py-1 rounded-xl font-bold border transition shrink-0 flex items-center gap-1 cursor-pointer ${
                 isSelected
-                  ? 'bg-slate-950 text-amber-400 border-slate-950 font-black shadow-xs'
-                  : 'bg-amber-500/15 hover:bg-amber-500 text-amber-600 dark:text-amber-400 hover:text-slate-950 border-amber-500/30'
+                  ? 'bg-card text-brand-700 border-slate-950 font-black shadow-xs'
+                  : 'bg-brand-100 hover:bg-brand-800 text-brand-700 hover:text-on-brand border-brand-200'
               }`}
             >
               <span>{isSelected ? 'المحدد' : 'اختيار'}</span>
-              <Check className={`w-3 h-3 ${isSelected ? 'text-amber-400' : 'opacity-70'}`} />
+              <Check className={`w-3 h-3 ${isSelected ? 'text-brand-700' : 'opacity-70'}`} />
             </button>
           </div>
         </div>
 
         {/* Render children if expanded */}
         {children.length > 0 && isExpanded && (
-          <div className="pr-1.5 sm:pr-2 border-r-2 border-slate-300 dark:border-slate-800 space-y-0.5">
+          <div className="pr-1.5 sm:pr-2 border-r-2 border-slate-300 space-y-0.5">
             {children.map((child) => renderTreeNode(child, depth + 1))}
           </div>
         )}
@@ -434,27 +422,23 @@ export const OrgEntityPickerModal: React.FC<OrgEntityPickerModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-card/80 backdrop-blur-sm animate-in fade-in duration-200">
       <div
-        className={`w-full max-w-4xl h-[96dvh] sm:h-auto sm:max-h-[90vh] flex flex-col rounded-2xl sm:rounded-3xl border shadow-2xl overflow-hidden transition-colors ${
-          isLight ? 'bg-slate-50 border-slate-200 text-slate-900' : 'bg-slate-950 border-slate-800 text-white'
-        }`}
+        className={`w-full max-w-4xl h-[96dvh] sm:h-auto sm:max-h-[90vh] flex flex-col rounded-2xl sm:rounded-3xl border shadow-2xl overflow-hidden transition-colors bg-slate-50 border-slate-200 text-slate-900`}
       >
         {/* Modal Header */}
         <div
-          className={`px-3 py-2.5 sm:px-5 sm:py-4 border-b flex items-center justify-between gap-2.5 shrink-0 ${
-            isLight ? 'bg-white border-slate-200' : 'bg-slate-900 border-slate-800'
-          }`}
+          className={`px-3 py-2.5 sm:px-5 sm:py-4 border-b flex items-center justify-between gap-2.5 shrink-0 bg-card border-slate-200`}
         >
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-500 shrink-0">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-brand-100 border border-brand-200 flex items-center justify-center text-brand-700 shrink-0">
               <Network className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
             <div className="min-w-0">
               <h3 className="text-xs xs:text-sm sm:text-base font-black leading-tight">
                 {title}
               </h3>
-              <p className={`text-[10px] sm:text-xs mt-1 leading-snug break-words ${isLight ? 'text-slate-600' : 'text-slate-300'}`}>
+              <p className={`text-[10px] sm:text-xs mt-1 leading-snug break-words text-slate-600`}>
                 {subtitle}
               </p>
             </div>
@@ -463,11 +447,7 @@ export const OrgEntityPickerModal: React.FC<OrgEntityPickerModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className={`p-1.5 sm:p-2 rounded-xl border transition shrink-0 cursor-pointer ${
-              isLight
-                ? 'bg-slate-100 hover:bg-slate-200 border-slate-300 text-slate-700'
-                : 'bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-300'
-            }`}
+            className={`p-1.5 sm:p-2 rounded-xl border transition shrink-0 cursor-pointer bg-slate-100 hover:bg-slate-200 border-slate-300 text-slate-700`}
             title="إغلاق النافذة"
           >
             <X className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -476,34 +456,26 @@ export const OrgEntityPickerModal: React.FC<OrgEntityPickerModalProps> = ({
 
         {/* Toolbar & Search Bar - Clean, Compact & Highly responsive for Mobile */}
         <div
-          className={`p-2.5 sm:p-3 border-b space-y-2 shrink-0 ${
-            isLight ? 'bg-slate-100/80 border-slate-200' : 'bg-slate-900/60 border-slate-800'
-          }`}
+          className={`p-2.5 sm:p-3 border-b space-y-2 shrink-0 bg-slate-100/80 border-slate-200`}
         >
           {/* Search Input & "كافة التشكيلات" Quick Selection */}
           <div className="flex items-center gap-2">
             <div className="relative flex-1 min-w-0">
               <Search
-                className={`absolute right-3 top-2.5 w-4 h-4 ${
-                  isLight ? 'text-slate-400' : 'text-slate-500'
-                }`}
+                className={`absolute right-3 top-2.5 w-4 h-4 text-slate-400`}
               />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="ابحث باسم التشكيل، القسم، الهيئة، أو الرمز..."
-                className={`w-full pr-9 pl-8 py-1.5 sm:py-2 text-xs sm:text-sm rounded-xl border font-medium outline-none focus:border-amber-500 transition ${
-                  isLight
-                    ? 'bg-white border-slate-300 text-slate-900 placeholder-slate-400'
-                    : 'bg-slate-950 border-slate-800 text-white placeholder-slate-500'
-                }`}
+                className={`w-full pr-9 pl-8 py-1.5 sm:py-2 text-xs sm:text-sm rounded-xl border font-medium outline-none focus:border-brand-600 transition bg-card border-slate-300 text-slate-900 placeholder-slate-400`}
               />
               {searchQuery && (
                 <button
                   type="button"
                   onClick={() => setSearchQuery('')}
-                  className="absolute left-2.5 top-2.5 text-slate-400 hover:text-slate-200 cursor-pointer"
+                  className="absolute left-2.5 top-2.5 text-slate-500 hover:text-slate-800 cursor-pointer"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
@@ -516,14 +488,12 @@ export const OrgEntityPickerModal: React.FC<OrgEntityPickerModalProps> = ({
               onClick={() => handleSelect('all')}
               className={`px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition shrink-0 cursor-pointer ${
                 selectedEntity === 'all'
-                  ? 'bg-amber-500 text-slate-950 border-amber-400 font-black shadow-xs'
-                  : isLight
-                  ? 'bg-white hover:bg-slate-100 border-slate-300 text-slate-700'
-                  : 'bg-slate-900 hover:bg-slate-800 border-slate-700 text-slate-300'
+                  ? 'bg-brand-700 text-on-brand border-brand-200 font-black shadow-xs'
+                  : 'bg-card hover:bg-slate-100 border-slate-300 text-slate-700'
               }`}
               title="إلغاء التخصيص وعرض كافة منشآت ومباني الشركة"
             >
-              <Check className={`w-3.5 h-3.5 ${selectedEntity === 'all' ? 'text-slate-950' : 'text-amber-500'}`} />
+              <Check className={`w-3.5 h-3.5 ${selectedEntity === 'all' ? 'text-slate-950' : 'text-brand-700'}`} />
               <span className="hidden xs:inline">كافة التشكيلات</span>
               <span className="xs:hidden">الكل</span>
             </button>
@@ -532,15 +502,15 @@ export const OrgEntityPickerModal: React.FC<OrgEntityPickerModalProps> = ({
           {/* Level Filter Cards - 7 Distinct Cards organized cleanly for mobile & desktop */}
           <div className="space-y-1">
             <div className="flex items-center justify-between text-[10px] sm:text-[11px] font-bold">
-              <span className={`flex items-center gap-1 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
-                <Filter className="w-3.5 h-3.5 text-amber-500" />
+              <span className={`flex items-center gap-1 text-slate-600`}>
+                <Filter className="w-3.5 h-3.5 text-brand-700" />
                 <span>المستوى:</span>
               </span>
               {selectedLevelFilter !== 'all' && (
                 <button
                   type="button"
                   onClick={() => setSelectedLevelFilter('all')}
-                  className="text-amber-500 hover:underline cursor-pointer"
+                  className="text-brand-700 hover:underline cursor-pointer"
                 >
                   عرض كافة المستويات
                 </button>
@@ -554,14 +524,12 @@ export const OrgEntityPickerModal: React.FC<OrgEntityPickerModalProps> = ({
                 onClick={() => setSelectedLevelFilter('all')}
                 className={`p-1 sm:p-1.5 rounded-xl border text-center transition flex flex-col items-center justify-center cursor-pointer col-span-2 sm:col-span-1 min-h-[42px] ${
                   selectedLevelFilter === 'all'
-                    ? 'bg-amber-500 text-slate-950 border-amber-400 font-black shadow-xs ring-1 ring-amber-400'
-                    : isLight
-                    ? 'bg-white hover:bg-slate-50 border-slate-200 text-slate-700'
-                    : 'bg-slate-900 hover:bg-slate-800 border-slate-800 text-slate-300'
+                    ? 'bg-brand-700 text-on-brand border-brand-200 font-black shadow-xs ring-1 ring-brand-600'
+                    : 'bg-card hover:bg-slate-50 border-slate-200 text-slate-700'
                 }`}
               >
                 <div className="flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-brand-700 shrink-0" />
                   <span className="text-[10px] sm:text-xs font-black">الكل</span>
                 </div>
                 <span className="text-[10px] sm:text-xs font-black font-mono mt-0.5 opacity-90">
@@ -575,14 +543,12 @@ export const OrgEntityPickerModal: React.FC<OrgEntityPickerModalProps> = ({
                 onClick={() => setSelectedLevelFilter('deputy_director')}
                 className={`p-1 sm:p-1.5 rounded-xl border text-center transition flex flex-col items-center justify-center cursor-pointer col-span-1 min-h-[42px] ${
                   selectedLevelFilter === 'deputy_director'
-                    ? 'bg-amber-500 text-slate-950 border-amber-400 font-black shadow-xs ring-1 ring-amber-400'
-                    : isLight
-                    ? 'bg-white hover:bg-slate-50 border-slate-200 text-slate-700'
-                    : 'bg-slate-900 hover:bg-slate-800 border-slate-800 text-slate-300'
+                    ? 'bg-brand-700 text-on-brand border-brand-200 font-black shadow-xs ring-1 ring-brand-600'
+                    : 'bg-card hover:bg-slate-50 border-slate-200 text-slate-700'
                 }`}
               >
                 <div className="flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-brand-700 shrink-0" />
                   <span className="text-[10px] sm:text-xs font-black">المعاونين</span>
                 </div>
                 <span className="text-[10px] sm:text-xs font-black font-mono mt-0.5 opacity-90">
@@ -597,9 +563,7 @@ export const OrgEntityPickerModal: React.FC<OrgEntityPickerModalProps> = ({
                 className={`p-1 sm:p-1.5 rounded-xl border text-center transition flex flex-col items-center justify-center cursor-pointer col-span-1 min-h-[42px] ${
                   selectedLevelFilter === 'commission'
                     ? 'bg-emerald-600 text-white border-emerald-500 font-black shadow-xs ring-1 ring-emerald-400'
-                    : isLight
-                    ? 'bg-white hover:bg-slate-50 border-slate-200 text-slate-700'
-                    : 'bg-slate-900 hover:bg-slate-800 border-slate-800 text-slate-300'
+                    : 'bg-card hover:bg-slate-50 border-slate-200 text-slate-700'
                 }`}
               >
                 <div className="flex items-center gap-1">
@@ -618,9 +582,7 @@ export const OrgEntityPickerModal: React.FC<OrgEntityPickerModalProps> = ({
                 className={`p-1 sm:p-1.5 rounded-xl border text-center transition flex flex-col items-center justify-center cursor-pointer col-span-1 min-h-[42px] ${
                   selectedLevelFilter === 'central_dept'
                     ? 'bg-cyan-600 text-white border-cyan-500 font-black shadow-xs ring-1 ring-cyan-400'
-                    : isLight
-                    ? 'bg-white hover:bg-slate-50 border-slate-200 text-slate-700'
-                    : 'bg-slate-900 hover:bg-slate-800 border-slate-800 text-slate-300'
+                    : 'bg-card hover:bg-slate-50 border-slate-200 text-slate-700'
                 }`}
               >
                 <div className="flex items-center gap-1">
@@ -639,9 +601,7 @@ export const OrgEntityPickerModal: React.FC<OrgEntityPickerModalProps> = ({
                 className={`p-1 sm:p-1.5 rounded-xl border text-center transition flex flex-col items-center justify-center cursor-pointer col-span-1 min-h-[42px] ${
                   selectedLevelFilter === 'department'
                     ? 'bg-blue-600 text-white border-blue-500 font-black shadow-xs ring-1 ring-blue-400'
-                    : isLight
-                    ? 'bg-white hover:bg-slate-50 border-slate-200 text-slate-700'
-                    : 'bg-slate-900 hover:bg-slate-800 border-slate-800 text-slate-300'
+                    : 'bg-card hover:bg-slate-50 border-slate-200 text-slate-700'
                 }`}
               >
                 <div className="flex items-center gap-1">
@@ -660,9 +620,7 @@ export const OrgEntityPickerModal: React.FC<OrgEntityPickerModalProps> = ({
                 className={`p-1 sm:p-1.5 rounded-xl border text-center transition flex flex-col items-center justify-center cursor-pointer col-span-1 min-h-[42px] ${
                   selectedLevelFilter === 'section'
                     ? 'bg-purple-600 text-white border-purple-500 font-black shadow-xs ring-1 ring-purple-400'
-                    : isLight
-                    ? 'bg-white hover:bg-slate-50 border-slate-200 text-slate-700'
-                    : 'bg-slate-900 hover:bg-slate-800 border-slate-800 text-slate-300'
+                    : 'bg-card hover:bg-slate-50 border-slate-200 text-slate-700'
                 }`}
               >
                 <div className="flex items-center gap-1">
@@ -680,10 +638,8 @@ export const OrgEntityPickerModal: React.FC<OrgEntityPickerModalProps> = ({
                 onClick={() => setSelectedLevelFilter('unit')}
                 className={`p-1 sm:p-1.5 rounded-xl border text-center transition flex flex-col items-center justify-center cursor-pointer col-span-1 min-h-[42px] ${
                   selectedLevelFilter === 'unit'
-                    ? 'bg-slate-700 text-white border-slate-600 font-black shadow-xs ring-1 ring-slate-400'
-                    : isLight
-                    ? 'bg-white hover:bg-slate-50 border-slate-200 text-slate-700'
-                    : 'bg-slate-900 hover:bg-slate-800 border-slate-800 text-slate-300'
+                    ? 'bg-slate-100 text-slate-900 border-slate-200 font-black shadow-xs ring-1 ring-slate-400'
+                    : 'bg-card hover:bg-slate-50 border-slate-200 text-slate-700'
                 }`}
               >
                 <div className="flex items-center gap-1">
@@ -699,8 +655,8 @@ export const OrgEntityPickerModal: React.FC<OrgEntityPickerModalProps> = ({
 
           {/* View Mode & Expand Controls */}
           <div className="flex items-center justify-between gap-1.5 pt-0.5 text-xs">
-            <span className={`text-[10px] sm:text-[11px] font-bold ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
-              المطابق: <strong className="text-amber-500 font-black">{toArabicDigits(filteredList.length)}</strong> تشكيل
+            <span className={`text-[10px] sm:text-[11px] font-bold text-slate-500`}>
+              المطابق: <strong className="text-brand-700 font-black">{toArabicDigits(filteredList.length)}</strong> تشكيل
             </span>
 
             <div className="flex items-center gap-1 sm:gap-1.5">
@@ -709,18 +665,14 @@ export const OrgEntityPickerModal: React.FC<OrgEntityPickerModalProps> = ({
                   <button
                     type="button"
                     onClick={expandAll}
-                    className={`px-2 py-0.5 sm:py-1 rounded-lg border text-[10px] sm:text-[11px] font-bold cursor-pointer ${
-                      isLight ? 'bg-white border-slate-300 text-slate-700' : 'bg-slate-900 border-slate-800 text-slate-300'
-                    }`}
+                    className={`px-2 py-0.5 sm:py-1 rounded-lg border text-[10px] sm:text-[11px] font-bold cursor-pointer bg-card border-slate-300 text-slate-700`}
                   >
                     توسيع
                   </button>
                   <button
                     type="button"
                     onClick={collapseAll}
-                    className={`px-2 py-0.5 sm:py-1 rounded-lg border text-[10px] sm:text-[11px] font-bold cursor-pointer ${
-                      isLight ? 'bg-white border-slate-300 text-slate-700' : 'bg-slate-900 border-slate-800 text-slate-300'
-                    }`}
+                    className={`px-2 py-0.5 sm:py-1 rounded-lg border text-[10px] sm:text-[11px] font-bold cursor-pointer bg-card border-slate-300 text-slate-700`}
                   >
                     طي
                   </button>
@@ -729,11 +681,7 @@ export const OrgEntityPickerModal: React.FC<OrgEntityPickerModalProps> = ({
               <button
                 type="button"
                 onClick={() => setViewMode(viewMode === 'tree' ? 'list' : 'tree')}
-                className={`px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-lg border text-[10px] sm:text-[11px] font-bold flex items-center gap-1 cursor-pointer ${
-                  isLight
-                    ? 'bg-amber-50 border-amber-300 text-amber-900'
-                    : 'bg-amber-500/10 border-amber-500/30 text-amber-400'
-                }`}
+                className={`px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-lg border text-[10px] sm:text-[11px] font-bold flex items-center gap-1 cursor-pointer bg-brand-50 border-brand-200 text-brand-800`}
               >
                 {viewMode === 'tree' ? <Filter className="w-3 h-3" /> : <FolderTree className="w-3 h-3" />}
                 <span>{viewMode === 'tree' ? 'قائمة' : 'شجرة'}</span>
@@ -755,14 +703,14 @@ export const OrgEntityPickerModal: React.FC<OrgEntityPickerModalProps> = ({
               {filteredList.length === 0 ? (
                 <div className="text-center py-10 space-y-2">
                   <Network className="w-8 h-8 sm:w-10 sm:h-10 mx-auto text-slate-500 animate-pulse" />
-                  <p className="text-xs sm:text-sm font-bold text-slate-400">لا توجد تشكيلات مطابقة لمعايير البحث</p>
+                  <p className="text-xs sm:text-sm font-bold text-slate-500">لا توجد تشكيلات مطابقة لمعايير البحث</p>
                   <button
                     type="button"
                     onClick={() => {
                       setSearchQuery('');
                       setSelectedLevelFilter('all');
                     }}
-                    className="text-xs text-amber-500 underline font-bold cursor-pointer"
+                    className="text-xs text-brand-700 underline font-bold cursor-pointer"
                   >
                     إعادة ضبط الفلاتر
                   </button>
@@ -780,21 +728,17 @@ export const OrgEntityPickerModal: React.FC<OrgEntityPickerModalProps> = ({
                       onClick={() => handleSelect(entity.nameAr)}
                       className={`flex items-center justify-between p-2.5 sm:p-3 rounded-xl border transition-all cursor-pointer min-w-0 ${
                         isSelected
-                          ? 'bg-amber-500 text-slate-950 border-amber-400 font-black shadow-md ring-2 ring-amber-400/40'
-                          : isLight
-                          ? 'bg-white hover:bg-amber-50/80 border-slate-200 text-slate-800 hover:border-amber-300'
-                          : 'bg-slate-900 hover:bg-slate-800/80 border-slate-800 text-slate-200 hover:border-amber-500/40'
+                          ? 'bg-brand-700 text-on-brand border-brand-200 font-black shadow-md ring-2 ring-brand-600/40'
+                          : 'bg-card hover:bg-brand-50 border-slate-200 text-slate-800 hover:border-brand-200'
                       }`}
                     >
                       {/* Right Section in RTL: Level icon, title, level badge, code, parent */}
                       <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
                         <div
                           className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl border flex items-center justify-center shrink-0 shadow-2xs ${
-                            isSelected
-                              ? 'bg-slate-950 text-amber-400 border-slate-800'
-                              : isLight
-                              ? `${lvl.bgLight} ${lvl.color}`
-                              : `${lvl.bgDark} ${lvl.color}`
+ isSelected
+ ? 'bg-card text-brand-700 border-slate-200'
+ : `${lvl.bgLight} ${lvl.color}`
                           }`}
                           title={lvl.label}
                         >
@@ -804,12 +748,12 @@ export const OrgEntityPickerModal: React.FC<OrgEntityPickerModalProps> = ({
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-1.5 min-w-0">
                             <h4 className={`text-xs sm:text-sm font-black truncate leading-tight ${
-                              isSelected ? 'text-slate-950 font-black' : isLight ? 'text-slate-900' : 'text-slate-100'
+                              isSelected ? 'text-slate-950 font-black' : 'text-slate-900'
                             }`}>
                               {entity.nameAr}
                             </h4>
                             {isSelected && (
-                              <span className="bg-slate-950 text-amber-400 text-[9px] sm:text-[10px] px-1.5 py-0.2 rounded-full font-black flex items-center gap-0.5 shrink-0 shadow-xs">
+                              <span className="bg-card text-brand-700 text-[9px] sm:text-[10px] px-1.5 py-0.2 rounded-full font-black flex items-center gap-0.5 shrink-0 shadow-xs">
                                 <Check className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                                 محدد
                               </span>
@@ -820,10 +764,8 @@ export const OrgEntityPickerModal: React.FC<OrgEntityPickerModalProps> = ({
                             {/* Arabic Level Badge */}
                             <span className={`px-1.5 py-0.2 rounded font-bold border text-[9px] sm:text-[9.5px] shrink-0 ${
                               isSelected
-                                ? 'bg-slate-900 text-amber-300 border-slate-700'
-                                : isLight
-                                ? lvl.badgeBgLight
-                                : lvl.badgeBgDark
+                                ? 'bg-card text-brand-700 border-slate-200'
+                                : lvl.badgeBgLight
                             }`}>
                               {lvl.label}
                             </span>
@@ -831,7 +773,7 @@ export const OrgEntityPickerModal: React.FC<OrgEntityPickerModalProps> = ({
                             {/* Parent Entity if any */}
                             {parentEntity && (
                               <span className={`truncate text-[9.5px] sm:text-[10px] flex items-center gap-0.5 ${
-                                isSelected ? 'text-slate-900 font-semibold' : 'text-slate-500 dark:text-slate-400'
+                                isSelected ? 'text-slate-900 font-semibold' : 'text-slate-500 '
                               }`}>
                                 <span>• تابع لـ:</span>
                                 <strong className="truncate font-bold">{parentEntity.nameAr}</strong>
@@ -842,10 +784,8 @@ export const OrgEntityPickerModal: React.FC<OrgEntityPickerModalProps> = ({
                             {entity.code && (
                               <span className={`font-mono text-[9px] sm:text-[9.5px] px-1.5 py-0.2 rounded border font-semibold shrink-0 ${
                                 isSelected
-                                  ? 'bg-slate-900/10 text-slate-950 border-slate-900/20'
-                                  : isLight
-                                  ? 'bg-slate-100 text-slate-600 border-slate-200'
-                                  : 'bg-slate-800/80 text-slate-400 border-slate-700'
+                                  ? 'bg-card/10 text-slate-950 border-slate-900/20'
+                                  : 'bg-slate-100 text-slate-600 border-slate-200'
                               }`}>
                                 {entity.code}
                               </span>
@@ -863,12 +803,12 @@ export const OrgEntityPickerModal: React.FC<OrgEntityPickerModalProps> = ({
                         }}
                         className={`text-[10px] sm:text-xs px-2.5 py-1 sm:py-1.5 rounded-xl font-bold border shrink-0 transition flex items-center gap-1 cursor-pointer mr-1 sm:mr-2 ${
                           isSelected
-                            ? 'bg-slate-950 text-amber-400 border-slate-950 font-black shadow-xs'
-                            : 'bg-amber-500/15 hover:bg-amber-500 text-amber-600 dark:text-amber-400 hover:text-slate-950 border-amber-500/30'
+                            ? 'bg-card text-brand-700 border-slate-950 font-black shadow-xs'
+                            : 'bg-brand-100 hover:bg-brand-800 text-brand-700 hover:text-on-brand border-brand-200'
                         }`}
                       >
                         <span>{isSelected ? 'المحدد' : 'اختيار'}</span>
-                        <Check className={`w-3 h-3 ${isSelected ? 'text-amber-400' : 'opacity-70'}`} />
+                        <Check className={`w-3 h-3 ${isSelected ? 'text-brand-700' : 'opacity-70'}`} />
                       </button>
                     </div>
                   );
@@ -880,19 +820,15 @@ export const OrgEntityPickerModal: React.FC<OrgEntityPickerModalProps> = ({
 
         {/* Modal Footer */}
         <div
-          className={`px-3 py-2 sm:px-4 sm:py-3 border-t flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs shrink-0 ${
-            isLight ? 'bg-white border-slate-200' : 'bg-slate-900 border-slate-800'
-          }`}
+          className={`px-3 py-2 sm:px-4 sm:py-3 border-t flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs shrink-0 bg-card border-slate-200`}
         >
           <div className="flex items-center gap-1.5 min-w-0">
             <span className="font-bold opacity-75 text-[10px] sm:text-xs shrink-0">المحدد:</span>
             <span
               className={`px-2 py-0.5 rounded-lg border font-bold text-[10px] sm:text-xs truncate ${
                 selectedEntity !== 'all'
-                  ? 'bg-amber-500/20 text-amber-500 border-amber-500/40'
-                  : isLight
-                  ? 'bg-slate-100 text-slate-700 border-slate-300'
-                  : 'bg-slate-800 text-slate-300 border-slate-700'
+                  ? 'bg-brand-100 text-brand-700 border-brand-200'
+                  : 'bg-slate-100 text-slate-700 border-slate-300'
               }`}
             >
               {selectedEntity !== 'all' ? selectedEntity : 'جميع التشكيلات (غير مخصص)'}
@@ -904,7 +840,7 @@ export const OrgEntityPickerModal: React.FC<OrgEntityPickerModalProps> = ({
               <button
                 type="button"
                 onClick={() => handleSelect('all')}
-                className="px-2.5 sm:px-3 py-1 rounded-xl border border-red-500/30 bg-red-500/10 hover:bg-red-500/20 text-red-500 font-bold transition text-[10.5px] sm:text-xs cursor-pointer"
+                className="px-2.5 sm:px-3 py-1 rounded-xl border border-red-500/30 bg-red-500/10 hover:bg-red-500/20 text-red-600 font-bold transition text-[10.5px] sm:text-xs cursor-pointer"
               >
                 إلغاء التخصيص
               </button>
@@ -912,11 +848,7 @@ export const OrgEntityPickerModal: React.FC<OrgEntityPickerModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className={`px-3.5 sm:px-4 py-1 rounded-xl border font-bold transition text-[10.5px] sm:text-xs cursor-pointer ${
-                isLight
-                  ? 'bg-slate-100 hover:bg-slate-200 border-slate-300 text-slate-800'
-                  : 'bg-slate-800 hover:bg-slate-700 border-slate-700 text-white'
-              }`}
+              className={`px-3.5 sm:px-4 py-1 rounded-xl border font-bold transition text-[10.5px] sm:text-xs cursor-pointer bg-slate-100 hover:bg-slate-200 border-slate-300 text-slate-800`}
             >
               إغلاق
             </button>

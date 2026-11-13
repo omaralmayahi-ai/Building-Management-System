@@ -116,61 +116,61 @@ function buildUnitIdentityCardHtml(unit: UnitAsset, lat: number, lng: number): s
   const address = unit.sectorAddress || 'الموقع الرئيسي للحقل';
 
   return `
-    <div class="gis-unit-id-card" style="font-family: 'Cairo', system-ui, -apple-system, sans-serif; direction: rtl; text-align: right; width: min(290px, 86vw); max-width: 290px; padding: 9px; background: #0f172a; color: #f8fafc; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.6);">
-      <!-- Header: Type Badge & Condition Grade -->
-      <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-bottom: 6px; border-bottom: 1px solid #334155; padding-bottom: 5px;">
-        <div style="display: flex; align-items: center; gap: 5px;">
-          <span style="display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 5px; background: #1e293b;">
-            ${typeConfig.iconSvg}
-          </span>
-          <span style="font-size: 10.5px; font-weight: 700; color: #cbd5e1;">${typeConfig.label}</span>
-        </div>
-        <span style="background: ${gradeConfig.bg}; color: ${gradeConfig.color}; font-size: 9.5px; font-weight: 800; padding: 1.5px 6px; border-radius: 9999px;">
-          ${gradeConfig.label}
-        </span>
-      </div>
+ <div class="gis-unit-id-card" style="font-family: 'Cairo', system-ui, -apple-system, sans-serif; direction: rtl; text-align: right; width: min(290px, 86vw); max-width: 290px; padding: 9px; background: #0f172a; color: #f8fafc; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.6);">
+ <!-- Header: Type Badge & Condition Grade -->
+ <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-bottom: 6px; border-bottom: 1px solid #334155; padding-bottom: 5px;">
+ <div style="display: flex; align-items: center; gap: 5px;">
+ <span style="display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 5px; background: #1e293b;">
+ ${typeConfig.iconSvg}
+ </span>
+ <span style="font-size: 10.5px; font-weight: 700; color: #cbd5e1;">${typeConfig.label}</span>
+ </div>
+ <span style="background: ${gradeConfig.bg}; color: ${gradeConfig.color}; font-size: 9.5px; font-weight: 800; padding: 1.5px 6px; border-radius: 9999px;">
+ ${gradeConfig.label}
+ </span>
+ </div>
 
-      <!-- Main Unit Name -->
-      <h3 style="font-size: 12px; font-weight: 900; color: #ffffff; margin: 0 0 6px 0; line-height: 1.35; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-        ${unit.name}
-      </h3>
+ <!-- Main Unit Name -->
+ <h3 style="font-size: 12px; font-weight: 900; color: #ffffff; margin: 0 0 6px 0; line-height: 1.35; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+ ${unit.name}
+ </h3>
 
-      <!-- Identifier Codes Grid: Unit Code & Fixed Asset Code -->
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-bottom: 6px;">
-        <div style="background: #1e293b; padding: 4px 6px; border-radius: 6px; border: 1px solid #334155;">
-          <div style="font-size: 8.5px; color: #94a3b8; font-weight: 600;">رمز المنشأة</div>
-          <div style="font-size: 10px; font-weight: 800; color: #f59e0b; font-family: monospace; direction: ltr; text-align: right;">${unit.code}</div>
-        </div>
-        <div style="background: #1e293b; padding: 4px 6px; border-radius: 6px; border: 1px solid #334155;">
-          <div style="font-size: 8.5px; color: #94a3b8; font-weight: 600;">رمز الأصل</div>
-          <div style="font-size: 10px; font-weight: 800; color: #38bdf8; font-family: monospace; direction: ltr; text-align: right;">${assetCode}</div>
-        </div>
-      </div>
+ <!-- Identifier Codes Grid: Unit Code & Fixed Asset Code -->
+ <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-bottom: 6px;">
+ <div style="background: #1e293b; padding: 4px 6px; border-radius: 6px; border: 1px solid #334155;">
+ <div style="font-size: 8.5px; color: #94a3b8; font-weight: 600;">رمز المنشأة</div>
+ <div style="font-size: 10px; font-weight: 800; color: #f59e0b; font-family: monospace; direction: ltr; text-align: right;">${unit.code}</div>
+ </div>
+ <div style="background: #1e293b; padding: 4px 6px; border-radius: 6px; border: 1px solid #334155;">
+ <div style="font-size: 8.5px; color: #94a3b8; font-weight: 600;">رمز الأصل</div>
+ <div style="font-size: 10px; font-weight: 800; color: #38bdf8; font-family: monospace; direction: ltr; text-align: right;">${assetCode}</div>
+ </div>
+ </div>
 
-      <!-- Location & Administrative Specs Grid -->
-      <div style="background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(51, 65, 85, 0.8); border-radius: 7px; padding: 6px; font-size: 10px; margin-bottom: 7px; display: flex; flex-direction: column; gap: 3.5px;">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <span style="color: #94a3b8;">الموقع:</span>
-          <span style="font-weight: 700; color: #e2e8f0; max-width: 170px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">${unit.governorate} • ${unit.field}</span>
-        </div>
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <span style="color: #94a3b8;">الجهة الشاغلة:</span>
-          <span style="font-weight: 700; color: #e2e8f0; max-width: 170px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">${occupant}</span>
-        </div>
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <span style="color: #94a3b8;">المساحة والطوابق:</span>
-          <span style="font-weight: 700; color: #e2e8f0;">${areaStr} • ${floorsStr}</span>
-        </div>
-      </div>
+ <!-- Location & Administrative Specs Grid -->
+ <div style="background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(51, 65, 85, 0.8); border-radius: 7px; padding: 6px; font-size: 10px; margin-bottom: 7px; display: flex; flex-direction: column; gap: 3.5px;">
+ <div style="display: flex; justify-content: space-between; align-items: center;">
+ <span style="color: #94a3b8;">الموقع:</span>
+ <span style="font-weight: 700; color: #e2e8f0; max-width: 170px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">${unit.governorate} • ${unit.field}</span>
+ </div>
+ <div style="display: flex; justify-content: space-between; align-items: center;">
+ <span style="color: #94a3b8;">الجهة الشاغلة:</span>
+ <span style="font-weight: 700; color: #e2e8f0; max-width: 170px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">${occupant}</span>
+ </div>
+ <div style="display: flex; justify-content: space-between; align-items: center;">
+ <span style="color: #94a3b8;">المساحة والطوابق:</span>
+ <span style="font-weight: 700; color: #e2e8f0;">${areaStr} • ${floorsStr}</span>
+ </div>
+ </div>
 
-      <!-- Action Buttons -->
-      <div style="display: flex; flex-direction: column; gap: 4px;">
-        <a href="${googleMapsUrl}" target="_blank" rel="noopener noreferrer" style="display: flex; align-items: center; justify-content: center; gap: 5px; width: 100%; padding: 5px 8px; background: #059669; color: #ffffff; border-radius: 7px; font-size: 10.5px; font-weight: 800; text-decoration: none;">
-          <span>🧭 فتح الاتجاهات في Google Maps</span>
-        </a>
-      </div>
-    </div>
-  `;
+ <!-- Action Buttons -->
+ <div style="display: flex; flex-direction: column; gap: 4px;">
+ <a href="${googleMapsUrl}" target="_blank" rel="noopener noreferrer" style="display: flex; align-items: center; justify-content: center; gap: 5px; width: 100%; padding: 5px 8px; background: #059669; color: #ffffff; border-radius: 7px; font-size: 10.5px; font-weight: 800; text-decoration: none;">
+ <span>🧭 فتح الاتجاهات في Google Maps</span>
+ </a>
+ </div>
+ </div>
+ `;
 }
 
 interface GISMapViewProps {
@@ -508,25 +508,25 @@ export const GISMapView: React.FC<GISMapViewProps> = ({
         const count = cluster.getChildCount();
         return L.divIcon({
           html: `
-            <div style="
-              background: linear-gradient(135deg, #f59e0b, #d97706);
-              color: #0f172a;
-              width: 36px;
-              height: 36px;
-              border-radius: 50%;
-              border: 2.5px solid #ffffff;
-              box-shadow: 0 4px 12px rgba(0,0,0,0.6);
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              font-weight: 900;
-              font-size: 12px;
-              font-family: system-ui, sans-serif;
-              cursor: pointer;
-            ">
-              ${count}
-            </div>
-          `,
+ <div style="
+ background: linear-gradient(135deg, #f59e0b, #d97706);
+ color: #0f172a;
+ width: 36px;
+ height: 36px;
+ border-radius: 50%;
+ border: 2.5px solid #ffffff;
+ box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ font-weight: 900;
+ font-size: 12px;
+ font-family: system-ui, sans-serif;
+ cursor: pointer;
+ ">
+ ${count}
+ </div>
+ `,
           className: 'custom-gis-cluster',
           iconSize: [36, 36],
           iconAnchor: [18, 18],
@@ -543,62 +543,62 @@ export const GISMapView: React.FC<GISMapViewProps> = ({
       const customMarkerIcon = L.divIcon({
         className: 'custom-gis-unit-marker',
         html: `
-          <div style="
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            cursor: pointer;
-            filter: drop-shadow(0 6px 14px rgba(0,0,0,0.6));
-            transition: transform 0.2s ease;
-          ">
-            <!-- Pin Pointer Teardrop Body -->
-            <div style="
-              background: ${typeConfig.gradient};
-              width: 36px;
-              height: 36px;
-              border-radius: 50% 50% 50% 0;
-              transform: rotate(-45deg);
-              border: 2.5px solid #ffffff;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              box-shadow: inset 0 2px 4px rgba(255,255,255,0.3);
-              position: relative;
-            ">
-              <!-- Inner Vector Icon (un-rotated to sit upright) -->
-              <div style="
-                transform: rotate(45deg);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                width: 100%;
-                height: 100%;
-              ">
-                ${typeConfig.iconSvg}
-              </div>
-            </div>
+ <div style="
+ position: relative;
+ display: flex;
+ flex-direction: column;
+ align-items: center;
+ cursor: pointer;
+ filter: drop-shadow(0 6px 14px rgba(0,0,0,0.6));
+ transition: transform 0.2s ease;
+ ">
+ <!-- Pin Pointer Teardrop Body -->
+ <div style="
+ background: ${typeConfig.gradient};
+ width: 36px;
+ height: 36px;
+ border-radius: 50% 50% 50% 0;
+ transform: rotate(-45deg);
+ border: 2.5px solid #ffffff;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ box-shadow: inset 0 2px 4px rgba(255,255,255,0.3);
+ position: relative;
+ ">
+ <!-- Inner Vector Icon (un-rotated to sit upright) -->
+ <div style="
+ transform: rotate(45deg);
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ width: 100%;
+ height: 100%;
+ ">
+ ${typeConfig.iconSvg}
+ </div>
+ </div>
 
-            <!-- Condition Grade Pill Badge on Top Corner -->
-            <div style="
-              position: absolute;
-              top: -4px;
-              right: -4px;
-              background: ${gradeColor};
-              color: #ffffff;
-              border: 1.5px solid #ffffff;
-              border-radius: 9999px;
-              font-size: 9px;
-              font-weight: 900;
-              font-family: monospace;
-              padding: 0px 4px;
-              line-height: 14px;
-              box-shadow: 0 2px 5px rgba(0,0,0,0.4);
-            ">
-              ${unit.conditionGrade}
-            </div>
-          </div>
-        `,
+ <!-- Condition Grade Pill Badge on Top Corner -->
+ <div style="
+ position: absolute;
+ top: -4px;
+ right: -4px;
+ background: ${gradeColor};
+ color: #ffffff;
+ border: 1.5px solid #ffffff;
+ border-radius: 9999px;
+ font-size: 9px;
+ font-weight: 900;
+ font-family: monospace;
+ padding: 0px 4px;
+ line-height: 14px;
+ box-shadow: 0 2px 5px rgba(0,0,0,0.4);
+ ">
+ ${unit.conditionGrade}
+ </div>
+ </div>
+ `,
         iconSize: [36, 42],
         iconAnchor: [18, 42],
         popupAnchor: [0, -42],
@@ -687,46 +687,40 @@ export const GISMapView: React.FC<GISMapViewProps> = ({
       id="gis-map-view-root"
       ref={rootContainerRef}
       className={`flex flex-col w-full overflow-hidden transition-all duration-200 ${
-        isMapFullscreen
-          ? '!fixed !inset-0 !top-0 !left-0 !right-0 !bottom-0 !z-[99999] !w-screen !h-screen !m-0 !p-0 !rounded-none !border-none bg-slate-950 shadow-none'
-          : `relative h-[calc(100dvh-5.5rem)] sm:h-[calc(100vh-5rem)] min-h-[460px] sm:min-h-[650px] rounded-2xl border ${
-              isLight
-                ? 'bg-white border-slate-200 text-slate-900 shadow-sm'
-                : 'bg-slate-950 border-slate-800 text-white shadow-xl'
-            }`
+ isMapFullscreen
+ ? '!fixed !inset-0 !top-0 !left-0 !right-0 !bottom-0 !z-[99999] !w-screen !h-screen !m-0 !p-0 !rounded-none !border-none bg-card shadow-none'
+ : `relative h-[calc(100dvh-5.5rem)] sm:h-[calc(100vh-5rem)] min-h-[460px] sm:min-h-[650px] rounded-2xl border bg-card border-slate-200 text-slate-900 shadow-sm`
       }`}
     >
       {/* Global CSS overrides for Leaflet Tooltips */}
       <style>{`
-        .custom-gis-tooltip {
-          background: ${isLight ? '#ffffff' : '#0f172a'} !important;
-          color: ${isLight ? '#0f172a' : '#f8fafc'} !important;
-          border: 1px solid ${isLight ? '#cbd5e1' : '#334155'} !important;
-          border-radius: 8px !important;
-          box-shadow: 0 4px 12px ${isLight ? 'rgba(0, 0, 0, 0.15)' : 'rgba(0, 0, 0, 0.5)'} !important;
-          padding: 4px 8px !important;
-          font-family: 'Cairo', system-ui, sans-serif !important;
-          font-size: 11px !important;
-          font-weight: 700 !important;
-          direction: rtl !important;
-        }
-        .custom-gis-tooltip:before {
-          border-top-color: ${isLight ? '#ffffff' : '#0f172a'} !important;
-        }
-      `}</style>
+ .custom-gis-tooltip {
+ background: #ffffff !important;
+ color: #0f172a !important;
+ border: 1px solid #cbd5e1 !important;
+ border-radius: 8px !important;
+ box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+ padding: 4px 8px !important;
+ font-family: 'Cairo', system-ui, sans-serif !important;
+ font-size: 11px !important;
+ font-weight: 700 !important;
+ direction: rtl !important;
+ }
+ .custom-gis-tooltip:before {
+ border-top-color: #ffffff !important;
+ }
+ `}</style>
 
       {/* Top Header & Main Toolbar (Responsive, Prevents Any Input/Button Overlap) */}
       {!isToolbarCollapsed ? (
         <div
-          className={`p-2 sm:px-4 sm:py-2 border-b shrink-0 z-20 transition-all duration-300 ${
-            isLight ? 'bg-slate-50/95 border-slate-200' : 'bg-slate-900/95 border-slate-800'
-          }`}
+          className={`p-2 sm:px-4 sm:py-2 border-b shrink-0 z-20 transition-all duration-300 bg-slate-50/95 border-slate-200`}
         >
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3">
             {/* Top / Search row */}
             <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 flex-1">
               <div
-                className="w-8 h-8 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center font-bold shadow-md shrink-0 cursor-default"
+                className="w-8 h-8 rounded-xl bg-brand-700 text-on-brand flex items-center justify-center font-bold shadow-md shrink-0 cursor-default"
                 title={`خريطة الأصول GIS • شركة نفط الوسط (${toArabicDigits(units.length)} منشأة)`}
               >
                 <MapIcon className="w-4 h-4" />
@@ -751,18 +745,14 @@ export const GISMapView: React.FC<GISMapViewProps> = ({
                       }
                     }}
                     placeholder="ابحث بالاسم، الرمز، أو الأصل..."
-                    className={`w-full text-xs rounded-xl py-2 pl-7 pr-8 border outline-none font-medium transition ${
-                      isLight
-                        ? 'bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:border-amber-500 shadow-xs'
-                        : 'bg-slate-950 border-slate-700 text-slate-100 placeholder-slate-500 focus:border-amber-500'
-                    }`}
+                    className={`w-full text-xs rounded-xl py-2 pl-7 pr-8 border outline-none font-medium transition bg-card border-slate-300 text-slate-900 placeholder-slate-400 focus:border-brand-600 shadow-xs`}
                   />
-                  <Search className="w-3.5 h-3.5 absolute right-2.5 top-2.5 text-slate-400 pointer-events-none" />
+                  <Search className="w-3.5 h-3.5 absolute right-2.5 top-2.5 text-slate-500 pointer-events-none" />
                   {searchQuery && (
                     <button
                       type="button"
                       onClick={handleResetView}
-                      className="absolute left-2.5 top-2.5 text-slate-400 hover:text-rose-400 cursor-pointer transition"
+                      className="absolute left-2.5 top-2.5 text-slate-500 hover:text-rose-600 cursor-pointer transition"
                       title="مسح البحث وإعادة ضبط الخارطة"
                     >
                       <X className="w-3.5 h-3.5" />
@@ -773,19 +763,15 @@ export const GISMapView: React.FC<GISMapViewProps> = ({
                 {/* Instant Search Dropdown Results */}
                 {isSearchDropdownOpen && searchQuery.trim() && (
                   <div
-                    className={`absolute right-0 left-0 top-full mt-1.5 rounded-xl border shadow-2xl overflow-hidden z-50 max-h-72 overflow-y-auto scrollbar-thin ${
-                      isLight
-                        ? 'bg-white border-slate-200 divide-y divide-slate-100'
-                        : 'bg-slate-900 border-slate-700 divide-y divide-slate-800'
-                    }`}
+                    className={`absolute right-0 left-0 top-full mt-1.5 rounded-xl border shadow-2xl overflow-hidden z-50 max-h-72 overflow-y-auto scrollbar-thin bg-card border-slate-200 divide-y divide-slate-100`}
                   >
                     {searchMatches.length === 0 ? (
-                      <div className={`p-3 text-center text-xs ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                      <div className={`p-3 text-center text-xs text-slate-500`}>
                         لا توجد منشأة مطابقة للبحث
                       </div>
                     ) : (
                       <div>
-                        <div className={`px-3 py-1.5 text-[10px] font-bold ${isLight ? 'bg-slate-100 text-slate-600' : 'bg-slate-950 text-slate-400'}`}>
+                        <div className={`px-3 py-1.5 text-[10px] font-bold bg-slate-100 text-slate-600`}>
                           نتائج البحث ({toArabicDigits(searchMatches.length)}) • انقر للانتقال المباشر
                         </div>
                         {searchMatches.slice(0, 15).map((unit) => {
@@ -799,10 +785,8 @@ export const GISMapView: React.FC<GISMapViewProps> = ({
                               onClick={() => handleSelectUnit(unit)}
                               className={`w-full p-2.5 text-right flex items-center justify-between gap-2 transition cursor-pointer ${
                                 isSelected
-                                  ? 'bg-amber-500/20 text-amber-400 font-bold'
-                                  : isLight
-                                  ? 'hover:bg-amber-50/80 text-slate-800'
-                                  : 'hover:bg-slate-800 text-slate-200'
+                                  ? 'bg-brand-100 text-brand-700 font-bold'
+                                  : 'hover:bg-brand-50 text-slate-800'
                               }`}
                             >
                               <div className="flex items-center gap-2 min-w-0">
@@ -813,14 +797,14 @@ export const GISMapView: React.FC<GISMapViewProps> = ({
                                 />
                                 <div className="min-w-0">
                                   <div className="font-bold text-xs truncate">{unit.name}</div>
-                                  <div className={`text-[10px] truncate ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                                  <div className={`text-[10px] truncate text-slate-500`}>
                                     {unit.field} ({unit.governorate})
                                     {unit.fixedAssetCode ? ` • أصل: ${unit.fixedAssetCode}` : ''}
                                   </div>
                                 </div>
                               </div>
                               <div className="text-left shrink-0">
-                                <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-amber-400 border border-slate-700">
+                                <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-brand-700 border border-slate-200">
                                   {unit.code}
                                 </span>
                               </div>
@@ -837,11 +821,7 @@ export const GISMapView: React.FC<GISMapViewProps> = ({
               <button
                 type="button"
                 onClick={() => setIsToolbarCollapsed(true)}
-                className={`sm:hidden w-8 h-8 rounded-xl border flex items-center justify-center transition cursor-pointer shrink-0 shadow-xs ${
-                  isLight
-                    ? 'bg-white hover:bg-slate-100 border-slate-300 text-slate-500'
-                    : 'bg-slate-950 hover:bg-slate-800 border-slate-700 text-slate-400'
-                }`}
+                className={`sm:hidden w-8 h-8 rounded-xl border flex items-center justify-center transition cursor-pointer shrink-0 shadow-xs bg-card hover:bg-slate-100 border-slate-300 text-slate-500`}
                 title="طي شريط الأدوات"
               >
                 <ChevronUp className="w-4 h-4" />
@@ -854,7 +834,7 @@ export const GISMapView: React.FC<GISMapViewProps> = ({
               <button
                 type="button"
                 onClick={() => setIsPickerModalOpen(true)}
-                className="flex-1 sm:flex-initial h-8 px-2.5 sm:px-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 flex items-center justify-center gap-1.5 font-bold shadow-md shadow-amber-500/20 transition cursor-pointer text-xs shrink-0"
+                className="flex-1 sm:flex-initial h-8 px-2.5 sm:px-3 rounded-xl bg-brand-700 hover:bg-brand-800 text-on-brand flex items-center justify-center gap-1.5 font-bold shadow-md transition cursor-pointer text-xs shrink-0"
                 title="تصفح واختيار منشأة (دليل المحافظات والحقول)"
               >
                 <ListTree className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
@@ -863,7 +843,7 @@ export const GISMapView: React.FC<GISMapViewProps> = ({
 
               {/* 2. Map Layer Switcher: Satellite / Streets & Terrain */}
               <div
-                className="flex items-center p-0.5 rounded-xl border shrink-0 bg-slate-950 border-slate-800"
+                className="flex items-center p-0.5 rounded-xl border shrink-0 bg-card border-slate-200"
                 title="طريقة العرض: أقمار صناعية / طرق وتضاريس"
               >
                 <button
@@ -871,8 +851,8 @@ export const GISMapView: React.FC<GISMapViewProps> = ({
                   onClick={() => setMapType('satellite')}
                   className={`px-2 h-7 rounded-lg flex items-center gap-1 text-[11px] font-bold transition cursor-pointer ${
                     mapType === 'satellite'
-                      ? 'bg-amber-500 text-slate-950 shadow-xs font-black'
-                      : 'text-slate-400 hover:text-slate-200'
+                      ? 'bg-brand-700 text-on-brand shadow-xs font-black'
+                      : 'text-slate-500 hover:text-slate-800'
                   }`}
                   title="عرض الأقمار الصناعية (Satellite)"
                 >
@@ -884,8 +864,8 @@ export const GISMapView: React.FC<GISMapViewProps> = ({
                   onClick={() => setMapType('streets')}
                   className={`px-2 h-7 rounded-lg flex items-center gap-1 text-[11px] font-bold transition cursor-pointer ${
                     mapType === 'streets'
-                      ? 'bg-amber-500 text-slate-950 shadow-xs font-black'
-                      : 'text-slate-400 hover:text-slate-200'
+                      ? 'bg-brand-700 text-on-brand shadow-xs font-black'
+                      : 'text-slate-500 hover:text-slate-800'
                   }`}
                   title="عرض الطرق والتضاريس (Streets & Terrain)"
                 >
@@ -898,14 +878,10 @@ export const GISMapView: React.FC<GISMapViewProps> = ({
               <button
                 type="button"
                 onClick={handleResetView}
-                className={`h-8 px-2 sm:w-8 rounded-xl border flex items-center justify-center gap-1 transition cursor-pointer shrink-0 shadow-xs ${
-                  isLight
-                    ? 'bg-white hover:bg-slate-100 border-slate-300 text-slate-700'
-                    : 'bg-slate-950 hover:bg-slate-800 border-slate-700 text-slate-300'
-                }`}
+                className={`h-8 px-2 sm:w-8 rounded-xl border flex items-center justify-center gap-1 transition cursor-pointer shrink-0 shadow-xs bg-card hover:bg-slate-100 border-slate-300 text-slate-700`}
                 title="إعادة ضبط وضع الخارطة (زوم أوت لكامل العراق)"
               >
-                <RotateCcw className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                <RotateCcw className="w-3.5 h-3.5 text-brand-700 shrink-0" />
                 <span className="text-[10px] font-bold xs:inline sm:hidden">العراق</span>
               </button>
 
@@ -916,17 +892,15 @@ export const GISMapView: React.FC<GISMapViewProps> = ({
                 onClick={toggleFullscreen}
                 className={`w-8 h-8 rounded-xl border flex items-center justify-center transition cursor-pointer shrink-0 shadow-xs ${
                   isMapFullscreen
-                    ? 'bg-amber-500 hover:bg-amber-400 text-slate-950 border-amber-600 shadow-md shadow-amber-500/20'
-                    : isLight
-                    ? 'bg-white hover:bg-slate-100 border-slate-300 text-slate-700'
-                    : 'bg-slate-950 hover:bg-slate-800 border-slate-700 text-slate-300'
+                    ? 'bg-brand-700 hover:bg-brand-800 text-on-brand border-brand-600 shadow-md '
+                    : 'bg-card hover:bg-slate-100 border-slate-300 text-slate-700'
                 }`}
                 title={isMapFullscreen ? 'الخروج من وضع ملء الشاشة (Esc)' : 'ملء الشاشة بالخارطة'}
               >
                 {isMapFullscreen ? (
                   <Minimize2 className="w-4 h-4" />
                 ) : (
-                  <Maximize2 className="w-4 h-4 text-amber-500" />
+                  <Maximize2 className="w-4 h-4 text-brand-700" />
                 )}
               </button>
 
@@ -934,11 +908,7 @@ export const GISMapView: React.FC<GISMapViewProps> = ({
               <button
                 type="button"
                 onClick={() => setIsToolbarCollapsed(true)}
-                className={`hidden sm:flex w-8 h-8 rounded-xl border items-center justify-center transition cursor-pointer shrink-0 shadow-xs ${
-                  isLight
-                    ? 'bg-white hover:bg-slate-100 border-slate-300 text-slate-400 hover:text-slate-800'
-                    : 'bg-slate-950 hover:bg-slate-800 border-slate-700 text-slate-400 hover:text-slate-200'
-                }`}
+                className={`hidden sm:flex w-8 h-8 rounded-xl border items-center justify-center transition cursor-pointer shrink-0 shadow-xs bg-card hover:bg-slate-100 border-slate-300 text-slate-400 hover:text-slate-800`}
                 title="طي شريط الأدوات لإفساح كامل الشاشة للخارطة"
               >
                 <ChevronUp className="w-4 h-4" />
@@ -952,17 +922,17 @@ export const GISMapView: React.FC<GISMapViewProps> = ({
           <button
             type="button"
             onClick={() => setIsToolbarCollapsed(false)}
-            className="px-3 py-1.5 rounded-full bg-slate-900/90 hover:bg-slate-800 text-amber-400 border border-slate-700 shadow-2xl backdrop-blur-md flex items-center gap-1.5 text-xs font-bold transition cursor-pointer hover:scale-105"
+            className="px-3 py-1.5 rounded-full bg-card/90 hover:bg-slate-100 text-brand-700 border border-slate-200 shadow-2xl backdrop-blur-md flex items-center gap-1.5 text-xs font-bold transition cursor-pointer hover:scale-105"
             title="إظهار شريط الأدوات والخيارات"
           >
-            <ChevronDown className="w-4 h-4 text-amber-400" />
+            <ChevronDown className="w-4 h-4 text-brand-700" />
             <span className="text-[11px] font-bold">أدوات الخارطة</span>
           </button>
           {isMapFullscreen && (
             <button
               type="button"
               onClick={toggleFullscreen}
-              className="p-1.5 rounded-full bg-slate-900/90 hover:bg-rose-500/20 text-slate-300 hover:text-rose-400 border border-slate-700 shadow-2xl backdrop-blur-md transition cursor-pointer"
+              className="p-1.5 rounded-full bg-card/90 hover:bg-rose-500/20 text-slate-600 hover:text-rose-600 border border-slate-200 shadow-2xl backdrop-blur-md transition cursor-pointer"
               title="الخروج من وضع ملء الشاشة (Esc)"
             >
               <Minimize2 className="w-4 h-4" />
@@ -972,7 +942,7 @@ export const GISMapView: React.FC<GISMapViewProps> = ({
       )}
 
       {/* Main Map Canvas: Pure clean map occupying 100% of the screen space below the header */}
-      <div className="flex-1 relative w-full h-full bg-slate-950 overflow-hidden z-0">
+      <div className="flex-1 relative w-full h-full bg-card overflow-hidden z-0">
         <div ref={mapContainerRef} className="w-full h-full z-0" />
 
         {/* Floating Zoom & Panorama Quick Controls */}
@@ -980,11 +950,7 @@ export const GISMapView: React.FC<GISMapViewProps> = ({
           <button
             type="button"
             onClick={() => mapInstanceRef.current?.zoomIn()}
-            className={`w-8 h-8 rounded-xl border flex items-center justify-center font-bold text-base backdrop-blur-sm cursor-pointer transition shadow-md ${
-              isLight
-                ? 'bg-white/95 hover:bg-slate-100 text-slate-800 border-slate-300'
-                : 'bg-slate-900/90 hover:bg-slate-800 text-white border-slate-700'
-            }`}
+            className={`w-8 h-8 rounded-xl border flex items-center justify-center font-bold text-base backdrop-blur-sm cursor-pointer transition shadow-md bg-card/95 hover:bg-slate-100 text-slate-800 border-slate-300`}
             title="تقريب (Zoom In)"
           >
             +
@@ -992,11 +958,7 @@ export const GISMapView: React.FC<GISMapViewProps> = ({
           <button
             type="button"
             onClick={() => mapInstanceRef.current?.zoomOut()}
-            className={`w-8 h-8 rounded-xl border flex items-center justify-center font-bold text-base backdrop-blur-sm cursor-pointer transition shadow-md ${
-              isLight
-                ? 'bg-white/95 hover:bg-slate-100 text-slate-800 border-slate-300'
-                : 'bg-slate-900/90 hover:bg-slate-800 text-white border-slate-700'
-            }`}
+            className={`w-8 h-8 rounded-xl border flex items-center justify-center font-bold text-base backdrop-blur-sm cursor-pointer transition shadow-md bg-card/95 hover:bg-slate-100 text-slate-800 border-slate-300`}
             title="إبعاد (Zoom Out)"
           >
             -
@@ -1004,11 +966,7 @@ export const GISMapView: React.FC<GISMapViewProps> = ({
           <button
             type="button"
             onClick={handleResetView}
-            className={`w-8 h-8 rounded-xl border flex items-center justify-center backdrop-blur-sm cursor-pointer transition shadow-md ${
-              isLight
-                ? 'bg-white/95 hover:bg-slate-100 text-amber-600 border-slate-300'
-                : 'bg-slate-900/90 hover:bg-slate-800 text-amber-400 border-slate-700'
-            }`}
+            className={`w-8 h-8 rounded-xl border flex items-center justify-center backdrop-blur-sm cursor-pointer transition shadow-md bg-card/95 hover:bg-slate-100 text-brand-700 border-slate-300`}
             title="إعادة ضبط (خارطة العراق)"
           >
             <RotateCcw className="w-3.5 h-3.5" />
@@ -1019,17 +977,11 @@ export const GISMapView: React.FC<GISMapViewProps> = ({
         {activeUnit && (
           <div
             key={activeUnit.code}
-            className={`absolute bottom-2 sm:bottom-3 right-2 left-2 sm:left-auto sm:right-3 z-[500] max-w-[360px] mx-auto sm:mx-0 sm:w-[340px] rounded-2xl border shadow-2xl backdrop-blur-md overflow-hidden transition-all duration-200 pointer-events-auto ${
-              isLight
-                ? 'bg-white/95 text-slate-900 border-slate-200 shadow-slate-900/15'
-                : 'bg-slate-950/95 text-white border-slate-800 shadow-black/80'
-            }`}
+            className={`absolute bottom-2 sm:bottom-3 right-2 left-2 sm:left-auto sm:right-3 z-[500] max-w-[360px] mx-auto sm:mx-0 sm:w-[340px] rounded-2xl border shadow-2xl backdrop-blur-md overflow-hidden transition-all duration-200 pointer-events-auto bg-card/95 text-slate-900 border-slate-200 shadow-slate-900/15`}
           >
             {/* Header: Compact single row */}
             <div
-              className={`px-3 py-2 border-b flex items-center justify-between gap-2 shrink-0 ${
-                isLight ? 'bg-slate-50/95 border-slate-200' : 'bg-slate-900/90 border-slate-800'
-              }`}
+              className={`px-3 py-2 border-b flex items-center justify-between gap-2 shrink-0 bg-slate-50/95 border-slate-200`}
             >
               <div className="flex items-center gap-1.5 min-w-0 flex-1">
                 <span
@@ -1038,9 +990,7 @@ export const GISMapView: React.FC<GISMapViewProps> = ({
                   dangerouslySetInnerHTML={{ __html: UNIT_TYPE_CONFIG[activeUnit.type]?.iconSvg || '' }}
                 />
                 <h3
-                  className={`text-xs font-black truncate leading-tight ${
-                    isLight ? 'text-slate-900' : 'text-white'
-                  }`}
+                  className={`text-xs font-black truncate leading-tight text-slate-900`}
                   title={activeUnit.name}
                 >
                   {activeUnit.name}
@@ -1049,7 +999,7 @@ export const GISMapView: React.FC<GISMapViewProps> = ({
 
               <div className="flex items-center gap-1.5 shrink-0">
                 <span
-                  className="text-[9.5px] font-black px-1.5 py-0.5 rounded-full text-white shadow-xs"
+                  className="text-[9.5px] font-black px-1.5 py-0.5 rounded-full text-slate-900 shadow-xs"
                   style={{ backgroundColor: GRADE_BADGE_CONFIG[activeUnit.conditionGrade]?.bg || '#f59e0b' }}
                 >
                   {GRADE_BADGE_CONFIG[activeUnit.conditionGrade]?.label || activeUnit.conditionGrade}
@@ -1061,11 +1011,7 @@ export const GISMapView: React.FC<GISMapViewProps> = ({
                     setActiveUnit(null);
                     setShowCardDetails(false);
                   }}
-                  className={`p-1 rounded-lg transition cursor-pointer ${
-                    isLight
-                      ? 'text-slate-400 hover:text-slate-700 hover:bg-slate-200/70'
-                      : 'text-slate-400 hover:text-white hover:bg-slate-800'
-                  }`}
+                  className={`p-1 rounded-lg transition cursor-pointer text-slate-400 hover:text-slate-700 hover:bg-slate-200/70`}
                   title="إغلاق البطاقة"
                 >
                   <X className="w-3.5 h-3.5" />
@@ -1078,15 +1024,11 @@ export const GISMapView: React.FC<GISMapViewProps> = ({
               {/* Badges Bar: Code + Fixed Asset + Field */}
               <div className="flex items-center justify-between gap-1.5 flex-wrap">
                 <div className="flex items-center gap-1">
-                  <span className={`text-[10px] ${isLight ? 'text-slate-500 font-bold' : 'text-slate-400'}`}>
+                  <span className={`text-[10px] text-slate-500 font-bold`}>
                     الرمز:
                   </span>
                   <span
-                    className={`font-mono text-[11px] font-bold px-1.5 py-0.5 rounded border ${
-                      isLight
-                        ? 'text-amber-800 bg-amber-50/90 border-amber-200'
-                        : 'text-amber-400 bg-slate-900 border-slate-800'
-                    }`}
+                    className={`font-mono text-[11px] font-bold px-1.5 py-0.5 rounded border text-brand-800 bg-brand-50 border-brand-200`}
                     dir="ltr"
                   >
                     {activeUnit.code}
@@ -1094,47 +1036,39 @@ export const GISMapView: React.FC<GISMapViewProps> = ({
                 </div>
                 {activeUnit.fixedAssetCode && (
                   <div className="flex items-center gap-1">
-                    <span className={`text-[10px] ${isLight ? 'text-slate-500 font-bold' : 'text-slate-400'}`}>
+                    <span className={`text-[10px] text-slate-500 font-bold`}>
                       الأصل:
                     </span>
                     <span
-                      className={`font-mono text-[11px] font-bold px-1.5 py-0.5 rounded border ${
-                        isLight
-                          ? 'text-sky-800 bg-sky-50/90 border-sky-200'
-                          : 'text-sky-400 bg-slate-900 border-slate-800'
-                      }`}
+                      className={`font-mono text-[11px] font-bold px-1.5 py-0.5 rounded border text-sky-800 bg-sky-50/90 border-sky-200`}
                       dir="ltr"
                     >
                       {activeUnit.fixedAssetCode}
                     </span>
                   </div>
                 )}
-                <div className={`text-[10.5px] font-bold ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                <div className={`text-[10.5px] font-bold text-slate-700`}>
                   {activeUnit.field} • {activeUnit.governorate}
                 </div>
               </div>
 
               {/* Core Information Bar */}
               <div
-                className={`p-2 rounded-xl border space-y-1 text-[11px] ${
-                  isLight
-                    ? 'bg-slate-100/80 border-slate-200'
-                    : 'bg-slate-900/60 border-slate-800/80'
-                }`}
+                className={`p-2 rounded-xl border space-y-1 text-[11px] bg-slate-100/80 border-slate-200`}
               >
                 <div className="flex items-center justify-between">
-                  <span className={`font-medium ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                  <span className={`font-medium text-slate-500`}>
                     الجهة الشاغلة:
                   </span>
-                  <span className={`font-bold truncate max-w-[190px] ${isLight ? 'text-slate-900' : 'text-white'}`}>
+                  <span className={`font-bold truncate max-w-[190px] text-slate-900`}>
                     {(activeUnit as any).occupyingEntity || activeUnit.department || 'غير محدد'}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className={`font-medium ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                  <span className={`font-medium text-slate-500`}>
                     المساحة والطوابق:
                   </span>
-                  <span className={`font-bold ${isLight ? 'text-slate-800' : 'text-slate-200'}`}>
+                  <span className={`font-bold text-slate-800`}>
                     {activeUnit.totalAreaSqM ? `${toArabicDigits(activeUnit.totalAreaSqM)} م²` : '—'} • {toArabicDigits(activeUnit.floorsCount || 1)} طابق ({toArabicDigits(activeUnit.rooms?.length || 0)} غرفة)
                   </span>
                 </div>
@@ -1142,23 +1076,21 @@ export const GISMapView: React.FC<GISMapViewProps> = ({
                 {/* Extended Details (collapsible to save screen space) */}
                 {showCardDetails && (
                   <div
-                    className={`pt-1.5 mt-1 border-t space-y-1 animate-in fade-in duration-150 ${
-                      isLight ? 'border-slate-200' : 'border-slate-800/70'
-                    }`}
+                    className={`pt-1.5 mt-1 border-t space-y-1 animate-in fade-in duration-150 border-slate-200`}
                   >
                     <div className="flex items-center justify-between">
-                      <span className={`font-medium ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                      <span className={`font-medium text-slate-500`}>
                         الموقع / القطاع:
                       </span>
-                      <span className={`font-bold truncate max-w-[180px] ${isLight ? 'text-slate-900' : 'text-white'}`}>
+                      <span className={`font-bold truncate max-w-[180px] text-slate-900`}>
                         {activeUnit.sectorAddress || 'الموقع الرئيسي للحقل'}
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className={`font-medium ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                      <span className={`font-medium text-slate-500`}>
                         سنة الإنشاء:
                       </span>
-                      <span className={`font-bold ${isLight ? 'text-slate-900' : 'text-white'}`}>
+                      <span className={`font-bold text-slate-900`}>
                         {activeUnit.constructionYear ? toArabicDigits(activeUnit.constructionYear) : 'غير مسجل'}
                       </span>
                     </div>
@@ -1182,21 +1114,17 @@ export const GISMapView: React.FC<GISMapViewProps> = ({
                 <button
                   type="button"
                   onClick={() => handleCopyCoords(activeUnit.coordinates?.lat || 33.1, activeUnit.coordinates?.lng || 45.2)}
-                  className={`py-1.5 px-2 rounded-xl border font-mono text-[10px] flex items-center gap-1 transition cursor-pointer shrink-0 ${
-                    isLight
-                      ? 'bg-slate-100 hover:bg-slate-200 border-slate-200 text-sky-700 hover:text-sky-800'
-                      : 'bg-slate-900 hover:bg-slate-800 border-slate-800 text-sky-400'
-                  }`}
+                  className={`py-1.5 px-2 rounded-xl border font-mono text-[10px] flex items-center gap-1 transition cursor-pointer shrink-0 bg-slate-100 hover:bg-slate-200 border-slate-200 text-sky-700 hover:text-sky-800`}
                   title="نسخ إحداثيات GPS"
                 >
                   {copiedCoords ? (
                     <>
-                      <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-                      <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-sans font-bold">تم</span>
+                      <Check className="w-3.5 h-3.5 text-emerald-600 " />
+                      <span className="text-[10px] text-emerald-600 font-sans font-bold">تم</span>
                     </>
                   ) : (
                     <>
-                      <Copy className={`w-3 h-3 ${isLight ? 'text-slate-500' : 'text-slate-400'}`} />
+                      <Copy className={`w-3 h-3 text-slate-500`} />
                       <span>GPS</span>
                     </>
                   )}
@@ -1206,11 +1134,7 @@ export const GISMapView: React.FC<GISMapViewProps> = ({
                 <button
                   type="button"
                   onClick={() => setShowCardDetails((prev) => !prev)}
-                  className={`py-1.5 px-2 rounded-xl border text-[10px] font-bold transition cursor-pointer shrink-0 ${
-                    isLight
-                      ? 'bg-slate-100 hover:bg-slate-200 border-slate-200 text-slate-600 hover:text-slate-900'
-                      : 'bg-slate-900 hover:bg-slate-800 border-slate-800 text-slate-400 hover:text-slate-200'
-                  }`}
+                  className={`py-1.5 px-2 rounded-xl border text-[10px] font-bold transition cursor-pointer shrink-0 bg-slate-100 hover:bg-slate-200 border-slate-200 text-slate-600 hover:text-slate-900`}
                   title={showCardDetails ? 'إخفاء التفاصيل الإضافية' : 'عرض التفاصيل الإضافية'}
                 >
                   {showCardDetails ? 'أقل' : 'تفاصيل'}
@@ -1227,25 +1151,21 @@ export const GISMapView: React.FC<GISMapViewProps> = ({
       {isPickerModalOpen && (
         <div className="fixed inset-0 z-[1000000] flex items-center justify-center p-3 sm:p-5 backdrop-blur-md bg-black/60 animate-fadeIn">
           <div
-            className={`w-full max-w-5xl max-h-[88vh] flex flex-col rounded-2xl border shadow-2xl overflow-hidden transition-all ${
-              isLight ? 'bg-white border-slate-300 text-slate-900' : 'bg-slate-900 border-slate-700 text-white'
-            }`}
+            className={`w-full max-w-5xl max-h-[88vh] flex flex-col rounded-2xl border shadow-2xl overflow-hidden transition-all bg-card border-slate-300 text-slate-900`}
           >
             {/* Modal Header */}
             <div
-              className={`px-5 py-3.5 border-b flex items-center justify-between gap-3 shrink-0 ${
-                isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-950 border-slate-800'
-              }`}
+              className={`px-5 py-3.5 border-b flex items-center justify-between gap-3 shrink-0 bg-slate-50 border-slate-200`}
             >
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                <div className="p-2 rounded-xl bg-brand-50 text-brand-700 border border-brand-200">
                   <ListTree className="w-5 h-5" />
                 </div>
                 <div>
                   <h2 className="text-base font-black">
                     دليل واختيار المنشآت - الهيكل الجغرافي
                   </h2>
-                  <p className={`text-xs ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                  <p className={`text-xs text-slate-500`}>
                     انقر على أي منشأة لتوجيه الخارطة وتكبير موقعها بدرجة عالية تلقائياً
                   </p>
                 </div>
@@ -1254,7 +1174,7 @@ export const GISMapView: React.FC<GISMapViewProps> = ({
               <button
                 type="button"
                 onClick={() => setIsPickerModalOpen(false)}
-                className="p-2 rounded-xl bg-slate-800/80 hover:bg-rose-500/20 text-slate-300 hover:text-rose-400 transition cursor-pointer border border-slate-700"
+                className="p-2 rounded-xl bg-slate-100 hover:bg-rose-500/20 text-slate-600 hover:text-rose-600 transition cursor-pointer border border-slate-200"
                 title="إغلاق (Esc)"
               >
                 <X className="w-5 h-5" />
@@ -1263,9 +1183,7 @@ export const GISMapView: React.FC<GISMapViewProps> = ({
 
             {/* Modal Toolbar: Search inside modal + Expand All + Collapse All + Stats */}
             <div
-              className={`px-5 py-2.5 border-b flex flex-wrap items-center justify-between gap-2.5 shrink-0 text-xs ${
-                isLight ? 'bg-slate-100/70 border-slate-200' : 'bg-slate-950/60 border-slate-800'
-              }`}
+              className={`px-5 py-2.5 border-b flex flex-wrap items-center justify-between gap-2.5 shrink-0 text-xs bg-slate-100/70 border-slate-200`}
             >
               {/* Internal Search Input */}
               <div className="relative min-w-[220px] sm:min-w-[280px]">
@@ -1274,18 +1192,14 @@ export const GISMapView: React.FC<GISMapViewProps> = ({
                   value={modalSearchQuery}
                   onChange={(e) => setModalSearchQuery(e.target.value)}
                   placeholder="تصفية حسب الاسم، الرمز، رمز الأصل، الحقل..."
-                  className={`w-full text-xs rounded-xl py-1.5 pl-7 pr-8 border outline-none font-medium transition ${
-                    isLight
-                      ? 'bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:border-amber-500'
-                      : 'bg-slate-900 border-slate-700 text-slate-100 placeholder-slate-500 focus:border-amber-500'
-                  }`}
+                  className={`w-full text-xs rounded-xl py-1.5 pl-7 pr-8 border outline-none font-medium transition bg-card border-slate-300 text-slate-900 placeholder-slate-400 focus:border-brand-600`}
                 />
-                <Search className="w-3.5 h-3.5 absolute right-2.5 top-2 text-slate-400 pointer-events-none" />
+                <Search className="w-3.5 h-3.5 absolute right-2.5 top-2 text-slate-500 pointer-events-none" />
                 {modalSearchQuery && (
                   <button
                     type="button"
                     onClick={() => setModalSearchQuery('')}
-                    className="absolute left-2.5 top-2 text-slate-400 hover:text-slate-200 cursor-pointer"
+                    className="absolute left-2.5 top-2 text-slate-500 hover:text-slate-800 cursor-pointer"
                   >
                     <X className="w-3.5 h-3.5" />
                   </button>
@@ -1297,40 +1211,32 @@ export const GISMapView: React.FC<GISMapViewProps> = ({
                 <button
                   type="button"
                   onClick={handleModalExpandAll}
-                  className={`px-2.5 py-1.5 rounded-xl border text-xs font-bold flex items-center gap-1.5 transition cursor-pointer ${
-                    isLight
-                      ? 'bg-white hover:bg-slate-100 border-slate-300 text-slate-700'
-                      : 'bg-slate-800 hover:bg-slate-750 border-slate-700 text-slate-200'
-                  }`}
+                  className={`px-2.5 py-1.5 rounded-xl border text-xs font-bold flex items-center gap-1.5 transition cursor-pointer bg-card hover:bg-slate-100 border-slate-300 text-slate-700`}
                   title="توسيع كافة المحافظات والحقول"
                 >
-                  <ChevronsDown className="w-3.5 h-3.5 text-amber-500" />
+                  <ChevronsDown className="w-3.5 h-3.5 text-brand-700" />
                   <span>توسيع الكل</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={handleModalCollapseAll}
-                  className={`px-2.5 py-1.5 rounded-xl border text-xs font-bold flex items-center gap-1.5 transition cursor-pointer ${
-                    isLight
-                      ? 'bg-white hover:bg-slate-100 border-slate-300 text-slate-700'
-                      : 'bg-slate-800 hover:bg-slate-750 border-slate-700 text-slate-200'
-                  }`}
+                  className={`px-2.5 py-1.5 rounded-xl border text-xs font-bold flex items-center gap-1.5 transition cursor-pointer bg-card hover:bg-slate-100 border-slate-300 text-slate-700`}
                   title="طي كافة المحافظات والحقول"
                 >
-                  <ChevronsUp className="w-3.5 h-3.5 text-amber-500" />
+                  <ChevronsUp className="w-3.5 h-3.5 text-brand-700" />
                   <span>طي الكل</span>
                 </button>
 
                 {/* Counter Badges */}
                 <div className="hidden sm:flex items-center gap-2 mr-2">
-                  <span className="px-2 py-0.5 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20 font-bold text-[11px]">
+                  <span className="px-2 py-0.5 rounded-lg bg-brand-50 text-brand-700 border border-brand-200 font-bold text-[11px]">
                     {toArabicDigits(allGovNames.length)} محافظة
                   </span>
-                  <span className="px-2 py-0.5 rounded-lg bg-sky-500/10 text-sky-400 border border-sky-500/20 font-bold text-[11px]">
+                  <span className="px-2 py-0.5 rounded-lg bg-sky-500/10 text-sky-600 border border-sky-500/20 font-bold text-[11px]">
                     {toArabicDigits(totalFieldsCount)} حقل
                   </span>
-                  <span className="px-2 py-0.5 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold text-[11px]">
+                  <span className="px-2 py-0.5 rounded-lg bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 font-bold text-[11px]">
                     {toArabicDigits(modalFilteredUnits.length)} منشأة
                   </span>
                 </div>
@@ -1340,7 +1246,7 @@ export const GISMapView: React.FC<GISMapViewProps> = ({
             {/* Modal Body: Scrollable Hierarchy Tree */}
             <div className="flex-1 overflow-y-auto p-4 space-y-3.5 scrollbar-thin">
               {hierarchyTree.size === 0 ? (
-                <div className={`p-8 text-center text-sm ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                <div className={`p-8 text-center text-sm text-slate-500`}>
                   لا توجد منشآت مطابقة لمعايير البحث داخل الدليل
                 </div>
               ) : (
@@ -1355,32 +1261,24 @@ export const GISMapView: React.FC<GISMapViewProps> = ({
                   return (
                     <div
                       key={gov}
-                      className={`rounded-2xl border transition overflow-hidden shadow-xs ${
-                        isLight ? 'bg-slate-50 border-slate-300/80' : 'bg-slate-950/70 border-slate-800'
-                      }`}
+                      className={`rounded-2xl border transition overflow-hidden shadow-xs bg-slate-50 border-slate-300/80`}
                     >
                       {/* Governorate Header Button */}
                       <button
                         type="button"
                         onClick={() => toggleGovCollapse(gov)}
-                        className={`w-full px-4 py-3 flex items-center justify-between text-right font-black transition cursor-pointer text-sm ${
-                          isLight
-                            ? 'bg-slate-100 hover:bg-slate-200/90 text-slate-900 border-b border-slate-200'
-                            : 'bg-slate-950 hover:bg-slate-800 text-slate-100 border-b border-slate-800'
-                        }`}
+                        className={`w-full px-4 py-3 flex items-center justify-between text-right font-black transition cursor-pointer text-sm bg-slate-100 hover:bg-slate-200/90 text-slate-900 border-b border-slate-200`}
                       >
                         <div className="flex items-center gap-2">
-                          <Folder className="w-4 h-4 text-amber-500" />
+                          <Folder className="w-4 h-4 text-brand-700" />
                           <span>محافظة {gov}</span>
                           <span
-                            className={`text-xs px-2 py-0.5 rounded-full font-bold font-mono ${
-                              isLight ? 'bg-slate-200 text-slate-700' : 'bg-slate-800 text-amber-400'
-                            }`}
+                            className={`text-xs px-2 py-0.5 rounded-full font-bold font-mono bg-slate-200 text-slate-700`}
                           >
                             ({toArabicDigits(totalGovUnits)} منشأة)
                           </span>
                         </div>
-                        <div className="flex items-center gap-1.5 text-xs text-slate-400">
+                        <div className="flex items-center gap-1.5 text-xs text-slate-500">
                           <span>{isGovCollapsed ? 'توسيع' : 'طي'}</span>
                           <ChevronDown
                             className={`w-4 h-4 transition-transform ${
@@ -1400,31 +1298,23 @@ export const GISMapView: React.FC<GISMapViewProps> = ({
                             return (
                               <div
                                 key={fieldKey}
-                                className={`rounded-xl border p-2.5 ${
-                                  isLight
-                                    ? 'bg-white border-slate-200'
-                                    : 'bg-slate-900/90 border-slate-800'
-                                }`}
+                                className={`rounded-xl border p-2.5 bg-card border-slate-200`}
                               >
                                 {/* Field Header */}
                                 <button
                                   type="button"
                                   onClick={() => toggleFieldCollapse(fieldKey)}
-                                  className={`w-full p-2 rounded-lg flex items-center justify-between text-right font-bold transition cursor-pointer text-xs ${
-                                    isLight
-                                      ? 'hover:bg-slate-100 text-slate-800'
-                                      : 'hover:bg-slate-800 text-slate-200'
-                                  }`}
+                                  className={`w-full p-2 rounded-lg flex items-center justify-between text-right font-bold transition cursor-pointer text-xs hover:bg-slate-100 text-slate-800`}
                                 >
                                   <div className="flex items-center gap-2">
-                                    <FolderOpen className="w-3.5 h-3.5 text-sky-400" />
+                                    <FolderOpen className="w-3.5 h-3.5 text-sky-600" />
                                     <span className="font-bold text-sm">{fld}</span>
-                                    <span className="text-xs font-mono text-slate-400">
+                                    <span className="text-xs font-mono text-slate-500">
                                       ({toArabicDigits(uList.length)} منشأة)
                                     </span>
                                   </div>
                                   <ChevronDown
-                                    className={`w-3.5 h-3.5 text-slate-400 transition-transform ${
+                                    className={`w-3.5 h-3.5 text-slate-500 transition-transform ${
                                       isFieldCollapsed ? '-rotate-90' : ''
                                     }`}
                                   />
@@ -1432,7 +1322,7 @@ export const GISMapView: React.FC<GISMapViewProps> = ({
 
                                 {/* Units Grid under this Field */}
                                 {!isFieldCollapsed && (
-                                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 mt-2 pt-2 border-t border-slate-800/40">
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 mt-2 pt-2 border-t border-slate-200">
                                     {uList.map((unit) => {
                                       const typeConfig = UNIT_TYPE_CONFIG[unit.type] || UNIT_TYPE_CONFIG.building;
                                       const gradeConfig = GRADE_BADGE_CONFIG[unit.conditionGrade] || GRADE_BADGE_CONFIG.B;
@@ -1445,16 +1335,14 @@ export const GISMapView: React.FC<GISMapViewProps> = ({
                                           onClick={() => handleSelectUnit(unit)}
                                           className={`p-3 rounded-xl border text-right transition cursor-pointer flex flex-col justify-between gap-2 shadow-xs group ${
                                             isSelected
-                                              ? 'bg-amber-500/15 border-amber-500 text-amber-400'
-                                              : isLight
-                                              ? 'bg-slate-50 hover:bg-amber-50/70 border-slate-200 hover:border-amber-400/80 text-slate-800'
-                                              : 'bg-slate-950 hover:bg-slate-800/90 border-slate-800 hover:border-amber-500/50 text-slate-200'
+                                              ? 'bg-brand-100 border-brand-600 text-brand-700'
+                                              : 'bg-slate-50 hover:bg-brand-50 border-slate-200 hover:border-brand-200 text-slate-800'
                                           }`}
                                         >
                                           {/* Card Top: Type & Grade */}
                                           <div className="flex items-center justify-between gap-1 w-full">
-                                            <span className="text-[10.5px] font-bold text-slate-400 truncate flex items-center gap-1">
-                                              <Building2 className="w-3 h-3 text-amber-500" />
+                                            <span className="text-[10.5px] font-bold text-slate-500 truncate flex items-center gap-1">
+                                              <Building2 className="w-3 h-3 text-brand-700" />
                                               <span>{typeConfig.label}</span>
                                             </span>
                                             <span
@@ -1469,15 +1357,15 @@ export const GISMapView: React.FC<GISMapViewProps> = ({
                                           </div>
 
                                           {/* Card Center: Unit Name */}
-                                          <div className="font-bold text-xs leading-snug group-hover:text-amber-400 transition">
+                                          <div className="font-bold text-xs leading-snug group-hover:text-brand-700 transition">
                                             {unit.name}
                                           </div>
 
                                           {/* Card Bottom: Unit Code & Asset Code */}
-                                          <div className="flex items-center justify-between text-[10px] pt-1.5 border-t border-slate-800/30 font-mono">
-                                            <span className="text-amber-400 font-bold">{unit.code}</span>
+                                          <div className="flex items-center justify-between text-[10px] pt-1.5 border-t border-slate-200 font-mono">
+                                            <span className="text-brand-700 font-bold">{unit.code}</span>
                                             {unit.fixedAssetCode ? (
-                                              <span className="text-sky-400 truncate max-w-[120px]">
+                                              <span className="text-sky-600 truncate max-w-[120px]">
                                                 أصل: {unit.fixedAssetCode}
                                               </span>
                                             ) : (
@@ -1502,15 +1390,13 @@ export const GISMapView: React.FC<GISMapViewProps> = ({
 
             {/* Modal Footer */}
             <div
-              className={`px-5 py-2.5 border-t flex items-center justify-between text-xs shrink-0 ${
-                isLight ? 'bg-slate-50 border-slate-200 text-slate-600' : 'bg-slate-950 border-slate-800 text-slate-400'
-              }`}
+              className={`px-5 py-2.5 border-t flex items-center justify-between text-xs shrink-0 bg-slate-50 border-slate-200 text-slate-600`}
             >
               <span>انقر على أي بطاقة منشأة لتكبير موقعها الجغرافي على الفور</span>
               <button
                 type="button"
                 onClick={() => setIsPickerModalOpen(false)}
-                className="px-4 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold transition cursor-pointer"
+                className="px-4 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-100 text-slate-900 font-bold transition cursor-pointer"
               >
                 إغلاق
               </button>

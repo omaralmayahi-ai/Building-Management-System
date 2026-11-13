@@ -432,34 +432,24 @@ export const DatabaseBackupManager: React.FC<DatabaseBackupManagerProps> = ({
     <div className="space-y-6">
       {/* Header Banner */}
       <div
-        className={`rounded-2xl p-5 border shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-4 transition ${
-          isLight ? 'bg-white border-slate-200 shadow-slate-200/50' : 'bg-slate-950 border-slate-800 shadow-slate-950/50'
-        }`}
+        className={`rounded-2xl p-5 border shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-4 transition bg-card border-slate-200 shadow-slate-200/50`}
       >
         <div className="flex items-center gap-3.5">
           <div
-            className={`p-3 rounded-2xl shrink-0 border ${
-              isLight
-                ? 'bg-amber-100 text-amber-700 border-amber-300'
-                : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
-            }`}
+            className={`p-3 rounded-2xl shrink-0 border bg-brand-100 text-brand-700 border-brand-200`}
           >
             <Database className="w-6 h-6" />
           </div>
           <div>
-            <h3 className={`text-base font-bold flex items-center gap-2 ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+            <h3 className={`text-base font-bold flex items-center gap-2 text-slate-900`}>
               <span>إدارة النسخ الاحتياطي والاستعادة وجدولة البيانات</span>
               <span
-                className={`text-[10px] font-mono px-2 py-0.5 rounded-full border font-bold ${
-                  isLight
-                    ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
-                    : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
-                }`}
+                className={`text-[10px] font-mono px-2 py-0.5 rounded-full border font-bold bg-emerald-100 text-emerald-800 border-emerald-200`}
               >
                 حالة القاعدة: نشطة ومؤمنة
               </span>
             </h3>
-            <p className={`text-xs mt-0.5 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+            <p className={`text-xs mt-0.5 text-slate-600`}>
               تصدير شامل لجميع بيانات الأصول، ملفات التصاميم ثلاثية الأبعاد، طلبات الصيانة، المستخدمين، مع إمكانية الاستعادة والجدولة التلقائية
             </p>
           </div>
@@ -467,20 +457,18 @@ export const DatabaseBackupManager: React.FC<DatabaseBackupManagerProps> = ({
 
         {/* Quick Database Total Indicator */}
         <div
-          className={`flex items-center gap-2 p-2 rounded-xl border text-xs shrink-0 self-start md:self-auto ${
-            isLight ? 'bg-slate-50 border-slate-200 shadow-xs' : 'bg-slate-900/60 border-slate-800'
-          }`}
+          className={`flex items-center gap-2 p-2 rounded-xl border text-xs shrink-0 self-start md:self-auto bg-slate-50 border-slate-200 shadow-xs`}
         >
           <div className="text-right">
-            <span className={`text-[10px] block ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>إجمالي السجلات المركزية</span>
-            <span className={`font-bold font-mono text-sm ${isLight ? 'text-amber-700' : 'text-amber-400'}`}>
+            <span className={`text-[10px] block text-slate-500`}>إجمالي السجلات المركزية</span>
+            <span className={`font-bold font-mono text-sm text-brand-700`}>
               {toArabicDigits(currentCounts.totalRecords)} سجل
             </span>
           </div>
-          <div className={`w-px h-7 mx-1 ${isLight ? 'bg-slate-200' : 'bg-slate-800'}`} />
+          <div className={`w-px h-7 mx-1 bg-slate-200`} />
           <div className="text-right">
-            <span className={`text-[10px] block ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>المباني والأصول</span>
-            <span className={`font-bold font-mono text-sm ${isLight ? 'text-emerald-700' : 'text-emerald-400'}`}>
+            <span className={`text-[10px] block text-slate-500`}>المباني والأصول</span>
+            <span className={`font-bold font-mono text-sm text-emerald-700`}>
               {toArabicDigits(units.length)} أصل
             </span>
           </div>
@@ -488,16 +476,14 @@ export const DatabaseBackupManager: React.FC<DatabaseBackupManagerProps> = ({
       </div>
 
       {/* Sub Tabs Navigation */}
-      <div className={`flex items-center gap-2 border-b pb-2 overflow-x-auto ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
+      <div className={`flex items-center gap-2 border-b pb-2 overflow-x-auto border-slate-200`}>
         <button
           type="button"
           onClick={() => setActiveSubTab('export')}
           className={`px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition cursor-pointer shrink-0 ${
             activeSubTab === 'export'
-              ? 'bg-amber-500 text-slate-950 shadow-md'
-              : isLight
-              ? 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200'
-              : 'bg-slate-900 hover:bg-slate-800 text-slate-300'
+              ? 'bg-brand-700 text-on-brand shadow-md'
+              : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200'
           }`}
         >
           <Download className="w-4 h-4" />
@@ -509,10 +495,8 @@ export const DatabaseBackupManager: React.FC<DatabaseBackupManagerProps> = ({
           onClick={() => setActiveSubTab('import')}
           className={`px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition cursor-pointer shrink-0 ${
             activeSubTab === 'import'
-              ? 'bg-amber-500 text-slate-950 shadow-md'
-              : isLight
-              ? 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200'
-              : 'bg-slate-900 hover:bg-slate-800 text-slate-300'
+              ? 'bg-brand-700 text-on-brand shadow-md'
+              : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200'
           }`}
         >
           <Upload className="w-4 h-4" />
@@ -524,10 +508,8 @@ export const DatabaseBackupManager: React.FC<DatabaseBackupManagerProps> = ({
           onClick={() => setActiveSubTab('schedule')}
           className={`px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition cursor-pointer shrink-0 ${
             activeSubTab === 'schedule'
-              ? 'bg-amber-500 text-slate-950 shadow-md'
-              : isLight
-              ? 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200'
-              : 'bg-slate-900 hover:bg-slate-800 text-slate-300'
+              ? 'bg-brand-700 text-on-brand shadow-md'
+              : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200'
           }`}
         >
           <Clock className="w-4 h-4" />
@@ -542,18 +524,14 @@ export const DatabaseBackupManager: React.FC<DatabaseBackupManagerProps> = ({
           onClick={() => setActiveSubTab('history')}
           className={`px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition cursor-pointer shrink-0 ${
             activeSubTab === 'history'
-              ? 'bg-amber-500 text-slate-950 shadow-md'
-              : isLight
-              ? 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200'
-              : 'bg-slate-900 hover:bg-slate-800 text-slate-300'
+              ? 'bg-brand-700 text-on-brand shadow-md'
+              : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200'
           }`}
         >
           <FileCheck className="w-4 h-4" />
           <span>أرشيف النسخ السابقة</span>
           <span
-            className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono font-bold ${
-              isLight ? 'bg-slate-200 text-amber-900' : 'bg-slate-800 text-amber-400'
-            }`}
+            className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono font-bold bg-slate-200 text-brand-800`}
           >
             {backupHistory.length}
           </span>
@@ -567,28 +545,26 @@ export const DatabaseBackupManager: React.FC<DatabaseBackupManagerProps> = ({
         <div className="space-y-5">
           {/* Summary of Included Entities */}
           <div
-            className={`rounded-2xl p-5 border space-y-4 shadow-sm ${
-              isLight ? 'bg-white border-slate-200' : 'bg-slate-950 border-slate-800'
-            }`}
+            className={`rounded-2xl p-5 border space-y-4 shadow-sm bg-card border-slate-200`}
           >
-            <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b pb-3 ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
+            <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b pb-3 border-slate-200`}>
               <div>
-                <h4 className={`font-bold text-sm flex items-center gap-2 ${isLight ? 'text-amber-800' : 'text-amber-400'}`}>
-                  <ShieldCheck className={`w-4 h-4 ${isLight ? 'text-emerald-600' : 'text-emerald-400'}`} />
+                <h4 className={`font-bold text-sm flex items-center gap-2 text-brand-800`}>
+                  <ShieldCheck className={`w-4 h-4 text-emerald-600`} />
                   <span>محتويات النسخة الاحتياطية المصدرة الشاملة</span>
                 </h4>
-                <p className={`text-xs mt-0.5 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                <p className={`text-xs mt-0.5 text-slate-600`}>
                   النسخة المصدرة تشمل كافة الجداول والملفات والتقارير والبيانات بشكل كامل وتام وغير منقوص.
                 </p>
               </div>
 
               {/* Toggle include audit logs */}
-              <label className={`flex items-center gap-2 text-xs cursor-pointer select-none font-medium ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+              <label className={`flex items-center gap-2 text-xs cursor-pointer select-none font-medium text-slate-700`}>
                 <input
                   type="checkbox"
                   checked={includeAuditLogs}
                   onChange={(e) => setIncludeAuditLogs(e.target.checked)}
-                  className="rounded border-slate-400 text-amber-500 focus:ring-amber-500 accent-amber-500 cursor-pointer w-4 h-4"
+                  className="rounded border-slate-400 text-brand-700 focus:ring-brand-600 accent-brand-700 cursor-pointer w-4 h-4"
                 />
                 <span>تضمين سجل النشاطات التاريخي ({toArabicDigits(auditLogs.length)})</span>
               </label>
@@ -597,112 +573,98 @@ export const DatabaseBackupManager: React.FC<DatabaseBackupManagerProps> = ({
             {/* Content Breakdown Grid */}
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
               <div
-                className={`p-3 rounded-xl border flex items-center gap-3 ${
-                  isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-900/80 border-slate-800'
-                }`}
+                className={`p-3 rounded-xl border flex items-center gap-3 bg-slate-50 border-slate-200`}
               >
-                <div className={`p-2 rounded-lg ${isLight ? 'bg-amber-100 text-amber-800' : 'bg-amber-500/10 text-amber-400'}`}>
+                <div className={`p-2 rounded-lg bg-brand-100 text-brand-800`}>
                   <Building2 className="w-4 h-4" />
                 </div>
                 <div>
-                  <span className={`text-[11px] block ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>المباني والكرفانات (3D)</span>
-                  <span className={`font-bold text-xs font-mono ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                  <span className={`text-[11px] block text-slate-500`}>المباني والكرفانات (3D)</span>
+                  <span className={`font-bold text-xs font-mono text-slate-900`}>
                     {toArabicDigits(units.length)} أصل هندسي
                   </span>
                 </div>
               </div>
 
               <div
-                className={`p-3 rounded-xl border flex items-center gap-3 ${
-                  isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-900/80 border-slate-800'
-                }`}
+                className={`p-3 rounded-xl border flex items-center gap-3 bg-slate-50 border-slate-200`}
               >
-                <div className={`p-2 rounded-lg ${isLight ? 'bg-emerald-100 text-emerald-800' : 'bg-emerald-500/10 text-emerald-400'}`}>
+                <div className={`p-2 rounded-lg bg-emerald-100 text-emerald-800`}>
                   <Wrench className="w-4 h-4" />
                 </div>
                 <div>
-                  <span className={`text-[11px] block ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>طلبات وبلاغات الصيانة</span>
-                  <span className={`font-bold text-xs font-mono ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                  <span className={`text-[11px] block text-slate-500`}>طلبات وبلاغات الصيانة</span>
+                  <span className={`font-bold text-xs font-mono text-slate-900`}>
                     {toArabicDigits(maintenanceRequests.length)} طلب موثق
                   </span>
                 </div>
               </div>
 
               <div
-                className={`p-3 rounded-xl border flex items-center gap-3 ${
-                  isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-900/80 border-slate-800'
-                }`}
+                className={`p-3 rounded-xl border flex items-center gap-3 bg-slate-50 border-slate-200`}
               >
-                <div className={`p-2 rounded-lg ${isLight ? 'bg-blue-100 text-blue-800' : 'bg-blue-500/10 text-blue-400'}`}>
+                <div className={`p-2 rounded-lg bg-blue-100 text-blue-800`}>
                   <Users className="w-4 h-4" />
                 </div>
                 <div>
-                  <span className={`text-[11px] block ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>سجلات الإشغال والمقيمين</span>
-                  <span className={`font-bold text-xs font-mono ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                  <span className={`text-[11px] block text-slate-500`}>سجلات الإشغال والمقيمين</span>
+                  <span className={`font-bold text-xs font-mono text-slate-900`}>
                     {toArabicDigits(occupancyRecords.length)} سجل سكني
                   </span>
                 </div>
               </div>
 
               <div
-                className={`p-3 rounded-xl border flex items-center gap-3 ${
-                  isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-900/80 border-slate-800'
-                }`}
+                className={`p-3 rounded-xl border flex items-center gap-3 bg-slate-50 border-slate-200`}
               >
-                <div className={`p-2 rounded-lg ${isLight ? 'bg-purple-100 text-purple-800' : 'bg-purple-500/10 text-purple-400'}`}>
+                <div className={`p-2 rounded-lg bg-purple-100 text-purple-800`}>
                   <Calendar className="w-4 h-4" />
                 </div>
                 <div>
-                  <span className={`text-[11px] block ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>الكشوفات الدورية والمهام</span>
-                  <span className={`font-bold text-xs font-mono ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                  <span className={`text-[11px] block text-slate-500`}>الكشوفات الدورية والمهام</span>
+                  <span className={`font-bold text-xs font-mono text-slate-900`}>
                     {toArabicDigits(periodicInspections.length)} مهمة كشف
                   </span>
                 </div>
               </div>
 
               <div
-                className={`p-3 rounded-xl border flex items-center gap-3 ${
-                  isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-900/80 border-slate-800'
-                }`}
+                className={`p-3 rounded-xl border flex items-center gap-3 bg-slate-50 border-slate-200`}
               >
-                <div className={`p-2 rounded-lg ${isLight ? 'bg-pink-100 text-pink-800' : 'bg-pink-500/10 text-pink-400'}`}>
+                <div className={`p-2 rounded-lg bg-pink-100 text-pink-800`}>
                   <ShieldCheck className="w-4 h-4" />
                 </div>
                 <div>
-                  <span className={`text-[11px] block ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>المستخدمين والصلاحيات</span>
-                  <span className={`font-bold text-xs font-mono ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                  <span className={`text-[11px] block text-slate-500`}>المستخدمين والصلاحيات</span>
+                  <span className={`font-bold text-xs font-mono text-slate-900`}>
                     {toArabicDigits(users.length)} حساب نظام
                   </span>
                 </div>
               </div>
 
               <div
-                className={`p-3 rounded-xl border flex items-center gap-3 ${
-                  isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-900/80 border-slate-800'
-                }`}
+                className={`p-3 rounded-xl border flex items-center gap-3 bg-slate-50 border-slate-200`}
               >
-                <div className={`p-2 rounded-lg ${isLight ? 'bg-teal-100 text-teal-800' : 'bg-teal-500/10 text-teal-400'}`}>
+                <div className={`p-2 rounded-lg bg-teal-100 text-teal-800`}>
                   <Layers className="w-4 h-4" />
                 </div>
                 <div>
-                  <span className={`text-[11px] block ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>الهيكل التنظيمي للشركة</span>
-                  <span className={`font-bold text-xs font-mono ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                  <span className={`text-[11px] block text-slate-500`}>الهيكل التنظيمي للشركة</span>
+                  <span className={`font-bold text-xs font-mono text-slate-900`}>
                     {toArabicDigits(orgEntities.length)} تشكيل إداري
                   </span>
                 </div>
               </div>
 
               <div
-                className={`p-3 rounded-xl border flex items-center gap-3 ${
-                  isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-900/80 border-slate-800'
-                }`}
+                className={`p-3 rounded-xl border flex items-center gap-3 bg-slate-50 border-slate-200`}
               >
-                <div className={`p-2 rounded-lg ${isLight ? 'bg-cyan-100 text-cyan-800' : 'bg-cyan-500/10 text-cyan-400'}`}>
+                <div className={`p-2 rounded-lg bg-cyan-100 text-cyan-800`}>
                   <Database className="w-4 h-4" />
                 </div>
                 <div>
-                  <span className={`text-[11px] block ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>الجداول المرجعية (محافظات، حقول..)</span>
-                  <span className={`font-bold text-xs font-mono ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                  <span className={`text-[11px] block text-slate-500`}>الجداول المرجعية (محافظات، حقول..)</span>
+                  <span className={`font-bold text-xs font-mono text-slate-900`}>
                     {toArabicDigits(
                       governorates.length +
                         oilfields.length +
@@ -717,37 +679,35 @@ export const DatabaseBackupManager: React.FC<DatabaseBackupManagerProps> = ({
               </div>
 
               <div
-                className={`p-3 rounded-xl border flex items-center gap-3 ${
-                  isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-900/80 border-slate-800'
-                }`}
+                className={`p-3 rounded-xl border flex items-center gap-3 bg-slate-50 border-slate-200`}
               >
-                <div className={`p-2 rounded-lg ${isLight ? 'bg-rose-100 text-rose-800' : 'bg-rose-500/10 text-rose-400'}`}>
+                <div className={`p-2 rounded-lg bg-rose-100 text-rose-800`}>
                   <Sparkles className="w-4 h-4" />
                 </div>
                 <div>
-                  <span className={`text-[11px] block ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>الهوية والتخصيص</span>
-                  <span className={`font-bold text-xs ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>شامل كامل الإعدادات</span>
+                  <span className={`text-[11px] block text-slate-500`}>الهوية والتخصيص</span>
+                  <span className={`font-bold text-xs text-slate-900`}>شامل كامل الإعدادات</span>
                 </div>
               </div>
             </div>
 
             {/* Export Action Button Card */}
-            <div className={`pt-4 border-t flex flex-col sm:flex-row items-center justify-between gap-4 ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
-              <div className={`text-xs ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+            <div className={`pt-4 border-t flex flex-col sm:flex-row items-center justify-between gap-4 border-slate-200`}>
+              <div className={`text-xs text-slate-600`}>
                 <span>تاريخ التصدير: </span>
-                <span className={`font-mono font-bold ${isLight ? 'text-amber-700' : 'text-amber-400'}`}>
+                <span className={`font-mono font-bold text-brand-700`}>
                   {getServerDateFormatted()}
                 </span>
                 <span className="mx-2">•</span>
                 <span>الصيغة: </span>
-                <span className={`font-mono font-bold ${isLight ? 'text-emerald-700' : 'text-emerald-400'}`}>JSON معتمد ومشفّر</span>
+                <span className={`font-mono font-bold text-emerald-700`}>JSON معتمد ومشفّر</span>
               </div>
 
               <button
                 type="button"
                 onClick={() => handleExportBackup(false)}
                 disabled={isExporting}
-                className="w-full sm:w-auto px-6 py-3 bg-amber-500 hover:bg-amber-600 active:scale-95 text-slate-950 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition cursor-pointer shadow-lg shadow-amber-500/20 disabled:opacity-50"
+                className="w-full sm:w-auto px-6 py-3 bg-brand-700 hover:bg-brand-800 active:scale-95 text-on-brand rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition cursor-pointer shadow-lg disabled:opacity-50"
               >
                 {isExporting ? (
                   <RefreshCw className="w-4 h-4 animate-spin" />
@@ -762,17 +722,13 @@ export const DatabaseBackupManager: React.FC<DatabaseBackupManagerProps> = ({
           {/* Last Export Banner if available */}
           {lastExportedInfo && (
             <div
-              className={`p-4 rounded-2xl border flex items-center justify-between text-xs ${
-                isLight
-                  ? 'bg-emerald-50 border-emerald-300 text-emerald-900 shadow-xs'
-                  : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
-              }`}
+              className={`p-4 rounded-2xl border flex items-center justify-between text-xs bg-emerald-50 border-emerald-200 text-emerald-900 shadow-xs`}
             >
               <div className="flex items-center gap-2.5">
-                <CheckCircle2 className={`w-5 h-5 shrink-0 ${isLight ? 'text-emerald-600' : 'text-emerald-400'}`} />
+                <CheckCircle2 className={`w-5 h-5 shrink-0 text-emerald-600`} />
                 <div>
                   <span className="font-bold block">تم إنشاء وتنزيل النسخة الاحتياطية بنجاح:</span>
-                  <span className={`font-mono text-[11px] ${isLight ? 'text-emerald-800' : 'text-emerald-300'}`}>
+                  <span className={`font-mono text-[11px] text-emerald-800`}>
                     {lastExportedInfo.filename} ({lastExportedInfo.size} - {toArabicDigits(lastExportedInfo.recordsCount)} سجل) في تمام الساعة {lastExportedInfo.time}
                   </span>
                 </div>
@@ -780,11 +736,7 @@ export const DatabaseBackupManager: React.FC<DatabaseBackupManagerProps> = ({
               <button
                 type="button"
                 onClick={() => setActiveSubTab('history')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
-                  isLight
-                    ? 'bg-emerald-100 hover:bg-emerald-200 text-emerald-900 border border-emerald-300'
-                    : 'bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300'
-                }`}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer bg-emerald-100 hover:bg-emerald-200 text-emerald-900 border border-emerald-200`}
               >
                 عرض الأرشيف
               </button>
@@ -802,16 +754,10 @@ export const DatabaseBackupManager: React.FC<DatabaseBackupManagerProps> = ({
           <div
             className={`rounded-2xl p-6 border-2 border-dashed transition flex flex-col items-center justify-center text-center space-y-3 cursor-pointer shadow-sm ${
               parsedBackupData
-                ? isLight
-                  ? 'border-emerald-500 bg-emerald-50/60'
-                  : 'border-emerald-500/60 bg-emerald-500/5'
+                ? 'border-emerald-500 bg-emerald-50/60'
                 : importValidationError
-                ? isLight
-                  ? 'border-red-400 bg-red-50/60'
-                  : 'border-red-500/60 bg-red-500/5'
-                : isLight
-                ? 'border-slate-300 bg-white hover:bg-slate-50'
-                : 'border-slate-800 bg-slate-950 hover:bg-slate-900/60'
+                ? 'border-red-200 bg-red-50/60'
+                : 'border-slate-300 bg-card hover:bg-slate-50'
             }`}
             onClick={() => fileInputRef.current?.click()}
           >
@@ -824,31 +770,23 @@ export const DatabaseBackupManager: React.FC<DatabaseBackupManagerProps> = ({
             />
 
             <div
-              className={`p-3 rounded-2xl border ${
-                isLight
-                  ? 'bg-amber-100 text-amber-700 border-amber-300'
-                  : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
-              }`}
+              className={`p-3 rounded-2xl border bg-brand-100 text-brand-700 border-brand-200`}
             >
               <Upload className="w-8 h-8" />
             </div>
 
             <div>
-              <h4 className={`font-bold text-sm ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+              <h4 className={`font-bold text-sm text-slate-900`}>
                 {uploadedFile ? uploadedFile.name : 'انقر لاختيار ملف النسخة الاحتياطية أو اسحبه إلى هنا'}
               </h4>
-              <p className={`text-xs mt-1 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
-                يدعم ملفات النسخ الاحتياطي الرسمية المعتمدة بصيغة (<span className={`font-mono font-bold ${isLight ? 'text-amber-700' : 'text-amber-400'}`}>.json</span>)
+              <p className={`text-xs mt-1 text-slate-600`}>
+                يدعم ملفات النسخ الاحتياطي الرسمية المعتمدة بصيغة (<span className={`font-mono font-bold text-brand-700`}>.json</span>)
               </p>
             </div>
 
             {uploadedFile && (
               <span
-                className={`text-[11px] font-mono px-3 py-1 rounded-full border ${
-                  isLight
-                    ? 'bg-slate-100 text-slate-700 border-slate-300'
-                    : 'bg-slate-900 text-slate-400 border-slate-800'
-                }`}
+                className={`text-[11px] font-mono px-3 py-1 rounded-full border bg-slate-100 text-slate-700 border-slate-300`}
               >
                 الحجم: {toArabicDigits((uploadedFile.size / 1024).toFixed(1))} ك.ب
               </span>
@@ -858,13 +796,9 @@ export const DatabaseBackupManager: React.FC<DatabaseBackupManagerProps> = ({
           {/* Validation Error Banner */}
           {importValidationError && (
             <div
-              className={`p-4 rounded-2xl border flex items-center gap-3 text-xs ${
-                isLight
-                  ? 'bg-red-50 border-red-200 text-red-700 shadow-xs'
-                  : 'bg-red-500/10 border-red-500/30 text-red-400'
-              }`}
+              className={`p-4 rounded-2xl border flex items-center gap-3 text-xs bg-red-50 border-red-200 text-red-700 shadow-xs`}
             >
-              <AlertTriangle className="w-5 h-5 shrink-0 text-red-500" />
+              <AlertTriangle className="w-5 h-5 shrink-0 text-red-600" />
               <div>
                 <span className="font-bold block">خطأ في فحص الملف:</span>
                 <span>{importValidationError}</span>
@@ -875,28 +809,22 @@ export const DatabaseBackupManager: React.FC<DatabaseBackupManagerProps> = ({
           {/* Validated Backup Preview Card */}
           {parsedBackupData && (
             <div
-              className={`rounded-2xl p-5 border space-y-4 shadow-sm ${
-                isLight ? 'bg-white border-slate-200' : 'bg-slate-950 border-slate-800'
-              }`}
+              className={`rounded-2xl p-5 border space-y-4 shadow-sm bg-card border-slate-200`}
             >
-              <div className={`flex items-center justify-between border-b pb-3 ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
+              <div className={`flex items-center justify-between border-b pb-3 border-slate-200`}>
                 <div className="flex items-center gap-2">
-                  <FileCheck className={`w-5 h-5 ${isLight ? 'text-emerald-600' : 'text-emerald-400'}`} />
+                  <FileCheck className={`w-5 h-5 text-emerald-600`} />
                   <div>
-                    <h4 className={`font-bold text-xs ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                    <h4 className={`font-bold text-xs text-slate-900`}>
                       تم فحص والتحقق من سلامة النسخة الاحتياطية بنجاح
                     </h4>
-                    <span className={`text-[11px] font-mono ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                    <span className={`text-[11px] font-mono text-slate-500`}>
                       كود التحقق: {parsedBackupData.checksum || 'صالح'} • الإصدار: {parsedBackupData.version}
                     </span>
                   </div>
                 </div>
                 <span
-                  className={`text-[10px] font-bold px-2.5 py-1 rounded-full border ${
-                    isLight
-                      ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
-                      : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
-                  }`}
+                  className={`text-[10px] font-bold px-2.5 py-1 rounded-full border bg-emerald-100 text-emerald-800 border-emerald-200`}
                 >
                   جاهز للاستعادة
                 </span>
@@ -905,60 +833,48 @@ export const DatabaseBackupManager: React.FC<DatabaseBackupManagerProps> = ({
               {/* Metadata Info Grid */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
                 <div
-                  className={`p-2.5 rounded-xl border ${
-                    isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-900 border-slate-800'
-                  }`}
+                  className={`p-2.5 rounded-xl border bg-slate-50 border-slate-200`}
                 >
-                  <span className={`text-[10px] block ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>تاريخ إنشاء النسخة</span>
-                  <span className={`font-bold font-mono ${isLight ? 'text-amber-700' : 'text-amber-400'}`}>
+                  <span className={`text-[10px] block text-slate-500`}>تاريخ إنشاء النسخة</span>
+                  <span className={`font-bold font-mono text-brand-700`}>
                     {parsedBackupData.exportedAtFormatted || formatDateDDMMYYYY(parsedBackupData.exportedAt)}
                   </span>
                 </div>
                 <div
-                  className={`p-2.5 rounded-xl border ${
-                    isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-900 border-slate-800'
-                  }`}
+                  className={`p-2.5 rounded-xl border bg-slate-50 border-slate-200`}
                 >
-                  <span className={`text-[10px] block ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>الجهة / المصدر</span>
-                  <span className={`font-bold truncate block ${isLight ? 'text-slate-900' : 'text-slate-200'}`}>
+                  <span className={`text-[10px] block text-slate-500`}>الجهة / المصدر</span>
+                  <span className={`font-bold truncate block text-slate-900`}>
                     {parsedBackupData.companyName || 'شركة نفط الوسط'}
                   </span>
                 </div>
                 <div
-                  className={`p-2.5 rounded-xl border ${
-                    isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-900 border-slate-800'
-                  }`}
+                  className={`p-2.5 rounded-xl border bg-slate-50 border-slate-200`}
                 >
-                  <span className={`text-[10px] block ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>عدد المباني المشمولة</span>
-                  <span className={`font-bold font-mono ${isLight ? 'text-emerald-700' : 'text-emerald-400'}`}>
+                  <span className={`text-[10px] block text-slate-500`}>عدد المباني المشمولة</span>
+                  <span className={`font-bold font-mono text-emerald-700`}>
                     {toArabicDigits(parsedBackupData.data?.units?.length || 0)} أصل
                   </span>
                 </div>
                 <div
-                  className={`p-2.5 rounded-xl border ${
-                    isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-900 border-slate-800'
-                  }`}
+                  className={`p-2.5 rounded-xl border bg-slate-50 border-slate-200`}
                 >
-                  <span className={`text-[10px] block ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>إجمالي السجلات</span>
-                  <span className={`font-bold font-mono ${isLight ? 'text-cyan-700' : 'text-cyan-400'}`}>
+                  <span className={`text-[10px] block text-slate-500`}>إجمالي السجلات</span>
+                  <span className={`font-bold font-mono text-cyan-700`}>
                     {toArabicDigits(parsedBackupData.counts?.totalRecords || 0)} سجل
                   </span>
                 </div>
               </div>
 
               {/* Restoration Mode Selector */}
-              <div className={`pt-2 border-t space-y-2 ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
-                <span className={`font-bold text-xs block ${isLight ? 'text-slate-800' : 'text-slate-300'}`}>اختر أسلوب الاستعادة المطلوب:</span>
+              <div className={`pt-2 border-t space-y-2 border-slate-200`}>
+                <span className={`font-bold text-xs block text-slate-800`}>اختر أسلوب الاستعادة المطلوب:</span>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <label
                     className={`p-3.5 rounded-xl border flex items-start gap-3 cursor-pointer transition ${
                       importMode === 'overwrite'
-                        ? isLight
-                          ? 'bg-amber-50 border-amber-400 text-slate-900 shadow-xs'
-                          : 'bg-amber-500/10 border-amber-500 text-slate-100 shadow-sm'
-                        : isLight
-                        ? 'bg-slate-50 border-slate-200 text-slate-700 hover:border-slate-300'
-                        : 'bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-700'
+                        ? 'bg-brand-50 border-brand-200 text-slate-900 shadow-xs'
+                        : 'bg-slate-50 border-slate-200 text-slate-700 hover:border-slate-300'
                     }`}
                   >
                     <input
@@ -967,13 +883,13 @@ export const DatabaseBackupManager: React.FC<DatabaseBackupManagerProps> = ({
                       value="overwrite"
                       checked={importMode === 'overwrite'}
                       onChange={() => setImportMode('overwrite')}
-                      className="mt-1 text-amber-500 accent-amber-500 cursor-pointer"
+                      className="mt-1 text-brand-700 accent-brand-700 cursor-pointer"
                     />
                     <div>
-                      <span className={`font-bold text-xs block ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                      <span className={`font-bold text-xs block text-slate-900`}>
                         استبدال شامل واستعادة كاملة (Full Overwrite)
                       </span>
-                      <span className={`text-[11px] block mt-0.5 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                      <span className={`text-[11px] block mt-0.5 text-slate-600`}>
                         استبدال قاعدة البيانات الحالية بالكامل بالبيانات الموجودة بالملف. (موصى به لاستعادة النظم)
                       </span>
                     </div>
@@ -982,12 +898,8 @@ export const DatabaseBackupManager: React.FC<DatabaseBackupManagerProps> = ({
                   <label
                     className={`p-3.5 rounded-xl border flex items-start gap-3 cursor-pointer transition ${
                       importMode === 'merge'
-                        ? isLight
-                          ? 'bg-amber-50 border-amber-400 text-slate-900 shadow-xs'
-                          : 'bg-amber-500/10 border-amber-500 text-slate-100 shadow-sm'
-                        : isLight
-                        ? 'bg-slate-50 border-slate-200 text-slate-700 hover:border-slate-300'
-                        : 'bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-700'
+                        ? 'bg-brand-50 border-brand-200 text-slate-900 shadow-xs'
+                        : 'bg-slate-50 border-slate-200 text-slate-700 hover:border-slate-300'
                     }`}
                   >
                     <input
@@ -996,13 +908,13 @@ export const DatabaseBackupManager: React.FC<DatabaseBackupManagerProps> = ({
                       value="merge"
                       checked={importMode === 'merge'}
                       onChange={() => setImportMode('merge')}
-                      className="mt-1 text-amber-500 accent-amber-500 cursor-pointer"
+                      className="mt-1 text-brand-700 accent-brand-700 cursor-pointer"
                     />
                     <div>
-                      <span className={`font-bold text-xs block ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                      <span className={`font-bold text-xs block text-slate-900`}>
                         دمج ذكي وتحديث السجلات القائمة (Smart Merge)
                       </span>
-                      <span className={`text-[11px] block mt-0.5 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                      <span className={`text-[11px] block mt-0.5 text-slate-600`}>
                         إضافة السجلات والوحدات الجديدة وتحديث السجلات المطابقة دون مسح البيانات الحالية غير الموجودة بالملف.
                       </span>
                     </div>
@@ -1011,12 +923,12 @@ export const DatabaseBackupManager: React.FC<DatabaseBackupManagerProps> = ({
               </div>
 
               {/* Restore Trigger Button */}
-              <div className={`pt-3 border-t flex justify-end ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
+              <div className={`pt-3 border-t flex justify-end border-slate-200`}>
                 <button
                   type="button"
                   onClick={() => setShowRestoreConfirmModal(true)}
                   disabled={isRestoring}
-                  className="px-6 py-2.5 bg-emerald-500 hover:bg-emerald-600 active:scale-95 text-slate-950 font-bold text-xs rounded-xl flex items-center gap-2 transition cursor-pointer shadow-lg shadow-emerald-500/20 disabled:opacity-50"
+                  className="px-6 py-2.5 bg-emerald-500 hover:bg-emerald-600 active:scale-95 text-on-brand font-bold text-xs rounded-xl flex items-center gap-2 transition cursor-pointer shadow-lg shadow-emerald-500/20 disabled:opacity-50"
                 >
                   <RotateCcw className="w-4 h-4" />
                   <span>بدء استعادة وتطبيق قاعدة البيانات</span>
@@ -1033,18 +945,16 @@ export const DatabaseBackupManager: React.FC<DatabaseBackupManagerProps> = ({
       {activeSubTab === 'schedule' && (
         <div className="space-y-5">
           <div
-            className={`rounded-2xl p-5 border space-y-5 shadow-sm ${
-              isLight ? 'bg-white border-slate-200' : 'bg-slate-950 border-slate-800'
-            }`}
+            className={`rounded-2xl p-5 border space-y-5 shadow-sm bg-card border-slate-200`}
           >
             {/* Header & Main Toggle */}
-            <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-4 ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
+            <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-4 border-slate-200`}>
               <div>
-                <h4 className={`font-bold text-sm flex items-center gap-2 ${isLight ? 'text-amber-800' : 'text-amber-400'}`}>
-                  <Clock className={`w-4 h-4 ${isLight ? 'text-amber-600' : 'text-amber-400'}`} />
+                <h4 className={`font-bold text-sm flex items-center gap-2 text-brand-800`}>
+                  <Clock className={`w-4 h-4 text-brand-700`} />
                   <span>إعدادات جدولة النسخ الاحتياطي التلقائي ومكان الحفظ</span>
                 </h4>
-                <p className={`text-xs mt-0.5 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                <p className={`text-xs mt-0.5 text-slate-600`}>
                   تفعيل التصدير الدوري التلقائي لقاعدة البيانات مع تحديد مكان الحفظ ومواعيد التكرار
                 </p>
               </div>
@@ -1060,12 +970,8 @@ export const DatabaseBackupManager: React.FC<DatabaseBackupManagerProps> = ({
                 }
                 className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition cursor-pointer ${
                   scheduleConfig.enabled
-                    ? isLight
-                      ? 'bg-emerald-100 text-emerald-800 border border-emerald-300 shadow-xs'
-                      : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 shadow-xs'
-                    : isLight
-                    ? 'bg-slate-100 text-slate-600 border border-slate-300'
-                    : 'bg-slate-800 text-slate-400 border border-slate-700'
+                    ? 'bg-emerald-100 text-emerald-800 border border-emerald-200 shadow-xs'
+                    : 'bg-slate-100 text-slate-600 border border-slate-300'
                 }`}
               >
                 <span
@@ -1079,15 +985,13 @@ export const DatabaseBackupManager: React.FC<DatabaseBackupManagerProps> = ({
 
             {/* Storage Path Config Section (مطلوب رئيسي) */}
             <div
-              className={`space-y-3 p-4 rounded-2xl border ${
-                isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-900/90 border-slate-800'
-              }`}
+              className={`space-y-3 p-4 rounded-2xl border bg-slate-50 border-slate-200`}
             >
-              <div className={`flex items-center gap-2 font-bold text-xs ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
-                <Folder className={`w-4 h-4 ${isLight ? 'text-amber-600' : 'text-amber-400'}`} />
+              <div className={`flex items-center gap-2 font-bold text-xs text-slate-900`}>
+                <Folder className={`w-4 h-4 text-brand-700`} />
                 <span>مكان حفظ النسخة الاحتياطية (Storage Destination Path):</span>
               </div>
-              <p className={`text-[11px] leading-relaxed ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+              <p className={`text-[11px] leading-relaxed text-slate-600`}>
                 حدد المسار المعتمد على حاسبة الإدارة أو وحدة التخزين الشبكية (NAS) أو مسار المجلد الذي يتم توجيه النسخ الاحتياطية المصدرة إليه.
               </p>
 
@@ -1100,20 +1004,16 @@ export const DatabaseBackupManager: React.FC<DatabaseBackupManagerProps> = ({
                       setScheduleConfig({ ...scheduleConfig, storagePath: e.target.value })
                     }
                     placeholder="مثال: C:\Midland_Oil_Database_Backups\ أو /var/backups/moc/"
-                    className={`w-full text-xs rounded-xl py-2.5 pl-3 pr-9 font-mono outline-none transition ${
-                      isLight
-                        ? 'bg-white border border-slate-300 text-slate-900 focus:border-amber-500'
-                        : 'bg-slate-950 border border-slate-700 text-slate-100 focus:border-amber-500'
-                    }`}
+                    className={`w-full text-xs rounded-xl py-2.5 pl-3 pr-9 font-mono outline-none transition bg-card border border-slate-300 text-slate-900 focus:border-brand-600`}
                     dir="ltr"
                   />
-                  <HardDrive className={`w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 ${isLight ? 'text-amber-600' : 'text-amber-500'}`} />
+                  <HardDrive className={`w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-brand-700`} />
                 </div>
 
                 <button
                   type="button"
                   onClick={() => handleSaveScheduleConfig(scheduleConfig)}
-                  className="px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 transition cursor-pointer shrink-0 shadow-sm"
+                  className="px-4 py-2.5 bg-brand-700 hover:bg-brand-800 text-on-brand font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 transition cursor-pointer shrink-0 shadow-sm"
                 >
                   <Save className="w-4 h-4" />
                   <span>تثبيت مكان الحفظ</span>
@@ -1122,7 +1022,7 @@ export const DatabaseBackupManager: React.FC<DatabaseBackupManagerProps> = ({
 
               {/* Suggested Storage Path Shortcuts */}
               <div className="flex items-center gap-2 pt-1 flex-wrap text-[11px]">
-                <span className={isLight ? 'text-slate-500' : 'text-slate-400'}>مسارات مقترحة سريعة:</span>
+                <span className={'text-slate-500'}>مسارات مقترحة سريعة:</span>
                 <button
                   type="button"
                   onClick={() => {
@@ -1130,11 +1030,7 @@ export const DatabaseBackupManager: React.FC<DatabaseBackupManagerProps> = ({
                     setScheduleConfig({ ...scheduleConfig, storagePath: path });
                     handleSaveScheduleConfig({ ...scheduleConfig, storagePath: path });
                   }}
-                  className={`px-2.5 py-1 rounded-lg border transition cursor-pointer font-mono ${
-                    isLight
-                      ? 'bg-white hover:bg-slate-100 text-slate-800 border-slate-200 shadow-xs'
-                      : 'bg-slate-950 hover:bg-slate-800 text-slate-300 border-slate-800'
-                  }`}
+                  className={`px-2.5 py-1 rounded-lg border transition cursor-pointer font-mono bg-card hover:bg-slate-100 text-slate-800 border-slate-200 shadow-xs`}
                   dir="ltr"
                 >
                   C:\Midland_Oil_Database_Backups\
@@ -1146,11 +1042,7 @@ export const DatabaseBackupManager: React.FC<DatabaseBackupManagerProps> = ({
                     setScheduleConfig({ ...scheduleConfig, storagePath: path });
                     handleSaveScheduleConfig({ ...scheduleConfig, storagePath: path });
                   }}
-                  className={`px-2.5 py-1 rounded-lg border transition cursor-pointer font-mono ${
-                    isLight
-                      ? 'bg-white hover:bg-slate-100 text-slate-800 border-slate-200 shadow-xs'
-                      : 'bg-slate-950 hover:bg-slate-800 text-slate-300 border-slate-800'
-                  }`}
+                  className={`px-2.5 py-1 rounded-lg border transition cursor-pointer font-mono bg-card hover:bg-slate-100 text-slate-800 border-slate-200 shadow-xs`}
                   dir="ltr"
                 >
                   D:\Backups\MOC_GIS_Assets\
@@ -1162,11 +1054,7 @@ export const DatabaseBackupManager: React.FC<DatabaseBackupManagerProps> = ({
                     setScheduleConfig({ ...scheduleConfig, storagePath: path });
                     handleSaveScheduleConfig({ ...scheduleConfig, storagePath: path });
                   }}
-                  className={`px-2.5 py-1 rounded-lg border transition cursor-pointer font-mono ${
-                    isLight
-                      ? 'bg-white hover:bg-slate-100 text-slate-800 border-slate-200 shadow-xs'
-                      : 'bg-slate-950 hover:bg-slate-800 text-slate-300 border-slate-800'
-                  }`}
+                  className={`px-2.5 py-1 rounded-lg border transition cursor-pointer font-mono bg-card hover:bg-slate-100 text-slate-800 border-slate-200 shadow-xs`}
                   dir="ltr"
                 >
                   \\192.168.1.100\MOC_Server_Backups\
@@ -1178,7 +1066,7 @@ export const DatabaseBackupManager: React.FC<DatabaseBackupManagerProps> = ({
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* Frequency */}
               <div className="space-y-1.5">
-                <label className={`text-xs font-bold block ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>تكرار التصدير الأوتوماتيكي:</label>
+                <label className={`text-xs font-bold block text-slate-700`}>تكرار التصدير الأوتوماتيكي:</label>
                 <select
                   value={scheduleConfig.frequency}
                   onChange={(e) =>
@@ -1187,11 +1075,7 @@ export const DatabaseBackupManager: React.FC<DatabaseBackupManagerProps> = ({
                       frequency: e.target.value as any,
                     })
                   }
-                  className={`w-full text-xs rounded-xl p-2.5 outline-none transition ${
-                    isLight
-                      ? 'bg-white border border-slate-300 text-slate-900 focus:border-amber-500'
-                      : 'bg-slate-900 border border-slate-700 text-slate-200 focus:border-amber-500'
-                  }`}
+                  className={`w-full text-xs rounded-xl p-2.5 outline-none transition bg-card border border-slate-300 text-slate-900 focus:border-brand-600`}
                 >
                   <option value="daily">يومي (كل 24 ساعة)</option>
                   <option value="weekly">أسبوعي (في يوم محدد)</option>
@@ -1202,7 +1086,7 @@ export const DatabaseBackupManager: React.FC<DatabaseBackupManagerProps> = ({
 
               {/* Time of Day */}
               <div className="space-y-1.5">
-                <label className={`text-xs font-bold block ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>وقت التصدير المجدول:</label>
+                <label className={`text-xs font-bold block text-slate-700`}>وقت التصدير المجدول:</label>
                 <input
                   type="time"
                   value={scheduleConfig.timeOfDay}
@@ -1212,17 +1096,13 @@ export const DatabaseBackupManager: React.FC<DatabaseBackupManagerProps> = ({
                       timeOfDay: e.target.value,
                     })
                   }
-                  className={`w-full text-xs rounded-xl p-2.5 outline-none font-mono transition ${
-                    isLight
-                      ? 'bg-white border border-slate-300 text-slate-900 focus:border-amber-500'
-                      : 'bg-slate-900 border border-slate-700 text-slate-200 focus:border-amber-500'
-                  }`}
+                  className={`w-full text-xs rounded-xl p-2.5 outline-none font-mono transition bg-card border border-slate-300 text-slate-900 focus:border-brand-600`}
                 />
               </div>
 
               {/* Max Kept Backups */}
               <div className="space-y-1.5">
-                <label className={`text-xs font-bold block ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>الحد الأقصى للنسخ المحفوظة بالأرشيف:</label>
+                <label className={`text-xs font-bold block text-slate-700`}>الحد الأقصى للنسخ المحفوظة بالأرشيف:</label>
                 <input
                   type="number"
                   min="5"
@@ -1234,35 +1114,27 @@ export const DatabaseBackupManager: React.FC<DatabaseBackupManagerProps> = ({
                       keepMaxBackups: parseInt(e.target.value) || 30,
                     })
                   }
-                  className={`w-full text-xs rounded-xl p-2.5 outline-none font-mono transition ${
-                    isLight
-                      ? 'bg-white border border-slate-300 text-slate-900 focus:border-amber-500'
-                      : 'bg-slate-900 border border-slate-700 text-slate-200 focus:border-amber-500'
-                  }`}
+                  className={`w-full text-xs rounded-xl p-2.5 outline-none font-mono transition bg-card border border-slate-300 text-slate-900 focus:border-brand-600`}
                 />
               </div>
             </div>
 
             {/* Status Information Grid */}
-            <div className={`grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t text-xs ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
+            <div className={`grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t text-xs border-slate-200`}>
               <div
-                className={`p-3 rounded-xl border flex items-center justify-between ${
-                  isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-900/60 border-slate-800'
-                }`}
+                className={`p-3 rounded-xl border flex items-center justify-between bg-slate-50 border-slate-200`}
               >
-                <span className={isLight ? 'text-slate-600' : 'text-slate-400'}>آخر تصدير مجدول تم تنفيذه:</span>
-                <span className={`font-bold font-mono ${isLight ? 'text-emerald-700' : 'text-emerald-400'}`}>
+                <span className={'text-slate-600'}>آخر تصدير مجدول تم تنفيذه:</span>
+                <span className={`font-bold font-mono text-emerald-700`}>
                   {scheduleConfig.lastBackupFormatted || 'لم ينفذ بعد'}
                 </span>
               </div>
 
               <div
-                className={`p-3 rounded-xl border flex items-center justify-between ${
-                  isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-900/60 border-slate-800'
-                }`}
+                className={`p-3 rounded-xl border flex items-center justify-between bg-slate-50 border-slate-200`}
               >
-                <span className={isLight ? 'text-slate-600' : 'text-slate-400'}>موعد النسخة المجدولة القادمة:</span>
-                <span className={`font-bold font-mono ${isLight ? 'text-amber-700' : 'text-amber-400'}`}>
+                <span className={'text-slate-600'}>موعد النسخة المجدولة القادمة:</span>
+                <span className={`font-bold font-mono text-brand-700`}>
                   {scheduleConfig.enabled
                     ? `غداً في تمام الساعة ${scheduleConfig.timeOfDay}`
                     : 'الجدولة معطلة حالياً'}
@@ -1271,24 +1143,20 @@ export const DatabaseBackupManager: React.FC<DatabaseBackupManagerProps> = ({
             </div>
 
             {/* Save All Schedule Settings & Test Trigger */}
-            <div className={`flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
+            <div className={`flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-slate-200`}>
               <button
                 type="button"
                 onClick={() => handleExportBackup(true)}
-                className={`w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition cursor-pointer ${
-                  isLight
-                    ? 'bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300'
-                    : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700'
-                }`}
+                className={`w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition cursor-pointer bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300`}
               >
-                <Play className={`w-3.5 h-3.5 ${isLight ? 'text-amber-700' : 'text-amber-400'}`} />
+                <Play className={`w-3.5 h-3.5 text-brand-700`} />
                 <span>تشغيل وحفظ نسخة مجدولة فوراً (تجربة)</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => handleSaveScheduleConfig(scheduleConfig)}
-                className="w-full sm:w-auto px-6 py-2.5 bg-amber-500 hover:bg-amber-600 active:scale-95 text-slate-950 font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition cursor-pointer shadow-md"
+                className="w-full sm:w-auto px-6 py-2.5 bg-brand-700 hover:bg-brand-800 active:scale-95 text-on-brand font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition cursor-pointer shadow-md"
               >
                 <Save className="w-4 h-4" />
                 <span>حفظ كافة إعدادات الجدولة ومكان الحفظ</span>
@@ -1304,17 +1172,15 @@ export const DatabaseBackupManager: React.FC<DatabaseBackupManagerProps> = ({
       {activeSubTab === 'history' && (
         <div className="space-y-4">
           <div
-            className={`rounded-2xl p-5 border space-y-4 shadow-sm ${
-              isLight ? 'bg-white border-slate-200' : 'bg-slate-950 border-slate-800'
-            }`}
+            className={`rounded-2xl p-5 border space-y-4 shadow-sm bg-card border-slate-200`}
           >
-            <div className={`flex items-center justify-between border-b pb-3 ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
+            <div className={`flex items-center justify-between border-b pb-3 border-slate-200`}>
               <div>
-                <h4 className={`font-bold text-sm flex items-center gap-2 ${isLight ? 'text-amber-800' : 'text-amber-400'}`}>
-                  <FileCheck className={`w-4 h-4 ${isLight ? 'text-emerald-600' : 'text-emerald-400'}`} />
+                <h4 className={`font-bold text-sm flex items-center gap-2 text-brand-800`}>
+                  <FileCheck className={`w-4 h-4 text-emerald-600`} />
                   <span>سجل وأرشيف النسخ الاحتياطية السابقة</span>
                 </h4>
-                <p className={`text-xs mt-0.5 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                <p className={`text-xs mt-0.5 text-slate-600`}>
                   استعراض النسخ الاحتياطية المنفذة مع إمكانية إعادة تحميل الملف أو الاستعادة المباشرة
                 </p>
               </div>
@@ -1327,11 +1193,7 @@ export const DatabaseBackupManager: React.FC<DatabaseBackupManagerProps> = ({
                     safeSetItem('app_backup_history', []);
                     triggerSaveToast('تم تفريغ سجل الأرشيف');
                   }}
-                  className={`px-3 py-1.5 rounded-lg border text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
-                    isLight
-                      ? 'bg-red-50 hover:bg-red-100 text-red-700 border-red-200'
-                      : 'bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30'
-                  }`}
+                  className={`px-3 py-1.5 rounded-lg border text-xs font-bold transition cursor-pointer flex items-center gap-1.5 bg-red-50 hover:bg-red-100 text-red-700 border-red-200`}
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                   <span>مسح السجل</span>
@@ -1340,13 +1202,13 @@ export const DatabaseBackupManager: React.FC<DatabaseBackupManagerProps> = ({
             </div>
 
             {backupHistory.length === 0 ? (
-              <div className={`py-12 text-center space-y-2 ${isLight ? 'text-slate-500' : 'text-slate-500'}`}>
-                <Database className={`w-10 h-10 mx-auto ${isLight ? 'text-slate-300' : 'text-slate-700'}`} />
+              <div className={`py-12 text-center space-y-2 text-slate-500`}>
+                <Database className={`w-10 h-10 mx-auto text-slate-300`} />
                 <p className="text-xs">لم يتم تسجيل أي نسخ احتياطية في الأرشيف بعد.</p>
                 <button
                   type="button"
                   onClick={() => setActiveSubTab('export')}
-                  className="px-4 py-2 bg-amber-500 text-slate-950 rounded-xl font-bold text-xs mt-2 transition cursor-pointer shadow-xs"
+                  className="px-4 py-2 bg-brand-700 text-on-brand rounded-xl font-bold text-xs mt-2 transition cursor-pointer shadow-xs"
                 >
                   تصدير أول نسخة احتياطية الآن
                 </button>
@@ -1358,16 +1220,14 @@ export const DatabaseBackupManager: React.FC<DatabaseBackupManagerProps> = ({
                   {backupHistory.map((item) => (
                     <div
                       key={item.id}
-                      className={`p-3.5 rounded-2xl border transition shadow-sm space-y-3 ${
-                        isLight ? 'bg-white border-slate-200 shadow-slate-200/50' : 'bg-slate-900 border-slate-800'
-                      }`}
+                      className={`p-3.5 rounded-2xl border transition shadow-sm space-y-3 bg-card border-slate-200 shadow-slate-200/50`}
                     >
                       {/* Header: Filename & Trigger Type Badge */}
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0 space-y-1">
                           <div className="flex items-center gap-1.5">
-                            <HardDrive className={`w-3.5 h-3.5 shrink-0 ${isLight ? 'text-amber-600' : 'text-amber-400'}`} />
-                            <span className={`font-mono font-bold text-xs truncate ${isLight ? 'text-slate-900' : 'text-slate-100'}`} title={item.filename}>
+                            <HardDrive className={`w-3.5 h-3.5 shrink-0 text-brand-700`} />
+                            <span className={`font-mono font-bold text-xs truncate text-slate-900`} title={item.filename}>
                               {item.filename}
                             </span>
                           </div>
@@ -1379,12 +1239,8 @@ export const DatabaseBackupManager: React.FC<DatabaseBackupManagerProps> = ({
                         <span
                           className={`px-2 py-0.5 rounded-full text-[10px] font-bold border shrink-0 ${
                             item.triggerType === 'scheduled'
-                              ? isLight
-                                ? 'bg-purple-100 text-purple-800 border-purple-200'
-                                : 'bg-purple-500/20 text-purple-400 border border-purple-500/30'
-                              : isLight
-                              ? 'bg-blue-100 text-blue-800 border-blue-200'
-                              : 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
+                              ? 'bg-purple-100 text-purple-800 border-purple-200'
+                              : 'bg-blue-100 text-blue-800 border-blue-200'
                           }`}
                         >
                           {item.triggerType === 'scheduled' ? 'مجدول تلقائي' : 'تصدير يدوي'}
@@ -1392,32 +1248,30 @@ export const DatabaseBackupManager: React.FC<DatabaseBackupManagerProps> = ({
                       </div>
 
                       {/* Meta Specs Grid */}
-                      <div className={`grid grid-cols-2 gap-2 p-2.5 rounded-xl text-xs border ${
-                        isLight ? 'bg-slate-50 border-slate-200/80' : 'bg-slate-950/60 border-slate-800/80'
-                      }`}>
+                      <div className={`grid grid-cols-2 gap-2 p-2.5 rounded-xl text-xs border bg-slate-50 border-slate-200/80`}>
                         <div>
                           <span className="text-[10px] text-slate-500 block mb-0.5">حجم الملف</span>
-                          <span className={`font-mono font-bold text-xs ${isLight ? 'text-amber-700' : 'text-amber-400'}`}>
+                          <span className={`font-mono font-bold text-xs text-brand-700`}>
                             {item.sizeFormatted}
                           </span>
                         </div>
                         <div>
                           <span className="text-[10px] text-slate-500 block mb-0.5">المحتوى</span>
-                          <span className={isLight ? 'text-slate-700' : 'text-slate-300'}>
-                            <span className={`font-bold ${isLight ? 'text-emerald-700' : 'text-emerald-400'}`}>{toArabicDigits(item.unitsCount)}</span> مبنى (
-                            <span className={`font-bold ${isLight ? 'text-cyan-700' : 'text-cyan-400'}`}>{toArabicDigits(item.totalRecords)}</span> سجل)
+                          <span className={'text-slate-700'}>
+                            <span className={`font-bold text-emerald-700`}>{toArabicDigits(item.unitsCount)}</span> مبنى (
+                            <span className={`font-bold text-cyan-700`}>{toArabicDigits(item.totalRecords)}</span> سجل)
                           </span>
                         </div>
-                        <div className="col-span-2 pt-1 border-t border-slate-200/60 dark:border-slate-800/60">
+                        <div className="col-span-2 pt-1 border-t border-slate-200/60 ">
                           <span className="text-[10px] text-slate-500 block mb-0.5">مسار الحفظ</span>
-                          <span className={`font-mono text-[11px] truncate block ${isLight ? 'text-slate-600' : 'text-slate-400'}`} dir="ltr">
+                          <span className={`font-mono text-[11px] truncate block text-slate-600`} dir="ltr">
                             {item.storagePath}
                           </span>
                         </div>
                       </div>
 
                       {/* Actions row */}
-                      <div className="flex items-center gap-2 pt-1 border-t border-slate-200/80 dark:border-slate-800/80">
+                      <div className="flex items-center gap-2 pt-1 border-t border-slate-200/80 ">
                         {item.payloadSnapshot && (
                           <>
                             <button
@@ -1435,11 +1289,7 @@ export const DatabaseBackupManager: React.FC<DatabaseBackupManagerProps> = ({
                                 URL.revokeObjectURL(url);
                                 triggerSaveToast('تم تنزيل النسخة الاحتياطية مجدداً');
                               }}
-                              className={`flex-1 min-h-[38px] px-3 py-1.5 rounded-xl font-bold text-xs border transition cursor-pointer flex items-center justify-center gap-1.5 ${
-                                isLight
-                                  ? 'bg-amber-50 hover:bg-amber-100 text-amber-900 border-amber-300'
-                                  : 'bg-slate-800 hover:bg-slate-700 text-amber-400 border-slate-700'
-                              }`}
+                              className={`flex-1 min-h-[38px] px-3 py-1.5 rounded-xl font-bold text-xs border transition cursor-pointer flex items-center justify-center gap-1.5 bg-brand-50 hover:bg-brand-100 text-brand-800 border-brand-200`}
                             >
                               <Download className="w-3.5 h-3.5" />
                               <span>تحميل</span>
@@ -1452,11 +1302,7 @@ export const DatabaseBackupManager: React.FC<DatabaseBackupManagerProps> = ({
                                 setActiveSubTab('import');
                                 triggerSaveToast('تم تحميل بيانات النسخة في تبويب الاستيراد');
                               }}
-                              className={`flex-1 min-h-[38px] px-3 py-1.5 rounded-xl font-bold text-xs border transition cursor-pointer flex items-center justify-center gap-1.5 ${
-                                isLight
-                                  ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border-emerald-300'
-                                  : 'bg-slate-800 hover:bg-slate-700 text-emerald-400 border-slate-700'
-                              }`}
+                              className={`flex-1 min-h-[38px] px-3 py-1.5 rounded-xl font-bold text-xs border transition cursor-pointer flex items-center justify-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border-emerald-200`}
                             >
                               <RotateCcw className="w-3.5 h-3.5" />
                               <span>استعادة</span>
@@ -1472,11 +1318,7 @@ export const DatabaseBackupManager: React.FC<DatabaseBackupManagerProps> = ({
                             safeSetItem('app_backup_history', filtered);
                             triggerSaveToast('تم حذف النسخة من الأرشيف');
                           }}
-                          className={`min-h-[38px] px-3 py-1.5 rounded-xl font-bold text-xs border transition cursor-pointer flex items-center justify-center gap-1.5 ${
-                            isLight
-                              ? 'bg-rose-50 hover:bg-rose-100 text-rose-700 border-rose-200'
-                              : 'bg-slate-800 hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 border-slate-700'
-                          }`}
+                          className={`min-h-[38px] px-3 py-1.5 rounded-xl font-bold text-xs border transition cursor-pointer flex items-center justify-center gap-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border-rose-200`}
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                           <span>حذف</span>
@@ -1490,7 +1332,7 @@ export const DatabaseBackupManager: React.FC<DatabaseBackupManagerProps> = ({
                 <div className="hidden md:block overflow-x-auto">
                   <table className="w-full text-right text-xs">
                     <thead>
-                      <tr className={`border-b ${isLight ? 'border-slate-200 text-slate-500' : 'border-slate-800 text-slate-400'}`}>
+                      <tr className={`border-b border-slate-200 text-slate-500`}>
                         <th className="pb-2.5 font-bold">اسم الملف</th>
                         <th className="pb-2.5 font-bold">تاريخ ووقت التصدير</th>
                         <th className="pb-2.5 font-bold">حجم الملف</th>
@@ -1500,29 +1342,25 @@ export const DatabaseBackupManager: React.FC<DatabaseBackupManagerProps> = ({
                         <th className="pb-2.5 font-bold text-center">إجراءات</th>
                       </tr>
                     </thead>
-                    <tbody className={`divide-y ${isLight ? 'divide-slate-200' : 'divide-slate-900'}`}>
+                    <tbody className={`divide-y divide-slate-200`}>
                       {backupHistory.map((item) => (
-                        <tr key={item.id} className={`transition ${isLight ? 'hover:bg-slate-50' : 'hover:bg-slate-900/50'}`}>
-                          <td className={`py-3 font-mono font-bold ${isLight ? 'text-slate-900' : 'text-slate-200'}`}>{item.filename}</td>
-                          <td className={`py-3 font-mono ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>{item.timestampFormatted}</td>
-                          <td className={`py-3 font-mono font-bold ${isLight ? 'text-amber-700' : 'text-amber-400'}`}>{item.sizeFormatted}</td>
-                          <td className={`py-3 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
-                            <span className={`font-bold ${isLight ? 'text-emerald-700' : 'text-emerald-400'}`}>{toArabicDigits(item.unitsCount)}</span> مبنى (
-                            <span className={`font-bold ${isLight ? 'text-cyan-700' : 'text-cyan-400'}`}>{toArabicDigits(item.totalRecords)}</span> سجل)
+                        <tr key={item.id} className={`transition hover:bg-slate-50`}>
+                          <td className={`py-3 font-mono font-bold text-slate-900`}>{item.filename}</td>
+                          <td className={`py-3 font-mono text-slate-600`}>{item.timestampFormatted}</td>
+                          <td className={`py-3 font-mono font-bold text-brand-700`}>{item.sizeFormatted}</td>
+                          <td className={`py-3 text-slate-700`}>
+                            <span className={`font-bold text-emerald-700`}>{toArabicDigits(item.unitsCount)}</span> مبنى (
+                            <span className={`font-bold text-cyan-700`}>{toArabicDigits(item.totalRecords)}</span> سجل)
                           </td>
-                          <td className={`py-3 font-mono text-[11px] ${isLight ? 'text-slate-600' : 'text-slate-400'}`} dir="ltr">
+                          <td className={`py-3 font-mono text-[11px] text-slate-600`} dir="ltr">
                             {item.storagePath}
                           </td>
                           <td className="py-3">
                             <span
                               className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
                                 item.triggerType === 'scheduled'
-                                  ? isLight
-                                    ? 'bg-purple-100 text-purple-800 border-purple-200'
-                                    : 'bg-purple-500/20 text-purple-400 border border-purple-500/30'
-                                  : isLight
-                                  ? 'bg-blue-100 text-blue-800 border-blue-200'
-                                  : 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
+                                  ? 'bg-purple-100 text-purple-800 border-purple-200'
+                                  : 'bg-blue-100 text-blue-800 border-blue-200'
                               }`}
                             >
                               {item.triggerType === 'scheduled' ? 'مجدول تلقائي' : 'تصدير يدوي'}
@@ -1547,11 +1385,7 @@ export const DatabaseBackupManager: React.FC<DatabaseBackupManagerProps> = ({
                                       URL.revokeObjectURL(url);
                                       triggerSaveToast('تم تنزيل النسخة الاحتياطية مجدداً');
                                     }}
-                                    className={`p-1.5 rounded-lg transition cursor-pointer border ${
-                                      isLight
-                                        ? 'bg-slate-100 hover:bg-slate-200 text-amber-700 border-slate-200'
-                                        : 'bg-slate-800 hover:bg-slate-700 text-amber-400 border-transparent'
-                                    }`}
+                                    className={`p-1.5 rounded-lg transition cursor-pointer border bg-slate-100 hover:bg-slate-200 text-brand-700 border-slate-200`}
                                     title="تحميل الملف مجدداً"
                                   >
                                     <Download className="w-3.5 h-3.5" />
@@ -1564,11 +1398,7 @@ export const DatabaseBackupManager: React.FC<DatabaseBackupManagerProps> = ({
                                       setActiveSubTab('import');
                                       triggerSaveToast('تم تحميل بيانات النسخة في تبويب الاستيراد');
                                     }}
-                                    className={`p-1.5 rounded-lg transition cursor-pointer border ${
-                                      isLight
-                                        ? 'bg-slate-100 hover:bg-slate-200 text-emerald-700 border-slate-200'
-                                        : 'bg-slate-800 hover:bg-slate-700 text-emerald-400 border-transparent'
-                                    }`}
+                                    className={`p-1.5 rounded-lg transition cursor-pointer border bg-slate-100 hover:bg-slate-200 text-emerald-700 border-slate-200`}
                                     title="استعادة هذه النسخة"
                                   >
                                     <RotateCcw className="w-3.5 h-3.5" />
@@ -1584,11 +1414,7 @@ export const DatabaseBackupManager: React.FC<DatabaseBackupManagerProps> = ({
                                   safeSetItem('app_backup_history', filtered);
                                   triggerSaveToast('تم حذف النسخة من الأرشيف');
                                 }}
-                                className={`p-1.5 rounded-lg transition cursor-pointer border ${
-                                  isLight
-                                    ? 'bg-slate-100 hover:bg-red-50 text-slate-500 hover:text-red-600 border-slate-200'
-                                    : 'bg-slate-800 hover:bg-red-500/20 text-slate-400 hover:text-red-400 border-transparent'
-                                }`}
+                                className={`p-1.5 rounded-lg transition cursor-pointer border bg-slate-100 hover:bg-red-50 text-slate-500 hover:text-red-600 border-slate-200`}
                                 title="حذف من الأرشيف"
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
@@ -1610,27 +1436,21 @@ export const DatabaseBackupManager: React.FC<DatabaseBackupManagerProps> = ({
       {/* RESTORE CONFIRMATION SAFETY MODAL */}
       {/* ========================================================================= */}
       {showRestoreConfirmModal && parsedBackupData && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fadeIn">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-card/80 backdrop-blur-sm animate-fadeIn">
           <div
-            className={`w-full max-w-lg rounded-3xl p-6 border shadow-2xl space-y-4 ${
-              isLight ? 'bg-white border-slate-200 text-slate-900' : 'bg-slate-900 border-slate-800 text-slate-100'
-            }`}
+            className={`w-full max-w-lg rounded-3xl p-6 border shadow-2xl space-y-4 bg-card border-slate-200 text-slate-900`}
           >
-            <div className={`flex items-center gap-3 border-b pb-3 ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
+            <div className={`flex items-center gap-3 border-b pb-3 border-slate-200`}>
               <div
-                className={`p-2.5 rounded-2xl border ${
-                  isLight
-                    ? 'bg-red-100 text-red-700 border-red-200'
-                    : 'bg-red-500/10 text-red-400 border-red-500/20'
-                }`}
+                className={`p-2.5 rounded-2xl border bg-red-100 text-red-700 border-red-200`}
               >
                 <ShieldAlert className="w-6 h-6" />
               </div>
               <div>
-                <h3 className={`font-bold text-sm ${isLight ? 'text-red-600' : 'text-red-400'}`}>
+                <h3 className={`font-bold text-sm text-red-600`}>
                   تأكيد استعادة وتطبيق قاعدة البيانات
                 </h3>
-                <p className={`text-xs mt-0.5 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                <p className={`text-xs mt-0.5 text-slate-600`}>
                   {importMode === 'overwrite'
                     ? 'تحذير: سيتم استبدال البيانات الحالية بالكامل بالنسخة المستوردة.'
                     : 'سيتم دمج وتحديث السجلات والوحدات مع المحافظة على البيانات القائمة.'}
@@ -1640,25 +1460,23 @@ export const DatabaseBackupManager: React.FC<DatabaseBackupManagerProps> = ({
 
             {/* Summary Box */}
             <div
-              className={`p-3.5 rounded-2xl border space-y-2 text-xs ${
-                isLight ? 'bg-slate-50 border-slate-200 text-slate-800' : 'bg-slate-950 border-slate-800 text-slate-200'
-              }`}
+              className={`p-3.5 rounded-2xl border space-y-2 text-xs bg-slate-50 border-slate-200 text-slate-800`}
             >
               <div className="flex justify-between">
-                <span className={isLight ? 'text-slate-600' : 'text-slate-400'}>تاريخ النسخة المستوردة:</span>
-                <span className={`font-mono font-bold ${isLight ? 'text-amber-800' : 'text-amber-400'}`}>
+                <span className={'text-slate-600'}>تاريخ النسخة المستوردة:</span>
+                <span className={`font-mono font-bold text-brand-800`}>
                   {parsedBackupData.exportedAtFormatted}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className={isLight ? 'text-slate-600' : 'text-slate-400'}>عدد المباني المستوردة:</span>
-                <span className={`font-mono font-bold ${isLight ? 'text-emerald-700' : 'text-emerald-400'}`}>
+                <span className={'text-slate-600'}>عدد المباني المستوردة:</span>
+                <span className={`font-mono font-bold text-emerald-700`}>
                   {toArabicDigits(parsedBackupData.data?.units?.length || 0)} أصل
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className={isLight ? 'text-slate-600' : 'text-slate-400'}>نوع الاستعادة:</span>
-                <span className={`font-bold ${isLight ? 'text-cyan-700' : 'text-cyan-400'}`}>
+                <span className={'text-slate-600'}>نوع الاستعادة:</span>
+                <span className={`font-bold text-cyan-700`}>
                   {importMode === 'overwrite' ? 'استبدال واستعادة شاملة' : 'دمج وتحديث ذكي'}
                 </span>
               </div>
@@ -1666,17 +1484,13 @@ export const DatabaseBackupManager: React.FC<DatabaseBackupManagerProps> = ({
 
             {/* Checkbox agreement */}
             <label
-              className={`flex items-start gap-2.5 text-xs cursor-pointer select-none p-3 rounded-xl border ${
-                isLight
-                  ? 'bg-slate-50 border-slate-200 text-slate-800'
-                  : 'bg-slate-950/60 border-slate-800 text-slate-300'
-              }`}
+              className={`flex items-start gap-2.5 text-xs cursor-pointer select-none p-3 rounded-xl border bg-slate-50 border-slate-200 text-slate-800`}
             >
               <input
                 type="checkbox"
                 checked={confirmAgreementChecked}
                 onChange={(e) => setConfirmAgreementChecked(e.target.checked)}
-                className="mt-0.5 rounded border-slate-400 text-amber-500 focus:ring-amber-500 accent-amber-500 cursor-pointer w-4 h-4"
+                className="mt-0.5 rounded border-slate-400 text-brand-700 focus:ring-brand-600 accent-brand-700 cursor-pointer w-4 h-4"
               />
               <span>
                 أقر بأنني مدير مخول وأوافق على تطبيق واستعادة قاعدة البيانات الآن مع تسجيل العملية في سجل التدقيق.
@@ -1691,11 +1505,7 @@ export const DatabaseBackupManager: React.FC<DatabaseBackupManagerProps> = ({
                   setShowRestoreConfirmModal(false);
                   setConfirmAgreementChecked(false);
                 }}
-                className={`px-4 py-2.5 font-bold text-xs rounded-xl transition cursor-pointer border ${
-                  isLight
-                    ? 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300'
-                    : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-700'
-                }`}
+                className={`px-4 py-2.5 font-bold text-xs rounded-xl transition cursor-pointer border bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300`}
               >
                 إلغاء
               </button>

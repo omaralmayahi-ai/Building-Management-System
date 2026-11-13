@@ -395,56 +395,48 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   }, [filteredUnits, totalUnits, unitTypes]);
 
   return (
-    <div className="space-y-3.5 sm:space-y-5 text-right dir-rtl w-full max-w-full overflow-hidden">
+    <div className="ds space-y-3.5 sm:space-y-5 text-right dir-rtl w-full max-w-full overflow-hidden">
       {/* HEADER & GOVERNORATE FILTER BAR */}
       <div
-        className={`p-3.5 sm:p-5 rounded-2xl border transition shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4 max-w-full overflow-hidden ${
-          isLight
-            ? 'bg-white border-slate-200 text-slate-800'
-            : 'bg-slate-900 border-slate-800 text-slate-100 shadow-md'
-        }`}
+        className={`p-3.5 sm:p-5 rounded-2xl border transition shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4 max-w-full overflow-hidden bg-card border-slate-200 text-slate-800`}
       >
         <div className="flex items-start sm:items-center gap-2.5 sm:gap-3.5 min-w-0 flex-1">
-          <div className="p-2 sm:p-2.5 bg-amber-500/10 text-amber-500 rounded-xl border border-amber-500/20 shrink-0 mt-0.5 sm:mt-0">
+          <div className="p-2 sm:p-2.5 bg-brand-50 text-brand-700 rounded-xl border border-brand-200 shrink-0 mt-0.5 sm:mt-0">
             <BarChart3 className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-              <h1 className={`text-sm xs:text-base sm:text-lg font-black tracking-tight leading-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>
+              <h1 className={`text-sm xs:text-base sm:text-lg font-black tracking-tight leading-tight text-slate-900`}>
                 لوحة القيادة والمؤشرات
               </h1>
-              <span className="bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 text-[9px] sm:text-[10px] px-1.5 sm:px-2 py-0.5 rounded-md font-bold flex items-center gap-1 shrink-0">
+              <span className="bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 text-[9px] sm:text-[10px] px-1.5 sm:px-2 py-0.5 rounded-md font-bold flex items-center gap-1 shrink-0">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                 مزامنة حية
               </span>
             </div>
-            <p className={`text-[11px] sm:text-xs mt-1 leading-relaxed break-words ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+            <p className={`text-[11px] sm:text-xs mt-1 leading-relaxed break-words text-slate-600`}>
               متابعة أصول {companyName}، الصيانة، والكشوفات عبر الحقول
             </p>
           </div>
         </div>
 
         {/* Global Governorate Filter & GIS Map Button */}
-        <div className="flex items-center gap-2 pt-2 border-t border-slate-100 dark:border-slate-800/80 md:border-none md:pt-0 w-full md:w-auto shrink-0">
+        <div className="flex items-center gap-2 pt-2 border-t border-slate-100 md:border-none md:pt-0 w-full md:w-auto shrink-0">
           <button
             type="button"
             onClick={() => onNavigateTab('gis_map')}
-            className="flex-1 md:flex-initial h-9 px-3 sm:px-3.5 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-slate-950 flex items-center justify-center gap-1.5 shadow-xs transition cursor-pointer shrink-0"
+            className="flex-1 md:flex-initial h-9 px-3 sm:px-3.5 rounded-xl text-xs font-bold bg-brand-700 hover:bg-brand-800 text-on-brand flex items-center justify-center gap-1.5 shadow-xs transition cursor-pointer shrink-0"
           >
             <MapIcon className="w-3.5 h-3.5 shrink-0" />
             <span className="whitespace-nowrap">خريطة GIS</span>
           </button>
 
           <div className="flex-1 md:flex-initial flex items-center gap-1.5 text-xs font-bold min-w-0 max-w-full">
-            <Filter className="w-3.5 h-3.5 text-amber-500 shrink-0 hidden xs:inline" />
+            <Filter className="w-3.5 h-3.5 text-brand-700 shrink-0 hidden xs:inline" />
             <select
               value={selectedGovernorate}
               onChange={(e) => setSelectedGovernorate(e.target.value)}
-              className={`w-full md:w-auto h-9 text-xs font-bold rounded-xl px-2.5 sm:px-3 py-1.5 border outline-none cursor-pointer transition truncate max-w-full ${
-                isLight
-                  ? 'bg-slate-50 border-slate-300 text-slate-900 focus:border-amber-500'
-                  : 'bg-slate-950 border-slate-800 text-amber-400 focus:border-amber-500'
-              }`}
+              className={`w-full md:w-auto h-9 text-xs font-bold rounded-xl px-2.5 sm:px-3 py-1.5 border outline-none cursor-pointer transition truncate max-w-full bg-slate-50 border-slate-300 text-slate-900 focus:border-brand-600`}
             >
               <option value="all">كافة المحافظات</option>
               {effectiveGovernorates
@@ -463,27 +455,23 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-2 sm:gap-3">
         {/* KPI 1: Total Assets */}
         <div
-          className={`p-2.5 sm:p-4 rounded-xl border transition shadow-xs flex flex-col justify-between min-w-0 overflow-hidden ${
-            isLight
-              ? 'bg-white border-slate-200 shadow-xs'
-              : 'bg-slate-900 border-slate-800'
-          }`}
+          className={`p-2.5 sm:p-4 rounded-xl border transition shadow-xs flex flex-col justify-between min-w-0 overflow-hidden bg-card border-slate-200 shadow-xs`}
         >
           <div className="flex items-center justify-between gap-1 min-w-0">
-            <span className={`text-[11px] sm:text-xs font-bold truncate ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+            <span className={`text-[11px] sm:text-xs font-bold truncate text-slate-600`}>
               الوحدات والأصول
             </span>
-            <div className="p-1.5 sm:p-2 bg-amber-500/10 text-amber-500 rounded-lg shrink-0">
+            <div className="p-1.5 sm:p-2 bg-brand-50 text-brand-700 rounded-lg shrink-0">
               <Building2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </div>
           </div>
           <div className="mt-2 sm:mt-3 min-w-0">
-            <div className={`text-base sm:text-xl font-black truncate ${isLight ? 'text-slate-900' : 'text-white'}`}>
+            <div className={`text-base sm:text-xl font-black truncate text-slate-900`}>
               {toArabicDigits(totalUnits)} أصل
             </div>
             <div className="flex flex-col xs:flex-row xs:items-center justify-between mt-1 text-[10px] sm:text-[11px] gap-0.5 min-w-0">
-              <span className="text-emerald-500 font-bold truncate">{toArabicDigits(activeUnitsCount)} نشط</span>
-              <span className={`truncate ${isLight ? 'text-slate-500' : 'text-slate-500'}`}>
+              <span className="text-emerald-600 font-bold truncate">{toArabicDigits(activeUnitsCount)} نشط</span>
+              <span className={`truncate text-slate-500`}>
                 {toArabicDigits(totalBuiltArea.toLocaleString('ar-IQ'))} م²
               </span>
             </div>
@@ -492,27 +480,23 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
         {/* KPI 2: Occupancy Rate */}
         <div
-          className={`p-2.5 sm:p-4 rounded-xl border transition shadow-xs flex flex-col justify-between min-w-0 overflow-hidden ${
-            isLight
-              ? 'bg-white border-slate-200 shadow-xs'
-              : 'bg-slate-900 border-slate-800'
-          }`}
+          className={`p-2.5 sm:p-4 rounded-xl border transition shadow-xs flex flex-col justify-between min-w-0 overflow-hidden bg-card border-slate-200 shadow-xs`}
         >
           <div className="flex items-center justify-between gap-1 min-w-0">
-            <span className={`text-[11px] sm:text-xs font-bold truncate ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+            <span className={`text-[11px] sm:text-xs font-bold truncate text-slate-600`}>
               نسبة الإشغال
             </span>
-            <div className="p-1.5 sm:p-2 bg-sky-500/10 text-sky-500 rounded-lg shrink-0">
+            <div className="p-1.5 sm:p-2 bg-sky-500/10 text-sky-600 rounded-lg shrink-0">
               <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </div>
           </div>
           <div className="mt-2 sm:mt-3 min-w-0">
-            <div className={`text-base sm:text-xl font-black truncate ${isLight ? 'text-slate-900' : 'text-white'}`}>
+            <div className={`text-base sm:text-xl font-black truncate text-slate-900`}>
               {toArabicDigits(occupancyPercentage)}%
             </div>
             <div className="flex flex-col xs:flex-row xs:items-center justify-between mt-1 text-[10px] sm:text-[11px] gap-0.5 min-w-0">
-              <span className="text-sky-500 font-bold truncate">{toArabicDigits(occupiedRoomsCount)} مأهولة</span>
-              <span className={`truncate ${isLight ? 'text-slate-500' : 'text-slate-500'}`}>
+              <span className="text-sky-600 font-bold truncate">{toArabicDigits(occupiedRoomsCount)} مأهولة</span>
+              <span className={`truncate text-slate-500`}>
                 {toArabicDigits(vacantRoomsCount)} شاغرة
               </span>
             </div>
@@ -521,22 +505,18 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
         {/* KPI 3: Maintenance Requests */}
         <div
-          className={`p-2.5 sm:p-4 rounded-xl border transition shadow-xs flex flex-col justify-between min-w-0 overflow-hidden ${
-            isLight
-              ? 'bg-white border-slate-200 shadow-xs'
-              : 'bg-slate-900 border-slate-800'
-          }`}
+          className={`p-2.5 sm:p-4 rounded-xl border transition shadow-xs flex flex-col justify-between min-w-0 overflow-hidden bg-card border-slate-200 shadow-xs`}
         >
           <div className="flex items-center justify-between gap-1 min-w-0">
-            <span className={`text-[11px] sm:text-xs font-bold truncate ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+            <span className={`text-[11px] sm:text-xs font-bold truncate text-slate-600`}>
               بلاغات الصيانة
             </span>
-            <div className="p-1.5 sm:p-2 bg-red-500/10 text-red-500 rounded-lg shrink-0">
+            <div className="p-1.5 sm:p-2 bg-red-500/10 text-red-600 rounded-lg shrink-0">
               <Wrench className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </div>
           </div>
           <div className="mt-2 sm:mt-3 min-w-0">
-            <div className="text-base sm:text-xl font-black text-red-500 flex items-center gap-1.5 flex-wrap min-w-0">
+            <div className="text-base sm:text-xl font-black text-red-600 flex items-center gap-1.5 flex-wrap min-w-0">
               <span className="truncate">{toArabicDigits(activeMaintenanceTickets.length)} نشط</span>
               {overdueMaintenanceTickets.length > 0 && (
                 <span className="text-[9px] sm:text-[10px] bg-red-500 text-white px-1.5 py-0.5 rounded font-mono font-bold animate-pulse shrink-0">
@@ -545,8 +525,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               )}
             </div>
             <div className="flex flex-col xs:flex-row xs:items-center justify-between mt-1 text-[10px] sm:text-[11px] gap-0.5 min-w-0">
-              <span className="text-emerald-500 font-bold truncate">{toArabicDigits(completedMaintenanceTickets.length)} منجز</span>
-              <span className={`truncate ${isLight ? 'text-slate-500' : 'text-slate-500'}`}>
+              <span className="text-emerald-600 font-bold truncate">{toArabicDigits(completedMaintenanceTickets.length)} منجز</span>
+              <span className={`truncate text-slate-500`}>
                 إنجاز {toArabicDigits(maintenanceCompletionRate)}%
               </span>
             </div>
@@ -555,27 +535,23 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
         {/* KPI 4: Periodic Inspections */}
         <div
-          className={`p-2.5 sm:p-4 rounded-xl border transition shadow-xs flex flex-col justify-between min-w-0 overflow-hidden ${
-            isLight
-              ? 'bg-white border-slate-200 shadow-xs'
-              : 'bg-slate-900 border-slate-800'
-          }`}
+          className={`p-2.5 sm:p-4 rounded-xl border transition shadow-xs flex flex-col justify-between min-w-0 overflow-hidden bg-card border-slate-200 shadow-xs`}
         >
           <div className="flex items-center justify-between gap-1 min-w-0">
-            <span className={`text-[11px] sm:text-xs font-bold truncate ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+            <span className={`text-[11px] sm:text-xs font-bold truncate text-slate-600`}>
               الكشوفات الدورية
             </span>
-            <div className="p-1.5 sm:p-2 bg-indigo-500/10 text-indigo-500 rounded-lg shrink-0">
+            <div className="p-1.5 sm:p-2 bg-indigo-500/10 text-indigo-600 rounded-lg shrink-0">
               <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </div>
           </div>
           <div className="mt-2 sm:mt-3 min-w-0">
-            <div className={`text-base sm:text-xl font-black truncate ${isLight ? 'text-slate-900' : 'text-white'}`}>
+            <div className={`text-base sm:text-xl font-black truncate text-slate-900`}>
               {toArabicDigits(totalInspectionsCount)} كشف
             </div>
             <div className="flex flex-col xs:flex-row xs:items-center justify-between mt-1 text-[10px] sm:text-[11px] gap-0.5 min-w-0">
-              <span className="text-emerald-500 font-bold truncate">{toArabicDigits(completedInspectionsCount)} مكتمل</span>
-              <span className={`truncate ${overdueInspectionsCount > 0 ? 'text-red-500 font-bold' : isLight ? 'text-slate-500' : 'text-slate-500'}`}>
+              <span className="text-emerald-600 font-bold truncate">{toArabicDigits(completedInspectionsCount)} مكتمل</span>
+              <span className={`truncate ${overdueInspectionsCount > 0 ? 'text-red-600 font-bold' : 'text-slate-500'}`}>
                 {overdueInspectionsCount > 0 ? `${toArabicDigits(overdueInspectionsCount)} متأخر` : `${toArabicDigits(scheduledInspectionsCount)} مجدول`}
               </span>
             </div>
@@ -584,27 +560,23 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
         {/* KPI 5: Grade D Critical Units */}
         <div
-          className={`p-2.5 sm:p-4 rounded-xl border transition shadow-xs flex flex-col justify-between min-w-0 overflow-hidden ${
-            isLight
-              ? 'bg-white border-slate-200 shadow-xs'
-              : 'bg-slate-900 border-slate-800'
-          }`}
+          className={`p-2.5 sm:p-4 rounded-xl border transition shadow-xs flex flex-col justify-between min-w-0 overflow-hidden bg-card border-slate-200 shadow-xs`}
         >
           <div className="flex items-center justify-between gap-1 min-w-0">
-            <span className={`text-[11px] sm:text-xs font-bold truncate ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+            <span className={`text-[11px] sm:text-xs font-bold truncate text-slate-600`}>
               وحدات حرجة (D)
             </span>
-            <div className="p-1.5 sm:p-2 bg-amber-500/10 text-amber-500 rounded-lg shrink-0">
+            <div className="p-1.5 sm:p-2 bg-brand-50 text-brand-700 rounded-lg shrink-0">
               <ShieldAlert className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </div>
           </div>
           <div className="mt-2 sm:mt-3 min-w-0">
-            <div className="text-base sm:text-xl font-black text-amber-500 truncate">
+            <div className="text-base sm:text-xl font-black text-brand-700 truncate">
               {toArabicDigits(gradeDCount)} وحدة
             </div>
             <div className="flex flex-col xs:flex-row xs:items-center justify-between mt-1 text-[10px] sm:text-[11px] gap-0.5 min-w-0">
-              <span className="text-amber-500 font-bold truncate">{toArabicDigits(gradeDPct)}% حرجة</span>
-              <span className={`truncate ${isLight ? 'text-slate-500' : 'text-slate-500'}`}>
+              <span className="text-brand-700 font-bold truncate">{toArabicDigits(gradeDPct)}% حرجة</span>
+              <span className={`truncate text-slate-500`}>
                 {gradeDCount > 0 ? 'تتطلب تأهيلاً' : 'سلامة تامة'}
               </span>
             </div>
@@ -613,27 +585,23 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
         {/* KPI 6: Formations & Reach */}
         <div
-          className={`p-2.5 sm:p-4 rounded-xl border transition shadow-xs flex flex-col justify-between min-w-0 overflow-hidden ${
-            isLight
-              ? 'bg-white border-slate-200 shadow-xs'
-              : 'bg-slate-900 border-slate-800'
-          }`}
+          className={`p-2.5 sm:p-4 rounded-xl border transition shadow-xs flex flex-col justify-between min-w-0 overflow-hidden bg-card border-slate-200 shadow-xs`}
         >
           <div className="flex items-center justify-between gap-1 min-w-0">
-            <span className={`text-[11px] sm:text-xs font-bold truncate ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+            <span className={`text-[11px] sm:text-xs font-bold truncate text-slate-600`}>
               التشكيلات والحقول
             </span>
-            <div className="p-1.5 sm:p-2 bg-purple-500/10 text-purple-500 rounded-lg shrink-0">
+            <div className="p-1.5 sm:p-2 bg-purple-500/10 text-purple-600 rounded-lg shrink-0">
               <Compass className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </div>
           </div>
           <div className="mt-2 sm:mt-3 min-w-0">
-            <div className={`text-base sm:text-xl font-black truncate ${isLight ? 'text-slate-900' : 'text-white'}`}>
+            <div className={`text-base sm:text-xl font-black truncate text-slate-900`}>
               {toArabicDigits(oilfieldsBreakdown.length)} حقل
             </div>
             <div className="flex flex-col xs:flex-row xs:items-center justify-between mt-1 text-[10px] sm:text-[11px] gap-0.5 min-w-0">
-              <span className="text-purple-500 font-bold truncate">{toArabicDigits(orgEntitiesBreakdown.length)} تشكيل</span>
-              <span className={`truncate ${isLight ? 'text-slate-500' : 'text-slate-500'}`}>
+              <span className="text-purple-600 font-bold truncate">{toArabicDigits(orgEntitiesBreakdown.length)} تشكيل</span>
+              <span className={`truncate text-slate-500`}>
                 {toArabicDigits(governorateBreakdown.length)} محافظة
               </span>
             </div>
@@ -643,19 +611,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
       {/* EXECUTIVE AUTOMATED INSIGHTS BANNER */}
       <div
-        className={`p-3 sm:p-4 rounded-xl border flex flex-col md:flex-row items-start md:items-center justify-between gap-2.5 sm:gap-3 text-xs ${
-          isLight
-            ? 'bg-amber-50/60 border-amber-200 text-slate-800'
-            : 'bg-amber-500/10 border-amber-500/20 text-slate-200'
-        }`}
+        className={`p-3 sm:p-4 rounded-xl border flex flex-col md:flex-row items-start md:items-center justify-between gap-2.5 sm:gap-3 text-xs bg-brand-50 border-brand-200 text-slate-800`}
       >
         <div className="flex items-start sm:items-center gap-2 sm:gap-3 min-w-0 flex-1">
-          <div className="p-1.5 sm:p-2 bg-amber-500 text-slate-950 rounded-lg font-bold shrink-0 mt-0.5 sm:mt-0">
+          <div className="p-1.5 sm:p-2 bg-brand-700 text-on-brand rounded-lg font-bold shrink-0 mt-0.5 sm:mt-0">
             <Zap className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           </div>
           <div className="space-y-0.5 min-w-0">
-            <span className="font-black text-amber-600 dark:text-amber-400 block sm:inline">ملخص الرصد:</span>{' '}
-            <span className={`text-[11px] sm:text-xs leading-relaxed ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+            <span className="font-black text-brand-700 block sm:inline">ملخص الرصد:</span>{' '}
+            <span className={`text-[11px] sm:text-xs leading-relaxed text-slate-700`}>
               يوجد {toArabicDigits(overdueMaintenanceTickets.length)} بلاغ صيانة متأخر و {toArabicDigits(gradeDCount)} وحدة حرجة D.
             </span>
           </div>
@@ -663,7 +627,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         <div className="w-full md:w-auto flex items-center justify-end shrink-0 font-bold">
           <button
             onClick={() => onNavigateTab('maintenance')}
-            className="w-full md:w-auto bg-amber-500 hover:bg-amber-600 text-slate-950 px-3 py-2 rounded-lg transition text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer shadow-xs active:scale-95"
+            className="w-full md:w-auto bg-brand-700 hover:bg-brand-800 text-on-brand px-3 py-2 rounded-lg transition text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer shadow-xs active:scale-95"
           >
             <span>متابعة الصيانة المتأخرة</span>
             <ChevronLeft className="w-3.5 h-3.5" />
@@ -673,19 +637,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
       {/* ANALYTICS SECTION WITH TABS */}
       <div
-        className={`rounded-2xl border shadow-sm transition overflow-hidden ${
-          isLight ? 'bg-white border-slate-200' : 'bg-slate-900 border-slate-800'
-        }`}
+        className={`rounded-2xl border shadow-sm transition overflow-hidden bg-card border-slate-200`}
       >
         {/* Navigation Tabs Header (Strictly NO horizontal scroll on mobile, responsive 2x2 grid) */}
         <div
-          className={`p-2.5 sm:p-4 border-b flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 ${
-            isLight ? 'border-slate-200 bg-slate-50/50' : 'border-slate-800 bg-slate-950/40'
-          }`}
+          className={`p-2.5 sm:p-4 border-b flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 border-slate-200 bg-slate-50/50`}
         >
           <div className="flex items-center gap-2 px-1">
-            <Layers className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500 shrink-0" />
-            <h2 className={`font-black text-xs sm:text-sm truncate ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+            <Layers className="w-4 h-4 sm:w-5 sm:h-5 text-brand-700 shrink-0" />
+            <h2 className={`font-black text-xs sm:text-sm truncate text-slate-900`}>
               التحليلات والمؤشرات التفصيلية
             </h2>
           </div>
@@ -695,10 +655,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               onClick={() => setActiveSubTab('geo')}
               className={`px-2 sm:px-3 py-2 sm:py-1.5 rounded-lg transition flex items-center justify-center sm:justify-start gap-1.5 cursor-pointer text-[11px] sm:text-xs font-bold ${
                 activeSubTab === 'geo'
-                  ? 'bg-amber-500 text-slate-950 shadow'
-                  : isLight
-                  ? 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                  : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
+                  ? 'bg-brand-700 text-on-brand shadow'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
               }`}
             >
               <MapPin className="w-3.5 h-3.5 shrink-0" />
@@ -710,10 +668,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               onClick={() => setActiveSubTab('org')}
               className={`px-2 sm:px-3 py-2 sm:py-1.5 rounded-lg transition flex items-center justify-center sm:justify-start gap-1.5 cursor-pointer text-[11px] sm:text-xs font-bold ${
                 activeSubTab === 'org'
-                  ? 'bg-amber-500 text-slate-950 shadow'
-                  : isLight
-                  ? 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                  : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
+                  ? 'bg-brand-700 text-on-brand shadow'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
               }`}
             >
               <Building className="w-3.5 h-3.5 shrink-0" />
@@ -725,10 +681,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               onClick={() => setActiveSubTab('maintenance')}
               className={`px-2 sm:px-3 py-2 sm:py-1.5 rounded-lg transition flex items-center justify-center sm:justify-start gap-1.5 cursor-pointer text-[11px] sm:text-xs font-bold ${
                 activeSubTab === 'maintenance'
-                  ? 'bg-amber-500 text-slate-950 shadow'
-                  : isLight
-                  ? 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                  : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
+                  ? 'bg-brand-700 text-on-brand shadow'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
               }`}
             >
               <Activity className="w-3.5 h-3.5 shrink-0" />
@@ -740,10 +694,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               onClick={() => setActiveSubTab('grades')}
               className={`px-2 sm:px-3 py-2 sm:py-1.5 rounded-lg transition flex items-center justify-center sm:justify-start gap-1.5 cursor-pointer text-[11px] sm:text-xs font-bold ${
                 activeSubTab === 'grades'
-                  ? 'bg-amber-500 text-slate-950 shadow'
-                  : isLight
-                  ? 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                  : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
+                  ? 'bg-brand-700 text-on-brand shadow'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
               }`}
             >
               <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
@@ -759,16 +711,16 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             {/* Oilfields Cards Grid */}
             <div>
               <div className="flex items-center justify-between mb-3">
-                <h3 className={`font-bold text-xs ${isLight ? 'text-slate-800' : 'text-slate-200'}`}>
+                <h3 className={`font-bold text-xs text-slate-800`}>
                   توزيع الأصول والمساحات على الحقول والقطاعات النفطية:
                 </h3>
-                <span className={`text-[11px] ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                <span className={`text-[11px] text-slate-500`}>
                   مرتبة حسب كثافة الأصول
                 </span>
               </div>
 
               {oilfieldsBreakdown.length === 0 ? (
-                <div className={`p-6 text-center text-xs ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                <div className={`p-6 text-center text-xs text-slate-500`}>
                   لا توجد أصول مسجلة في هذا النطاق
                 </div>
               ) : (
@@ -776,47 +728,43 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   {oilfieldsBreakdown.map((fld, idx) => (
                     <div
                       key={idx}
-                      className={`p-4 rounded-xl border transition space-y-2.5 ${
-                        isLight
-                          ? 'bg-slate-50/80 border-slate-200 hover:border-amber-400'
-                          : 'bg-slate-950/60 border-slate-800 hover:border-amber-500/40'
-                      }`}
+                      className={`p-4 rounded-xl border transition space-y-2.5 bg-slate-50/80 border-slate-200 hover:border-brand-200`}
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <div className="w-2.5 h-2.5 rounded-full bg-amber-500"></div>
-                          <span className={`font-black text-sm ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                          <div className="w-2.5 h-2.5 rounded-full bg-brand-700"></div>
+                          <span className={`font-black text-sm text-slate-900`}>
                             حقل {fld.nameAr}
                           </span>
                         </div>
-                        <span className="text-xs font-mono font-bold bg-amber-500/10 text-amber-500 border border-amber-500/20 px-2 py-0.5 rounded-md">
+                        <span className="text-xs font-mono font-bold bg-brand-50 text-brand-700 border border-brand-200 px-2 py-0.5 rounded-md">
                           {toArabicDigits(fld.percentage)}%
                         </span>
                       </div>
 
                       <div className="grid grid-cols-3 gap-1.5 xs:gap-2 text-center text-[10px] xs:text-[11px] font-bold">
-                        <div className={`p-1.5 xs:p-2 rounded-lg border min-w-0 overflow-hidden ${isLight ? 'bg-white border-slate-200' : 'bg-slate-900 border-slate-800'}`}>
-                          <div className={`truncate ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>الوحدات</div>
-                          <div className="text-amber-500 font-black text-xs xs:text-sm truncate">{toArabicDigits(fld.count)}</div>
+                        <div className={`p-1.5 xs:p-2 rounded-lg border min-w-0 overflow-hidden bg-card border-slate-200`}>
+                          <div className={`truncate text-slate-500`}>الوحدات</div>
+                          <div className="text-brand-700 font-black text-xs xs:text-sm truncate">{toArabicDigits(fld.count)}</div>
                         </div>
-                        <div className={`p-1.5 xs:p-2 rounded-lg border min-w-0 overflow-hidden ${isLight ? 'bg-white border-slate-200' : 'bg-slate-900 border-slate-800'}`}>
-                          <div className={`truncate ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>المساحة</div>
-                          <div className={`font-black text-[10px] xs:text-xs truncate ${isLight ? 'text-slate-800' : 'text-slate-200'}`}>
+                        <div className={`p-1.5 xs:p-2 rounded-lg border min-w-0 overflow-hidden bg-card border-slate-200`}>
+                          <div className={`truncate text-slate-500`}>المساحة</div>
+                          <div className={`font-black text-[10px] xs:text-xs truncate text-slate-800`}>
                             {toArabicDigits(fld.totalArea.toLocaleString('ar-IQ'))} م²
                           </div>
                         </div>
-                        <div className={`p-1.5 xs:p-2 rounded-lg border min-w-0 overflow-hidden ${isLight ? 'bg-white border-slate-200' : 'bg-slate-900 border-slate-800'}`}>
-                          <div className={`truncate ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>بلاغات الصيانة</div>
-                          <div className={`font-black text-xs xs:text-sm truncate ${fld.maintenanceCount > 0 ? 'text-red-500' : 'text-emerald-500'}`}>
+                        <div className={`p-1.5 xs:p-2 rounded-lg border min-w-0 overflow-hidden bg-card border-slate-200`}>
+                          <div className={`truncate text-slate-500`}>بلاغات الصيانة</div>
+                          <div className={`font-black text-xs xs:text-sm truncate ${fld.maintenanceCount > 0 ? 'text-red-600' : 'text-emerald-600'}`}>
                             {toArabicDigits(fld.maintenanceCount)}
                           </div>
                         </div>
                       </div>
 
                       {/* Progress Bar */}
-                      <div className={`w-full rounded-full h-2 overflow-hidden ${isLight ? 'bg-slate-200' : 'bg-slate-800'}`}>
+                      <div className={`w-full rounded-full h-2 overflow-hidden bg-slate-200`}>
                         <div
-                          className="bg-amber-500 h-full rounded-full transition-all duration-500"
+                          className="bg-brand-700 h-full rounded-full transition-all duration-500"
                           style={{ width: `${Math.max(fld.percentage, 4)}%` }}
                         ></div>
                       </div>
@@ -827,22 +775,22 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             </div>
 
             {/* Governorates Distribution Progress List */}
-            <div className={`p-3.5 sm:p-4 rounded-xl border ${isLight ? 'bg-slate-50/50 border-slate-200' : 'bg-slate-950/40 border-slate-800'}`}>
-              <h3 className={`font-bold text-xs mb-3 ${isLight ? 'text-slate-800' : 'text-slate-200'}`}>
+            <div className={`p-3.5 sm:p-4 rounded-xl border bg-slate-50/50 border-slate-200`}>
+              <h3 className={`font-bold text-xs mb-3 text-slate-800`}>
                 التوزيع الجغرافي الكلي للمحافظات العراقية:
               </h3>
               <div className="space-y-3">
                 {governorateBreakdown.map((gov, idx) => (
                   <div key={idx} className="space-y-1">
                     <div className="flex items-center justify-between text-xs font-semibold gap-2 min-w-0 flex-wrap">
-                      <span className={`truncate ${isLight ? 'text-slate-800' : 'text-slate-200'}`}>
+                      <span className={`truncate text-slate-800`}>
                         محافظة {gov.nameAr}
                       </span>
-                      <span className={`text-[10px] xs:text-[11px] sm:text-xs shrink-0 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                      <span className={`text-[10px] xs:text-[11px] sm:text-xs shrink-0 text-slate-600`}>
                         {toArabicDigits(gov.count)} أصل ({toArabicDigits(gov.percentage)}%) • {toArabicDigits(gov.totalArea.toLocaleString('ar-IQ'))} م²
                       </span>
                     </div>
-                    <div className={`w-full rounded-full h-2.5 overflow-hidden ${isLight ? 'bg-slate-200' : 'bg-slate-800'}`}>
+                    <div className={`w-full rounded-full h-2.5 overflow-hidden bg-slate-200`}>
                       <div
                         className="bg-sky-500 h-full rounded-full transition-all duration-500"
                         style={{ width: `${Math.max(gov.percentage, 3)}%` }}
@@ -859,39 +807,37 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         {activeSubTab === 'org' && (
           <div className="p-3.5 sm:p-5 space-y-3.5 sm:space-y-4">
             <div className="flex items-center justify-between mb-2">
-              <h3 className={`font-bold text-xs ${isLight ? 'text-slate-800' : 'text-slate-200'}`}>
+              <h3 className={`font-bold text-xs text-slate-800`}>
                 توزيع الوحدات والمباني على التشكيلات والجهات الشاغلة بالهيكل التنظيمي ومتابعة الغرف الشاغرة:
               </h3>
             </div>
 
             {/* Quick Summary KPIs for Occupancy & Vacancy across Formations */}
-            <div className={`grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 p-2.5 sm:p-3.5 rounded-xl border ${
-              isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-950/70 border-slate-800'
-            }`}>
+            <div className={`grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 p-2.5 sm:p-3.5 rounded-xl border bg-slate-50 border-slate-200`}>
               <div className="flex flex-col xs:flex-row xs:items-center justify-between gap-0.5 min-w-0">
-                <span className={`text-[10.5px] sm:text-xs truncate ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>التشكيلات النشطة:</span>
-                <span className="font-bold font-mono text-[10.5px] sm:text-xs text-purple-500 truncate">{toArabicDigits(orgEntitiesBreakdown.length)} تشكيل</span>
+                <span className={`text-[10.5px] sm:text-xs truncate text-slate-600`}>التشكيلات النشطة:</span>
+                <span className="font-bold font-mono text-[10.5px] sm:text-xs text-purple-600 truncate">{toArabicDigits(orgEntitiesBreakdown.length)} تشكيل</span>
               </div>
               <div className="flex flex-col xs:flex-row xs:items-center justify-between gap-0.5 min-w-0">
-                <span className={`text-[10.5px] sm:text-xs truncate ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>المباني المخصصة:</span>
-                <span className="font-bold font-mono text-[10.5px] sm:text-xs text-amber-500 truncate">{toArabicDigits(filteredUnits.length)} مبنى</span>
+                <span className={`text-[10.5px] sm:text-xs truncate text-slate-600`}>المباني المخصصة:</span>
+                <span className="font-bold font-mono text-[10.5px] sm:text-xs text-brand-700 truncate">{toArabicDigits(filteredUnits.length)} مبنى</span>
               </div>
               <div className="flex flex-col xs:flex-row xs:items-center justify-between gap-0.5 min-w-0">
-                <span className={`text-[10.5px] sm:text-xs truncate ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>الغرف المشغولة:</span>
-                <span className="font-bold font-mono text-[10.5px] sm:text-xs text-sky-500 truncate">
+                <span className={`text-[10.5px] sm:text-xs truncate text-slate-600`}>الغرف المشغولة:</span>
+                <span className="font-bold font-mono text-[10.5px] sm:text-xs text-sky-600 truncate">
                   {toArabicDigits(orgEntitiesBreakdown.reduce((sum, o) => sum + o.occupiedRooms, 0))} غرفة
                 </span>
               </div>
-              <div className="flex flex-col xs:flex-row xs:items-center justify-between gap-0.5 bg-amber-500/10 px-2 py-1 rounded-lg border border-amber-500/20 min-w-0">
-                <span className="text-[10.5px] sm:text-xs font-bold text-amber-600 dark:text-amber-400 truncate">الغرف الشاغرة:</span>
-                <span className="font-black font-mono text-[10.5px] sm:text-xs text-amber-500 truncate">
+              <div className="flex flex-col xs:flex-row xs:items-center justify-between gap-0.5 bg-brand-50 px-2 py-1 rounded-lg border border-brand-200 min-w-0">
+                <span className="text-[10.5px] sm:text-xs font-bold text-brand-700 truncate">الغرف الشاغرة:</span>
+                <span className="font-black font-mono text-[10.5px] sm:text-xs text-brand-700 truncate">
                   {toArabicDigits(orgEntitiesBreakdown.reduce((sum, o) => sum + o.vacantRooms, 0))} غرفة
                 </span>
               </div>
             </div>
 
             {orgEntitiesBreakdown.length === 0 ? (
-              <div className={`p-6 text-center text-xs ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+              <div className={`p-6 text-center text-xs text-slate-500`}>
                 لا توجد تشكيلات مخصصة حالياً
               </div>
             ) : (
@@ -899,73 +845,63 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 {orgEntitiesBreakdown.map((org, idx) => (
                   <div
                     key={idx}
-                    className={`p-4 rounded-xl border transition space-y-2.5 ${
-                      isLight
-                        ? 'bg-slate-50/80 border-slate-200 hover:border-amber-400 shadow-xs'
-                        : 'bg-slate-950/60 border-slate-800 hover:border-amber-500/40'
-                    }`}
+                    className={`p-4 rounded-xl border transition space-y-2.5 bg-slate-50/80 border-slate-200 hover:border-brand-200 shadow-xs`}
                   >
                     <div className="flex items-center justify-between">
-                      <span className={`font-black text-sm ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                      <span className={`font-black text-sm text-slate-900`}>
                         {org.nameAr}
                       </span>
-                      <span className="text-xs font-mono font-bold bg-purple-500/10 text-purple-500 border border-purple-500/20 px-2 py-0.5 rounded-md">
+                      <span className="text-xs font-mono font-bold bg-purple-500/10 text-purple-600 border border-purple-500/20 px-2 py-0.5 rounded-md">
                         {toArabicDigits(org.percentage)}%
                       </span>
                     </div>
 
                     <div className="flex items-center justify-between text-xs pt-1">
-                      <span className={isLight ? 'text-slate-600' : 'text-slate-400'}>عدد المباني المخصصة:</span>
-                      <span className="font-bold text-amber-500">{toArabicDigits(org.count)} وحدة</span>
+                      <span className={'text-slate-600'}>عدد المباني المخصصة:</span>
+                      <span className="font-bold text-brand-700">{toArabicDigits(org.count)} وحدة</span>
                     </div>
 
                     <div className="flex items-center justify-between text-xs">
-                      <span className={isLight ? 'text-slate-600' : 'text-slate-400'}>إجمالي الغرف والمكاتب:</span>
-                      <span className={`font-bold ${isLight ? 'text-slate-800' : 'text-slate-200'}`}>
+                      <span className={'text-slate-600'}>إجمالي الغرف والمكاتب:</span>
+                      <span className={`font-bold text-slate-800`}>
                         {toArabicDigits(org.roomsCount)} غرفة
                       </span>
                     </div>
 
                     {/* Occupied vs Vacant Rooms detail */}
                     <div className="grid grid-cols-2 gap-2 pt-1">
-                      <div className={`p-2 rounded-lg border text-xs flex flex-col items-center ${
-                        isLight ? 'bg-sky-50 border-sky-200 text-sky-900' : 'bg-sky-950/40 border-sky-800/50 text-sky-300'
-                      }`}>
+                      <div className={`p-2 rounded-lg border text-xs flex flex-col items-center bg-sky-50 border-sky-200 text-sky-900`}>
                         <span className="text-[10px] text-slate-500">الغرف المشغولة</span>
-                        <span className="font-black font-mono text-xs text-sky-500">
+                        <span className="font-black font-mono text-xs text-sky-600">
                           {toArabicDigits(org.occupiedRooms)} غرفة
                         </span>
                       </div>
 
                       <div className={`p-2 rounded-lg border text-xs flex flex-col items-center ${
                         org.vacantRooms > 0
-                          ? isLight
-                            ? 'bg-amber-50 border-amber-300 text-amber-900'
-                            : 'bg-amber-950/40 border-amber-700/50 text-amber-400'
-                          : isLight
-                          ? 'bg-slate-100 border-slate-200 text-slate-500'
-                          : 'bg-slate-900 border-slate-800 text-slate-500'
+                          ? 'bg-brand-50 border-brand-200 text-brand-800'
+                          : 'bg-slate-100 border-slate-200 text-slate-500'
                       }`}>
                         <span className="text-[10px] text-slate-500">الغرف الشاغرة (فارغة)</span>
-                        <span className={`font-black font-mono text-xs ${org.vacantRooms > 0 ? 'text-amber-500' : 'text-slate-400'}`}>
+                        <span className={`font-black font-mono text-xs ${org.vacantRooms > 0 ? 'text-brand-700' : 'text-slate-500'}`}>
                           {toArabicDigits(org.vacantRooms)} فارغة
                         </span>
                       </div>
                     </div>
 
                     <div className="flex items-center justify-between text-xs pt-1">
-                      <span className={isLight ? 'text-slate-600' : 'text-slate-400'}>المساحة المغلولة:</span>
-                      <span className={`font-mono font-bold ${isLight ? 'text-slate-800' : 'text-slate-200'}`}>
+                      <span className={'text-slate-600'}>المساحة المغلولة:</span>
+                      <span className={`font-mono font-bold text-slate-800`}>
                         {toArabicDigits(org.totalArea.toLocaleString('ar-IQ'))} م²
                       </span>
                     </div>
 
                     <div className="space-y-1 pt-1">
                       <div className="flex items-center justify-between text-[10.5px]">
-                        <span className={isLight ? 'text-slate-500' : 'text-slate-400'}>نسبة إشغال الغرف:</span>
-                        <span className="font-mono font-bold text-purple-500">{toArabicDigits(org.occupancyRate)}%</span>
+                        <span className={'text-slate-500'}>نسبة إشغال الغرف:</span>
+                        <span className="font-mono font-bold text-purple-600">{toArabicDigits(org.occupancyRate)}%</span>
                       </div>
-                      <div className={`w-full rounded-full h-2 overflow-hidden ${isLight ? 'bg-slate-200' : 'bg-slate-800'}`}>
+                      <div className={`w-full rounded-full h-2 overflow-hidden bg-slate-200`}>
                         <div
                           className="bg-purple-500 h-full rounded-full transition-all duration-500"
                           style={{ width: `${Math.max(org.occupancyRate, 3)}%` }}
@@ -984,16 +920,16 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <div className="p-3.5 sm:p-5 space-y-4 sm:space-y-6">
             {/* KPI Progress Bars for Maintenance & Inspections */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className={`p-4 rounded-xl border ${isLight ? 'bg-slate-50/80 border-slate-200' : 'bg-slate-950/60 border-slate-800'}`}>
+              <div className={`p-4 rounded-xl border bg-slate-50/80 border-slate-200`}>
                 <div className="flex items-center justify-between mb-2">
-                  <span className={`font-bold text-xs ${isLight ? 'text-slate-800' : 'text-slate-200'}`}>
+                  <span className={`font-bold text-xs text-slate-800`}>
                     معدل إنجاز طلبات الصيانة الميدانية:
                   </span>
-                  <span className="font-black text-amber-500">{toArabicDigits(maintenanceCompletionRate)}%</span>
+                  <span className="font-black text-brand-700">{toArabicDigits(maintenanceCompletionRate)}%</span>
                 </div>
-                <div className={`w-full rounded-full h-3 overflow-hidden ${isLight ? 'bg-slate-200' : 'bg-slate-800'}`}>
+                <div className={`w-full rounded-full h-3 overflow-hidden bg-slate-200`}>
                   <div
-                    className="bg-amber-500 h-full rounded-full transition-all duration-500"
+                    className="bg-brand-700 h-full rounded-full transition-all duration-500"
                     style={{ width: `${maintenanceCompletionRate}%` }}
                   ></div>
                 </div>
@@ -1004,14 +940,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 </div>
               </div>
 
-              <div className={`p-4 rounded-xl border ${isLight ? 'bg-slate-50/80 border-slate-200' : 'bg-slate-950/60 border-slate-800'}`}>
+              <div className={`p-4 rounded-xl border bg-slate-50/80 border-slate-200`}>
                 <div className="flex items-center justify-between mb-2">
-                  <span className={`font-bold text-xs ${isLight ? 'text-slate-800' : 'text-slate-200'}`}>
+                  <span className={`font-bold text-xs text-slate-800`}>
                     معدل الالتزام بالكشوفات الدورية (HSE & إنشائي):
                   </span>
-                  <span className="font-black text-indigo-500">{toArabicDigits(inspectionComplianceRate)}%</span>
+                  <span className="font-black text-indigo-600">{toArabicDigits(inspectionComplianceRate)}%</span>
                 </div>
-                <div className={`w-full rounded-full h-3 overflow-hidden ${isLight ? 'bg-slate-200' : 'bg-slate-800'}`}>
+                <div className={`w-full rounded-full h-3 overflow-hidden bg-slate-200`}>
                   <div
                     className="bg-indigo-500 h-full rounded-full transition-all duration-500"
                     style={{ width: `${inspectionComplianceRate}%` }}
@@ -1028,12 +964,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             {/* Recent Maintenance Requests Table */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <h3 className={`font-bold text-xs ${isLight ? 'text-slate-800' : 'text-slate-200'}`}>
+                <h3 className={`font-bold text-xs text-slate-800`}>
                   أحدث طلبات الصيانة الميدانية المسجلة:
                 </h3>
                 <button
                   onClick={() => onNavigateTab('maintenance')}
-                  className="text-xs text-amber-500 hover:underline font-bold flex items-center gap-1"
+                  className="text-xs text-brand-700 hover:underline font-bold flex items-center gap-1"
                 >
                   <span>عرض جميع الطلبات</span>
                   <ChevronLeft className="w-3.5 h-3.5" />
@@ -1041,16 +977,16 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               </div>
 
               {filteredMaintenance.length === 0 ? (
-                <div className={`p-6 text-center text-xs ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                <div className={`p-6 text-center text-xs text-slate-500`}>
                   لا توجد طلبات صيانة في هذا النطاق
                 </div>
               ) : (
                 <>
                   {/* Desktop Table View */}
-                  <div className="hidden sm:block overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800">
+                  <div className="hidden sm:block overflow-x-auto rounded-xl border border-slate-200 ">
                     <table className="w-full text-right text-xs">
                       <thead>
-                        <tr className={isLight ? 'bg-slate-100 text-slate-700 border-b border-slate-200' : 'bg-slate-950 text-slate-400 border-b border-slate-800'}>
+                        <tr className={'bg-slate-100 text-slate-700 border-b border-slate-200'}>
                           <th className="p-3 font-semibold">رقم الطلب</th>
                           <th className="p-3 font-semibold">رمز الأصل</th>
                           <th className="p-3 font-semibold">الحقل</th>
@@ -1061,40 +997,40 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                           <th className="p-3 font-semibold text-center">معاينة</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                      <tbody className="divide-y divide-slate-100 ">
                         {filteredMaintenance.slice(0, 6).map((req) => (
-                          <tr key={req.id} className={isLight ? 'hover:bg-amber-50/40 text-slate-800' : 'hover:bg-slate-800/40 text-slate-200'}>
-                            <td className="p-3 font-mono font-bold text-amber-500">{req.id}</td>
+                          <tr key={req.id} className={'hover:bg-brand-50 text-slate-800'}>
+                            <td className="p-3 font-mono font-bold text-brand-700">{req.id}</td>
                             <td className="p-3 font-mono font-semibold">{req.unitCode}</td>
                             <td className="p-3">{req.field}</td>
                             <td className="p-3 font-medium">{req.issue}</td>
                             <td className="p-3">
                               {req.priority === 'critical' ? (
-                                <span className="bg-red-500/10 text-red-500 border border-red-500/20 px-2 py-0.5 rounded text-[10px] font-bold">
+                                <span className="bg-red-500/10 text-red-600 border border-red-500/20 px-2 py-0.5 rounded text-[10px] font-bold">
                                   طارئة جداً
                                 </span>
                               ) : (
-                                <span className="bg-amber-500/10 text-amber-500 border border-amber-500/20 px-2 py-0.5 rounded text-[10px] font-bold">
+                                <span className="bg-brand-50 text-brand-700 border border-brand-200 px-2 py-0.5 rounded text-[10px] font-bold">
                                   اعتيادية
                                 </span>
                               )}
                             </td>
                             <td className="p-3">
-                              <span className="px-2 py-0.5 rounded-lg text-[10.5px] font-bold bg-amber-500/10 text-amber-500 border border-amber-500/20 whitespace-nowrap">
+                              <span className="px-2 py-0.5 rounded-lg text-[10.5px] font-bold bg-brand-50 text-brand-700 border border-brand-200 whitespace-nowrap">
                                 {req.maintenanceDepartment || 'الصيانة العامة'}
                               </span>
                             </td>
                             <td className="p-3">
                               {req.status === 'completed' ? (
-                                <span className="bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-2 py-0.5 rounded text-[10px] font-bold">
+                                <span className="bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 px-2 py-0.5 rounded text-[10px] font-bold">
                                   منجز
                                 </span>
                               ) : req.status === 'overdue' ? (
-                                <span className="bg-red-500/10 text-red-500 border border-red-500/20 px-2 py-0.5 rounded text-[10px] font-bold">
+                                <span className="bg-red-500/10 text-red-600 border border-red-500/20 px-2 py-0.5 rounded text-[10px] font-bold">
                                   متأخر
                                 </span>
                               ) : (
-                                <span className="bg-amber-500/10 text-amber-500 border border-amber-500/20 px-2 py-0.5 rounded text-[10px] font-bold">
+                                <span className="bg-brand-50 text-brand-700 border border-brand-200 px-2 py-0.5 rounded text-[10px] font-bold">
                                   قيد التنفيذ
                                 </span>
                               )}
@@ -1102,7 +1038,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                             <td className="p-3 text-center">
                               <button
                                 onClick={() => onSelectUnit(req.unitCode)}
-                                className="bg-amber-500/10 hover:bg-amber-500 text-amber-600 hover:text-slate-950 px-2.5 py-1 rounded transition text-[11px] font-bold cursor-pointer"
+                                className="bg-brand-50 hover:bg-brand-800 text-brand-700 hover:text-on-brand px-2.5 py-1 rounded transition text-[11px] font-bold cursor-pointer"
                               >
                                 معاينة الأصل
                               </button>
@@ -1118,36 +1054,32 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     {filteredMaintenance.slice(0, 6).map((req) => (
                       <div
                         key={req.id}
-                        className={`p-3 rounded-xl border space-y-2 transition ${
-                          isLight
-                            ? 'bg-slate-50 border-slate-200 text-slate-800'
-                            : 'bg-slate-950/60 border-slate-800 text-slate-200'
-                        }`}
+                        className={`p-3 rounded-xl border space-y-2 transition bg-slate-50 border-slate-200 text-slate-800`}
                       >
                         <div className="flex items-center justify-between gap-2">
-                          <span className="font-mono text-xs font-black text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/20">
+                          <span className="font-mono text-xs font-black text-brand-700 bg-brand-50 px-2 py-0.5 rounded-md border border-brand-200">
                             {req.id}
                           </span>
                           <div className="flex items-center gap-1.5">
                             {req.priority === 'critical' ? (
-                              <span className="bg-red-500/10 text-red-500 border border-red-500/20 px-2 py-0.5 rounded text-[10px] font-bold">
+                              <span className="bg-red-500/10 text-red-600 border border-red-500/20 px-2 py-0.5 rounded text-[10px] font-bold">
                                 طارئة جداً
                               </span>
                             ) : (
-                              <span className="bg-amber-500/10 text-amber-500 border border-amber-500/20 px-2 py-0.5 rounded text-[10px] font-bold">
+                              <span className="bg-brand-50 text-brand-700 border border-brand-200 px-2 py-0.5 rounded text-[10px] font-bold">
                                 اعتيادية
                               </span>
                             )}
                             {req.status === 'completed' ? (
-                              <span className="bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-2 py-0.5 rounded text-[10px] font-bold">
+                              <span className="bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 px-2 py-0.5 rounded text-[10px] font-bold">
                                 منجز
                               </span>
                             ) : req.status === 'overdue' ? (
-                              <span className="bg-red-500/10 text-red-500 border border-red-500/20 px-2 py-0.5 rounded text-[10px] font-bold">
+                              <span className="bg-red-500/10 text-red-600 border border-red-500/20 px-2 py-0.5 rounded text-[10px] font-bold">
                                 متأخر
                               </span>
                             ) : (
-                              <span className="bg-amber-500/10 text-amber-500 border border-amber-500/20 px-2 py-0.5 rounded text-[10px] font-bold">
+                              <span className="bg-brand-50 text-brand-700 border border-brand-200 px-2 py-0.5 rounded text-[10px] font-bold">
                                 قيد التنفيذ
                               </span>
                             )}
@@ -1158,8 +1090,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                           {req.issue}
                         </div>
 
-                        <div className="flex items-center justify-between text-[11px] pt-1 border-t border-slate-200 dark:border-slate-800 text-slate-500">
-                          <span className="font-mono font-bold text-amber-600 dark:text-amber-400">
+                        <div className="flex items-center justify-between text-[11px] pt-1 border-t border-slate-200 text-slate-500">
+                          <span className="font-mono font-bold text-brand-700 ">
                             {req.unitCode} ({req.field})
                           </span>
                           <span className="truncate max-w-[140px]">
@@ -1169,7 +1101,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
                         <button
                           onClick={() => onSelectUnit(req.unitCode)}
-                          className="w-full h-9 rounded-lg bg-amber-500/10 hover:bg-amber-500 text-amber-600 hover:text-slate-950 font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-98 cursor-pointer mt-1"
+                          className="w-full h-9 rounded-lg bg-brand-50 hover:bg-brand-800 text-brand-700 hover:text-on-brand font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-98 cursor-pointer mt-1"
                         >
                           <span>معاينة الأصل الهندسي</span>
                           <ChevronLeft className="w-3.5 h-3.5" />
@@ -1188,61 +1120,61 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <div className="p-3.5 sm:p-5 space-y-4 sm:space-y-6">
             {/* Condition Grade Grid (2x2 on mobile, 4-col on desktop) */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
-              <div className={`p-2.5 sm:p-4 rounded-xl border min-w-0 overflow-hidden break-words ${isLight ? 'bg-emerald-50/60 border-emerald-200' : 'bg-emerald-500/10 border-emerald-500/20'}`}>
+              <div className={`p-2.5 sm:p-4 rounded-xl border min-w-0 overflow-hidden break-words bg-emerald-50/60 border-emerald-200`}>
                 <div className="flex items-center justify-between gap-1">
-                  <span className="font-bold text-[11px] sm:text-xs text-emerald-600 dark:text-emerald-400 truncate">Grade A ممتاز</span>
-                  <span className="text-sm xs:text-base sm:text-lg font-black text-emerald-600 dark:text-emerald-400 shrink-0">{toArabicDigits(gradeAPct)}%</span>
+                  <span className="font-bold text-[11px] sm:text-xs text-emerald-600 truncate">Grade A ممتاز</span>
+                  <span className="text-sm xs:text-base sm:text-lg font-black text-emerald-600 shrink-0">{toArabicDigits(gradeAPct)}%</span>
                 </div>
-                <div className="text-base sm:text-xl font-black text-emerald-600 dark:text-emerald-400 mt-1 sm:mt-2 truncate">{toArabicDigits(gradeACount)} وحدة</div>
+                <div className="text-base sm:text-xl font-black text-emerald-600 mt-1 sm:mt-2 truncate">{toArabicDigits(gradeACount)} وحدة</div>
                 <p className="text-[10px] sm:text-[11px] text-slate-500 mt-1 leading-snug break-words">مطابقة لمعايير HSE السلامة</p>
               </div>
 
-              <div className={`p-2.5 sm:p-4 rounded-xl border min-w-0 overflow-hidden break-words ${isLight ? 'bg-blue-50/60 border-blue-200' : 'bg-blue-500/10 border-blue-500/20'}`}>
+              <div className={`p-2.5 sm:p-4 rounded-xl border min-w-0 overflow-hidden break-words bg-blue-50/60 border-blue-200`}>
                 <div className="flex items-center justify-between gap-1">
-                  <span className="font-bold text-[11px] sm:text-xs text-blue-600 dark:text-blue-400 truncate">Grade B جيد جداً</span>
-                  <span className="text-sm xs:text-base sm:text-lg font-black text-blue-600 dark:text-blue-400 shrink-0">{toArabicDigits(gradeBPct)}%</span>
+                  <span className="font-bold text-[11px] sm:text-xs text-blue-600 truncate">Grade B جيد جداً</span>
+                  <span className="text-sm xs:text-base sm:text-lg font-black text-blue-600 shrink-0">{toArabicDigits(gradeBPct)}%</span>
                 </div>
-                <div className="text-base sm:text-xl font-black text-blue-600 dark:text-blue-400 mt-1 sm:mt-2 truncate">{toArabicDigits(gradeBCount)} وحدة</div>
+                <div className="text-base sm:text-xl font-black text-blue-600 mt-1 sm:mt-2 truncate">{toArabicDigits(gradeBCount)} وحدة</div>
                 <p className="text-[10px] sm:text-[11px] text-slate-500 mt-1 leading-snug break-words">عيوب طفيفة لا تؤثر تشغيلياً</p>
               </div>
 
-              <div className={`p-2.5 sm:p-4 rounded-xl border min-w-0 overflow-hidden break-words ${isLight ? 'bg-amber-50/60 border-amber-200' : 'bg-amber-500/10 border-amber-500/20'}`}>
+              <div className={`p-2.5 sm:p-4 rounded-xl border min-w-0 overflow-hidden break-words bg-brand-50 border-brand-200`}>
                 <div className="flex items-center justify-between gap-1">
-                  <span className="font-bold text-[11px] sm:text-xs text-amber-600 dark:text-amber-400 truncate">Grade C متوسط</span>
-                  <span className="text-sm xs:text-base sm:text-lg font-black text-amber-600 dark:text-amber-400 shrink-0">{toArabicDigits(gradeCPct)}%</span>
+                  <span className="font-bold text-[11px] sm:text-xs text-brand-700 truncate">Grade C متوسط</span>
+                  <span className="text-sm xs:text-base sm:text-lg font-black text-brand-700 shrink-0">{toArabicDigits(gradeCPct)}%</span>
                 </div>
-                <div className="text-base sm:text-xl font-black text-amber-600 dark:text-amber-400 mt-1 sm:mt-2 truncate">{toArabicDigits(gradeCCount)} وحدة</div>
+                <div className="text-base sm:text-xl font-black text-brand-700 mt-1 sm:mt-2 truncate">{toArabicDigits(gradeCCount)} وحدة</div>
                 <p className="text-[10px] sm:text-[11px] text-slate-500 mt-1 leading-snug break-words">بحاجة لصيانة وتأهيل</p>
               </div>
 
-              <div className={`p-2.5 sm:p-4 rounded-xl border min-w-0 overflow-hidden break-words ${isLight ? 'bg-red-50/60 border-red-200' : 'bg-red-500/10 border-red-500/20'}`}>
+              <div className={`p-2.5 sm:p-4 rounded-xl border min-w-0 overflow-hidden break-words bg-red-50/60 border-red-200`}>
                 <div className="flex items-center justify-between gap-1">
-                  <span className="font-bold text-[11px] sm:text-xs text-red-600 dark:text-red-400 truncate">Grade D حرج</span>
-                  <span className="text-sm xs:text-base sm:text-lg font-black text-red-600 dark:text-red-400 shrink-0">{toArabicDigits(gradeDPct)}%</span>
+                  <span className="font-bold text-[11px] sm:text-xs text-red-600 truncate">Grade D حرج</span>
+                  <span className="text-sm xs:text-base sm:text-lg font-black text-red-600 shrink-0">{toArabicDigits(gradeDPct)}%</span>
                 </div>
-                <div className="text-base sm:text-xl font-black text-red-600 dark:text-red-400 mt-1 sm:mt-2 truncate">{toArabicDigits(gradeDCount)} وحدة</div>
+                <div className="text-base sm:text-xl font-black text-red-600 mt-1 sm:mt-2 truncate">{toArabicDigits(gradeDCount)} وحدة</div>
                 <p className="text-[10px] sm:text-[11px] text-slate-500 mt-1 leading-snug break-words">حالة حرجة تتطلب تدخلاً</p>
               </div>
             </div>
 
             {/* Breakdown by Unit Types */}
-            <div className={`p-4 rounded-xl border ${isLight ? 'bg-slate-50/50 border-slate-200' : 'bg-slate-950/40 border-slate-800'}`}>
-              <h3 className={`font-bold text-xs mb-3 ${isLight ? 'text-slate-800' : 'text-slate-200'}`}>
+            <div className={`p-4 rounded-xl border bg-slate-50/50 border-slate-200`}>
+              <h3 className={`font-bold text-xs mb-3 text-slate-800`}>
                 توزيع الوحدات حسب الفئة والتصنيف الهيكلي:
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                 {unitTypesBreakdown.map((item, idx) => (
                   <div
                     key={idx}
-                    className={`p-3 rounded-lg border ${isLight ? 'bg-white border-slate-200' : 'bg-slate-900 border-slate-800'}`}
+                    className={`p-3 rounded-lg border bg-card border-slate-200`}
                   >
                     <div className="flex items-center justify-between text-xs">
-                      <span className={`font-bold ${isLight ? 'text-slate-800' : 'text-slate-200'}`}>{item.name}</span>
-                      <span className="text-amber-500 font-black">{toArabicDigits(item.count)} وحدة</span>
+                      <span className={`font-bold text-slate-800`}>{item.name}</span>
+                      <span className="text-brand-700 font-black">{toArabicDigits(item.count)} وحدة</span>
                     </div>
-                    <div className={`w-full rounded-full h-1.5 overflow-hidden mt-2 ${isLight ? 'bg-slate-100' : 'bg-slate-800'}`}>
+                    <div className={`w-full rounded-full h-1.5 overflow-hidden mt-2 bg-slate-100`}>
                       <div
-                        className="bg-amber-500 h-full rounded-full"
+                        className="bg-brand-700 h-full rounded-full"
                         style={{ width: `${Math.max(item.percentage, 5)}%` }}
                       ></div>
                     </div>

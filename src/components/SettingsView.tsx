@@ -827,7 +827,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     <div className="space-y-6">
       {/* Toast Notification */}
       {saveMessage && (
-        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-emerald-500 text-slate-950 font-black px-6 py-3 rounded-2xl shadow-2xl border border-emerald-300 flex items-center gap-2 animate-bounce">
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-emerald-500 text-on-brand font-black px-6 py-3 rounded-2xl shadow-2xl border border-emerald-200 flex items-center gap-2 animate-bounce">
           <CheckCircle2 className="w-5 h-5" />
           <span>{saveMessage}</span>
         </div>
@@ -835,20 +835,16 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
       {/* Header Banner */}
       <div
-        className={`rounded-2xl p-5 shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4 border transition ${
-          isLight ? 'bg-white border-slate-200 shadow-slate-200/50' : 'bg-slate-900 border-slate-800'
-        }`}
+        className={`rounded-2xl p-5 shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4 border transition bg-card border-slate-200 shadow-slate-200/50`}
       >
         <div>
           <h2
-            className={`text-lg font-bold flex items-center gap-2 ${
-              isLight ? 'text-slate-900' : 'text-slate-100'
-            }`}
+            className={`text-lg font-bold flex items-center gap-2 text-slate-900`}
           >
-            <Settings className="w-5 h-5 text-amber-500" />
+            <Settings className="w-5 h-5 text-brand-700" />
             <span>إعدادات النظام</span>
           </h2>
-          <p className={`text-xs mt-0.5 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+          <p className={`text-xs mt-0.5 text-slate-600`}>
             تخصيص اسم النظام والشركة المالك، إدارة المستخدمين والمحافظات والحقول والدليل المرجعي الكامل مع التعديل والحذف
           </p>
         </div>
@@ -856,20 +852,18 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
       {/* Top Horizontal Navigation Panel for Settings (Replaces sidebar, distributes buttons harmoniously) */}
       <div
-        className={`rounded-2xl p-4 sm:p-5 shadow-lg border space-y-4 ${
-          isLight ? 'bg-white border-slate-200 shadow-slate-200/50' : 'bg-slate-900 border-slate-800'
-        }`}
+        className={`rounded-2xl p-4 sm:p-5 shadow-lg border space-y-4 bg-card border-slate-200 shadow-slate-200/50`}
       >
         {/* Section 1 & Section 3: General Settings & Backup/Monitoring in a 2-column balanced row */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* إعدادات النظام العامة */}
           <div className="space-y-2">
             <div className="flex items-center justify-between px-1">
-              <span className={`text-[11px] font-black uppercase tracking-wider flex items-center gap-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
-                <Settings className="w-3.5 h-3.5 text-amber-500" />
+              <span className={`text-[11px] font-black uppercase tracking-wider flex items-center gap-1.5 text-slate-700`}>
+                <Settings className="w-3.5 h-3.5 text-brand-700" />
                 <span>إعدادات النظام العامة</span>
               </span>
-              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${isLight ? 'bg-amber-100 text-amber-800' : 'bg-amber-500/10 text-amber-400'}`}>
+              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md bg-brand-100 text-brand-800`}>
                 ٣ أقسام رئيسية
               </span>
             </div>
@@ -879,19 +873,15 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 onClick={() => setActiveTab('branding')}
                 className={`p-2.5 rounded-xl font-bold transition flex items-center justify-between cursor-pointer border text-xs ${
                   activeTab === 'branding'
-                    ? isLight
-                      ? 'bg-amber-100 text-amber-950 border-amber-300 shadow-xs'
-                      : 'bg-amber-500/20 text-amber-300 border-amber-500/40 shadow-xs'
-                    : isLight
-                    ? 'bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200'
-                    : 'bg-slate-800/60 text-slate-300 hover:bg-slate-800 border-slate-700/60'
+                    ? 'bg-brand-100 text-brand-800 border-brand-200 shadow-xs'
+                    : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200'
                 }`}
               >
                 <span className="flex items-center gap-1.5 truncate">
-                  <Palette className={`w-4 h-4 shrink-0 ${isLight ? 'text-amber-600' : 'text-amber-400'}`} />
+                  <Palette className={`w-4 h-4 shrink-0 text-brand-700`} />
                   <span className="truncate">الهوية البصرية</span>
                 </span>
-                <Sparkles className={`w-3.5 h-3.5 shrink-0 ${isLight ? 'text-amber-600' : 'text-amber-400'}`} />
+                <Sparkles className={`w-3.5 h-3.5 shrink-0 text-brand-700`} />
               </button>
 
               {/* Org */}
@@ -899,22 +889,16 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 onClick={() => setActiveTab('org')}
                 className={`p-2.5 rounded-xl font-bold transition flex items-center justify-between cursor-pointer border text-xs ${
                   activeTab === 'org'
-                    ? isLight
-                      ? 'bg-amber-100 text-amber-950 border-amber-300 shadow-xs'
-                      : 'bg-amber-500/20 text-amber-300 border-amber-500/40 shadow-xs'
-                    : isLight
-                    ? 'bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200'
-                    : 'bg-slate-800/60 text-slate-300 hover:bg-slate-800 border-slate-700/60'
+                    ? 'bg-brand-100 text-brand-800 border-brand-200 shadow-xs'
+                    : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200'
                 }`}
               >
                 <span className="flex items-center gap-1.5 truncate">
-                  <Network className={`w-4 h-4 shrink-0 ${isLight ? 'text-amber-600' : 'text-amber-500'}`} />
+                  <Network className={`w-4 h-4 shrink-0 text-brand-700`} />
                   <span className="truncate">الهيكل التنظيمي</span>
                 </span>
                 <span
-                  className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold shrink-0 ${
-                    isLight ? 'bg-amber-200/80 text-amber-900' : 'bg-slate-950 text-amber-400'
-                  }`}
+                  className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold shrink-0 bg-brand-100 text-brand-800`}
                 >
                   {toArabicDigits(orgEntities.length)}
                 </span>
@@ -925,22 +909,16 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 onClick={() => setActiveTab('users')}
                 className={`p-2.5 rounded-xl font-bold transition flex items-center justify-between cursor-pointer border text-xs ${
                   activeTab === 'users'
-                    ? isLight
-                      ? 'bg-emerald-100 text-emerald-950 border-emerald-300 shadow-xs'
-                      : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 shadow-xs'
-                    : isLight
-                    ? 'bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200'
-                    : 'bg-slate-800/60 text-slate-300 hover:bg-slate-800 border-slate-700/60'
+                    ? 'bg-emerald-100 text-emerald-900 border-emerald-200 shadow-xs'
+                    : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200'
                 }`}
               >
                 <span className="flex items-center gap-1.5 truncate">
-                  <Users className={`w-4 h-4 shrink-0 ${isLight ? 'text-emerald-600' : 'text-emerald-400'}`} />
+                  <Users className={`w-4 h-4 shrink-0 text-emerald-600`} />
                   <span className="truncate">المستخدمين</span>
                 </span>
                 <span
-                  className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold shrink-0 ${
-                    isLight ? 'bg-emerald-200/80 text-emerald-900' : 'bg-slate-950 text-emerald-400'
-                  }`}
+                  className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold shrink-0 bg-emerald-200/80 text-emerald-900`}
                 >
                   {toArabicDigits(users.length)}
                 </span>
@@ -951,11 +929,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           {/* النسخ الاحتياطي والمراقبة */}
           <div className="space-y-2">
             <div className="flex items-center justify-between px-1">
-              <span className={`text-[11px] font-black uppercase tracking-wider flex items-center gap-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
-                <ShieldCheck className="w-3.5 h-3.5 text-sky-500" />
+              <span className={`text-[11px] font-black uppercase tracking-wider flex items-center gap-1.5 text-slate-700`}>
+                <ShieldCheck className="w-3.5 h-3.5 text-sky-600" />
                 <span>النسخ الاحتياطي والمراقبة</span>
               </span>
-              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${isLight ? 'bg-sky-100 text-sky-800' : 'bg-sky-500/10 text-sky-400'}`}>
+              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md bg-sky-100 text-sky-800`}>
                 أمان وتدقيق
               </span>
             </div>
@@ -965,22 +943,16 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 onClick={() => setActiveTab('backup_restore')}
                 className={`p-2.5 rounded-xl font-bold transition flex items-center justify-between cursor-pointer border text-xs ${
                   activeTab === 'backup_restore'
-                    ? isLight
-                      ? 'bg-amber-100 text-amber-950 border-amber-300 shadow-xs'
-                      : 'bg-amber-500/20 text-amber-300 border-amber-500/40 shadow-xs'
-                    : isLight
-                    ? 'bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200'
-                    : 'bg-slate-800/60 text-slate-300 hover:bg-slate-800 border-slate-700/60'
+                    ? 'bg-brand-100 text-brand-800 border-brand-200 shadow-xs'
+                    : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200'
                 }`}
               >
                 <span className="flex items-center gap-1.5 truncate">
-                  <Database className={`w-4 h-4 shrink-0 ${isLight ? 'text-amber-600' : 'text-amber-400'}`} />
+                  <Database className={`w-4 h-4 shrink-0 text-brand-700`} />
                   <span className="truncate">النسخ الاحتياطي</span>
                 </span>
                 <span
-                  className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold shrink-0 ${
-                    isLight ? 'bg-amber-200/80 text-amber-900' : 'bg-slate-950 text-amber-400'
-                  }`}
+                  className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold shrink-0 bg-brand-100 text-brand-800`}
                 >
                   شامل
                 </span>
@@ -991,22 +963,16 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 onClick={() => setActiveTab('audit')}
                 className={`p-2.5 rounded-xl font-bold transition flex items-center justify-between cursor-pointer border text-xs ${
                   activeTab === 'audit'
-                    ? isLight
-                      ? 'bg-teal-100 text-teal-950 border-teal-300 shadow-xs'
-                      : 'bg-teal-500/20 text-teal-300 border-teal-500/40 shadow-xs'
-                    : isLight
-                    ? 'bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200'
-                    : 'bg-slate-800/60 text-slate-300 hover:bg-slate-800 border-slate-700/60'
+                    ? 'bg-teal-100 text-teal-900 border-teal-200 shadow-xs'
+                    : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200'
                 }`}
               >
                 <span className="flex items-center gap-1.5 truncate">
-                  <Activity className={`w-4 h-4 shrink-0 ${isLight ? 'text-teal-600' : 'text-teal-400'}`} />
+                  <Activity className={`w-4 h-4 shrink-0 text-teal-600`} />
                   <span className="truncate">سجل النشاطات</span>
                 </span>
                 <span
-                  className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold shrink-0 ${
-                    isLight ? 'bg-teal-200/80 text-teal-900' : 'bg-slate-950 text-teal-400'
-                  }`}
+                  className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold shrink-0 bg-teal-200/80 text-teal-900`}
                 >
                   {toArabicDigits(auditLogs.length)}
                 </span>
@@ -1017,32 +983,28 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 onClick={() => setActiveTab('reset')}
                 className={`p-2.5 rounded-xl font-bold transition flex items-center justify-between cursor-pointer border text-xs ${
                   activeTab === 'reset'
-                    ? isLight
-                      ? 'bg-red-100 text-red-950 border-red-300 shadow-xs'
-                      : 'bg-red-500/20 text-red-300 border-red-500/40 shadow-xs'
-                    : isLight
-                    ? 'bg-slate-50 text-slate-700 hover:bg-red-50 hover:text-red-700 border-slate-200'
-                    : 'bg-slate-800/60 text-slate-300 hover:bg-red-500/10 hover:text-red-300 border-slate-700/60'
+                    ? 'bg-red-100 text-red-900 border-red-200 shadow-xs'
+                    : 'bg-slate-50 text-slate-700 hover:bg-red-50 hover:text-red-700 border-slate-200'
                 }`}
               >
                 <span className="flex items-center gap-1.5 truncate">
-                  <RotateCcw className={`w-4 h-4 shrink-0 ${isLight ? 'text-red-600' : 'text-red-400'}`} />
+                  <RotateCcw className={`w-4 h-4 shrink-0 text-red-600`} />
                   <span className="truncate">ضبط المصنع</span>
                 </span>
-                <AlertTriangle className={`w-3.5 h-3.5 shrink-0 ${isLight ? 'text-red-600' : 'text-red-400'}`} />
+                <AlertTriangle className={`w-3.5 h-3.5 shrink-0 text-red-600`} />
               </button>
             </div>
           </div>
         </div>
 
         {/* Section 2: الجداول والدليل المرجعي (7 buttons in a neat responsive grid across the full width) */}
-        <div className="space-y-2 pt-3 border-t border-slate-200/80 dark:border-slate-800">
+        <div className="space-y-2 pt-3 border-t border-slate-200/80 ">
           <div className="flex items-center justify-between px-1">
-            <span className={`text-[11px] font-black uppercase tracking-wider flex items-center gap-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
-              <Layers className="w-3.5 h-3.5 text-amber-500" />
+            <span className={`text-[11px] font-black uppercase tracking-wider flex items-center gap-1.5 text-slate-700`}>
+              <Layers className="w-3.5 h-3.5 text-brand-700" />
               <span>الجداول والدليل المرجعي</span>
             </span>
-            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${isLight ? 'bg-slate-100 text-slate-600' : 'bg-slate-800 text-slate-400'}`}>
+            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600`}>
               ٧ جداول مرجعية مركزية
             </span>
           </div>
@@ -1053,19 +1015,15 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               onClick={() => setActiveTab('governorates')}
               className={`p-2.5 rounded-xl font-bold transition flex items-center justify-between cursor-pointer border text-xs ${
                 activeTab === 'governorates'
-                  ? isLight
-                    ? 'bg-amber-100 text-amber-950 border-amber-300 shadow-xs'
-                    : 'bg-amber-500/20 text-amber-300 border-amber-500/40 shadow-xs'
-                  : isLight
-                  ? 'bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200'
-                  : 'bg-slate-800/60 text-slate-300 hover:bg-slate-800 border-slate-700/60'
+                  ? 'bg-brand-100 text-brand-800 border-brand-200 shadow-xs'
+                  : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200'
               }`}
             >
               <span className="flex items-center gap-1.5 truncate">
-                <MapPin className={`w-4 h-4 shrink-0 ${isLight ? 'text-sky-600' : 'text-sky-400'}`} />
+                <MapPin className={`w-4 h-4 shrink-0 text-sky-600`} />
                 <span className="truncate">المحافظات</span>
               </span>
-              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold shrink-0 ${isLight ? 'bg-slate-200/70 text-slate-700' : 'bg-slate-950 text-slate-400'}`}>
+              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold shrink-0 bg-slate-200/70 text-slate-700`}>
                 {toArabicDigits(governorates.length)}
               </span>
             </button>
@@ -1075,19 +1033,15 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               onClick={() => setActiveTab('oilfields')}
               className={`p-2.5 rounded-xl font-bold transition flex items-center justify-between cursor-pointer border text-xs ${
                 activeTab === 'oilfields'
-                  ? isLight
-                    ? 'bg-amber-100 text-amber-950 border-amber-300 shadow-xs'
-                    : 'bg-amber-500/20 text-amber-300 border-amber-500/40 shadow-xs'
-                  : isLight
-                  ? 'bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200'
-                  : 'bg-slate-800/60 text-slate-300 hover:bg-slate-800 border-slate-700/60'
+                  ? 'bg-brand-100 text-brand-800 border-brand-200 shadow-xs'
+                  : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200'
               }`}
             >
               <span className="flex items-center gap-1.5 truncate">
-                <Database className={`w-4 h-4 shrink-0 ${isLight ? 'text-amber-600' : 'text-amber-500'}`} />
+                <Database className={`w-4 h-4 shrink-0 text-brand-700`} />
                 <span className="truncate">الحقول النفطية</span>
               </span>
-              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold shrink-0 ${isLight ? 'bg-slate-200/70 text-slate-700' : 'bg-slate-950 text-slate-400'}`}>
+              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold shrink-0 bg-slate-200/70 text-slate-700`}>
                 {toArabicDigits(oilfields.length)}
               </span>
             </button>
@@ -1097,19 +1051,15 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               onClick={() => setActiveTab('unit_types')}
               className={`p-2.5 rounded-xl font-bold transition flex items-center justify-between cursor-pointer border text-xs ${
                 activeTab === 'unit_types'
-                  ? isLight
-                    ? 'bg-amber-100 text-amber-950 border-amber-300 shadow-xs'
-                    : 'bg-amber-500/20 text-amber-300 border-amber-500/40 shadow-xs'
-                  : isLight
-                  ? 'bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200'
-                  : 'bg-slate-800/60 text-slate-300 hover:bg-slate-800 border-slate-700/60'
+                  ? 'bg-brand-100 text-brand-800 border-brand-200 shadow-xs'
+                  : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200'
               }`}
             >
               <span className="flex items-center gap-1.5 truncate">
-                <Box className={`w-4 h-4 shrink-0 ${isLight ? 'text-purple-600' : 'text-purple-400'}`} />
+                <Box className={`w-4 h-4 shrink-0 text-purple-600`} />
                 <span className="truncate">أنواع المباني</span>
               </span>
-              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold shrink-0 ${isLight ? 'bg-slate-200/70 text-slate-700' : 'bg-slate-950 text-slate-400'}`}>
+              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold shrink-0 bg-slate-200/70 text-slate-700`}>
                 {toArabicDigits(unitTypes.length)}
               </span>
             </button>
@@ -1119,19 +1069,15 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               onClick={() => setActiveTab('rooms')}
               className={`p-2.5 rounded-xl font-bold transition flex items-center justify-between cursor-pointer border text-xs ${
                 activeTab === 'rooms'
-                  ? isLight
-                    ? 'bg-amber-100 text-amber-950 border-amber-300 shadow-xs'
-                    : 'bg-amber-500/20 text-amber-300 border-amber-500/40 shadow-xs'
-                  : isLight
-                  ? 'bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200'
-                  : 'bg-slate-800/60 text-slate-300 hover:bg-slate-800 border-slate-700/60'
+                  ? 'bg-brand-100 text-brand-800 border-brand-200 shadow-xs'
+                  : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200'
               }`}
             >
               <span className="flex items-center gap-1.5 truncate">
-                <Layers className={`w-4 h-4 shrink-0 ${isLight ? 'text-pink-600' : 'text-pink-400'}`} />
+                <Layers className={`w-4 h-4 shrink-0 text-pink-600`} />
                 <span className="truncate">تصنيفات الغرف</span>
               </span>
-              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold shrink-0 ${isLight ? 'bg-slate-200/70 text-slate-700' : 'bg-slate-950 text-slate-400'}`}>
+              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold shrink-0 bg-slate-200/70 text-slate-700`}>
                 {toArabicDigits(roomTypes.length)}
               </span>
             </button>
@@ -1141,19 +1087,15 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               onClick={() => setActiveTab('maintenance_depts')}
               className={`p-2.5 rounded-xl font-bold transition flex items-center justify-between cursor-pointer border text-xs ${
                 activeTab === 'maintenance_depts'
-                  ? isLight
-                    ? 'bg-amber-100 text-amber-950 border-amber-300 shadow-xs'
-                    : 'bg-amber-500/20 text-amber-300 border-amber-500/40 shadow-xs'
-                  : isLight
-                  ? 'bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200'
-                  : 'bg-slate-800/60 text-slate-300 hover:bg-slate-800 border-slate-700/60'
+                  ? 'bg-brand-100 text-brand-800 border-brand-200 shadow-xs'
+                  : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200'
               }`}
             >
               <span className="flex items-center gap-1.5 truncate">
-                <Wrench className={`w-4 h-4 shrink-0 ${isLight ? 'text-amber-600' : 'text-amber-400'}`} />
+                <Wrench className={`w-4 h-4 shrink-0 text-brand-700`} />
                 <span className="truncate">أقسام الصيانة</span>
               </span>
-              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold shrink-0 ${isLight ? 'bg-slate-200/70 text-slate-700' : 'bg-slate-950 text-slate-400'}`}>
+              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold shrink-0 bg-slate-200/70 text-slate-700`}>
                 {toArabicDigits(maintenanceDepartments.length)}
               </span>
             </button>
@@ -1163,22 +1105,18 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
       {/* Content Body Area (Spans 100% Full Width of the Screen) */}
       <div
-        className={`w-full rounded-2xl p-5 shadow-lg space-y-4 text-xs border ${
-          isLight
-            ? 'bg-white border-slate-200 shadow-slate-200/50 text-slate-800'
-            : 'bg-slate-900 border-slate-800 text-slate-100'
-        }`}
+        className={`w-full rounded-2xl p-5 shadow-lg space-y-4 text-xs border bg-card border-slate-200 shadow-slate-200/50 text-slate-800`}
       >
           {/* TAB 0: Visual Identity & Branding */}
           {activeTab === 'branding' && (
             <div className="space-y-6">
-              <div className="border-b border-slate-800 pb-3 flex items-center justify-between">
+              <div className="border-b border-slate-200 pb-3 flex items-center justify-between">
                 <div>
-                  <h3 className="font-bold text-slate-100 text-sm flex items-center gap-2">
-                    <Palette className="w-4 h-4 text-amber-400" />
+                  <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2">
+                    <Palette className="w-4 h-4 text-brand-700" />
                     <span>التحكم بالهوية البصرية والملكية للنظام</span>
                   </h3>
-                  <p className="text-slate-400 text-xs mt-0.5">
+                  <p className="text-slate-500 text-xs mt-0.5">
                     تعديل المسميات الرسمية التي تظهر في شريط العنوان الأعلى، الهيدر، التقارير المطبوعة، وحقوق الملكية
                   </p>
                 </div>
@@ -1189,13 +1127,13 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 {/* Form Controls */}
                 <form onSubmit={handleSaveBranding} className="lg:col-span-7 space-y-4">
                   {/* LOGO UPLOAD & MANAGEMENT SECTION */}
-                  <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-3.5 shadow-inner">
-                    <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                      <label className="text-slate-200 font-bold text-xs flex items-center gap-2">
-                        <FileImage className="w-4 h-4 text-amber-400" />
+                  <div className="p-4 rounded-2xl bg-card border border-slate-200 space-y-3.5 shadow-inner">
+                    <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+                      <label className="text-slate-800 font-bold text-xs flex items-center gap-2">
+                        <FileImage className="w-4 h-4 text-brand-700" />
                         <span>شعار / لوكو النظام (System Logo):</span>
                       </label>
-                      <span className="text-[10px] text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20 font-mono font-bold">
+                      <span className="text-[10px] text-brand-700 bg-brand-50 px-2 py-0.5 rounded border border-brand-200 font-mono font-bold">
                         تخزين دائم في قاعدة البيانات (Base64)
                       </span>
                     </div>
@@ -1203,7 +1141,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     <div className="flex flex-col sm:flex-row items-center gap-4">
                       {/* LOGO PREVIEW DISPLAY BOX */}
                       <div className="relative group shrink-0">
-                        <div className="w-24 h-24 rounded-2xl bg-slate-900 border-2 border-dashed border-amber-500/30 flex items-center justify-center p-2 overflow-hidden shadow-inner relative">
+                        <div className="w-24 h-24 rounded-2xl bg-card border-2 border-dashed border-brand-200 flex items-center justify-center p-2 overflow-hidden shadow-inner relative">
                           {brandingForm.logoUrl ? (
                             <img
                               src={brandingForm.logoUrl}
@@ -1212,8 +1150,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                             />
                           ) : (
                             <div className="text-center text-slate-500">
-                              <ShieldCheck className="w-10 h-10 mx-auto text-amber-500/50 mb-1" />
-                              <span className="text-[9px] block text-slate-400 font-semibold">الشعار الافتراضي</span>
+                              <ShieldCheck className="w-10 h-10 mx-auto text-brand-700 mb-1" />
+                              <span className="text-[9px] block text-slate-500 font-semibold">الشعار الافتراضي</span>
                             </div>
                           )}
                         </div>
@@ -1243,7 +1181,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                               handleLogoFileUpload(e.dataTransfer.files[0]);
                             }
                           }}
-                          className="border-2 border-dashed border-slate-800 hover:border-amber-500/60 bg-slate-900/80 hover:bg-slate-900 rounded-xl p-3 text-center transition cursor-pointer group"
+                          className="border-2 border-dashed border-slate-200 hover:border-brand-200 bg-card/80 hover:bg-card rounded-xl p-3 text-center transition cursor-pointer group"
                           onClick={() => logoFileInputRef.current?.click()}
                         >
                           <input
@@ -1257,18 +1195,18 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                             accept="image/*"
                             className="hidden"
                           />
-                          <Upload className="w-6 h-6 mx-auto text-amber-500 group-hover:scale-110 transition mb-1" />
-                          <span className="text-xs font-bold text-slate-200 block">
+                          <Upload className="w-6 h-6 mx-auto text-brand-700 group-hover:scale-110 transition mb-1" />
+                          <span className="text-xs font-bold text-slate-800 block">
                             رفع صورة اللوكو من الحاسوب (أو اسحب الملف هنا)
                           </span>
-                          <span className="text-[10px] text-slate-400 block mt-0.5">
+                          <span className="text-[10px] text-slate-500 block mt-0.5">
                             يدعم PNG, JPG, WebP, SVG - يفضل خلفية شفافة (أقل من 5 ميغا)
                           </span>
                         </div>
 
                         {/* SAMPLE PRESET LOGOS */}
                         <div className="flex items-center gap-2 pt-1 flex-wrap">
-                          <span className="text-[10px] text-slate-400 font-bold">الخيارات السريعة للشعار:</span>
+                          <span className="text-[10px] text-slate-500 font-bold">الخيارات السريعة للشعار:</span>
                           <button
                             type="button"
                             onClick={() => {
@@ -1278,7 +1216,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                               });
                               triggerSaveToast('تم استعادة الشعار الافتراضي للنظام');
                             }}
-                            className="text-xs bg-white hover:bg-slate-100 text-teal-800 hover:text-teal-900 px-3 py-1.5 rounded-lg border border-slate-300 font-bold transition cursor-pointer shadow-xs flex items-center gap-1.5"
+                            className="text-xs bg-card hover:bg-slate-100 text-teal-800 hover:text-teal-900 px-3 py-1.5 rounded-lg border border-slate-300 font-bold transition cursor-pointer shadow-xs flex items-center gap-1.5"
                           >
                             <Building2 className="w-3.5 h-3.5 text-teal-600" />
                             <span>الشعار الافتراضي للنظام</span>
@@ -1289,8 +1227,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   </div>
 
                   <div>
-                    <label className="block text-slate-300 font-bold mb-1 flex items-center gap-1.5">
-                      <FileText className="w-3.5 h-3.5 text-amber-400" />
+                    <label className="block text-slate-600 font-bold mb-1 flex items-center gap-1.5">
+                      <FileText className="w-3.5 h-3.5 text-brand-700" />
                       <span>اسم النظام / التطبيق:</span>
                     </label>
                     <input
@@ -1299,14 +1237,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       value={brandingForm.systemName}
                       onChange={(e) => setBrandingForm({ ...brandingForm, systemName: e.target.value })}
                       placeholder="السجل الرقمي الموحد للأصول الهندسية والإنشائية"
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-slate-100 font-bold focus:border-amber-500 transition"
+                      className="w-full bg-card border border-slate-200 rounded-xl p-2.5 text-slate-800 font-bold focus:border-brand-600 transition"
                     />
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-slate-300 font-bold mb-1 flex items-center gap-1.5">
-                        <Building className="w-3.5 h-3.5 text-sky-400" />
+                      <label className="block text-slate-600 font-bold mb-1 flex items-center gap-1.5">
+                        <Building className="w-3.5 h-3.5 text-sky-600" />
                         <span>الشركة / المؤسسة:</span>
                       </label>
                       <input
@@ -1315,13 +1253,13 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                         value={brandingForm.companyName}
                         onChange={(e) => setBrandingForm({ ...brandingForm, companyName: e.target.value })}
                         placeholder="شركة نفط الوسط"
-                        className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-slate-100 font-bold"
+                        className="w-full bg-card border border-slate-200 rounded-xl p-2.5 text-slate-800 font-bold"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-slate-300 font-bold mb-1 flex items-center gap-1.5">
-                        <Building2 className="w-3.5 h-3.5 text-emerald-400" />
+                      <label className="block text-slate-600 font-bold mb-1 flex items-center gap-1.5">
+                        <Building2 className="w-3.5 h-3.5 text-emerald-600" />
                         <span>الوزارة / الجهة العليا:</span>
                       </label>
                       <input
@@ -1330,15 +1268,15 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                         value={brandingForm.ministryName}
                         onChange={(e) => setBrandingForm({ ...brandingForm, ministryName: e.target.value })}
                         placeholder="وزارة النفط العراقية"
-                        className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-slate-100 font-bold"
+                        className="w-full bg-card border border-slate-200 rounded-xl p-2.5 text-slate-800 font-bold"
                       />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-slate-300 font-bold mb-1 flex items-center gap-1.5">
-                        <Globe className="w-3.5 h-3.5 text-teal-400" />
+                      <label className="block text-slate-600 font-bold mb-1 flex items-center gap-1.5">
+                        <Globe className="w-3.5 h-3.5 text-teal-600" />
                         <span>الدولة:</span>
                       </label>
                       <input
@@ -1347,13 +1285,13 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                         value={brandingForm.countryName}
                         onChange={(e) => setBrandingForm({ ...brandingForm, countryName: e.target.value })}
                         placeholder="جمهورية العراق"
-                        className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-slate-100 font-bold"
+                        className="w-full bg-card border border-slate-200 rounded-xl p-2.5 text-slate-800 font-bold"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-slate-300 font-bold mb-1 flex items-center gap-1.5">
-                        <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                      <label className="block text-slate-600 font-bold mb-1 flex items-center gap-1.5">
+                        <Sparkles className="w-3.5 h-3.5 text-brand-700" />
                         <span>شعار الشارة (Subtext):</span>
                       </label>
                       <input
@@ -1361,16 +1299,16 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                         value={brandingForm.logoSubtext || ''}
                         onChange={(e) => setBrandingForm({ ...brandingForm, logoSubtext: e.target.value })}
                         placeholder="عراق"
-                        className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-amber-400 font-bold"
+                        className="w-full bg-card border border-slate-200 rounded-xl p-2.5 text-brand-700 font-bold"
                       />
                     </div>
                   </div>
 
                   {/* مظهر الواجهة (التصميم المعتمد): اللون الأساسي والخط ونمط القائمة الجانبية */}
-                  <div className="rounded-xl border border-slate-800 p-3 space-y-3">
-                    <div className="text-slate-300 font-bold">مظهر الواجهة</div>
+                  <div className="rounded-xl border border-slate-200 p-3 space-y-3">
+                    <div className="text-slate-600 font-bold">مظهر الواجهة</div>
                     <div>
-                      <div className="text-slate-400 mb-1.5">اللون الأساسي:</div>
+                      <div className="text-slate-500 mb-1.5">اللون الأساسي:</div>
                       <div className="flex flex-wrap gap-2">
                         {THEMES.map((t) => {
                           const selected = (brandingForm.themeId || 'buildings') === t.id;
@@ -1382,11 +1320,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                               title={t.label}
                               aria-pressed={selected}
                               className={`flex items-center gap-2 rounded-lg border px-2.5 py-1.5 font-bold transition cursor-pointer ${
-                                selected ? 'border-amber-500 ring-2 ring-amber-500/40' : 'border-slate-700'
+                                selected ? 'border-brand-600 ring-2 ring-brand-600/40' : 'border-slate-200'
                               }`}
                             >
                               <span className="h-4 w-4 rounded-full border border-white/40" style={{ backgroundColor: t.color }} />
-                              <span className="text-slate-300">{t.label}</span>
+                              <span className="text-slate-600">{t.label}</span>
                             </button>
                           );
                         })}
@@ -1394,11 +1332,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
-                        <label className="block text-slate-400 mb-1">الخط:</label>
+                        <label className="block text-slate-500 mb-1">الخط:</label>
                         <select
                           value={brandingForm.fontId || 'cairo'}
                           onChange={(e) => setBrandingForm({ ...brandingForm, fontId: e.target.value })}
-                          className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-slate-100 font-bold"
+                          className="w-full bg-card border border-slate-200 rounded-xl p-2.5 text-slate-800 font-bold"
                         >
                           {FONTS.map((f) => (
                             <option key={f.id} value={f.id}>
@@ -1408,13 +1346,13 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                         </select>
                       </div>
                       <div>
-                        <label className="block text-slate-400 mb-1">القائمة الجانبية:</label>
+                        <label className="block text-slate-500 mb-1">القائمة الجانبية:</label>
                         <select
                           value={brandingForm.sidebarStyle || 'primary'}
                           onChange={(e) =>
                             setBrandingForm({ ...brandingForm, sidebarStyle: e.target.value === 'light' ? 'light' : 'primary' })
                           }
-                          className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-slate-100 font-bold"
+                          className="w-full bg-card border border-slate-200 rounded-xl p-2.5 text-slate-800 font-bold"
                         >
                           <option value="primary">بلون الثيم</option>
                           <option value="light">فاتحة</option>
@@ -1424,8 +1362,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   </div>
 
                   <div>
-                    <label className="block text-slate-300 font-bold mb-1 flex items-center gap-1.5">
-                      <Copyright className="w-3.5 h-3.5 text-purple-400" />
+                    <label className="block text-slate-600 font-bold mb-1 flex items-center gap-1.5">
+                      <Copyright className="w-3.5 h-3.5 text-purple-600" />
                       <span>حقل حقوق الملكية الفكرية والطباعة:</span>
                     </label>
                     <textarea
@@ -1434,14 +1372,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       value={brandingForm.copyrightText}
                       onChange={(e) => setBrandingForm({ ...brandingForm, copyrightText: e.target.value })}
                       placeholder="جميع الحقوق محفوظة © 2026 - شركة نفط الوسط"
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-slate-300"
+                      className="w-full bg-card border border-slate-200 rounded-xl p-2.5 text-slate-600"
                     />
                   </div>
 
                   <div className="pt-2">
                     <button
                       type="submit"
-                      className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-6 py-3 rounded-xl shadow-lg transition cursor-pointer flex items-center gap-2 text-xs"
+                      className="bg-brand-700 hover:bg-brand-800 text-on-brand font-black px-6 py-3 rounded-xl shadow-lg transition cursor-pointer flex items-center gap-2 text-xs"
                     >
                       <CheckCircle2 className="w-4 h-4" />
                       <span>حفظ الهوية البصرية واللوكو بالنظام</span>
@@ -1450,42 +1388,42 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 </form>
 
                 {/* Live Preview Card */}
-                <div className="lg:col-span-5 bg-slate-950 border border-slate-800 rounded-2xl p-4 space-y-4 flex flex-col justify-between shadow-xl">
+                <div className="lg:col-span-5 bg-card border border-slate-200 rounded-2xl p-4 space-y-4 flex flex-col justify-between shadow-xl">
                   <div className="space-y-3">
-                    <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                      <div className="flex items-center gap-2 text-amber-400 font-bold">
+                    <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+                      <div className="flex items-center gap-2 text-brand-700 font-bold">
                         <Sparkles className="w-4 h-4" />
                         <span>معاينة الهوية البصرية الحية</span>
                       </div>
-                      <span className="text-[10px] text-slate-400">تحديث مباشر</span>
+                      <span className="text-[10px] text-slate-500">تحديث مباشر</span>
                     </div>
 
                     {/* Simulated Header Bar */}
-                    <div className="bg-slate-900 border border-slate-800 rounded-xl p-3 flex items-center gap-3">
+                    <div className="bg-card border border-slate-200 rounded-xl p-3 flex items-center gap-3">
                       {brandingForm.logoUrl ? (
-                        <div className="w-9 h-9 rounded-xl bg-slate-950 border border-amber-500/30 flex items-center justify-center p-1 shadow-inner overflow-hidden shrink-0">
+                        <div className="w-9 h-9 rounded-xl bg-card border border-brand-200 flex items-center justify-center p-1 shadow-inner overflow-hidden shrink-0">
                           <img src={brandingForm.logoUrl} alt="Logo" className="max-w-full max-h-full object-contain" />
                         </div>
                       ) : (
-                        <div className="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-500 font-bold shrink-0">
+                        <div className="w-9 h-9 rounded-xl bg-brand-50 border border-brand-200 flex items-center justify-center text-brand-700 font-bold shrink-0">
                           <ShieldCheck className="w-5 h-5" />
                         </div>
                       )}
                       <div className="overflow-hidden">
                         <div className="flex items-center gap-2">
-                          <span className="font-bold text-slate-100 truncate">{brandingForm.companyName || 'الشركة'}</span>
+                          <span className="font-bold text-slate-800 truncate">{brandingForm.companyName || 'الشركة'}</span>
                           {brandingForm.logoSubtext && (
-                            <span className="text-[9px] bg-amber-500/20 text-amber-300 px-1.5 py-0.2 rounded border border-amber-500/30 font-bold shrink-0">
+                            <span className="text-[9px] bg-brand-100 text-brand-700 px-1.5 py-0.2 rounded border border-brand-200 font-bold shrink-0">
                               {brandingForm.logoSubtext}
                             </span>
                           )}
                         </div>
-                        <p className="text-[10px] text-slate-400 truncate">{brandingForm.systemName || 'اسم النظام'}</p>
+                        <p className="text-[10px] text-slate-500 truncate">{brandingForm.systemName || 'اسم النظام'}</p>
                       </div>
                     </div>
 
                     {/* Simulated Report Header */}
-                    <div className="bg-white text-slate-950 rounded-xl p-3 space-y-1 shadow relative overflow-hidden">
+                    <div className="bg-card text-slate-950 rounded-xl p-3 space-y-1 shadow relative overflow-hidden">
                       {brandingForm.logoUrl && (
                         <img
                           src={brandingForm.logoUrl}
@@ -1499,14 +1437,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       <div className="text-center font-black text-xs text-slate-900">
                         {brandingForm.companyName}
                       </div>
-                      <div className="text-[10px] font-bold text-amber-700 text-center pt-1 border-t border-slate-200">
+                      <div className="text-[10px] font-bold text-brand-700 text-center pt-1 border-t border-slate-200">
                         {brandingForm.systemName}
                       </div>
                     </div>
                   </div>
 
                   {/* Copyright Notice Box */}
-                  <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-3 text-[11px] text-slate-400 text-center font-mono">
+                  <div className="bg-card/90 border border-slate-200 rounded-xl p-3 text-[11px] text-slate-500 text-center font-mono">
                     {brandingForm.copyrightText}
                   </div>
                 </div>
@@ -1535,34 +1473,26 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             <div className="space-y-4">
               {/* Header and Toolbar */}
               <div
-                className={`flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b gap-3 ${
-                  isLight ? 'border-slate-200' : 'border-slate-800'
-                }`}
+                className={`flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b gap-3 border-slate-200`}
               >
                 <div>
                   <h3
-                    className={`font-bold text-sm flex items-center gap-2 ${
-                      isLight ? 'text-slate-900' : 'text-slate-100'
-                    }`}
+                    className={`font-bold text-sm flex items-center gap-2 text-slate-900`}
                   >
-                    <Users className={`w-4 h-4 ${isLight ? 'text-emerald-600' : 'text-emerald-400'}`} />
+                    <Users className={`w-4 h-4 text-emerald-600`} />
                     <span>إدارة حسابات المستخدمين وصلاحيات الدخول (RBAC)</span>
                   </h3>
-                  <p className={`text-xs mt-0.5 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                  <p className={`text-xs mt-0.5 text-slate-600`}>
                     إدارة حسابات الدخول، تحديد الصلاحيات، وتنشيط أو تعطيل الحسابات فورياً
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => setShowPasswordsTable(!showPasswordsTable)}
-                    className={`font-bold px-3 py-2 rounded-xl text-xs flex items-center gap-1.5 border transition cursor-pointer ${
-                      isLight
-                        ? 'bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-300 shadow-xs'
-                        : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-700'
-                    }`}
+                    className={`font-bold px-3 py-2 rounded-xl text-xs flex items-center gap-1.5 border transition cursor-pointer bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-300 shadow-xs`}
                     title={showPasswordsTable ? 'إخفاء كلمات المرور' : 'إظهار كلمات المرور'}
                   >
-                    <Eye className={`w-3.5 h-3.5 ${isLight ? 'text-amber-600' : 'text-amber-400'}`} />
+                    <Eye className={`w-3.5 h-3.5 text-brand-700`} />
                     <span>{showPasswordsTable ? 'إخفاء المرور' : 'كشف المرور'}</span>
                   </button>
                   <button
@@ -1570,9 +1500,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     className={`font-bold px-3.5 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow transition cursor-pointer ${
                       showUserInlineForm && !userFormEditingId
                         ? 'bg-emerald-600 text-white shadow-emerald-600/30'
-                        : isLight
-                        ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/20'
-                        : 'bg-emerald-500 hover:bg-emerald-400 text-slate-950'
+                        : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/20'
                     }`}
                   >
                     <UserPlus className="w-4 h-4" />
@@ -1584,32 +1512,22 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               {/* Horizontal Inline Account Creation & Editing Form */}
               {showUserInlineForm && (
                 <div
-                  className={`rounded-2xl border p-4 transition-all duration-300 shadow-xl ${
-                    isLight
-                      ? 'bg-slate-50 border-emerald-400 shadow-slate-200 ring-1 ring-emerald-500/20'
-                      : 'bg-slate-900/95 border-emerald-500/40 shadow-emerald-950/20'
-                  }`}
+                  className={`rounded-2xl border p-4 transition-all duration-300 shadow-xl bg-slate-50 border-emerald-200 shadow-slate-200 ring-1 ring-emerald-500/20`}
                 >
                   <div
-                    className={`flex items-center justify-between pb-3 mb-3 border-b ${
-                      isLight ? 'border-slate-200' : 'border-slate-800/80'
-                    }`}
+                    className={`flex items-center justify-between pb-3 mb-3 border-b border-slate-200`}
                   >
                     <div className="flex items-center gap-2">
                       <div
-                        className={`w-7 h-7 rounded-lg border flex items-center justify-center ${
-                          isLight
-                            ? 'bg-emerald-100 border-emerald-300 text-emerald-800'
-                            : 'bg-emerald-500/20 border-emerald-500/40 text-emerald-400'
-                        }`}
+                        className={`w-7 h-7 rounded-lg border flex items-center justify-center bg-emerald-100 border-emerald-200 text-emerald-800`}
                       >
                         {userFormEditingId ? <Edit2 className="w-4 h-4" /> : <UserPlus className="w-4 h-4" />}
                       </div>
                       <div>
-                        <h4 className={`font-bold text-sm ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                        <h4 className={`font-bold text-sm text-slate-900`}>
                           {userFormEditingId ? 'تعديل بيانات حساب المستخدم' : 'إنشاء حساب مستخدم جديد'}
                         </h4>
-                        <p className={`text-[11px] ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                        <p className={`text-[11px] text-slate-600`}>
                           يرجى تعبئة الحقول المطلوبة لضبط اسم الظهور، اسم الدخول، كلمة المرور، والدور
                         </p>
                       </div>
@@ -1619,12 +1537,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       <span
                         className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${
                           userFormEditingId
-                            ? isLight
-                              ? 'bg-amber-100 text-amber-900 border-amber-300'
-                              : 'bg-amber-500/20 text-amber-400 border-amber-500/40'
-                            : isLight
-                            ? 'bg-emerald-100 text-emerald-900 border-emerald-300'
-                            : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40'
+                            ? 'bg-brand-100 text-brand-800 border-brand-200'
+                            : 'bg-emerald-100 text-emerald-900 border-emerald-200'
                         }`}
                       >
                         {userFormEditingId ? 'وضع التعديل' : 'حساب جديد'}
@@ -1632,11 +1546,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       <button
                         type="button"
                         onClick={handleCancelUserInline}
-                        className={`p-1 rounded-lg transition cursor-pointer ${
-                          isLight
-                            ? 'text-slate-500 hover:text-slate-900 hover:bg-slate-200'
-                            : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
-                        }`}
+                        className={`p-1 rounded-lg transition cursor-pointer text-slate-500 hover:text-slate-900 hover:bg-slate-200`}
                         title="إغلاق النموذج"
                       >
                         <X className="w-4 h-4" />
@@ -1646,13 +1556,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
                   {userFormError && (
                     <div
-                      className={`mb-3 p-2.5 rounded-xl text-xs flex items-center gap-2 border ${
-                        isLight
-                          ? 'bg-rose-50 border-rose-200 text-rose-800'
-                          : 'bg-rose-500/15 border-rose-500/30 text-rose-300'
-                      }`}
+                      className={`mb-3 p-2.5 rounded-xl text-xs flex items-center gap-2 border bg-rose-50 border-rose-200 text-rose-800`}
                     >
-                      <AlertTriangle className="w-4 h-4 text-rose-500 shrink-0" />
+                      <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
                       <span>{userFormError}</span>
                     </div>
                   )}
@@ -1663,11 +1569,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       {/* 1. Display Name */}
                       <div className="space-y-1.5">
                         <label
-                          className={`block text-[11px] font-bold ${
-                            isLight ? 'text-slate-700' : 'text-slate-300'
-                          }`}
+                          className={`block text-[11px] font-bold text-slate-700`}
                         >
-                          اسم المستخدم (الظاهر) <span className="text-rose-500">*</span>
+                          اسم المستخدم (الظاهر) <span className="text-rose-600">*</span>
                         </label>
                         <div className="relative">
                           <input
@@ -1676,11 +1580,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                             value={userDisplayName}
                             onChange={(e) => setUserDisplayName(e.target.value)}
                             placeholder="مثال: م. علي حسن"
-                            className={`w-full rounded-xl px-3 py-2 text-xs focus:outline-none transition border ${
-                              isLight
-                                ? 'bg-white border-slate-300 text-slate-900 placeholder:text-slate-400 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-500'
-                                : 'bg-slate-950 border-slate-700/80 text-slate-100 placeholder:text-slate-600 focus:border-emerald-500'
-                            }`}
+                            className={`w-full rounded-xl px-3 py-2 text-xs focus:outline-none transition border bg-card border-slate-300 text-slate-900 placeholder:text-slate-400 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-500`}
                           />
                         </div>
                       </div>
@@ -1688,11 +1588,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       {/* 2. Login Username */}
                       <div className="space-y-1.5">
                         <label
-                          className={`block text-[11px] font-bold ${
-                            isLight ? 'text-slate-700' : 'text-slate-300'
-                          }`}
+                          className={`block text-[11px] font-bold text-slate-700`}
                         >
-                          اسم الحساب (Login) <span className="text-rose-500">*</span>
+                          اسم الحساب (Login) <span className="text-rose-600">*</span>
                         </label>
                         <div className="relative">
                           <input
@@ -1701,11 +1599,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                             value={userAccountName}
                             onChange={(e) => setUserAccountName(e.target.value)}
                             placeholder="مثال: ali.hassan"
-                            className={`w-full rounded-xl px-3 py-2 text-xs font-mono font-bold focus:outline-none transition border ${
-                              isLight
-                                ? 'bg-amber-50/50 border-amber-300 text-amber-900 placeholder:text-slate-400 focus:border-amber-600 focus:ring-1 focus:ring-amber-500'
-                                : 'bg-slate-950 border-slate-700/80 text-amber-400 placeholder:text-slate-600 focus:border-amber-500'
-                            }`}
+                            className={`w-full rounded-xl px-3 py-2 text-xs font-mono font-bold focus:outline-none transition border bg-brand-50 border-brand-200 text-brand-800 placeholder:text-slate-400 focus:border-brand-600 focus:ring-1 focus:ring-brand-600`}
                           />
                         </div>
                       </div>
@@ -1713,11 +1607,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       {/* 3. Password */}
                       <div className="space-y-1.5">
                         <label
-                          className={`block text-[11px] font-bold ${
-                            isLight ? 'text-slate-700' : 'text-slate-300'
-                          }`}
+                          className={`block text-[11px] font-bold text-slate-700`}
                         >
-                          كلمة المرور <span className="text-rose-500">*</span>
+                          كلمة المرور <span className="text-rose-600">*</span>
                         </label>
                         <div className="relative">
                           <input
@@ -1726,20 +1618,12 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                             value={userPassword}
                             onChange={(e) => setUserPassword(e.target.value)}
                             placeholder="••••••••"
-                            className={`w-full rounded-xl px-3 py-2 pl-8 text-xs font-mono focus:outline-none transition border ${
-                              isLight
-                                ? 'bg-white border-slate-300 text-slate-900 placeholder:text-slate-400 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-500'
-                                : 'bg-slate-950 border-slate-700/80 text-slate-100 placeholder:text-slate-600 focus:border-emerald-500'
-                            }`}
+                            className={`w-full rounded-xl px-3 py-2 pl-8 text-xs font-mono focus:outline-none transition border bg-card border-slate-300 text-slate-900 placeholder:text-slate-400 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-500`}
                           />
                           <button
                             type="button"
                             onClick={() => setShowFormPassword(!showFormPassword)}
-                            className={`absolute left-2.5 top-1/2 -translate-y-1/2 transition ${
-                              isLight
-                                ? 'text-slate-400 hover:text-amber-600'
-                                : 'text-slate-500 hover:text-amber-400'
-                            }`}
+                            className={`absolute left-2.5 top-1/2 -translate-y-1/2 transition text-slate-400 hover:text-brand-700`}
                             title={showFormPassword ? 'إخفاء' : 'إظهار'}
                           >
                             {showFormPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
@@ -1750,49 +1634,43 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       {/* 4. Role */}
                       <div className="space-y-1.5">
                         <label
-                          className={`block text-[11px] font-bold ${
-                            isLight ? 'text-slate-700' : 'text-slate-300'
-                          }`}
+                          className={`block text-[11px] font-bold text-slate-700`}
                         >
-                          الدور / الصلاحية <span className="text-rose-500">*</span>
+                          الدور / الصلاحية <span className="text-rose-600">*</span>
                         </label>
                         <select
                           required
                           value={userRole}
                           onChange={(e) => setUserRole(e.target.value as UserAccountRole)}
-                          className={`w-full rounded-xl px-2.5 py-2 text-xs font-bold focus:outline-none transition cursor-pointer border ${
-                            isLight
-                              ? 'bg-white border-slate-300 text-slate-900 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-500'
-                              : 'bg-slate-950 border-slate-700/80 text-slate-100 focus:border-emerald-500'
-                          }`}
+                          className={`w-full rounded-xl px-2.5 py-2 text-xs font-bold focus:outline-none transition cursor-pointer border bg-card border-slate-300 text-slate-900 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-500`}
                         >
                           <option
                             value="مدير النظام"
-                            className={isLight ? 'bg-white text-amber-800' : 'bg-slate-900 text-amber-400'}
+                            className={'bg-card text-brand-800'}
                           >
                             مدير النظام (Admin)
                           </option>
                           <option
                             value="مشغل النظام"
-                            className={isLight ? 'bg-white text-sky-800' : 'bg-slate-900 text-sky-400'}
+                            className={'bg-card text-sky-800'}
                           >
                             مشغل النظام (Operator)
                           </option>
                           <option
                             value="مستخدم"
-                            className={isLight ? 'bg-white text-emerald-800' : 'bg-slate-900 text-emerald-400'}
+                            className={'bg-card text-emerald-800'}
                           >
                             مستخدم (User)
                           </option>
                           <option
                             value="موظف الكشف والصيانة"
-                            className={isLight ? 'bg-white text-orange-800' : 'bg-slate-900 text-orange-400'}
+                            className={'bg-card text-orange-800'}
                           >
                             موظف الكشف الميداني (Field Inspector)
                           </option>
                           <option
                             value="موظف الصيانة"
-                            className={isLight ? 'bg-white text-amber-800' : 'bg-slate-900 text-amber-400'}
+                            className={'bg-card text-brand-800'}
                           >
                             موظف الصيانة (Maintenance Staff)
                           </option>
@@ -1803,27 +1681,21 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       {userRole === 'موظف الصيانة' && (
                         <div className="space-y-1.5">
                           <label
-                            className={`block text-[11px] font-bold ${
-                              isLight ? 'text-amber-900' : 'text-amber-400'
-                            }`}
+                            className={`block text-[11px] font-bold text-brand-800`}
                           >
-                            جهة الصيانة المخصصة <span className="text-rose-500">*</span>
+                            جهة الصيانة المخصصة <span className="text-rose-600">*</span>
                           </label>
                           <select
                             required
                             value={userMaintDept}
                             onChange={(e) => setUserMaintDept(e.target.value)}
-                            className={`w-full rounded-xl px-2.5 py-2 text-xs font-bold focus:outline-none transition cursor-pointer border ${
-                              isLight
-                                ? 'bg-amber-50 border-amber-300 text-amber-950 focus:border-amber-600 focus:ring-1 focus:ring-amber-500'
-                                : 'bg-slate-950 border-amber-500/40 text-amber-400 focus:border-amber-500'
-                            }`}
+                            className={`w-full rounded-xl px-2.5 py-2 text-xs font-bold focus:outline-none transition cursor-pointer border bg-brand-50 border-brand-200 text-brand-800 focus:border-brand-600 focus:ring-1 focus:ring-brand-600`}
                           >
                             {maintenanceDepartments.map((dept) => (
                               <option
                                 key={dept.id}
                                 value={dept.nameAr}
-                                className={isLight ? 'bg-white text-slate-900' : 'bg-slate-900 text-slate-100'}
+                                className={'bg-card text-slate-900'}
                               >
                                 {dept.nameAr}
                               </option>
@@ -1835,12 +1707,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       {/* 6. Phone Number */}
                       <div className="space-y-1.5">
                         <label
-                          className={`block text-[11px] font-bold ${
-                            isLight ? 'text-slate-700' : 'text-slate-300'
-                          }`}
+                          className={`block text-[11px] font-bold text-slate-700`}
                         >
                           رقم الهاتف{' '}
-                          <span className={`text-[10px] ${isLight ? 'text-slate-500' : 'text-slate-500'}`}>
+                          <span className={`text-[10px] text-slate-500`}>
                             (اختياري)
                           </span>
                         </label>
@@ -1849,20 +1719,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                           value={userPhone}
                           onChange={(e) => setUserPhone(e.target.value)}
                           placeholder="0770xxxxxxx"
-                          className={`w-full rounded-xl px-3 py-2 text-xs font-mono focus:outline-none transition border ${
-                            isLight
-                              ? 'bg-white border-slate-300 text-slate-900 placeholder:text-slate-400 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-500'
-                              : 'bg-slate-950 border-slate-700/80 text-slate-200 placeholder:text-slate-600 focus:border-emerald-500'
-                          }`}
+                          className={`w-full rounded-xl px-3 py-2 text-xs font-mono focus:outline-none transition border bg-card border-slate-300 text-slate-900 placeholder:text-slate-400 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-500`}
                         />
                       </div>
 
                       {/* 7. Status Toggle Button */}
                       <div className="space-y-1.5">
                         <label
-                          className={`block text-[11px] font-bold ${
-                            isLight ? 'text-slate-700' : 'text-slate-300'
-                          }`}
+                          className={`block text-[11px] font-bold text-slate-700`}
                         >
                           حالة الحساب
                         </label>
@@ -1871,25 +1735,21 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                           onClick={() => setUserStatus(userStatus === 'active' ? 'disabled' : 'active')}
                           className={`w-full py-2 px-3 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer ${
                             userStatus === 'active'
-                              ? isLight
-                                ? 'bg-emerald-100 text-emerald-900 border-emerald-300 hover:bg-emerald-200/80'
-                                : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40 hover:bg-emerald-500/30'
-                              : isLight
-                              ? 'bg-rose-100 text-rose-900 border-rose-300 hover:bg-rose-200/80'
-                              : 'bg-rose-500/20 text-rose-400 border-rose-500/40 hover:bg-rose-500/30'
+                              ? 'bg-emerald-100 text-emerald-900 border-emerald-200 hover:bg-emerald-200/80'
+                              : 'bg-rose-100 text-rose-900 border-rose-200 hover:bg-rose-200/80'
                           }`}
                         >
                           {userStatus === 'active' ? (
                             <>
                               <ToggleRight
-                                className={`w-4 h-4 ${isLight ? 'text-emerald-700' : 'text-emerald-400'}`}
+                                className={`w-4 h-4 text-emerald-700`}
                               />
                               <span>نشط ومفعّل</span>
                             </>
                           ) : (
                             <>
                               <ToggleLeft
-                                className={`w-4 h-4 ${isLight ? 'text-rose-700' : 'text-rose-400'}`}
+                                className={`w-4 h-4 text-rose-700`}
                               />
                               <span>معطّل وموقوف</span>
                             </>
@@ -1900,11 +1760,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
                     {/* Horizontal Actions Toolbar */}
                     <div
-                      className={`flex flex-col sm:flex-row items-center justify-between pt-3 border-t gap-3 ${
-                        isLight ? 'border-slate-200' : 'border-slate-800/80'
-                      }`}
+                      className={`flex flex-col sm:flex-row items-center justify-between pt-3 border-t gap-3 border-slate-200`}
                     >
-                      <div className={`text-[11px] ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                      <div className={`text-[11px] text-slate-600`}>
                         {userRole === 'مدير النظام' && '• صلاحيات كاملة لإدارة الوحدات والمستخدمين وضبط النظام'}
                         {userRole === 'مشغل النظام' && '• صلاحيات تشغيلية وتعديل ومطابقة بدون تعديل إعدادات النظام'}
                         {userRole === 'مستخدم' && '• صلاحيات استعراض وبحث وطباعة التقارير وإجراء التفتيش الدوري'}
@@ -1916,21 +1774,13 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                         <button
                           type="button"
                           onClick={handleCancelUserInline}
-                          className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer border ${
-                            isLight
-                              ? 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300'
-                              : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border-transparent'
-                          }`}
+                          className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer border bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300`}
                         >
                           إلغاء
                         </button>
                         <button
                           type="submit"
-                          className={`px-5 py-2 font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-lg transition cursor-pointer ${
-                            isLight
-                              ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/30'
-                              : 'bg-emerald-500 hover:bg-emerald-400 text-slate-950'
-                          }`}
+                          className={`px-5 py-2 font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-lg transition cursor-pointer bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/30`}
                         >
                           <CheckCircle2 className="w-4 h-4" />
                           <span>{userFormEditingId ? 'تحديث الحساب' : 'حفظ وإنشاء الحساب'}</span>
@@ -1955,38 +1805,26 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       key={usr.id}
                       className={`p-3.5 rounded-2xl border transition shadow-sm space-y-3 ${
                         isEditingThis
-                          ? isLight
-                            ? 'bg-emerald-50/70 border-emerald-300 ring-2 ring-emerald-500/20'
-                            : 'bg-emerald-950/30 border-emerald-500/50 ring-2 ring-emerald-500/20'
-                          : isLight
-                          ? 'bg-white border-slate-200 shadow-slate-200/50'
-                          : 'bg-slate-900 border-slate-800'
+                          ? 'bg-emerald-50/70 border-emerald-200 ring-2 ring-emerald-500/20'
+                          : 'bg-card border-slate-200 shadow-slate-200/50'
                       }`}
                     >
                       {/* Top Header: Avatar + Name + Badges */}
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex items-center gap-2.5 min-w-0">
                           <div
-                            className={`w-10 h-10 rounded-full font-bold flex items-center justify-center text-xs shrink-0 shadow-inner border ${
-                              isLight
-                                ? 'bg-amber-50 border-amber-300 text-amber-800'
-                                : 'bg-slate-800 border-slate-700 text-amber-400'
-                            }`}
+                            className={`w-10 h-10 rounded-full font-bold flex items-center justify-center text-xs shrink-0 shadow-inner border bg-brand-50 border-brand-200 text-brand-800`}
                           >
                             {usr.name ? usr.name.slice(0, 2) : 'US'}
                           </div>
                           <div className="min-w-0">
                             <div className="flex items-center gap-1.5 flex-wrap">
-                              <span className={`font-bold text-sm truncate ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                              <span className={`font-bold text-sm truncate text-slate-900`}>
                                 {usr.name}
                               </span>
                               {isPrimaryAdmin && (
                                 <span
-                                  className={`text-[9px] px-1.5 py-0.5 rounded-full border font-bold flex items-center gap-0.5 shrink-0 ${
-                                    isLight
-                                      ? 'bg-amber-100 text-amber-900 border-amber-300'
-                                      : 'bg-amber-500/20 text-amber-400 border-amber-500/40'
-                                  }`}
+                                  className={`text-[9px] px-1.5 py-0.5 rounded-full border font-bold flex items-center gap-0.5 shrink-0 bg-brand-100 text-brand-800 border-brand-200`}
                                   title="حساب مدير النظام الأساسي - محمي"
                                 >
                                   <Lock className="w-2.5 h-2.5" />
@@ -1995,11 +1833,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                               )}
                               {isEditingThis && (
                                 <span
-                                  className={`text-[9px] px-1.5 py-0.5 rounded border font-mono font-bold shrink-0 ${
-                                    isLight
-                                      ? 'bg-emerald-100 text-emerald-900 border-emerald-300'
-                                      : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
-                                  }`}
+                                  className={`text-[9px] px-1.5 py-0.5 rounded border font-mono font-bold shrink-0 bg-emerald-100 text-emerald-900 border-emerald-200`}
                                 >
                                   قيد التعديل
                                 </span>
@@ -2017,24 +1851,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                           <span
                             className={`px-2.5 py-1 rounded-full font-bold text-[10px] border inline-flex items-center gap-1 ${
                               isAdm
-                                ? isLight
-                                  ? 'bg-amber-100 text-amber-900 border-amber-300'
-                                  : 'bg-amber-500/20 text-amber-400 border-amber-500/40'
+                                ? 'bg-brand-100 text-brand-800 border-brand-200'
                                 : isOp
-                                ? isLight
-                                  ? 'bg-sky-100 text-sky-900 border-sky-300'
-                                  : 'bg-sky-500/20 text-sky-400 border-sky-500/40'
+                                ? 'bg-sky-100 text-sky-900 border-sky-200'
                                 : usr.role === 'موظف الصيانة'
-                                ? isLight
-                                  ? 'bg-amber-100 text-amber-900 border-amber-300'
-                                  : 'bg-amber-500/20 text-amber-400 border-amber-500/40'
+                                ? 'bg-brand-100 text-brand-800 border-brand-200'
                                 : usr.role === 'موظف الكشف والصيانة'
-                                ? isLight
-                                  ? 'bg-orange-100 text-orange-900 border-orange-300'
-                                  : 'bg-orange-500/20 text-orange-400 border-orange-500/40'
-                                : isLight
-                                ? 'bg-emerald-100 text-emerald-900 border-emerald-300'
-                                : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40'
+                                ? 'bg-orange-100 text-orange-900 border-orange-200'
+                                : 'bg-emerald-100 text-emerald-900 border-emerald-200'
                             }`}
                           >
                             <ShieldCheck className="w-3 h-3" />
@@ -2042,11 +1866,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                           </span>
                           {usr.role === 'موظف الصيانة' && usr.maintenanceDepartment && (
                             <span
-                              className={`text-[9px] px-2 py-0.5 rounded-md border font-semibold flex items-center gap-1 ${
-                                isLight
-                                  ? 'bg-slate-100 text-amber-900 border-amber-200'
-                                  : 'bg-slate-950 text-amber-300 border-amber-500/30'
-                              }`}
+                              className={`text-[9px] px-2 py-0.5 rounded-md border font-semibold flex items-center gap-1 bg-slate-100 text-brand-800 border-brand-200`}
                             >
                               <Wrench className="w-2.5 h-2.5" />
                               <span>{usr.maintenanceDepartment}</span>
@@ -2056,28 +1876,22 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       </div>
 
                       {/* Info Grid (Username, Password, Phone) */}
-                      <div className={`grid grid-cols-2 gap-2 p-2.5 rounded-xl text-xs border ${
-                        isLight ? 'bg-slate-50 border-slate-200/80' : 'bg-slate-950/60 border-slate-800/80'
-                      }`}>
+                      <div className={`grid grid-cols-2 gap-2 p-2.5 rounded-xl text-xs border bg-slate-50 border-slate-200/80`}>
                         <div>
                           <span className="text-[10px] text-slate-500 block mb-0.5">اسم الحساب (Login):</span>
-                          <span className={`font-mono font-bold px-1.5 py-0.5 rounded border inline-block text-[11px] ${
-                            isLight ? 'bg-amber-50 text-amber-900 border-amber-300' : 'bg-slate-900 text-amber-400 border-slate-800'
-                          }`}>
+                          <span className={`font-mono font-bold px-1.5 py-0.5 rounded border inline-block text-[11px] bg-brand-50 text-brand-800 border-brand-200`}>
                             {usr.username || usr.email?.split('@')[0] || 'user'}
                           </span>
                         </div>
                         <div>
                           <span className="text-[10px] text-slate-500 block mb-0.5">كلمة المرور:</span>
                           {isPrimaryAdmin && !isCurrentAdmin ? (
-                            <span className="font-mono text-[11px] text-amber-600 flex items-center gap-1 font-bold">
+                            <span className="font-mono text-[11px] text-brand-700 flex items-center gap-1 font-bold">
                               <Lock className="w-3 h-3" />
                               <span>محمية</span>
                             </span>
                           ) : showPasswordsTable ? (
-                            <span className={`font-mono font-bold px-1.5 py-0.5 rounded border inline-block text-[11px] ${
-                              isLight ? 'bg-amber-100 text-amber-900 border-amber-300' : 'bg-amber-500/10 text-amber-400 border-amber-500/30'
-                            }`}>
+                            <span className={`font-mono font-bold px-1.5 py-0.5 rounded border inline-block text-[11px] bg-brand-100 text-brand-800 border-brand-200`}>
                               {'••••••'}
                             </span>
                           ) : (
@@ -2086,28 +1900,24 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                             </span>
                           )}
                         </div>
-                        <div className="col-span-2 flex items-center justify-between pt-1 border-t border-slate-200/60 dark:border-slate-800/60">
+                        <div className="col-span-2 flex items-center justify-between pt-1 border-t border-slate-200/60 ">
                           <span className="text-[10px] text-slate-500 flex items-center gap-1">
-                            <Phone className="w-3 h-3 text-slate-400" />
+                            <Phone className="w-3 h-3 text-slate-500" />
                             <span>رقم الهاتف:</span>
                           </span>
-                          <span className={`font-mono font-bold text-xs ${usr.phone ? (isLight ? 'text-slate-800' : 'text-slate-200') : 'text-slate-400'}`}>
+                          <span className={`font-mono font-bold text-xs ${usr.phone ? ('text-slate-800') : 'text-slate-500'}`}>
                             {usr.phone || 'غير مسجل'}
                           </span>
                         </div>
                       </div>
 
                       {/* Action buttons */}
-                      <div className="flex items-center gap-2 pt-1 border-t border-slate-200/80 dark:border-slate-800/80">
+                      <div className="flex items-center gap-2 pt-1 border-t border-slate-200/80 ">
                         {isPrimaryAdmin ? (
                           <div
-                            className={`flex-1 min-h-[38px] px-3 py-1.5 rounded-xl font-bold text-xs border inline-flex items-center justify-center gap-1.5 opacity-90 ${
-                              isLight
-                                ? 'bg-emerald-100 text-emerald-900 border-emerald-300'
-                                : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
-                            }`}
+                            className={`flex-1 min-h-[38px] px-3 py-1.5 rounded-xl font-bold text-xs border inline-flex items-center justify-center gap-1.5 opacity-90 bg-emerald-100 text-emerald-900 border-emerald-200`}
                           >
-                            <Lock className={`w-3.5 h-3.5 ${isLight ? 'text-emerald-700' : 'text-emerald-400'}`} />
+                            <Lock className={`w-3.5 h-3.5 text-emerald-700`} />
                             <span>نشط دائم (محمي)</span>
                           </div>
                         ) : (
@@ -2115,22 +1925,18 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                             onClick={() => onToggleUserStatus(usr.id)}
                             className={`flex-1 min-h-[38px] px-3 py-1.5 rounded-xl font-bold text-xs border inline-flex items-center justify-center gap-1.5 transition cursor-pointer shadow-xs ${
                               usr.status === 'active'
-                                ? isLight
-                                  ? 'bg-emerald-100 text-emerald-900 border-emerald-300 hover:bg-emerald-200/80'
-                                  : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/30'
-                                : isLight
-                                ? 'bg-rose-100 text-rose-900 border-rose-300 hover:bg-rose-200/80'
-                                : 'bg-rose-500/20 text-rose-400 border-rose-500/30 hover:bg-rose-500/30'
+                                ? 'bg-emerald-100 text-emerald-900 border-emerald-200 hover:bg-emerald-200/80'
+                                : 'bg-rose-100 text-rose-900 border-rose-200 hover:bg-rose-200/80'
                             }`}
                           >
                             {usr.status === 'active' ? (
                               <>
-                                <ToggleRight className={`w-4 h-4 ${isLight ? 'text-emerald-700' : 'text-emerald-400'}`} />
+                                <ToggleRight className={`w-4 h-4 text-emerald-700`} />
                                 <span>الحساب نشط</span>
                               </>
                             ) : (
                               <>
-                                <ToggleLeft className={`w-4 h-4 ${isLight ? 'text-rose-700' : 'text-rose-400'}`} />
+                                <ToggleLeft className={`w-4 h-4 text-rose-700`} />
                                 <span>معطل وموقوف</span>
                               </>
                             )}
@@ -2140,9 +1946,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                         {isPrimaryAdmin && !isCurrentAdmin ? (
                           <button
                             disabled
-                            className={`min-h-[38px] px-3 py-1.5 rounded-xl border transition cursor-not-allowed opacity-50 flex items-center gap-1.5 text-xs ${
-                              isLight ? 'bg-slate-100 text-slate-400 border-slate-200' : 'bg-slate-800 text-slate-600 border-slate-700'
-                            }`}
+                            className={`min-h-[38px] px-3 py-1.5 rounded-xl border transition cursor-not-allowed opacity-50 flex items-center gap-1.5 text-xs bg-slate-100 text-slate-400 border-slate-200`}
                           >
                             <Lock className="w-3.5 h-3.5" />
                             <span>تعديل</span>
@@ -2150,11 +1954,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                         ) : (
                           <button
                             onClick={() => handleOpenEditUserInline(usr)}
-                            className={`min-h-[38px] px-3.5 py-1.5 rounded-xl border font-bold text-xs transition cursor-pointer flex items-center gap-1.5 ${
-                              isLight
-                                ? 'bg-slate-100 hover:bg-amber-100 text-slate-700 hover:text-amber-900 border-slate-300 hover:border-amber-300'
-                                : 'bg-slate-800 hover:bg-amber-500/20 text-slate-300 hover:text-amber-400 border-slate-700 hover:border-amber-500/40'
-                            }`}
+                            className={`min-h-[38px] px-3.5 py-1.5 rounded-xl border font-bold text-xs transition cursor-pointer flex items-center gap-1.5 bg-slate-100 hover:bg-brand-100 text-slate-700 hover:text-brand-800 border-slate-300 hover:border-brand-200`}
                           >
                             <Edit2 className="w-3.5 h-3.5" />
                             <span>تعديل</span>
@@ -2164,9 +1964,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                         {isPrimaryAdmin ? (
                           <button
                             disabled
-                            className={`min-h-[38px] px-3 py-1.5 rounded-xl border transition cursor-not-allowed opacity-40 flex items-center gap-1.5 text-xs ${
-                              isLight ? 'bg-slate-100 text-slate-400 border-slate-200' : 'bg-slate-800 text-slate-600 border-slate-700'
-                            }`}
+                            className={`min-h-[38px] px-3 py-1.5 rounded-xl border transition cursor-not-allowed opacity-40 flex items-center gap-1.5 text-xs bg-slate-100 text-slate-400 border-slate-200`}
                           >
                             <Lock className="w-3.5 h-3.5" />
                             <span>حذف</span>
@@ -2180,11 +1978,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                                 name: usr.name,
                               })
                             }
-                            className={`min-h-[38px] px-3.5 py-1.5 rounded-xl border font-bold text-xs transition cursor-pointer flex items-center gap-1.5 ${
-                              isLight
-                                ? 'bg-rose-50 hover:bg-rose-100 text-rose-700 hover:text-rose-900 border-rose-200 hover:border-rose-300'
-                                : 'bg-slate-800 hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 border-slate-700 hover:border-rose-500/40'
-                            }`}
+                            className={`min-h-[38px] px-3.5 py-1.5 rounded-xl border font-bold text-xs transition cursor-pointer flex items-center gap-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 hover:text-rose-900 border-rose-200 hover:border-rose-200`}
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                             <span>حذف</span>
@@ -2198,20 +1992,12 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
               {/* Desktop Users Data Table */}
               <div
-                className={`hidden md:block overflow-x-auto rounded-2xl border shadow-lg ${
-                  isLight
-                    ? 'bg-white border-slate-200 shadow-slate-200/50'
-                    : 'bg-slate-950/60 border-slate-800/80'
-                }`}
+                className={`hidden md:block overflow-x-auto rounded-2xl border shadow-lg bg-card border-slate-200 shadow-slate-200/50`}
               >
                 <table className="w-full text-right text-xs">
                   <thead>
                     <tr
-                      className={`border-b ${
-                        isLight
-                          ? 'bg-slate-50 text-slate-700 border-slate-200 font-bold'
-                          : 'bg-slate-950 text-slate-400 border-slate-800'
-                      }`}
+                      className={`border-b bg-slate-50 text-slate-700 border-slate-200 font-bold`}
                     >
                       <th className="p-3 font-bold">المستخدم والاسم الكامل</th>
                       <th className="p-3 font-bold">اسم الحساب (Login)</th>
@@ -2223,11 +2009,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     </tr>
                   </thead>
                   <tbody
-                    className={`divide-y ${
-                      isLight
-                        ? 'divide-slate-200 text-slate-800'
-                        : 'divide-slate-800/80 text-slate-300'
-                    }`}
+                    className={`divide-y divide-slate-200 text-slate-800`}
                   >
                     {users.map((usr) => {
                       const isAdm = usr.role === 'مدير النظام' || usr.role === 'admin';
@@ -2241,40 +2023,26 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                           key={usr.id}
                           className={`transition ${
                             isEditingThis
-                              ? isLight
-                                ? 'bg-emerald-50 border-r-2 border-emerald-600'
-                                : 'bg-emerald-950/30 border-l-2 border-emerald-400'
-                              : isLight
-                              ? 'hover:bg-slate-50'
-                              : 'hover:bg-slate-800/40'
+                              ? 'bg-emerald-50 border-r-2 border-emerald-600'
+                              : 'hover:bg-slate-50'
                           }`}
                         >
                           {/* 1. Display Name */}
                           <td className="p-3">
                             <div className="flex items-center gap-2.5">
                               <div
-                                className={`w-8 h-8 rounded-full font-bold flex items-center justify-center text-xs shrink-0 shadow-inner border ${
-                                  isLight
-                                    ? 'bg-amber-50 border-amber-300 text-amber-800'
-                                    : 'bg-slate-800 border-slate-700 text-amber-400'
-                                }`}
+                                className={`w-8 h-8 rounded-full font-bold flex items-center justify-center text-xs shrink-0 shadow-inner border bg-brand-50 border-brand-200 text-brand-800`}
                               >
                                 {usr.name ? usr.name.slice(0, 2) : 'US'}
                               </div>
                               <div>
                                 <div
-                                  className={`font-bold flex items-center gap-1.5 ${
-                                    isLight ? 'text-slate-900' : 'text-slate-100'
-                                  }`}
+                                  className={`font-bold flex items-center gap-1.5 text-slate-900`}
                                 >
                                   <span>{usr.name}</span>
                                   {isPrimaryAdmin && (
                                     <span
-                                      className={`text-[9px] px-1.5 py-0.5 rounded-full border font-bold flex items-center gap-0.5 ${
-                                        isLight
-                                          ? 'bg-amber-100 text-amber-900 border-amber-300'
-                                          : 'bg-amber-500/20 text-amber-400 border-amber-500/40'
-                                      }`}
+                                      className={`text-[9px] px-1.5 py-0.5 rounded-full border font-bold flex items-center gap-0.5 bg-brand-100 text-brand-800 border-brand-200`}
                                       title="حساب مدير النظام الأساسي - محمي من الحذف والتعديل الخارجي"
                                     >
                                       <Lock className="w-2.5 h-2.5" />
@@ -2283,20 +2051,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                                   )}
                                   {isEditingThis && (
                                     <span
-                                      className={`text-[9px] px-1.5 py-0.2 rounded border font-mono ${
-                                        isLight
-                                          ? 'bg-emerald-100 text-emerald-900 border-emerald-300 font-bold'
-                                          : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
-                                      }`}
+                                      className={`text-[9px] px-1.5 py-0.2 rounded border font-mono bg-emerald-100 text-emerald-900 border-emerald-200 font-bold`}
                                     >
                                       قيد التعديل
                                     </span>
                                   )}
                                 </div>
                                 <div
-                                  className={`text-[10px] font-mono ${
-                                    isLight ? 'text-slate-500' : 'text-slate-500'
-                                  }`}
+                                  className={`text-[10px] font-mono text-slate-500`}
                                 >
                                   آخر تواجد: {usr.lastActive || 'الآن'}
                                 </div>
@@ -2307,11 +2069,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                           {/* 2. Login Username */}
                           <td className="p-3">
                             <span
-                              className={`font-mono font-bold px-2 py-1 rounded-lg border ${
-                                isLight
-                                  ? 'bg-amber-50 text-amber-900 border-amber-300'
-                                  : 'bg-slate-900 text-amber-400 border-slate-800'
-                              }`}
+                              className={`font-mono font-bold px-2 py-1 rounded-lg border bg-brand-50 text-brand-800 border-brand-200`}
                             >
                               {usr.username || usr.email?.split('@')[0] || 'user'}
                             </span>
@@ -2321,11 +2079,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                           <td className="p-3 font-mono">
                             {isPrimaryAdmin && !isCurrentAdmin ? (
                               <span
-                                className={`text-[11px] font-bold px-2 py-0.5 rounded border inline-flex items-center gap-1 opacity-80 ${
-                                  isLight
-                                    ? 'text-amber-900 bg-amber-50 border-amber-300'
-                                    : 'text-amber-400 bg-amber-500/10 border-amber-500/30'
-                                }`}
+                                className={`text-[11px] font-bold px-2 py-0.5 rounded border inline-flex items-center gap-1 opacity-80 text-brand-800 bg-brand-50 border-brand-200`}
                                 title="كلمة مرور مدير النظام محجوبة ولا تظهر إلا لحساب المدير نفسه"
                               >
                                 <Lock className="w-3 h-3" />
@@ -2333,19 +2087,13 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                               </span>
                             ) : showPasswordsTable ? (
                               <span
-                                className={`font-bold px-2 py-0.5 rounded border ${
-                                  isLight
-                                    ? 'text-amber-900 bg-amber-100 border-amber-300'
-                                    : 'text-amber-400 bg-amber-500/10 border-amber-500/30'
-                                }`}
+                                className={`font-bold px-2 py-0.5 rounded border text-brand-800 bg-brand-100 border-brand-200`}
                               >
                                 {'••••••'}
                               </span>
                             ) : (
                               <span
-                                className={`tracking-widest font-bold ${
-                                  isLight ? 'text-slate-400' : 'text-slate-500'
-                                }`}
+                                className={`tracking-widest font-bold text-slate-400`}
                               >
                                 ••••••
                               </span>
@@ -2358,24 +2106,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                               <span
                                 className={`px-2.5 py-1 rounded-full font-bold text-[10px] border inline-flex items-center gap-1 ${
                                   isAdm
-                                    ? isLight
-                                      ? 'bg-amber-100 text-amber-900 border-amber-300'
-                                      : 'bg-amber-500/20 text-amber-400 border-amber-500/40'
+                                    ? 'bg-brand-100 text-brand-800 border-brand-200'
                                     : isOp
-                                    ? isLight
-                                      ? 'bg-sky-100 text-sky-900 border-sky-300'
-                                      : 'bg-sky-500/20 text-sky-400 border-sky-500/40'
+                                    ? 'bg-sky-100 text-sky-900 border-sky-200'
                                     : usr.role === 'موظف الصيانة'
-                                    ? isLight
-                                      ? 'bg-amber-100 text-amber-900 border-amber-300'
-                                      : 'bg-amber-500/20 text-amber-400 border-amber-500/40'
+                                    ? 'bg-brand-100 text-brand-800 border-brand-200'
                                     : usr.role === 'موظف الكشف والصيانة'
-                                    ? isLight
-                                      ? 'bg-orange-100 text-orange-900 border-orange-300'
-                                      : 'bg-orange-500/20 text-orange-400 border-orange-500/40'
-                                    : isLight
-                                    ? 'bg-emerald-100 text-emerald-900 border-emerald-300'
-                                    : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40'
+                                    ? 'bg-orange-100 text-orange-900 border-orange-200'
+                                    : 'bg-emerald-100 text-emerald-900 border-emerald-200'
                                 }`}
                               >
                                 <ShieldCheck className="w-3 h-3" />
@@ -2383,11 +2121,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                               </span>
                               {usr.role === 'موظف الصيانة' && usr.maintenanceDepartment && (
                                 <span
-                                  className={`text-[10px] px-2 py-0.5 rounded-md border font-semibold flex items-center gap-1 ${
-                                    isLight
-                                      ? 'bg-slate-100 text-amber-900 border-amber-200'
-                                      : 'bg-slate-900 text-amber-300 border-amber-500/30'
-                                  }`}
+                                  className={`text-[10px] px-2 py-0.5 rounded-md border font-semibold flex items-center gap-1 bg-slate-100 text-brand-800 border-brand-200`}
                                 >
                                   <Wrench className="w-2.5 h-2.5" />
                                   <span>{usr.maintenanceDepartment}</span>
@@ -2399,11 +2133,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                           {/* 5. Phone */}
                           <td className="p-3 font-mono text-xs">
                             {usr.phone ? (
-                              <span className={isLight ? 'text-slate-800 font-bold' : 'text-slate-200'}>
+                              <span className={'text-slate-800 font-bold'}>
                                 {usr.phone}
                               </span>
                             ) : (
-                              <span className={isLight ? 'text-slate-400' : 'text-slate-600'}>--</span>
+                              <span className={'text-slate-400'}>--</span>
                             )}
                           </td>
 
@@ -2411,14 +2145,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                           <td className="p-3 text-center">
                             {isPrimaryAdmin ? (
                               <span
-                                className={`px-2.5 py-1 rounded-xl font-bold text-[11px] border inline-flex items-center gap-1.5 opacity-90 ${
-                                  isLight
-                                    ? 'bg-emerald-100 text-emerald-900 border-emerald-300'
-                                    : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
-                                }`}
+                                className={`px-2.5 py-1 rounded-xl font-bold text-[11px] border inline-flex items-center gap-1.5 opacity-90 bg-emerald-100 text-emerald-900 border-emerald-200`}
                                 title="حساب مدير النظام الأساسي نشط ومحمي دائماً ولا يمكن تعطيله"
                               >
-                                <Lock className={`w-3.5 h-3.5 ${isLight ? 'text-emerald-700' : 'text-emerald-400'}`} />
+                                <Lock className={`w-3.5 h-3.5 text-emerald-700`} />
                                 <span>نشط دائم (محمي)</span>
                               </span>
                             ) : (
@@ -2426,26 +2156,22 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                                 onClick={() => onToggleUserStatus(usr.id)}
                                 className={`px-2.5 py-1 rounded-xl font-bold text-[11px] border inline-flex items-center gap-1.5 transition cursor-pointer shadow-sm ${
                                   usr.status === 'active'
-                                    ? isLight
-                                      ? 'bg-emerald-100 text-emerald-900 border-emerald-300 hover:bg-emerald-200/80'
-                                      : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/30'
-                                    : isLight
-                                    ? 'bg-rose-100 text-rose-900 border-rose-300 hover:bg-rose-200/80'
-                                    : 'bg-rose-500/20 text-rose-400 border-rose-500/30 hover:bg-rose-500/30'
+                                    ? 'bg-emerald-100 text-emerald-900 border-emerald-200 hover:bg-emerald-200/80'
+                                    : 'bg-rose-100 text-rose-900 border-rose-200 hover:bg-rose-200/80'
                                 }`}
                                 title={usr.status === 'active' ? 'انقر لتعطيل الحساب' : 'انقر لتنشيط الحساب'}
                               >
                                 {usr.status === 'active' ? (
                                   <>
                                     <ToggleRight
-                                      className={`w-4 h-4 ${isLight ? 'text-emerald-700' : 'text-emerald-400'}`}
+                                      className={`w-4 h-4 text-emerald-700`}
                                     />
                                     <span>نشط</span>
                                   </>
                                 ) : (
                                   <>
                                     <ToggleLeft
-                                      className={`w-4 h-4 ${isLight ? 'text-rose-700' : 'text-rose-400'}`}
+                                      className={`w-4 h-4 text-rose-700`}
                                     />
                                     <span>معطّل وموقوف</span>
                                   </>
@@ -2460,11 +2186,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                               {isPrimaryAdmin && !isCurrentAdmin ? (
                                 <button
                                   disabled
-                                  className={`p-1.5 rounded-lg border transition cursor-not-allowed opacity-50 ${
-                                    isLight
-                                      ? 'bg-slate-100 text-slate-400 border-slate-200'
-                                      : 'bg-slate-800 text-slate-600 border-slate-700'
-                                  }`}
+                                  className={`p-1.5 rounded-lg border transition cursor-not-allowed opacity-50 bg-slate-100 text-slate-400 border-slate-200`}
                                   title="لا يمكن تعديل هذا الحساب إلا من خلال الحساب نفسه"
                                 >
                                   <Lock className="w-3.5 h-3.5" />
@@ -2472,11 +2194,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                               ) : (
                                 <button
                                   onClick={() => handleOpenEditUserInline(usr)}
-                                  className={`p-1.5 rounded-lg border transition cursor-pointer ${
-                                    isLight
-                                      ? 'bg-slate-100 hover:bg-amber-100 text-slate-700 hover:text-amber-900 border-slate-300 hover:border-amber-300'
-                                      : 'bg-slate-800 hover:bg-amber-500/20 text-slate-400 hover:text-amber-400 border-slate-700 hover:border-amber-500/40'
-                                  }`}
+                                  className={`p-1.5 rounded-lg border transition cursor-pointer bg-slate-100 hover:bg-brand-100 text-slate-700 hover:text-brand-800 border-slate-300 hover:border-brand-200`}
                                   title="تعديل بيانات وصلاحيات الحساب"
                                 >
                                   <Edit2 className="w-3.5 h-3.5" />
@@ -2486,11 +2204,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                               {isPrimaryAdmin ? (
                                 <button
                                   disabled
-                                  className={`p-1.5 rounded-lg border transition cursor-not-allowed opacity-40 ${
-                                    isLight
-                                      ? 'bg-slate-100 text-slate-400 border-slate-200'
-                                      : 'bg-slate-800 text-slate-600 border-slate-700'
-                                  }`}
+                                  className={`p-1.5 rounded-lg border transition cursor-not-allowed opacity-40 bg-slate-100 text-slate-400 border-slate-200`}
                                   title="لا يمكن حذف هذا الحساب أبداً (حساب مدير النظام الأساسي)"
                                 >
                                   <Lock className="w-3.5 h-3.5" />
@@ -2504,11 +2218,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                                       name: usr.name,
                                     })
                                   }
-                                  className={`p-1.5 rounded-lg border transition cursor-pointer ${
-                                    isLight
-                                      ? 'bg-slate-100 hover:bg-rose-100 text-slate-700 hover:text-rose-900 border-slate-300 hover:border-rose-300'
-                                      : 'bg-slate-800 hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 border-slate-700 hover:border-rose-500/40'
-                                  }`}
+                                  className={`p-1.5 rounded-lg border transition cursor-pointer bg-slate-100 hover:bg-rose-100 text-slate-700 hover:text-rose-900 border-slate-300 hover:border-rose-200`}
                                   title="حذف الحساب نهائياً"
                                 >
                                   <Trash2 className="w-3.5 h-3.5" />
@@ -2528,17 +2238,13 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           {/* TAB 2: Governorates Table */}
           {activeTab === 'governorates' && (
             <div className="space-y-3">
-              <div className={`flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b gap-3 ${
-                isLight ? 'border-slate-200' : 'border-slate-800'
-              }`}>
+              <div className={`flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b gap-3 border-slate-200`}>
                 <div>
-                  <h3 className={`font-bold text-sm flex items-center gap-2 ${
-                    isLight ? 'text-slate-900' : 'text-slate-100'
-                  }`}>
-                    <MapPin className={`w-4 h-4 ${isLight ? 'text-sky-600' : 'text-sky-400'}`} />
+                  <h3 className={`font-bold text-sm flex items-center gap-2 text-slate-900`}>
+                    <MapPin className={`w-4 h-4 text-sky-600`} />
                     <span>جدول المحافظات المعتمدة لدى الشركة</span>
                   </h3>
-                  <span className={`text-[11px] ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                  <span className={`text-[11px] text-slate-500`}>
                     إمكانية الإضافة والتعديل والحذف والربط الحركي
                   </span>
                 </div>
@@ -2551,11 +2257,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     setGovCode(`GOV-${Date.now().toString().slice(-4)}`);
                     setShowModal(true);
                   }}
-                  className={`min-h-[38px] px-3.5 py-1.5 font-bold rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5 shadow self-start sm:self-auto ${
-                    isLight
-                      ? 'bg-sky-600 hover:bg-sky-700 text-white shadow-sky-600/20'
-                      : 'bg-amber-500 hover:bg-amber-400 text-slate-950'
-                  }`}
+                  className={`min-h-[38px] px-3.5 py-1.5 font-bold rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5 shadow self-start sm:self-auto bg-sky-600 hover:bg-sky-700 text-white shadow-sky-600/20`}
                 >
                   <Plus className="w-4 h-4" />
                   <span>إضافة محافظة جديدة</span>
@@ -2567,24 +2269,20 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 {governorates.map((gov) => (
                   <div
                     key={gov.id}
-                    className={`p-3.5 rounded-2xl border transition shadow-sm space-y-3 ${
-                      isLight ? 'bg-white border-slate-200 shadow-slate-200/50' : 'bg-slate-900 border-slate-800'
-                    }`}
+                    className={`p-3.5 rounded-2xl border transition shadow-sm space-y-3 bg-card border-slate-200 shadow-slate-200/50`}
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="space-y-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className={`font-mono font-bold text-xs px-2 py-0.5 rounded border ${
-                            isLight ? 'bg-sky-50 text-sky-800 border-sky-300' : 'bg-slate-950 text-amber-400 border-slate-800'
-                          }`}>
+                          <span className={`font-mono font-bold text-xs px-2 py-0.5 rounded border bg-sky-50 text-sky-800 border-sky-200`}>
                             {gov.code}
                           </span>
-                          <h4 className={`font-bold text-sm ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                          <h4 className={`font-bold text-sm text-slate-900`}>
                             {gov.nameAr}
                           </h4>
                         </div>
                         {gov.nameEn && (
-                          <div className={`font-mono text-xs ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                          <div className={`font-mono text-xs text-slate-500`}>
                             {gov.nameEn}
                           </div>
                         )}
@@ -2592,12 +2290,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       <span
                         className={`px-2.5 py-1 rounded-full text-[10px] font-bold shrink-0 border ${
                           gov.status === 'active'
-                            ? isLight
-                              ? 'bg-emerald-100 text-emerald-900 border-emerald-300'
-                              : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
-                            : isLight
-                            ? 'bg-slate-100 text-slate-600 border-slate-200'
-                            : 'bg-slate-800 text-slate-500 border-slate-700'
+                            ? 'bg-emerald-100 text-emerald-900 border-emerald-200'
+                            : 'bg-slate-100 text-slate-600 border-slate-200'
                         }`}
                       >
                         {gov.status === 'active' ? 'نشط' : 'معطل'}
@@ -2605,27 +2299,23 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     </div>
 
                     {/* Actions row with touch targets */}
-                    <div className="flex items-center gap-2 pt-2 border-t border-slate-200/80 dark:border-slate-800/80">
+                    <div className="flex items-center gap-2 pt-2 border-t border-slate-200/80 ">
                       <button
                         onClick={() => onToggleStatus('governorate', gov.id)}
                         className={`flex-1 min-h-[38px] px-3 py-1.5 rounded-xl font-bold text-xs border inline-flex items-center justify-center gap-1.5 transition cursor-pointer shadow-xs ${
                           gov.status === 'active'
-                            ? isLight
-                              ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-200'
-                              : 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
-                            : isLight
-                            ? 'bg-slate-100 hover:bg-slate-200 text-slate-600 border-slate-200'
-                            : 'bg-slate-800/60 hover:bg-slate-800 text-slate-400 border-slate-700'
+                            ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-200'
+                            : 'bg-slate-100 hover:bg-slate-200 text-slate-600 border-slate-200'
                         }`}
                       >
                         {gov.status === 'active' ? (
                           <>
-                            <ToggleRight className="w-4 h-4 text-emerald-500" />
+                            <ToggleRight className="w-4 h-4 text-emerald-600" />
                             <span>تعطيل</span>
                           </>
                         ) : (
                           <>
-                            <ToggleLeft className="w-4 h-4 text-slate-400" />
+                            <ToggleLeft className="w-4 h-4 text-slate-500" />
                             <span>تنشيط</span>
                           </>
                         )}
@@ -2633,11 +2323,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
                       <button
                         onClick={() => handleOpenEditModal(gov)}
-                        className={`min-h-[38px] px-3.5 py-1.5 rounded-xl font-bold text-xs border transition cursor-pointer flex items-center gap-1.5 ${
-                          isLight
-                            ? 'bg-slate-100 hover:bg-amber-100 text-slate-700 hover:text-amber-900 border-slate-300 hover:border-amber-300'
-                            : 'bg-slate-800 hover:bg-amber-500/20 text-slate-300 hover:text-amber-400 border-slate-700 hover:border-amber-500/40'
-                        }`}
+                        className={`min-h-[38px] px-3.5 py-1.5 rounded-xl font-bold text-xs border transition cursor-pointer flex items-center gap-1.5 bg-slate-100 hover:bg-brand-100 text-slate-700 hover:text-brand-800 border-slate-300 hover:border-brand-200`}
                       >
                         <Edit2 className="w-3.5 h-3.5" />
                         <span>تعديل</span>
@@ -2651,11 +2337,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                             name: gov.nameAr,
                           })
                         }
-                        className={`min-h-[38px] px-3.5 py-1.5 rounded-xl font-bold text-xs border transition cursor-pointer flex items-center gap-1.5 ${
-                          isLight
-                            ? 'bg-rose-50 hover:bg-rose-100 text-rose-700 hover:text-rose-900 border-rose-200 hover:border-rose-300'
-                            : 'bg-slate-800 hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 border-slate-700 hover:border-rose-500/40'
-                        }`}
+                        className={`min-h-[38px] px-3.5 py-1.5 rounded-xl font-bold text-xs border transition cursor-pointer flex items-center gap-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 hover:text-rose-900 border-rose-200 hover:border-rose-200`}
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                         <span>حذف</span>
@@ -2664,23 +2346,17 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   </div>
                 ))}
                 {governorates.length === 0 && (
-                  <div className={`p-6 rounded-2xl border text-center text-xs ${
-                    isLight ? 'bg-slate-50 border-slate-200 text-slate-500' : 'bg-slate-900 border-slate-800 text-slate-400'
-                  }`}>
+                  <div className={`p-6 rounded-2xl border text-center text-xs bg-slate-50 border-slate-200 text-slate-500`}>
                     لا توجد محافظات مسجلة حالياً. اضغط على «إضافة محافظة جديدة».
                   </div>
                 )}
               </div>
 
               {/* Desktop Table */}
-              <div className={`hidden md:block overflow-x-auto rounded-2xl border shadow-lg ${
-                isLight ? 'bg-white border-slate-200 shadow-slate-200/50' : 'bg-slate-950/60 border-slate-800/80'
-              }`}>
+              <div className={`hidden md:block overflow-x-auto rounded-2xl border shadow-lg bg-card border-slate-200 shadow-slate-200/50`}>
                 <table className="w-full text-right text-xs">
                   <thead>
-                    <tr className={`border-b ${
-                      isLight ? 'bg-slate-50 text-slate-700 border-slate-200 font-bold' : 'bg-slate-950 text-slate-400 border-slate-800'
-                    }`}>
+                    <tr className={`border-b bg-slate-50 text-slate-700 border-slate-200 font-bold`}>
                       <th className="p-3 font-semibold">الكود</th>
                       <th className="p-3 font-semibold">اسم المحافظة (عربي)</th>
                       <th className="p-3 font-semibold">اسم المحافظة (إنجليزي)</th>
@@ -2688,22 +2364,18 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       <th className="p-3 font-semibold text-center">إجراءات</th>
                     </tr>
                   </thead>
-                  <tbody className={`divide-y ${isLight ? 'divide-slate-200 text-slate-800' : 'divide-slate-800 text-slate-300'}`}>
+                  <tbody className={`divide-y divide-slate-200 text-slate-800`}>
                     {governorates.map((gov) => (
-                      <tr key={gov.id} className={`transition ${isLight ? 'hover:bg-slate-50' : 'hover:bg-slate-800/40'}`}>
-                        <td className="p-3 font-mono font-bold text-amber-500">{gov.code}</td>
-                        <td className={`p-3 font-bold ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>{gov.nameAr}</td>
-                        <td className="p-3 font-mono text-slate-400">{gov.nameEn || '--'}</td>
+                      <tr key={gov.id} className={`transition hover:bg-slate-50`}>
+                        <td className="p-3 font-mono font-bold text-brand-700">{gov.code}</td>
+                        <td className={`p-3 font-bold text-slate-900`}>{gov.nameAr}</td>
+                        <td className="p-3 font-mono text-slate-500">{gov.nameEn || '--'}</td>
                         <td className="p-3 text-center">
                           <span
                             className={`px-2.5 py-0.5 rounded font-bold ${
                               gov.status === 'active'
-                                ? isLight
-                                  ? 'bg-emerald-100 text-emerald-900 border border-emerald-300'
-                                  : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                                : isLight
-                                ? 'bg-slate-100 text-slate-600'
-                                : 'bg-slate-800 text-slate-500'
+                                ? 'bg-emerald-100 text-emerald-900 border border-emerald-200'
+                                : 'bg-slate-100 text-slate-600'
                             }`}
                           >
                             {gov.status === 'active' ? 'نشط' : 'معطل'}
@@ -2713,18 +2385,18 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                           <div className="flex items-center justify-center gap-2">
                             <button
                               onClick={() => onToggleStatus('governorate', gov.id)}
-                              className="p-1 text-slate-400 hover:text-amber-400 transition cursor-pointer"
+                              className="p-1 text-slate-500 hover:text-brand-700 transition cursor-pointer"
                               title="تغيير الحالة"
                             >
                               {gov.status === 'active' ? (
-                                <ToggleRight className="w-5 h-5 text-emerald-400" />
+                                <ToggleRight className="w-5 h-5 text-emerald-600" />
                               ) : (
                                 <ToggleLeft className="w-5 h-5 text-slate-500" />
                               )}
                             </button>
                             <button
                               onClick={() => handleOpenEditModal(gov)}
-                              className="p-1 text-slate-400 hover:text-amber-400 transition cursor-pointer"
+                              className="p-1 text-slate-500 hover:text-brand-700 transition cursor-pointer"
                               title="تعديل المحافظة"
                             >
                               <Edit2 className="w-4 h-4" />
@@ -2737,7 +2409,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                                   name: gov.nameAr,
                                 })
                               }
-                              className="p-1 text-slate-400 hover:text-red-400 transition cursor-pointer"
+                              className="p-1 text-slate-500 hover:text-red-600 transition cursor-pointer"
                               title="حذف المحافظة"
                             >
                               <Trash2 className="w-4 h-4" />
@@ -2755,17 +2427,13 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           {/* TAB 3: Oilfields Table */}
           {activeTab === 'oilfields' && (
             <div className="space-y-3">
-              <div className={`flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b gap-3 ${
-                isLight ? 'border-slate-200' : 'border-slate-800'
-              }`}>
+              <div className={`flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b gap-3 border-slate-200`}>
                 <div>
-                  <h3 className={`font-bold text-sm flex items-center gap-2 ${
-                    isLight ? 'text-slate-900' : 'text-slate-100'
-                  }`}>
-                    <Database className={`w-4 h-4 ${isLight ? 'text-amber-600' : 'text-amber-500'}`} />
+                  <h3 className={`font-bold text-sm flex items-center gap-2 text-slate-900`}>
+                    <Database className={`w-4 h-4 text-brand-700`} />
                     <span>جدول الحقول النفطية والامتيازات</span>
                   </h3>
-                  <span className={`text-[11px] ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                  <span className={`text-[11px] text-slate-500`}>
                     إمكانية الإضافة والتعديل والحذف وتغيير المحافظة التابعة
                   </span>
                 </div>
@@ -2779,11 +2447,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     setFldCode(`FLD-${Date.now().toString().slice(-4)}`);
                     setShowModal(true);
                   }}
-                  className={`min-h-[38px] px-3.5 py-1.5 font-bold rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5 shadow self-start sm:self-auto ${
-                    isLight
-                      ? 'bg-amber-600 hover:bg-amber-700 text-white shadow-amber-600/20'
-                      : 'bg-amber-500 hover:bg-amber-400 text-slate-950'
-                  }`}
+                  className={`min-h-[38px] px-3.5 py-1.5 font-bold rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5 shadow self-start sm:self-auto bg-brand-700 hover:bg-brand-800 text-white `}
                 >
                   <Plus className="w-4 h-4" />
                   <span>إضافة حقل نفطي جديد</span>
@@ -2797,25 +2461,21 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   return (
                     <div
                       key={fld.id}
-                      className={`p-3.5 rounded-2xl border transition shadow-sm space-y-3 ${
-                        isLight ? 'bg-white border-slate-200 shadow-slate-200/50' : 'bg-slate-900 border-slate-800'
-                      }`}
+                      className={`p-3.5 rounded-2xl border transition shadow-sm space-y-3 bg-card border-slate-200 shadow-slate-200/50`}
                     >
                       <div className="flex items-start justify-between gap-2">
                         <div className="space-y-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className={`font-mono font-bold text-xs px-2 py-0.5 rounded border ${
-                              isLight ? 'bg-amber-50 text-amber-800 border-amber-300' : 'bg-slate-950 text-amber-400 border-slate-800'
-                            }`}>
+                            <span className={`font-mono font-bold text-xs px-2 py-0.5 rounded border bg-brand-50 text-brand-800 border-brand-200`}>
                               {fld.code}
                             </span>
-                            <h4 className={`font-bold text-sm ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                            <h4 className={`font-bold text-sm text-slate-900`}>
                               {fld.nameAr}
                             </h4>
                           </div>
                           <div className="flex items-center gap-1.5 text-xs text-slate-500">
-                            <MapPin className="w-3.5 h-3.5 text-sky-500 shrink-0" />
-                            <span className={isLight ? 'text-slate-700' : 'text-slate-300'}>
+                            <MapPin className="w-3.5 h-3.5 text-sky-600 shrink-0" />
+                            <span className={'text-slate-700'}>
                               {parentGov?.nameAr || 'غير محدد'}
                             </span>
                           </div>
@@ -2823,12 +2483,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                         <span
                           className={`px-2.5 py-1 rounded-full text-[10px] font-bold shrink-0 border ${
                             fld.status === 'active'
-                              ? isLight
-                                ? 'bg-emerald-100 text-emerald-900 border-emerald-300'
-                                : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
-                              : isLight
-                              ? 'bg-slate-100 text-slate-600 border-slate-200'
-                              : 'bg-slate-800 text-slate-500 border-slate-700'
+                              ? 'bg-emerald-100 text-emerald-900 border-emerald-200'
+                              : 'bg-slate-100 text-slate-600 border-slate-200'
                           }`}
                         >
                           {fld.status === 'active' ? 'نشط' : 'معطل'}
@@ -2836,27 +2492,23 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       </div>
 
                       {/* Actions row with touch targets */}
-                      <div className="flex items-center gap-2 pt-2 border-t border-slate-200/80 dark:border-slate-800/80">
+                      <div className="flex items-center gap-2 pt-2 border-t border-slate-200/80 ">
                         <button
                           onClick={() => onToggleStatus('oilfield', fld.id)}
                           className={`flex-1 min-h-[38px] px-3 py-1.5 rounded-xl font-bold text-xs border inline-flex items-center justify-center gap-1.5 transition cursor-pointer shadow-xs ${
                             fld.status === 'active'
-                              ? isLight
-                                ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-200'
-                                : 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
-                              : isLight
-                              ? 'bg-slate-100 hover:bg-slate-200 text-slate-600 border-slate-200'
-                              : 'bg-slate-800/60 hover:bg-slate-800 text-slate-400 border-slate-700'
+                              ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-200'
+                              : 'bg-slate-100 hover:bg-slate-200 text-slate-600 border-slate-200'
                           }`}
                         >
                           {fld.status === 'active' ? (
                             <>
-                              <ToggleRight className="w-4 h-4 text-emerald-500" />
+                              <ToggleRight className="w-4 h-4 text-emerald-600" />
                               <span>تعطيل</span>
                             </>
                           ) : (
                             <>
-                              <ToggleLeft className="w-4 h-4 text-slate-400" />
+                              <ToggleLeft className="w-4 h-4 text-slate-500" />
                               <span>تنشيط</span>
                             </>
                           )}
@@ -2864,11 +2516,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
                         <button
                           onClick={() => handleOpenEditModal(fld)}
-                          className={`min-h-[38px] px-3.5 py-1.5 rounded-xl font-bold text-xs border transition cursor-pointer flex items-center gap-1.5 ${
-                            isLight
-                              ? 'bg-slate-100 hover:bg-amber-100 text-slate-700 hover:text-amber-900 border-slate-300 hover:border-amber-300'
-                              : 'bg-slate-800 hover:bg-amber-500/20 text-slate-300 hover:text-amber-400 border-slate-700 hover:border-amber-500/40'
-                          }`}
+                          className={`min-h-[38px] px-3.5 py-1.5 rounded-xl font-bold text-xs border transition cursor-pointer flex items-center gap-1.5 bg-slate-100 hover:bg-brand-100 text-slate-700 hover:text-brand-800 border-slate-300 hover:border-brand-200`}
                         >
                           <Edit2 className="w-3.5 h-3.5" />
                           <span>تعديل</span>
@@ -2882,11 +2530,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                               name: fld.nameAr,
                             })
                           }
-                          className={`min-h-[38px] px-3.5 py-1.5 rounded-xl font-bold text-xs border transition cursor-pointer flex items-center gap-1.5 ${
-                            isLight
-                              ? 'bg-rose-50 hover:bg-rose-100 text-rose-700 hover:text-rose-900 border-rose-200 hover:border-rose-300'
-                              : 'bg-slate-800 hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 border-slate-700 hover:border-rose-500/40'
-                          }`}
+                          className={`min-h-[38px] px-3.5 py-1.5 rounded-xl font-bold text-xs border transition cursor-pointer flex items-center gap-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 hover:text-rose-900 border-rose-200 hover:border-rose-200`}
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                           <span>حذف</span>
@@ -2896,23 +2540,17 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   );
                 })}
                 {oilfields.length === 0 && (
-                  <div className={`p-6 rounded-2xl border text-center text-xs ${
-                    isLight ? 'bg-slate-50 border-slate-200 text-slate-500' : 'bg-slate-900 border-slate-800 text-slate-400'
-                  }`}>
+                  <div className={`p-6 rounded-2xl border text-center text-xs bg-slate-50 border-slate-200 text-slate-500`}>
                     لا توجد حقول نفطية مسجلة حالياً. اضغط على «إضافة حقل نفطي جديد».
                   </div>
                 )}
               </div>
 
               {/* Desktop Table */}
-              <div className={`hidden md:block overflow-x-auto rounded-2xl border shadow-lg ${
-                isLight ? 'bg-white border-slate-200 shadow-slate-200/50' : 'bg-slate-950/60 border-slate-800/80'
-              }`}>
+              <div className={`hidden md:block overflow-x-auto rounded-2xl border shadow-lg bg-card border-slate-200 shadow-slate-200/50`}>
                 <table className="w-full text-right text-xs">
                   <thead>
-                    <tr className={`border-b ${
-                      isLight ? 'bg-slate-50 text-slate-700 border-slate-200 font-bold' : 'bg-slate-950 text-slate-400 border-slate-800'
-                    }`}>
+                    <tr className={`border-b bg-slate-50 text-slate-700 border-slate-200 font-bold`}>
                       <th className="p-3 font-semibold">الكود</th>
                       <th className="p-3 font-semibold">اسم الحقل النفطي</th>
                       <th className="p-3 font-semibold">المحافظة التابع لها</th>
@@ -2920,24 +2558,20 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       <th className="p-3 font-semibold text-center">إجراءات</th>
                     </tr>
                   </thead>
-                  <tbody className={`divide-y ${isLight ? 'divide-slate-200 text-slate-800' : 'divide-slate-800 text-slate-300'}`}>
+                  <tbody className={`divide-y divide-slate-200 text-slate-800`}>
                     {oilfields.map((fld) => {
                       const parentGov = governorates.find((g) => g.id === fld.governorateId);
                       return (
-                        <tr key={fld.id} className={`transition ${isLight ? 'hover:bg-slate-50' : 'hover:bg-slate-800/40'}`}>
-                          <td className="p-3 font-mono font-bold text-amber-500">{fld.code}</td>
-                          <td className={`p-3 font-bold ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>{fld.nameAr}</td>
-                          <td className="p-3 text-slate-400">{parentGov?.nameAr || 'غير محدد'}</td>
+                        <tr key={fld.id} className={`transition hover:bg-slate-50`}>
+                          <td className="p-3 font-mono font-bold text-brand-700">{fld.code}</td>
+                          <td className={`p-3 font-bold text-slate-900`}>{fld.nameAr}</td>
+                          <td className="p-3 text-slate-500">{parentGov?.nameAr || 'غير محدد'}</td>
                           <td className="p-3 text-center">
                             <span
                               className={`px-2.5 py-0.5 rounded font-bold ${
                                 fld.status === 'active'
-                                  ? isLight
-                                    ? 'bg-emerald-100 text-emerald-900 border border-emerald-300'
-                                    : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                                  : isLight
-                                  ? 'bg-slate-100 text-slate-600'
-                                  : 'bg-slate-800 text-slate-500'
+                                  ? 'bg-emerald-100 text-emerald-900 border border-emerald-200'
+                                  : 'bg-slate-100 text-slate-600'
                               }`}
                             >
                               {fld.status === 'active' ? 'نشط' : 'معطل'}
@@ -2947,17 +2581,17 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                             <div className="flex items-center justify-center gap-2">
                               <button
                                 onClick={() => onToggleStatus('oilfield', fld.id)}
-                                className="p-1 text-slate-400 hover:text-amber-400 transition cursor-pointer"
+                                className="p-1 text-slate-500 hover:text-brand-700 transition cursor-pointer"
                               >
                                 {fld.status === 'active' ? (
-                                  <ToggleRight className="w-5 h-5 text-emerald-400" />
+                                  <ToggleRight className="w-5 h-5 text-emerald-600" />
                                 ) : (
                                   <ToggleLeft className="w-5 h-5 text-slate-500" />
                                 )}
                               </button>
                               <button
                                 onClick={() => handleOpenEditModal(fld)}
-                                className="p-1 text-slate-400 hover:text-amber-400 transition cursor-pointer"
+                                className="p-1 text-slate-500 hover:text-brand-700 transition cursor-pointer"
                               >
                                 <Edit2 className="w-4 h-4" />
                               </button>
@@ -2969,7 +2603,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                                     name: fld.nameAr,
                                   })
                                 }
-                                className="p-1 text-slate-400 hover:text-red-400 transition cursor-pointer"
+                                className="p-1 text-slate-500 hover:text-red-600 transition cursor-pointer"
                               >
                                 <Trash2 className="w-4 h-4" />
                               </button>
@@ -2987,17 +2621,13 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           {/* TAB 4: Unit Types Table */}
           {activeTab === 'unit_types' && (
             <div className="space-y-3">
-              <div className={`flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b gap-3 ${
-                isLight ? 'border-slate-200' : 'border-slate-800'
-              }`}>
+              <div className={`flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b gap-3 border-slate-200`}>
                 <div>
-                  <h3 className={`font-bold text-sm flex items-center gap-2 ${
-                    isLight ? 'text-slate-900' : 'text-slate-100'
-                  }`}>
-                    <Box className={`w-4 h-4 ${isLight ? 'text-purple-600' : 'text-purple-400'}`} />
+                  <h3 className={`font-bold text-sm flex items-center gap-2 text-slate-900`}>
+                    <Box className={`w-4 h-4 text-purple-600`} />
                     <span>أنواع المباني والأبنية المرجعية</span>
                   </h3>
-                  <span className={`text-[11px] ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                  <span className={`text-[11px] text-slate-500`}>
                     إضافة وتعديل وحذف أنواع وفئات الأبنية الهندسية
                   </span>
                 </div>
@@ -3012,11 +2642,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     setUtDefaultRoof('خرسانة مسلحة');
                     setShowModal(true);
                   }}
-                  className={`min-h-[38px] px-3.5 py-1.5 font-bold rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5 shadow self-start sm:self-auto ${
-                    isLight
-                      ? 'bg-purple-600 hover:bg-purple-700 text-white shadow-purple-600/20'
-                      : 'bg-amber-500 hover:bg-amber-400 text-slate-950'
-                  }`}
+                  className={`min-h-[38px] px-3.5 py-1.5 font-bold rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5 shadow self-start sm:self-auto bg-purple-600 hover:bg-purple-700 text-white shadow-purple-600/20`}
                 >
                   <Plus className="w-4 h-4" />
                   <span>إضافة نوع مبنى جديد</span>
@@ -3028,24 +2654,20 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 {unitTypes.map((ut) => (
                   <div
                     key={ut.code}
-                    className={`p-3.5 rounded-2xl border transition shadow-sm space-y-3 ${
-                      isLight ? 'bg-white border-slate-200 shadow-slate-200/50' : 'bg-slate-900 border-slate-800'
-                    }`}
+                    className={`p-3.5 rounded-2xl border transition shadow-sm space-y-3 bg-card border-slate-200 shadow-slate-200/50`}
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="space-y-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className={`font-mono font-bold text-xs px-2 py-0.5 rounded border ${
-                            isLight ? 'bg-purple-50 text-purple-800 border-purple-300' : 'bg-slate-950 text-amber-400 border-slate-800'
-                          }`}>
+                          <span className={`font-mono font-bold text-xs px-2 py-0.5 rounded border bg-purple-50 text-purple-800 border-purple-200`}>
                             {ut.code}
                           </span>
-                          <h4 className={`font-bold text-sm ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                          <h4 className={`font-bold text-sm text-slate-900`}>
                             {ut.nameAr}
                           </h4>
                         </div>
                         {ut.nameEn && (
-                          <div className={`font-mono text-xs ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                          <div className={`font-mono text-xs text-slate-500`}>
                             {ut.nameEn}
                           </div>
                         )}
@@ -3053,12 +2675,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       <span
                         className={`px-2.5 py-1 rounded-full text-[10px] font-bold shrink-0 border ${
                           ut.status === 'active'
-                            ? isLight
-                              ? 'bg-emerald-100 text-emerald-900 border-emerald-300'
-                              : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
-                            : isLight
-                            ? 'bg-slate-100 text-slate-600 border-slate-200'
-                            : 'bg-slate-800 text-slate-500 border-slate-700'
+                            ? 'bg-emerald-100 text-emerald-900 border-emerald-200'
+                            : 'bg-slate-100 text-slate-600 border-slate-200'
                         }`}
                       >
                         {ut.status === 'active' ? 'نشط' : 'معطل'}
@@ -3066,49 +2684,43 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     </div>
 
                     {/* Multi-story & Roof badges */}
-                    <div className={`flex items-center justify-between gap-2 p-2 rounded-xl text-xs border ${
-                      isLight ? 'bg-slate-50 border-slate-200/80' : 'bg-slate-950/60 border-slate-800/80'
-                    }`}>
+                    <div className={`flex items-center justify-between gap-2 p-2 rounded-xl text-xs border bg-slate-50 border-slate-200/80`}>
                       <div className="flex items-center gap-1.5">
                         <span className="text-[10px] text-slate-500">الطوابق:</span>
                         <span className={`font-bold text-[11px] px-1.5 py-0.5 rounded ${
                           ut.multiStory
-                            ? isLight ? 'bg-emerald-100 text-emerald-800' : 'bg-emerald-500/20 text-emerald-400'
-                            : isLight ? 'bg-slate-200 text-slate-700' : 'bg-slate-800 text-slate-300'
+                            ? 'bg-emerald-100 text-emerald-800'
+                            : 'bg-slate-200 text-slate-700'
                         }`}>
                           {ut.multiStory ? 'متعدد الطوابق' : 'طابق واحد'}
                         </span>
                       </div>
                       <div className="flex items-center gap-1.5">
                         <span className="text-[10px] text-slate-500">العزل:</span>
-                        <span className={`font-medium text-[11px] ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                        <span className={`font-medium text-[11px] text-slate-700`}>
                           {ut.defaultRoof}
                         </span>
                       </div>
                     </div>
 
                     {/* Actions row */}
-                    <div className="flex items-center gap-2 pt-2 border-t border-slate-200/80 dark:border-slate-800/80">
+                    <div className="flex items-center gap-2 pt-2 border-t border-slate-200/80 ">
                       <button
                         onClick={() => onToggleStatus('unitType', ut.code)}
                         className={`flex-1 min-h-[38px] px-3 py-1.5 rounded-xl font-bold text-xs border inline-flex items-center justify-center gap-1.5 transition cursor-pointer shadow-xs ${
                           ut.status === 'active'
-                            ? isLight
-                              ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-200'
-                              : 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
-                            : isLight
-                            ? 'bg-slate-100 hover:bg-slate-200 text-slate-600 border-slate-200'
-                            : 'bg-slate-800/60 hover:bg-slate-800 text-slate-400 border-slate-700'
+                            ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-200'
+                            : 'bg-slate-100 hover:bg-slate-200 text-slate-600 border-slate-200'
                         }`}
                       >
                         {ut.status === 'active' ? (
                           <>
-                            <ToggleRight className="w-4 h-4 text-emerald-500" />
+                            <ToggleRight className="w-4 h-4 text-emerald-600" />
                             <span>تعطيل</span>
                           </>
                         ) : (
                           <>
-                            <ToggleLeft className="w-4 h-4 text-slate-400" />
+                            <ToggleLeft className="w-4 h-4 text-slate-500" />
                             <span>تنشيط</span>
                           </>
                         )}
@@ -3116,11 +2728,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
                       <button
                         onClick={() => handleOpenEditModal(ut)}
-                        className={`min-h-[38px] px-3.5 py-1.5 rounded-xl font-bold text-xs border transition cursor-pointer flex items-center gap-1.5 ${
-                          isLight
-                            ? 'bg-slate-100 hover:bg-amber-100 text-slate-700 hover:text-amber-900 border-slate-300 hover:border-amber-300'
-                            : 'bg-slate-800 hover:bg-amber-500/20 text-slate-300 hover:text-amber-400 border-slate-700 hover:border-amber-500/40'
-                        }`}
+                        className={`min-h-[38px] px-3.5 py-1.5 rounded-xl font-bold text-xs border transition cursor-pointer flex items-center gap-1.5 bg-slate-100 hover:bg-brand-100 text-slate-700 hover:text-brand-800 border-slate-300 hover:border-brand-200`}
                       >
                         <Edit2 className="w-3.5 h-3.5" />
                         <span>تعديل</span>
@@ -3134,11 +2742,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                             name: ut.nameAr,
                           })
                         }
-                        className={`min-h-[38px] px-3.5 py-1.5 rounded-xl font-bold text-xs border transition cursor-pointer flex items-center gap-1.5 ${
-                          isLight
-                            ? 'bg-rose-50 hover:bg-rose-100 text-rose-700 hover:text-rose-900 border-rose-200 hover:border-rose-300'
-                            : 'bg-slate-800 hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 border-slate-700 hover:border-rose-500/40'
-                        }`}
+                        className={`min-h-[38px] px-3.5 py-1.5 rounded-xl font-bold text-xs border transition cursor-pointer flex items-center gap-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 hover:text-rose-900 border-rose-200 hover:border-rose-200`}
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                         <span>حذف</span>
@@ -3147,23 +2751,17 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   </div>
                 ))}
                 {unitTypes.length === 0 && (
-                  <div className={`p-6 rounded-2xl border text-center text-xs ${
-                    isLight ? 'bg-slate-50 border-slate-200 text-slate-500' : 'bg-slate-900 border-slate-800 text-slate-400'
-                  }`}>
+                  <div className={`p-6 rounded-2xl border text-center text-xs bg-slate-50 border-slate-200 text-slate-500`}>
                     لا توجد أنواع مباني مسجلة حالياً. اضغط على «إضافة نوع مبنى جديد».
                   </div>
                 )}
               </div>
 
               {/* Desktop Table */}
-              <div className={`hidden md:block overflow-x-auto rounded-2xl border shadow-lg ${
-                isLight ? 'bg-white border-slate-200 shadow-slate-200/50' : 'bg-slate-950/60 border-slate-800/80'
-              }`}>
+              <div className={`hidden md:block overflow-x-auto rounded-2xl border shadow-lg bg-card border-slate-200 shadow-slate-200/50`}>
                 <table className="w-full text-right text-xs">
                   <thead>
-                    <tr className={`border-b ${
-                      isLight ? 'bg-slate-50 text-slate-700 border-slate-200 font-bold' : 'bg-slate-950 text-slate-400 border-slate-800'
-                    }`}>
+                    <tr className={`border-b bg-slate-50 text-slate-700 border-slate-200 font-bold`}>
                       <th className="p-3 font-semibold">رمز الفئة</th>
                       <th className="p-3 font-semibold">نوع الوحدة بالعربية</th>
                       <th className="p-3 font-semibold">الاسم بالإنجليزي</th>
@@ -3173,24 +2771,20 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       <th className="p-3 font-semibold text-center">إجراءات</th>
                     </tr>
                   </thead>
-                  <tbody className={`divide-y ${isLight ? 'divide-slate-200 text-slate-800' : 'divide-slate-800 text-slate-300'}`}>
+                  <tbody className={`divide-y divide-slate-200 text-slate-800`}>
                     {unitTypes.map((ut) => (
-                      <tr key={ut.code} className={`transition ${isLight ? 'hover:bg-slate-50' : 'hover:bg-slate-800/40'}`}>
-                        <td className="p-3 font-mono font-bold text-amber-500">{ut.code}</td>
-                        <td className={`p-3 font-bold ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>{ut.nameAr}</td>
-                        <td className="p-3 font-mono text-slate-400">{ut.nameEn || '--'}</td>
+                      <tr key={ut.code} className={`transition hover:bg-slate-50`}>
+                        <td className="p-3 font-mono font-bold text-brand-700">{ut.code}</td>
+                        <td className={`p-3 font-bold text-slate-900`}>{ut.nameAr}</td>
+                        <td className="p-3 font-mono text-slate-500">{ut.nameEn || '--'}</td>
                         <td className="p-3">{ut.multiStory ? 'نعم (متعدد)' : 'لا (طابق واحد)'}</td>
-                        <td className="p-3 text-slate-400">{ut.defaultRoof}</td>
+                        <td className="p-3 text-slate-500">{ut.defaultRoof}</td>
                         <td className="p-3 text-center">
                           <span
                             className={`px-2.5 py-0.5 rounded font-bold ${
                               ut.status === 'active'
-                                ? isLight
-                                  ? 'bg-emerald-100 text-emerald-900 border border-emerald-300'
-                                  : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                                : isLight
-                                ? 'bg-slate-100 text-slate-600'
-                                : 'bg-slate-800 text-slate-500'
+                                ? 'bg-emerald-100 text-emerald-900 border border-emerald-200'
+                                : 'bg-slate-100 text-slate-600'
                             }`}
                           >
                             {ut.status === 'active' ? 'نشط' : 'معطل'}
@@ -3200,17 +2794,17 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                           <div className="flex items-center justify-center gap-2">
                             <button
                               onClick={() => onToggleStatus('unitType', ut.code)}
-                              className="p-1 text-slate-400 hover:text-amber-400 transition cursor-pointer"
+                              className="p-1 text-slate-500 hover:text-brand-700 transition cursor-pointer"
                             >
                               {ut.status === 'active' ? (
-                                <ToggleRight className="w-5 h-5 text-emerald-400" />
+                                <ToggleRight className="w-5 h-5 text-emerald-600" />
                               ) : (
                                 <ToggleLeft className="w-5 h-5 text-slate-500" />
                               )}
                             </button>
                             <button
                               onClick={() => handleOpenEditModal(ut)}
-                              className="p-1 text-slate-400 hover:text-amber-400 transition cursor-pointer"
+                              className="p-1 text-slate-500 hover:text-brand-700 transition cursor-pointer"
                             >
                               <Edit2 className="w-4 h-4" />
                             </button>
@@ -3222,7 +2816,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                                   name: ut.nameAr,
                                 })
                               }
-                              className="p-1 text-slate-400 hover:text-red-400 transition cursor-pointer"
+                              className="p-1 text-slate-500 hover:text-red-600 transition cursor-pointer"
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>
@@ -3239,17 +2833,13 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           {/* TAB 6: Room Types Table */}
           {activeTab === 'rooms' && (
             <div className="space-y-3">
-              <div className={`flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b gap-3 ${
-                isLight ? 'border-slate-200' : 'border-slate-800'
-              }`}>
+              <div className={`flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b gap-3 border-slate-200`}>
                 <div>
-                  <h3 className={`font-bold text-sm flex items-center gap-2 ${
-                    isLight ? 'text-slate-900' : 'text-slate-100'
-                  }`}>
-                    <Layers className={`w-4 h-4 ${isLight ? 'text-pink-600' : 'text-pink-400'}`} />
+                  <h3 className={`font-bold text-sm flex items-center gap-2 text-slate-900`}>
+                    <Layers className={`w-4 h-4 text-pink-600`} />
                     <span>تصنيفات واستخدامات الغرف والقاعات 3D</span>
                   </h3>
-                  <span className={`text-[11px] ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                  <span className={`text-[11px] text-slate-500`}>
                     إضافة تصنيفات جديدة، تعديل التمييز اللوني، وتعديل وحذف الاستخدامات
                   </span>
                 </div>
@@ -3262,11 +2852,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     setRtColorHex('#38bdf8');
                     setShowModal(true);
                   }}
-                  className={`min-h-[38px] px-3.5 py-1.5 font-bold rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5 shadow self-start sm:self-auto ${
-                    isLight
-                      ? 'bg-pink-600 hover:bg-pink-700 text-white shadow-pink-600/20'
-                      : 'bg-amber-500 hover:bg-amber-400 text-slate-950'
-                  }`}
+                  className={`min-h-[38px] px-3.5 py-1.5 font-bold rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5 shadow self-start sm:self-auto bg-pink-600 hover:bg-pink-700 text-white shadow-pink-600/20`}
                 >
                   <Plus className="w-4 h-4" />
                   <span>إضافة تصنيف قاعة / غرفة</span>
@@ -3278,19 +2864,15 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 {roomTypes.map((rt) => (
                   <div
                     key={rt.id}
-                    className={`p-3.5 rounded-2xl border transition shadow-sm space-y-3 ${
-                      isLight ? 'bg-white border-slate-200 shadow-slate-200/50' : 'bg-slate-900 border-slate-800'
-                    }`}
+                    className={`p-3.5 rounded-2xl border transition shadow-sm space-y-3 bg-card border-slate-200 shadow-slate-200/50`}
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="space-y-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className={`font-mono font-bold text-xs px-2 py-0.5 rounded border ${
-                            isLight ? 'bg-pink-50 text-pink-800 border-pink-300' : 'bg-slate-950 text-amber-400 border-slate-800'
-                          }`}>
+                          <span className={`font-mono font-bold text-xs px-2 py-0.5 rounded border bg-pink-50 text-pink-800 border-pink-200`}>
                             {rt.code}
                           </span>
-                          <h4 className={`font-bold text-sm ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                          <h4 className={`font-bold text-sm text-slate-900`}>
                             {rt.nameAr}
                           </h4>
                         </div>
@@ -3298,12 +2880,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       <span
                         className={`px-2.5 py-1 rounded-full text-[10px] font-bold shrink-0 border ${
                           rt.status === 'active'
-                            ? isLight
-                              ? 'bg-emerald-100 text-emerald-900 border-emerald-300'
-                              : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
-                            : isLight
-                            ? 'bg-slate-100 text-slate-600 border-slate-200'
-                            : 'bg-slate-800 text-slate-500 border-slate-700'
+                            ? 'bg-emerald-100 text-emerald-900 border-emerald-200'
+                            : 'bg-slate-100 text-slate-600 border-slate-200'
                         }`}
                       >
                         {rt.status === 'active' ? 'نشط' : 'معطل'}
@@ -3311,43 +2889,37 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     </div>
 
                     {/* Color badge */}
-                    <div className={`flex items-center gap-2.5 p-2 rounded-xl text-xs border ${
-                      isLight ? 'bg-slate-50 border-slate-200/80' : 'bg-slate-950/60 border-slate-800/80'
-                    }`}>
+                    <div className={`flex items-center gap-2.5 p-2 rounded-xl text-xs border bg-slate-50 border-slate-200/80`}>
                       <span className="text-[10px] text-slate-500">الرمز اللوني 3D:</span>
                       <div className="flex items-center gap-2">
                         <span
-                          className="w-4 h-4 rounded-full border border-slate-700/60 shadow-xs"
+                          className="w-4 h-4 rounded-full border border-slate-200 shadow-xs"
                           style={{ backgroundColor: rt.colorHex }}
                         />
-                        <span className={`font-mono font-bold text-xs ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                        <span className={`font-mono font-bold text-xs text-slate-700`}>
                           {rt.colorHex}
                         </span>
                       </div>
                     </div>
 
                     {/* Actions row */}
-                    <div className="flex items-center gap-2 pt-2 border-t border-slate-200/80 dark:border-slate-800/80">
+                    <div className="flex items-center gap-2 pt-2 border-t border-slate-200/80 ">
                       <button
                         onClick={() => onToggleStatus('roomType', rt.id)}
                         className={`flex-1 min-h-[38px] px-3 py-1.5 rounded-xl font-bold text-xs border inline-flex items-center justify-center gap-1.5 transition cursor-pointer shadow-xs ${
                           rt.status === 'active'
-                            ? isLight
-                              ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-200'
-                              : 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
-                            : isLight
-                            ? 'bg-slate-100 hover:bg-slate-200 text-slate-600 border-slate-200'
-                            : 'bg-slate-800/60 hover:bg-slate-800 text-slate-400 border-slate-700'
+                            ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-200'
+                            : 'bg-slate-100 hover:bg-slate-200 text-slate-600 border-slate-200'
                         }`}
                       >
                         {rt.status === 'active' ? (
                           <>
-                            <ToggleRight className="w-4 h-4 text-emerald-500" />
+                            <ToggleRight className="w-4 h-4 text-emerald-600" />
                             <span>تعطيل</span>
                           </>
                         ) : (
                           <>
-                            <ToggleLeft className="w-4 h-4 text-slate-400" />
+                            <ToggleLeft className="w-4 h-4 text-slate-500" />
                             <span>تنشيط</span>
                           </>
                         )}
@@ -3355,11 +2927,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
                       <button
                         onClick={() => handleOpenEditModal(rt)}
-                        className={`min-h-[38px] px-3.5 py-1.5 rounded-xl font-bold text-xs border transition cursor-pointer flex items-center gap-1.5 ${
-                          isLight
-                            ? 'bg-slate-100 hover:bg-amber-100 text-slate-700 hover:text-amber-900 border-slate-300 hover:border-amber-300'
-                            : 'bg-slate-800 hover:bg-amber-500/20 text-slate-300 hover:text-amber-400 border-slate-700 hover:border-amber-500/40'
-                        }`}
+                        className={`min-h-[38px] px-3.5 py-1.5 rounded-xl font-bold text-xs border transition cursor-pointer flex items-center gap-1.5 bg-slate-100 hover:bg-brand-100 text-slate-700 hover:text-brand-800 border-slate-300 hover:border-brand-200`}
                       >
                         <Edit2 className="w-3.5 h-3.5" />
                         <span>تعديل</span>
@@ -3373,11 +2941,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                             name: rt.nameAr,
                           })
                         }
-                        className={`min-h-[38px] px-3.5 py-1.5 rounded-xl font-bold text-xs border transition cursor-pointer flex items-center gap-1.5 ${
-                          isLight
-                            ? 'bg-rose-50 hover:bg-rose-100 text-rose-700 hover:text-rose-900 border-rose-200 hover:border-rose-300'
-                            : 'bg-slate-800 hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 border-slate-700 hover:border-rose-500/40'
-                        }`}
+                        className={`min-h-[38px] px-3.5 py-1.5 rounded-xl font-bold text-xs border transition cursor-pointer flex items-center gap-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 hover:text-rose-900 border-rose-200 hover:border-rose-200`}
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                         <span>حذف</span>
@@ -3386,23 +2950,17 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   </div>
                 ))}
                 {roomTypes.length === 0 && (
-                  <div className={`p-6 rounded-2xl border text-center text-xs ${
-                    isLight ? 'bg-slate-50 border-slate-200 text-slate-500' : 'bg-slate-900 border-slate-800 text-slate-400'
-                  }`}>
+                  <div className={`p-6 rounded-2xl border text-center text-xs bg-slate-50 border-slate-200 text-slate-500`}>
                     لا توجد تصنيفات غرف مسجلة حالياً. اضغط على «إضافة تصنيف قاعة / غرفة».
                   </div>
                 )}
               </div>
 
               {/* Desktop Table */}
-              <div className={`hidden md:block overflow-x-auto rounded-2xl border shadow-lg ${
-                isLight ? 'bg-white border-slate-200 shadow-slate-200/50' : 'bg-slate-950/60 border-slate-800/80'
-              }`}>
+              <div className={`hidden md:block overflow-x-auto rounded-2xl border shadow-lg bg-card border-slate-200 shadow-slate-200/50`}>
                 <table className="w-full text-right text-xs">
                   <thead>
-                    <tr className={`border-b ${
-                      isLight ? 'bg-slate-50 text-slate-700 border-slate-200 font-bold' : 'bg-slate-950 text-slate-400 border-slate-800'
-                    }`}>
+                    <tr className={`border-b bg-slate-50 text-slate-700 border-slate-200 font-bold`}>
                       <th className="p-3 font-semibold">الكود</th>
                       <th className="p-3 font-semibold">تصنيف الغرفة/القاعة</th>
                       <th className="p-3 font-semibold">الرمز اللوني 3D</th>
@@ -3410,30 +2968,26 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       <th className="p-3 font-semibold text-center">إجراءات</th>
                     </tr>
                   </thead>
-                  <tbody className={`divide-y ${isLight ? 'divide-slate-200 text-slate-800' : 'divide-slate-800 text-slate-300'}`}>
+                  <tbody className={`divide-y divide-slate-200 text-slate-800`}>
                     {roomTypes.map((rt) => (
-                      <tr key={rt.id} className={`transition ${isLight ? 'hover:bg-slate-50' : 'hover:bg-slate-800/40'}`}>
-                        <td className="p-3 font-mono font-bold text-amber-500">{rt.code}</td>
-                        <td className={`p-3 font-bold ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>{rt.nameAr}</td>
+                      <tr key={rt.id} className={`transition hover:bg-slate-50`}>
+                        <td className="p-3 font-mono font-bold text-brand-700">{rt.code}</td>
+                        <td className={`p-3 font-bold text-slate-900`}>{rt.nameAr}</td>
                         <td className="p-3">
                           <div className="flex items-center gap-2">
                             <span
-                              className="w-4 h-4 rounded-full border border-slate-700/60 shadow-xs"
+                              className="w-4 h-4 rounded-full border border-slate-200 shadow-xs"
                               style={{ backgroundColor: rt.colorHex }}
                             ></span>
-                            <span className="font-mono text-slate-400">{rt.colorHex}</span>
+                            <span className="font-mono text-slate-500">{rt.colorHex}</span>
                           </div>
                         </td>
                         <td className="p-3 text-center">
                           <span
                             className={`px-2.5 py-0.5 rounded font-bold ${
                               rt.status === 'active'
-                                ? isLight
-                                  ? 'bg-emerald-100 text-emerald-900 border border-emerald-300'
-                                  : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                                : isLight
-                                ? 'bg-slate-100 text-slate-600'
-                                : 'bg-slate-800 text-slate-500'
+                                ? 'bg-emerald-100 text-emerald-900 border border-emerald-200'
+                                : 'bg-slate-100 text-slate-600'
                             }`}
                           >
                             {rt.status === 'active' ? 'نشط' : 'معطل'}
@@ -3443,17 +2997,17 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                           <div className="flex items-center justify-center gap-2">
                             <button
                               onClick={() => onToggleStatus('roomType', rt.id)}
-                              className="p-1 text-slate-400 hover:text-amber-400 transition cursor-pointer"
+                              className="p-1 text-slate-500 hover:text-brand-700 transition cursor-pointer"
                             >
                               {rt.status === 'active' ? (
-                                <ToggleRight className="w-5 h-5 text-emerald-400" />
+                                <ToggleRight className="w-5 h-5 text-emerald-600" />
                               ) : (
                                 <ToggleLeft className="w-5 h-5 text-slate-500" />
                               )}
                             </button>
                             <button
                               onClick={() => handleOpenEditModal(rt)}
-                              className="p-1 text-slate-400 hover:text-amber-400 transition cursor-pointer"
+                              className="p-1 text-slate-500 hover:text-brand-700 transition cursor-pointer"
                             >
                               <Edit2 className="w-4 h-4" />
                             </button>
@@ -3465,7 +3019,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                                   name: rt.nameAr,
                                 })
                               }
-                              className="p-1 text-slate-400 hover:text-red-400 transition cursor-pointer"
+                              className="p-1 text-slate-500 hover:text-red-600 transition cursor-pointer"
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>
@@ -3483,30 +3037,22 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           {activeTab === 'maintenance_depts' && (
             <div className="space-y-3">
               <div
-                className={`flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b gap-3 ${
-                  isLight ? 'border-slate-200' : 'border-slate-800'
-                }`}
+                className={`flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b gap-3 border-slate-200`}
               >
                 <div>
                   <h3
-                    className={`font-bold text-sm flex items-center gap-2 ${
-                      isLight ? 'text-slate-900' : 'text-slate-100'
-                    }`}
+                    className={`font-bold text-sm flex items-center gap-2 text-slate-900`}
                   >
-                    <Wrench className={`w-4 h-4 ${isLight ? 'text-amber-600' : 'text-amber-400'}`} />
+                    <Wrench className={`w-4 h-4 text-brand-700`} />
                     <span>سجل جهات وأقسام الصيانة الهندسية والفنية</span>
                   </h3>
-                  <p className={`text-xs mt-0.5 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                  <p className={`text-xs mt-0.5 text-slate-600`}>
                     إدارة جهات الصيانة (الكهربائية، الميكانيكية، الإنشائية، تكييف، أجهزة دقيقة...) وتوجيه البلاغات إليها
                   </p>
                 </div>
                 <button
                   onClick={handleOpenCreateModal}
-                  className={`min-h-[38px] font-bold px-3.5 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow transition cursor-pointer self-start sm:self-auto ${
-                    isLight
-                      ? 'bg-amber-600 hover:bg-amber-700 text-white shadow-amber-600/20'
-                      : 'bg-amber-500 hover:bg-amber-400 text-slate-950'
-                  }`}
+                  className={`min-h-[38px] font-bold px-3.5 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow transition cursor-pointer self-start sm:self-auto bg-brand-700 hover:bg-brand-800 text-white `}
                 >
                   <Plus className="w-4 h-4" />
                   <span>إضافة جهة صيانة جديدة</span>
@@ -3518,23 +3064,21 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 {maintenanceDepartments.map((dept) => (
                   <div
                     key={dept.id}
-                    className={`p-3.5 rounded-2xl border transition shadow-sm space-y-3 ${
-                      isLight ? 'bg-white border-slate-200 shadow-slate-200/50' : 'bg-slate-900 border-slate-800'
-                    }`}
+                    className={`p-3.5 rounded-2xl border transition shadow-sm space-y-3 bg-card border-slate-200 shadow-slate-200/50`}
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="space-y-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-mono font-bold text-xs px-2 py-0.5 rounded border bg-amber-500/10 text-amber-500 border-amber-500/20">
+                          <span className="font-mono font-bold text-xs px-2 py-0.5 rounded border bg-brand-50 text-brand-700 border-brand-200">
                             {dept.code}
                           </span>
-                          <h4 className={`font-bold text-sm flex items-center gap-1.5 ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
-                            <Wrench className={`w-3.5 h-3.5 ${isLight ? 'text-amber-600' : 'text-amber-400'}`} />
+                          <h4 className={`font-bold text-sm flex items-center gap-1.5 text-slate-900`}>
+                            <Wrench className={`w-3.5 h-3.5 text-brand-700`} />
                             <span>{dept.nameAr}</span>
                           </h4>
                         </div>
                         {dept.nameEn && (
-                          <div className="font-mono text-xs text-slate-400">
+                          <div className="font-mono text-xs text-slate-500">
                             {dept.nameEn}
                           </div>
                         )}
@@ -3542,12 +3086,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       <span
                         className={`px-2.5 py-1 rounded-full text-[10px] font-bold shrink-0 border ${
                           dept.status === 'active'
-                            ? isLight
-                              ? 'bg-emerald-100 text-emerald-900 border-emerald-300'
-                              : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
-                            : isLight
-                            ? 'bg-slate-100 text-slate-600 border-slate-200'
-                            : 'bg-slate-800 text-slate-500 border-slate-700'
+                            ? 'bg-emerald-100 text-emerald-900 border-emerald-200'
+                            : 'bg-slate-100 text-slate-600 border-slate-200'
                         }`}
                       >
                         {dept.status === 'active' ? 'نشط' : 'معطل'}
@@ -3555,35 +3095,29 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     </div>
 
                     {dept.description && (
-                      <p className={`text-xs p-2 rounded-xl border leading-relaxed ${
-                        isLight ? 'bg-slate-50 text-slate-600 border-slate-200/70' : 'bg-slate-950/60 text-slate-400 border-slate-800/60'
-                      }`}>
+                      <p className={`text-xs p-2 rounded-xl border leading-relaxed bg-slate-50 text-slate-600 border-slate-200/70`}>
                         {dept.description}
                       </p>
                     )}
 
                     {/* Actions row */}
-                    <div className="flex items-center gap-2 pt-2 border-t border-slate-200/80 dark:border-slate-800/80">
+                    <div className="flex items-center gap-2 pt-2 border-t border-slate-200/80 ">
                       <button
                         onClick={() => onToggleMaintenanceDepartmentStatus?.(dept.id)}
                         className={`flex-1 min-h-[38px] px-3 py-1.5 rounded-xl font-bold text-xs border inline-flex items-center justify-center gap-1.5 transition cursor-pointer shadow-xs ${
                           dept.status === 'active'
-                            ? isLight
-                              ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-200'
-                              : 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
-                            : isLight
-                            ? 'bg-slate-100 hover:bg-slate-200 text-slate-600 border-slate-200'
-                            : 'bg-slate-800/60 hover:bg-slate-800 text-slate-400 border-slate-700'
+                            ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-200'
+                            : 'bg-slate-100 hover:bg-slate-200 text-slate-600 border-slate-200'
                         }`}
                       >
                         {dept.status === 'active' ? (
                           <>
-                            <ToggleRight className="w-4 h-4 text-emerald-500" />
+                            <ToggleRight className="w-4 h-4 text-emerald-600" />
                             <span>تعطيل</span>
                           </>
                         ) : (
                           <>
-                            <ToggleLeft className="w-4 h-4 text-slate-400" />
+                            <ToggleLeft className="w-4 h-4 text-slate-500" />
                             <span>تنشيط</span>
                           </>
                         )}
@@ -3591,11 +3125,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
                       <button
                         onClick={() => handleOpenEditModal(dept)}
-                        className={`min-h-[38px] px-3.5 py-1.5 rounded-xl font-bold text-xs border transition cursor-pointer flex items-center gap-1.5 ${
-                          isLight
-                            ? 'bg-slate-100 hover:bg-amber-100 text-slate-700 hover:text-amber-900 border-slate-300 hover:border-amber-300'
-                            : 'bg-slate-800 hover:bg-amber-500/20 text-slate-300 hover:text-amber-400 border-slate-700 hover:border-amber-500/40'
-                        }`}
+                        className={`min-h-[38px] px-3.5 py-1.5 rounded-xl font-bold text-xs border transition cursor-pointer flex items-center gap-1.5 bg-slate-100 hover:bg-brand-100 text-slate-700 hover:text-brand-800 border-slate-300 hover:border-brand-200`}
                       >
                         <Edit2 className="w-3.5 h-3.5" />
                         <span>تعديل</span>
@@ -3609,11 +3139,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                             name: dept.nameAr,
                           })
                         }
-                        className={`min-h-[38px] px-3.5 py-1.5 rounded-xl font-bold text-xs border transition cursor-pointer flex items-center gap-1.5 ${
-                          isLight
-                            ? 'bg-rose-50 hover:bg-rose-100 text-rose-700 hover:text-rose-900 border-rose-200 hover:border-rose-300'
-                            : 'bg-slate-800 hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 border-slate-700 hover:border-rose-500/40'
-                        }`}
+                        className={`min-h-[38px] px-3.5 py-1.5 rounded-xl font-bold text-xs border transition cursor-pointer flex items-center gap-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 hover:text-rose-900 border-rose-200 hover:border-rose-200`}
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                         <span>حذف</span>
@@ -3622,9 +3148,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   </div>
                 ))}
                 {maintenanceDepartments.length === 0 && (
-                  <div className={`p-6 rounded-2xl border text-center text-xs ${
-                    isLight ? 'bg-slate-50 border-slate-200 text-slate-500' : 'bg-slate-900 border-slate-800 text-slate-400'
-                  }`}>
+                  <div className={`p-6 rounded-2xl border text-center text-xs bg-slate-50 border-slate-200 text-slate-500`}>
                     لا توجد جهات صيانة مسجلة حالياً. اضغط على «إضافة جهة صيانة جديدة» لإضافة أقسام الصيانة.
                   </div>
                 )}
@@ -3632,20 +3156,12 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
               {/* Desktop Table */}
               <div
-                className={`hidden md:block overflow-x-auto rounded-2xl border shadow-lg ${
-                  isLight
-                    ? 'bg-white border-slate-200 shadow-slate-200/50'
-                    : 'bg-slate-950/60 border-slate-800/80'
-                }`}
+                className={`hidden md:block overflow-x-auto rounded-2xl border shadow-lg bg-card border-slate-200 shadow-slate-200/50`}
               >
                 <table className="w-full text-right text-xs">
                   <thead>
                     <tr
-                      className={`border-b ${
-                        isLight
-                          ? 'bg-slate-50 text-slate-700 border-slate-200 font-bold'
-                          : 'bg-slate-950 text-slate-400 border-slate-800'
-                      }`}
+                      className={`border-b bg-slate-50 text-slate-700 border-slate-200 font-bold`}
                     >
                       <th className="p-3 font-bold">كود الجهة</th>
                       <th className="p-3 font-bold">اسم جهة / قسم الصيانة</th>
@@ -3656,36 +3172,28 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     </tr>
                   </thead>
                   <tbody
-                    className={`divide-y ${
-                      isLight
-                        ? 'divide-slate-200 text-slate-800'
-                        : 'divide-slate-800/80 text-slate-300'
-                    }`}
+                    className={`divide-y divide-slate-200 text-slate-800`}
                   >
                     {maintenanceDepartments.map((dept) => (
                       <tr
                         key={dept.id}
-                        className={`transition ${isLight ? 'hover:bg-slate-50' : 'hover:bg-slate-800/40'}`}
+                        className={`transition hover:bg-slate-50`}
                       >
-                        <td className="p-3 font-mono font-bold text-amber-500">{dept.code}</td>
+                        <td className="p-3 font-mono font-bold text-brand-700">{dept.code}</td>
                         <td className="p-3 font-bold">
                           <div className="flex items-center gap-2">
-                            <Wrench className={`w-3.5 h-3.5 ${isLight ? 'text-amber-600' : 'text-amber-400'}`} />
-                            <span className={isLight ? 'text-slate-900' : 'text-slate-100'}>{dept.nameAr}</span>
+                            <Wrench className={`w-3.5 h-3.5 text-brand-700`} />
+                            <span className={'text-slate-900'}>{dept.nameAr}</span>
                           </div>
                         </td>
-                        <td className="p-3 font-mono text-slate-400">{dept.nameEn || dept.nameAr}</td>
-                        <td className="p-3 text-slate-400">{dept.description || '--'}</td>
+                        <td className="p-3 font-mono text-slate-500">{dept.nameEn || dept.nameAr}</td>
+                        <td className="p-3 text-slate-500">{dept.description || '--'}</td>
                         <td className="p-3 text-center">
                           <span
                             className={`px-2.5 py-0.5 rounded font-bold ${
                               dept.status === 'active'
-                                ? isLight
-                                  ? 'bg-emerald-100 text-emerald-900 border border-emerald-300'
-                                  : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                                : isLight
-                                ? 'bg-slate-100 text-slate-600'
-                                : 'bg-slate-800 text-slate-500'
+                                ? 'bg-emerald-100 text-emerald-900 border border-emerald-200'
+                                : 'bg-slate-100 text-slate-600'
                             }`}
                           >
                             {dept.status === 'active' ? 'نشط' : 'معطل'}
@@ -3695,18 +3203,18 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                           <div className="flex items-center justify-center gap-2">
                             <button
                               onClick={() => onToggleMaintenanceDepartmentStatus?.(dept.id)}
-                              className="p-1 text-slate-400 hover:text-amber-400 transition cursor-pointer"
+                              className="p-1 text-slate-500 hover:text-brand-700 transition cursor-pointer"
                               title="تبديل الحالة"
                             >
                               {dept.status === 'active' ? (
-                                <ToggleRight className="w-5 h-5 text-emerald-400" />
+                                <ToggleRight className="w-5 h-5 text-emerald-600" />
                               ) : (
                                 <ToggleLeft className="w-5 h-5 text-slate-500" />
                               )}
                             </button>
                             <button
                               onClick={() => handleOpenEditModal(dept)}
-                              className="p-1 text-slate-400 hover:text-amber-400 transition cursor-pointer"
+                              className="p-1 text-slate-500 hover:text-brand-700 transition cursor-pointer"
                               title="تعديل"
                             >
                               <Edit2 className="w-4 h-4" />
@@ -3719,7 +3227,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                                   name: dept.nameAr,
                                 })
                               }
-                              className="p-1 text-slate-400 hover:text-red-400 transition cursor-pointer"
+                              className="p-1 text-slate-500 hover:text-red-600 transition cursor-pointer"
                               title="حذف"
                             >
                               <Trash2 className="w-4 h-4" />
@@ -3744,17 +3252,13 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           {/* TAB 8: Audit Activity Logs */}
           {activeTab === 'audit' && (
             <div className="space-y-4">
-              <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b ${
-                isLight ? 'border-slate-200' : 'border-slate-800'
-              }`}>
+              <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200`}>
                 <div>
-                  <h3 className={`font-bold text-sm flex items-center gap-2 ${
-                    isLight ? 'text-slate-900' : 'text-slate-100'
-                  }`}>
-                    <Activity className={`w-4 h-4 ${isLight ? 'text-teal-600' : 'text-teal-400'}`} />
+                  <h3 className={`font-bold text-sm flex items-center gap-2 text-slate-900`}>
+                    <Activity className={`w-4 h-4 text-teal-600`} />
                     <span>سجل النشاطات وتغييرات الإعدادات المركزية</span>
                   </h3>
-                  <p className={`text-xs mt-0.5 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                  <p className={`text-xs mt-0.5 text-slate-600`}>
                     توثيق حركية إضافة وتعديل وتقييم المباني، وإجراءات السلامة والصيانة بالنظام
                   </p>
                 </div>
@@ -3762,18 +3266,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 <div className="flex items-center gap-2 flex-wrap">
                   <button
                     onClick={() => setShowAddLogModal(true)}
-                    className={`min-h-[38px] font-bold px-3 py-1.5 rounded-xl text-xs flex items-center gap-1.5 cursor-pointer transition border ${
-                      isLight
-                        ? 'bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-300'
-                        : 'bg-slate-800 hover:bg-slate-700 text-amber-400 border-slate-700'
-                    }`}
+                    className={`min-h-[38px] font-bold px-3 py-1.5 rounded-xl text-xs flex items-center gap-1.5 cursor-pointer transition border bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-300`}
                   >
                     <PlusCircle className="w-3.5 h-3.5" />
                     <span>إضافة نشاط يدوي</span>
                   </button>
                   <button
                     onClick={onClearAuditLogs}
-                    className="min-h-[38px] bg-red-500/10 hover:bg-red-500/20 text-red-500 dark:text-red-400 border border-red-500/30 font-bold px-3 py-1.5 rounded-xl text-xs flex items-center gap-1.5 cursor-pointer transition"
+                    className="min-h-[38px] bg-red-500/10 hover:bg-red-500/20 text-red-600 border border-red-500/30 font-bold px-3 py-1.5 rounded-xl text-xs flex items-center gap-1.5 cursor-pointer transition"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                     <span>تفريغ السجل</span>
@@ -3783,17 +3283,13 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
               {/* Search input */}
               <div className="relative">
-                <Search className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2" />
+                <Search className="w-4 h-4 text-slate-500 absolute right-3 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
                   value={auditSearch}
                   onChange={(e) => setAuditSearch(e.target.value)}
                   placeholder="فلترة بالاسم، نوع الإجراء، أو رمز الأصل..."
-                  className={`w-full border rounded-xl pr-9 pl-3 py-2.5 text-xs transition ${
-                    isLight
-                      ? 'bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 focus:border-teal-500 focus:ring-1 focus:ring-teal-500'
-                      : 'bg-slate-950 border-slate-800 text-slate-200 placeholder:text-slate-600 focus:border-teal-500'
-                  }`}
+                  className={`w-full border rounded-xl pr-9 pl-3 py-2.5 text-xs transition bg-card border-slate-200 text-slate-900 placeholder:text-slate-400 focus:border-teal-500 focus:ring-1 focus:ring-teal-500`}
                 />
               </div>
 
@@ -3802,18 +3298,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 {filteredAuditLogs.map((log) => (
                   <div
                     key={log.id}
-                    className={`p-3.5 rounded-2xl border transition shadow-sm space-y-2.5 ${
-                      isLight ? 'bg-white border-slate-200 shadow-slate-200/50' : 'bg-slate-900 border-slate-800'
-                    }`}
+                    className={`p-3.5 rounded-2xl border transition shadow-sm space-y-2.5 bg-card border-slate-200 shadow-slate-200/50`}
                   >
                     {/* Header: Action badge & Timestamp */}
                     <div className="flex items-center justify-between gap-2">
-                      <span className={`px-2.5 py-1 rounded-lg font-bold text-xs border ${
-                        isLight ? 'bg-amber-100 text-amber-900 border-amber-300' : 'bg-amber-500/15 text-amber-400 border-amber-500/30'
-                      }`}>
+                      <span className={`px-2.5 py-1 rounded-lg font-bold text-xs border bg-brand-100 text-brand-800 border-brand-200`}>
                         {log.action}
                       </span>
-                      <span className="font-mono text-slate-400 text-[11px] flex items-center gap-1">
+                      <span className="font-mono text-slate-500 text-[11px] flex items-center gap-1">
                         <Clock className="w-3 h-3" />
                         <span>{log.timestamp}</span>
                       </span>
@@ -3822,17 +3314,15 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     {/* User and Unit Code */}
                     <div className="flex items-center justify-between gap-2 pt-1">
                       <div className="flex items-center gap-2 min-w-0">
-                        <span className="w-6 h-6 rounded-full bg-amber-500/20 text-amber-500 dark:text-amber-300 border border-amber-500/30 font-bold flex items-center justify-center text-[10px] shrink-0">
+                        <span className="w-6 h-6 rounded-full bg-brand-100 text-brand-700 border border-brand-200 font-bold flex items-center justify-center text-[10px] shrink-0">
                           {log.userInitials}
                         </span>
-                        <span className={`font-bold text-xs truncate ${isLight ? 'text-slate-800' : 'text-slate-200'}`}>
+                        <span className={`font-bold text-xs truncate text-slate-800`}>
                           {log.user}
                         </span>
                       </div>
                       {log.unitCode && (
-                        <span className={`font-mono font-bold text-[11px] px-2 py-0.5 rounded border shrink-0 ${
-                          isLight ? 'bg-slate-100 text-slate-700 border-slate-200' : 'bg-slate-950 text-slate-300 border-slate-800'
-                        }`}>
+                        <span className={`font-mono font-bold text-[11px] px-2 py-0.5 rounded border shrink-0 bg-slate-100 text-slate-700 border-slate-200`}>
                           {log.unitCode}
                         </span>
                       )}
@@ -3840,9 +3330,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
                     {/* Field & Diff values */}
                     {(log.affectedField || log.previousValue || log.newValue) && (
-                      <div className={`p-2.5 rounded-xl border text-xs space-y-1 ${
-                        isLight ? 'bg-slate-50 border-slate-200/80' : 'bg-slate-950/60 border-slate-800/80'
-                      }`}>
+                      <div className={`p-2.5 rounded-xl border text-xs space-y-1 bg-slate-50 border-slate-200/80`}>
                         {log.affectedField && (
                           <div className="text-[10px] text-slate-500 font-bold">
                             الحقل: {log.affectedField}
@@ -3853,10 +3341,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                             <span className="text-slate-500 line-through">{log.previousValue}</span>
                           )}
                           {log.previousValue && log.newValue && (
-                            <span className="text-slate-400">←</span>
+                            <span className="text-slate-500">←</span>
                           )}
                           {log.newValue && (
-                            <span className="text-emerald-500 font-bold">{log.newValue}</span>
+                            <span className="text-emerald-600 font-bold">{log.newValue}</span>
                           )}
                         </div>
                       </div>
@@ -3864,23 +3352,17 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   </div>
                 ))}
                 {filteredAuditLogs.length === 0 && (
-                  <div className={`p-6 rounded-2xl border text-center text-xs ${
-                    isLight ? 'bg-slate-50 border-slate-200 text-slate-500' : 'bg-slate-900 border-slate-800 text-slate-400'
-                  }`}>
+                  <div className={`p-6 rounded-2xl border text-center text-xs bg-slate-50 border-slate-200 text-slate-500`}>
                     لا توجد سجلات نشاط مطابقة للبحث.
                   </div>
                 )}
               </div>
 
               {/* Desktop Table */}
-              <div className={`hidden md:block overflow-x-auto rounded-2xl border shadow-lg ${
-                isLight ? 'bg-white border-slate-200 shadow-slate-200/50' : 'bg-slate-950/60 border-slate-800/80'
-              }`}>
+              <div className={`hidden md:block overflow-x-auto rounded-2xl border shadow-lg bg-card border-slate-200 shadow-slate-200/50`}>
                 <table className="w-full text-right text-xs">
                   <thead>
-                    <tr className={`border-b ${
-                      isLight ? 'bg-slate-50 text-slate-700 border-slate-200 font-bold' : 'bg-slate-950 text-slate-400 border-slate-800'
-                    }`}>
+                    <tr className={`border-b bg-slate-50 text-slate-700 border-slate-200 font-bold`}>
                       <th className="p-3 font-semibold">الطابع الزمني</th>
                       <th className="p-3 font-semibold">المستخدم</th>
                       <th className="p-3 font-semibold">نوع الإجراء</th>
@@ -3889,26 +3371,26 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       <th className="p-3 font-semibold">القيمة السابقة / الجديدة</th>
                     </tr>
                   </thead>
-                  <tbody className={`divide-y ${isLight ? 'divide-slate-200 text-slate-800' : 'divide-slate-800 text-slate-300'}`}>
+                  <tbody className={`divide-y divide-slate-200 text-slate-800`}>
                     {filteredAuditLogs.map((log) => (
-                      <tr key={log.id} className={`transition ${isLight ? 'hover:bg-slate-50' : 'hover:bg-slate-800/40'}`}>
-                        <td className="p-3 font-mono text-slate-400 text-[11px]">{log.timestamp}</td>
+                      <tr key={log.id} className={`transition hover:bg-slate-50`}>
+                        <td className="p-3 font-mono text-slate-500 text-[11px]">{log.timestamp}</td>
                         <td className="p-3">
                           <div className="flex items-center gap-2">
-                            <span className="w-6 h-6 rounded-full bg-amber-500/20 text-amber-500 dark:text-amber-300 border border-amber-500/30 font-bold flex items-center justify-center text-[10px]">
+                            <span className="w-6 h-6 rounded-full bg-brand-100 text-brand-700 border border-brand-200 font-bold flex items-center justify-center text-[10px]">
                               {log.userInitials}
                             </span>
-                            <span className={`font-bold ${isLight ? 'text-slate-900' : 'text-slate-200'}`}>{log.user}</span>
+                            <span className={`font-bold text-slate-900`}>{log.user}</span>
                           </div>
                         </td>
-                        <td className="p-3 font-bold text-amber-500">{log.action}</td>
-                        <td className="p-3 font-mono text-slate-400">{log.unitCode}</td>
-                        <td className="p-3 text-slate-400">{log.affectedField}</td>
+                        <td className="p-3 font-bold text-brand-700">{log.action}</td>
+                        <td className="p-3 font-mono text-slate-500">{log.unitCode}</td>
+                        <td className="p-3 text-slate-500">{log.affectedField}</td>
                         <td className="p-3">
                           <div className="flex items-center gap-1.5 font-mono text-[11px]">
                             <span className="text-slate-500 line-through">{log.previousValue}</span>
-                            <span className="text-slate-400">←</span>
-                            <span className="text-emerald-500 font-bold">{log.newValue}</span>
+                            <span className="text-slate-500">←</span>
+                            <span className="text-emerald-600 font-bold">{log.newValue}</span>
                           </div>
                         </td>
                       </tr>
@@ -3950,12 +3432,12 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           {/* TAB 9: Custom Granular Factory Reset */}
           {activeTab === 'reset' && (
             <div className="space-y-6">
-              <div className="border-b border-slate-800 pb-3">
-                <h3 className="font-bold text-amber-400 text-sm flex items-center gap-2">
-                  <ShieldAlert className="w-4 h-4 text-red-400" />
+              <div className="border-b border-slate-200 pb-3">
+                <h3 className="font-bold text-brand-700 text-sm flex items-center gap-2">
+                  <ShieldAlert className="w-4 h-4 text-red-600" />
                   <span>استعادة ضبط المصنع والمسح المخصص</span>
                 </h3>
-                <p className="text-slate-400 text-xs mt-0.5">
+                <p className="text-slate-500 text-xs mt-0.5">
                   تسمح لك هذه اللوحة باختيار القسم المحدد للمسح أو إعادة التعيين دون الحاجة لمسح جميع بيانات النظام مرة واحدة.
                 </p>
               </div>
@@ -3963,26 +3445,26 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               {/* Granular Reset Cards Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* 1. Units & Buildings */}
-                <div className="bg-slate-950 border border-slate-800 rounded-2xl p-4 space-y-3 flex flex-col justify-between">
+                <div className="bg-card border border-slate-200 rounded-2xl p-4 space-y-3 flex flex-col justify-between">
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
-                        <div className="p-2 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-xl">
+                        <div className="p-2 bg-brand-50 text-brand-700 border border-brand-200 rounded-xl">
                           <Building2 className="w-5 h-5" />
                         </div>
                         <div>
-                          <h4 className="font-bold text-slate-100 text-xs">مسح/إعادة تعيين المباني والوحدات</h4>
-                          <span className="text-[11px] text-amber-400 font-mono font-bold">
+                          <h4 className="font-bold text-slate-800 text-xs">مسح/إعادة تعيين المباني والوحدات</h4>
+                          <span className="text-[11px] text-brand-700 font-mono font-bold">
                             العدد الحالي: {units.length} أصل/مبنى
                           </span>
                         </div>
                       </div>
                     </div>
-                    <p className="text-slate-400 text-[11px] leading-relaxed">
+                    <p className="text-slate-500 text-[11px] leading-relaxed">
                       يشمل كافة الأصول والمباني والكرفانات المسجلة مع تقييماتها الهندسية وبيانات السلامة.
                     </p>
                   </div>
-                  <div className="flex items-center gap-2 pt-2 border-t border-slate-800/80">
+                  <div className="flex items-center gap-2 pt-2 border-t border-slate-200">
                     <button
                       onClick={() =>
                         setCustomResetModal({
@@ -3995,7 +3477,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                           },
                         })
                       }
-                      className="flex-1 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 font-bold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
+                      className="flex-1 bg-red-500/10 hover:bg-red-500/20 text-red-600 border border-red-500/30 font-bold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                       <span>مسح الكل (تفريغ)</span>
@@ -4012,35 +3494,35 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                           },
                         })
                       }
-                      className="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
+                      className="flex-1 bg-slate-100 hover:bg-slate-100 text-slate-800 border border-slate-200 font-bold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
                     >
-                      <RotateCcw className="w-3.5 h-3.5 text-amber-400" />
+                      <RotateCcw className="w-3.5 h-3.5 text-brand-700" />
                       <span>الوضع الافتراضي</span>
                     </button>
                   </div>
                 </div>
 
                 {/* 2. Oilfields */}
-                <div className="bg-slate-950 border border-slate-800 rounded-2xl p-4 space-y-3 flex flex-col justify-between">
+                <div className="bg-card border border-slate-200 rounded-2xl p-4 space-y-3 flex flex-col justify-between">
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
-                        <div className="p-2 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-xl">
+                        <div className="p-2 bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 rounded-xl">
                           <Database className="w-5 h-5" />
                         </div>
                         <div>
-                          <h4 className="font-bold text-slate-100 text-xs">مسح/إعادة تعيين الحقول النفطية</h4>
-                          <span className="text-[11px] text-emerald-400 font-mono font-bold">
+                          <h4 className="font-bold text-slate-800 text-xs">مسح/إعادة تعيين الحقول النفطية</h4>
+                          <span className="text-[11px] text-emerald-600 font-mono font-bold">
                             العدد الحالي: {oilfields.length} حقل
                           </span>
                         </div>
                       </div>
                     </div>
-                    <p className="text-slate-400 text-[11px] leading-relaxed">
+                    <p className="text-slate-500 text-[11px] leading-relaxed">
                       سجل الحقول النفطية (حقل الأحدب، حقل شرق بغداد، حقل نفط الوسط...).
                     </p>
                   </div>
-                  <div className="flex items-center gap-2 pt-2 border-t border-slate-800/80">
+                  <div className="flex items-center gap-2 pt-2 border-t border-slate-200">
                     <button
                       onClick={() =>
                         setCustomResetModal({
@@ -4053,7 +3535,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                           },
                         })
                       }
-                      className="flex-1 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 font-bold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
+                      className="flex-1 bg-red-500/10 hover:bg-red-500/20 text-red-600 border border-red-500/30 font-bold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                       <span>مسح الكل (تفريغ)</span>
@@ -4070,35 +3552,35 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                           },
                         })
                       }
-                      className="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
+                      className="flex-1 bg-slate-100 hover:bg-slate-100 text-slate-800 border border-slate-200 font-bold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
                     >
-                      <RotateCcw className="w-3.5 h-3.5 text-amber-400" />
+                      <RotateCcw className="w-3.5 h-3.5 text-brand-700" />
                       <span>الوضع الافتراضي</span>
                     </button>
                   </div>
                 </div>
 
                 {/* 3. Unit Types */}
-                <div className="bg-slate-950 border border-slate-800 rounded-2xl p-4 space-y-3 flex flex-col justify-between">
+                <div className="bg-card border border-slate-200 rounded-2xl p-4 space-y-3 flex flex-col justify-between">
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
-                        <div className="p-2 bg-sky-500/10 text-sky-400 border border-sky-500/20 rounded-xl">
+                        <div className="p-2 bg-sky-500/10 text-sky-600 border border-sky-500/20 rounded-xl">
                           <Layers className="w-5 h-5" />
                         </div>
                         <div>
-                          <h4 className="font-bold text-slate-100 text-xs">مسح/إعادة تعيين أنواع وفئات المباني</h4>
-                          <span className="text-[11px] text-sky-400 font-mono font-bold">
+                          <h4 className="font-bold text-slate-800 text-xs">مسح/إعادة تعيين أنواع وفئات المباني</h4>
+                          <span className="text-[11px] text-sky-600 font-mono font-bold">
                             العدد الحالي: {unitTypes.length} فئة
                           </span>
                         </div>
                       </div>
                     </div>
-                    <p className="text-slate-400 text-[11px] leading-relaxed">
+                    <p className="text-slate-500 text-[11px] leading-relaxed">
                       تصنيفات وأنواع المباني (كرفانات، مباني مسلحة، مراكز تحكم، ورش...).
                     </p>
                   </div>
-                  <div className="flex items-center gap-2 pt-2 border-t border-slate-800/80">
+                  <div className="flex items-center gap-2 pt-2 border-t border-slate-200">
                     <button
                       onClick={() =>
                         setCustomResetModal({
@@ -4111,7 +3593,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                           },
                         })
                       }
-                      className="flex-1 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 font-bold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
+                      className="flex-1 bg-red-500/10 hover:bg-red-500/20 text-red-600 border border-red-500/30 font-bold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                       <span>مسح الكل (تفريغ)</span>
@@ -4128,35 +3610,35 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                           },
                         })
                       }
-                      className="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
+                      className="flex-1 bg-slate-100 hover:bg-slate-100 text-slate-800 border border-slate-200 font-bold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
                     >
-                      <RotateCcw className="w-3.5 h-3.5 text-amber-400" />
+                      <RotateCcw className="w-3.5 h-3.5 text-brand-700" />
                       <span>الوضع الافتراضي</span>
                     </button>
                   </div>
                 </div>
 
                 {/* 4. Governorates */}
-                <div className="bg-slate-950 border border-slate-800 rounded-2xl p-4 space-y-3 flex flex-col justify-between">
+                <div className="bg-card border border-slate-200 rounded-2xl p-4 space-y-3 flex flex-col justify-between">
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
-                        <div className="p-2 bg-purple-500/10 text-purple-400 border border-purple-500/20 rounded-xl">
+                        <div className="p-2 bg-purple-500/10 text-purple-600 border border-purple-500/20 rounded-xl">
                           <MapPin className="w-5 h-5" />
                         </div>
                         <div>
-                          <h4 className="font-bold text-slate-100 text-xs">مسح/إعادة تعيين المحافظات</h4>
-                          <span className="text-[11px] text-purple-400 font-mono font-bold">
+                          <h4 className="font-bold text-slate-800 text-xs">مسح/إعادة تعيين المحافظات</h4>
+                          <span className="text-[11px] text-purple-600 font-mono font-bold">
                             العدد الحالي: {governorates.length} محافظة
                           </span>
                         </div>
                       </div>
                     </div>
-                    <p className="text-slate-400 text-[11px] leading-relaxed">
+                    <p className="text-slate-500 text-[11px] leading-relaxed">
                       قائمة المحافظات العراقية المعتمدة بنظام التفتيش والسيطرة على الأصول.
                     </p>
                   </div>
-                  <div className="flex items-center gap-2 pt-2 border-t border-slate-800/80">
+                  <div className="flex items-center gap-2 pt-2 border-t border-slate-200">
                     <button
                       onClick={() =>
                         setCustomResetModal({
@@ -4169,7 +3651,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                           },
                         })
                       }
-                      className="flex-1 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 font-bold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
+                      className="flex-1 bg-red-500/10 hover:bg-red-500/20 text-red-600 border border-red-500/30 font-bold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                       <span>مسح الكل (تفريغ)</span>
@@ -4186,35 +3668,35 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                           },
                         })
                       }
-                      className="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
+                      className="flex-1 bg-slate-100 hover:bg-slate-100 text-slate-800 border border-slate-200 font-bold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
                     >
-                      <RotateCcw className="w-3.5 h-3.5 text-amber-400" />
+                      <RotateCcw className="w-3.5 h-3.5 text-brand-700" />
                       <span>الوضع الافتراضي</span>
                     </button>
                   </div>
                 </div>
 
                 {/* 5. System Users */}
-                <div className="bg-slate-950 border border-slate-800 rounded-2xl p-4 space-y-3 flex flex-col justify-between">
+                <div className="bg-card border border-slate-200 rounded-2xl p-4 space-y-3 flex flex-col justify-between">
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
-                        <div className="p-2 bg-pink-500/10 text-pink-400 border border-pink-500/20 rounded-xl">
+                        <div className="p-2 bg-pink-500/10 text-pink-600 border border-pink-500/20 rounded-xl">
                           <Users className="w-5 h-5" />
                         </div>
                         <div>
-                          <h4 className="font-bold text-slate-100 text-xs">مسح/إعادة تعيين مستخدمي النظام</h4>
-                          <span className="text-[11px] text-pink-400 font-mono font-bold">
+                          <h4 className="font-bold text-slate-800 text-xs">مسح/إعادة تعيين مستخدمي النظام</h4>
+                          <span className="text-[11px] text-pink-600 font-mono font-bold">
                             العدد الحالي: {users.length} مستخدم
                           </span>
                         </div>
                       </div>
                     </div>
-                    <p className="text-slate-400 text-[11px] leading-relaxed">
+                    <p className="text-slate-500 text-[11px] leading-relaxed">
                       حسابات المهندسين والمفتشين والمشرفين الإداريين بالنظام.
                     </p>
                   </div>
-                  <div className="flex items-center gap-2 pt-2 border-t border-slate-800/80">
+                  <div className="flex items-center gap-2 pt-2 border-t border-slate-200">
                     <button
                       onClick={() =>
                         setCustomResetModal({
@@ -4227,7 +3709,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                           },
                         })
                       }
-                      className="flex-1 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 font-bold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
+                      className="flex-1 bg-red-500/10 hover:bg-red-500/20 text-red-600 border border-red-500/30 font-bold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                       <span>مسح الكل (تفريغ)</span>
@@ -4244,35 +3726,35 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                           },
                         })
                       }
-                      className="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
+                      className="flex-1 bg-slate-100 hover:bg-slate-100 text-slate-800 border border-slate-200 font-bold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
                     >
-                      <RotateCcw className="w-3.5 h-3.5 text-amber-400" />
+                      <RotateCcw className="w-3.5 h-3.5 text-brand-700" />
                       <span>الوضع الافتراضي</span>
                     </button>
                   </div>
                 </div>
 
                 {/* 7. Maintenance Requests */}
-                <div className="bg-slate-950 border border-slate-800 rounded-2xl p-4 space-y-3 flex flex-col justify-between">
+                <div className="bg-card border border-slate-200 rounded-2xl p-4 space-y-3 flex flex-col justify-between">
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
-                        <div className="p-2 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-xl">
+                        <div className="p-2 bg-brand-50 text-brand-700 border border-brand-200 rounded-xl">
                           <Wrench className="w-5 h-5" />
                         </div>
                         <div>
-                          <h4 className="font-bold text-slate-100 text-xs">مسح/إعادة تعيين طلبات الصيانة</h4>
-                          <span className="text-[11px] text-amber-400 font-mono font-bold">
+                          <h4 className="font-bold text-slate-800 text-xs">مسح/إعادة تعيين طلبات الصيانة</h4>
+                          <span className="text-[11px] text-brand-700 font-mono font-bold">
                             العدد الحالي: {maintenanceRequests.length} طلب صيانة
                           </span>
                         </div>
                       </div>
                     </div>
-                    <p className="text-slate-400 text-[11px] leading-relaxed">
+                    <p className="text-slate-500 text-[11px] leading-relaxed">
                       بلاغات الأعطال وتكاليف وإحالات الصيانة الميدانية.
                     </p>
                   </div>
-                  <div className="flex items-center gap-2 pt-2 border-t border-slate-800/80">
+                  <div className="flex items-center gap-2 pt-2 border-t border-slate-200">
                     <button
                       onClick={() =>
                         setCustomResetModal({
@@ -4285,7 +3767,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                           },
                         })
                       }
-                      className="flex-1 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 font-bold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
+                      className="flex-1 bg-red-500/10 hover:bg-red-500/20 text-red-600 border border-red-500/30 font-bold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                       <span>مسح الكل (تفريغ)</span>
@@ -4302,35 +3784,35 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                           },
                         })
                       }
-                      className="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
+                      className="flex-1 bg-slate-100 hover:bg-slate-100 text-slate-800 border border-slate-200 font-bold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
                     >
-                      <RotateCcw className="w-3.5 h-3.5 text-amber-400" />
+                      <RotateCcw className="w-3.5 h-3.5 text-brand-700" />
                       <span>الوضع الافتراضي</span>
                     </button>
                   </div>
                 </div>
 
                 {/* 8. Periodic Inspections & Safety Schedules */}
-                <div className="bg-slate-950 border border-slate-800 rounded-2xl p-4 space-y-3 flex flex-col justify-between">
+                <div className="bg-card border border-slate-200 rounded-2xl p-4 space-y-3 flex flex-col justify-between">
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
-                        <div className="p-2 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-xl">
+                        <div className="p-2 bg-indigo-500/10 text-indigo-600 border border-indigo-500/20 rounded-xl">
                           <CheckCircle2 className="w-5 h-5" />
                         </div>
                         <div>
-                          <h4 className="font-bold text-slate-100 text-xs">مسح/إعادة تعيين الكشوفات الدورية والمعاينات</h4>
-                          <span className="text-[11px] text-indigo-400 font-mono font-bold">
+                          <h4 className="font-bold text-slate-800 text-xs">مسح/إعادة تعيين الكشوفات الدورية والمعاينات</h4>
+                          <span className="text-[11px] text-indigo-600 font-mono font-bold">
                             العدد الحالي: {periodicInspections.length} كشف دوري
                           </span>
                         </div>
                       </div>
                     </div>
-                    <p className="text-slate-400 text-[11px] leading-relaxed">
+                    <p className="text-slate-500 text-[11px] leading-relaxed">
                       سجلات المعاينات الهندسية وجداول الفحص الدوري ومحاضر تقييم السلامة.
                     </p>
                   </div>
-                  <div className="flex items-center gap-2 pt-2 border-t border-slate-800/80">
+                  <div className="flex items-center gap-2 pt-2 border-t border-slate-200">
                     <button
                       onClick={() =>
                         setCustomResetModal({
@@ -4343,7 +3825,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                           },
                         })
                       }
-                      className="flex-1 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 font-bold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
+                      className="flex-1 bg-red-500/10 hover:bg-red-500/20 text-red-600 border border-red-500/30 font-bold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                       <span>مسح الكل (تفريغ)</span>
@@ -4360,35 +3842,35 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                           },
                         })
                       }
-                      className="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
+                      className="flex-1 bg-slate-100 hover:bg-slate-100 text-slate-800 border border-slate-200 font-bold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
                     >
-                      <RotateCcw className="w-3.5 h-3.5 text-amber-400" />
+                      <RotateCcw className="w-3.5 h-3.5 text-brand-700" />
                       <span>الوضع الافتراضي</span>
                     </button>
                   </div>
                 </div>
 
                 {/* 9. Audit Logs & System Activity */}
-                <div className="bg-slate-950 border border-slate-800 rounded-2xl p-4 space-y-3 flex flex-col justify-between">
+                <div className="bg-card border border-slate-200 rounded-2xl p-4 space-y-3 flex flex-col justify-between">
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
-                        <div className="p-2 bg-purple-500/10 text-purple-400 border border-purple-500/20 rounded-xl">
+                        <div className="p-2 bg-purple-500/10 text-purple-600 border border-purple-500/20 rounded-xl">
                           <Activity className="w-5 h-5" />
                         </div>
                         <div>
-                          <h4 className="font-bold text-slate-100 text-xs">مسح/إعادة تعيين سجل التدقيق والنشاط</h4>
-                          <span className="text-[11px] text-purple-400 font-mono font-bold">
+                          <h4 className="font-bold text-slate-800 text-xs">مسح/إعادة تعيين سجل التدقيق والنشاط</h4>
+                          <span className="text-[11px] text-purple-600 font-mono font-bold">
                             العدد الحالي: {auditLogs.length} سجل تدقيق
                           </span>
                         </div>
                       </div>
                     </div>
-                    <p className="text-slate-400 text-[11px] leading-relaxed">
+                    <p className="text-slate-500 text-[11px] leading-relaxed">
                       سجلات تتبع العمليات وتوثيق الحركات الإدارية والأمنية للنظام.
                     </p>
                   </div>
-                  <div className="flex items-center gap-2 pt-2 border-t border-slate-800/80">
+                  <div className="flex items-center gap-2 pt-2 border-t border-slate-200">
                     <button
                       onClick={() =>
                         setCustomResetModal({
@@ -4401,7 +3883,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                           },
                         })
                       }
-                      className="flex-1 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 font-bold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
+                      className="flex-1 bg-red-500/10 hover:bg-red-500/20 text-red-600 border border-red-500/30 font-bold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                       <span>مسح الكل (تفريغ)</span>
@@ -4418,35 +3900,35 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                           },
                         })
                       }
-                      className="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
+                      className="flex-1 bg-slate-100 hover:bg-slate-100 text-slate-800 border border-slate-200 font-bold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
                     >
-                      <RotateCcw className="w-3.5 h-3.5 text-amber-400" />
+                      <RotateCcw className="w-3.5 h-3.5 text-brand-700" />
                       <span>الوضع الافتراضي</span>
                     </button>
                   </div>
                 </div>
 
                 {/* 10. Organizational Structure */}
-                <div className="bg-slate-950 border border-slate-800 rounded-2xl p-4 space-y-3 flex flex-col justify-between">
+                <div className="bg-card border border-slate-200 rounded-2xl p-4 space-y-3 flex flex-col justify-between">
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
-                        <div className="p-2 bg-teal-500/10 text-teal-400 border border-teal-500/20 rounded-xl">
+                        <div className="p-2 bg-teal-500/10 text-teal-600 border border-teal-500/20 rounded-xl">
                           <Network className="w-5 h-5" />
                         </div>
                         <div>
-                          <h4 className="font-bold text-slate-100 text-xs">مسح/إعادة تعيين الهيكل التنظيمي للمؤسسة</h4>
-                          <span className="text-[11px] text-teal-400 font-mono font-bold">
+                          <h4 className="font-bold text-slate-800 text-xs">مسح/إعادة تعيين الهيكل التنظيمي للمؤسسة</h4>
+                          <span className="text-[11px] text-teal-600 font-mono font-bold">
                             العدد الحالي: {orgEntities.length} تشكيل إداري
                           </span>
                         </div>
                       </div>
                     </div>
-                    <p className="text-slate-400 text-[11px] leading-relaxed">
+                    <p className="text-slate-500 text-[11px] leading-relaxed">
                       شجرة الهرم الإداري (إدارات، أقسام، شعب، وحدات، لجان) والتبعية الهيكلية لكافة التشكيلات بالمؤسسة.
                     </p>
                   </div>
-                  <div className="flex items-center gap-2 pt-2 border-t border-slate-800/80">
+                  <div className="flex items-center gap-2 pt-2 border-t border-slate-200">
                     <button
                       onClick={() =>
                         setCustomResetModal({
@@ -4459,7 +3941,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                           },
                         })
                       }
-                      className="flex-1 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 font-bold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
+                      className="flex-1 bg-red-500/10 hover:bg-red-500/20 text-red-600 border border-red-500/30 font-bold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                       <span>مسح الكل (تفريغ)</span>
@@ -4476,9 +3958,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                           },
                         })
                       }
-                      className="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
+                      className="flex-1 bg-slate-100 hover:bg-slate-100 text-slate-800 border border-slate-200 font-bold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
                     >
-                      <RotateCcw className="w-3.5 h-3.5 text-amber-400" />
+                      <RotateCcw className="w-3.5 h-3.5 text-brand-700" />
                       <span>الوضع الافتراضي</span>
                     </button>
                   </div>
@@ -4488,10 +3970,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               {/* Full System Reset Callout */}
               <div className="bg-red-500/10 border border-red-500/30 rounded-2xl p-5 space-y-3">
                 <div className="flex items-start gap-3">
-                  <ShieldAlert className="w-6 h-6 text-red-400 shrink-0 mt-0.5" />
+                  <ShieldAlert className="w-6 h-6 text-red-600 shrink-0 mt-0.5" />
                   <div className="space-y-1">
-                    <h4 className="font-bold text-slate-100 text-sm">استعادة ضبط المصنع الشاملة للنظام (مسح وتفريغ كامل)</h4>
-                    <p className="text-slate-300 text-xs leading-relaxed">
+                    <h4 className="font-bold text-slate-800 text-sm">استعادة ضبط المصنع الشاملة للنظام (مسح وتفريغ كامل)</h4>
+                    <p className="text-slate-600 text-xs leading-relaxed">
                       يقوم هذا الإجراء بتفريغ ومسح كافة الأصول والوحدات، الهيكل التنظيمي، طلبات الصيانة، الكشوفات والمعاينات، أوامر التخصيص، سجلات التدقيق، وكافة حسابات المستخدمين مع الإبقاء فقط وحصرياً على حساب مدير النظام الأستاذ عمر المياحي.
                     </p>
                   </div>
@@ -4500,7 +3982,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 <div className="pt-2 border-t border-red-500/20 flex justify-end">
                   <button
                     onClick={() => setShowResetModal(true)}
-                    className="bg-red-500 hover:bg-red-400 text-slate-950 font-black px-6 py-2.5 rounded-xl shadow-lg transition cursor-pointer flex items-center gap-2 text-xs"
+                    className="bg-red-500 hover:bg-red-400 text-on-brand font-black px-6 py-2.5 rounded-xl shadow-lg transition cursor-pointer flex items-center gap-2 text-xs"
                   >
                     <RefreshCw className="w-4 h-4" />
                     <span>تأكيد استعادة ضبط المصنع الكاملة</span>
@@ -4513,13 +3995,13 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
       {/* ==================== MODAL: Universal Create / Edit ==================== */}
       {showModal && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-4 sm:p-6 space-y-4 text-xs shadow-2xl max-h-[92vh] flex flex-col">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-800 shrink-0">
-              <h3 className="font-bold text-slate-100 text-sm">
+        <div className="fixed inset-0 z-50 bg-card/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+          <div className="bg-card border border-slate-200 rounded-2xl max-w-md w-full p-4 sm:p-6 space-y-4 text-xs shadow-2xl max-h-[92vh] flex flex-col">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-200 shrink-0">
+              <h3 className="font-bold text-slate-800 text-sm">
                 {editingItem ? 'تعديل بيانات العنصر' : 'إضافة عنصر جديد'}
               </h3>
-              <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-white cursor-pointer p-1 rounded-lg hover:bg-slate-800">
+              <button onClick={() => setShowModal(false)} className="text-slate-500 hover:text-slate-900 cursor-pointer p-1 rounded-lg hover:bg-slate-100">
                 ✕
               </button>
             </div>
@@ -4529,34 +4011,34 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               {activeTab === 'governorates' && (
                 <>
                   <div>
-                    <label className="block text-slate-300 font-bold mb-1">اسم المحافظة (عربي):</label>
+                    <label className="block text-slate-600 font-bold mb-1">اسم المحافظة (عربي):</label>
                     <input
                       type="text"
                       required
                       value={govNameAr}
                       onChange={(e) => setGovNameAr(e.target.value)}
                       placeholder="مثال: محافظة البصرة"
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-slate-100"
+                      className="w-full bg-card border border-slate-200 rounded-xl p-2.5 text-slate-800"
                     />
                   </div>
                   <div>
-                    <label className="block text-slate-300 font-bold mb-1">الاسم بالإنجليزي:</label>
+                    <label className="block text-slate-600 font-bold mb-1">الاسم بالإنجليزي:</label>
                     <input
                       type="text"
                       value={govNameEn}
                       onChange={(e) => setGovNameEn(e.target.value)}
                       placeholder="Basra Governorate"
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 font-mono text-slate-300"
+                      className="w-full bg-card border border-slate-200 rounded-xl p-2.5 font-mono text-slate-600"
                     />
                   </div>
                   <div>
-                    <label className="block text-slate-300 font-bold mb-1">رمز المحافظة (Code):</label>
+                    <label className="block text-slate-600 font-bold mb-1">رمز المحافظة (Code):</label>
                     <input
                       type="text"
                       value={govCode}
                       onChange={(e) => setGovCode(e.target.value)}
                       placeholder="BSR"
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 font-mono text-amber-400 font-bold"
+                      className="w-full bg-card border border-slate-200 rounded-xl p-2.5 font-mono text-brand-700 font-bold"
                     />
                   </div>
                 </>
@@ -4566,12 +4048,12 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               {activeTab === 'oilfields' && (
                 <>
                   <div>
-                    <label className="block text-slate-300 font-bold mb-1">المحافظة التابع لها:</label>
+                    <label className="block text-slate-600 font-bold mb-1">المحافظة التابع لها:</label>
                     <select
                       required
                       value={fldGovId}
                       onChange={(e) => setFldGovId(e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-slate-100"
+                      className="w-full bg-card border border-slate-200 rounded-xl p-2.5 text-slate-800"
                     >
                       <option value="">-- اختر المحافظة --</option>
                       {governorates.map((g) => (
@@ -4582,24 +4064,24 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     </select>
                   </div>
                   <div>
-                    <label className="block text-slate-300 font-bold mb-1">اسم الحقل النفطي:</label>
+                    <label className="block text-slate-600 font-bold mb-1">اسم الحقل النفطي:</label>
                     <input
                       type="text"
                       required
                       value={fldNameAr}
                       onChange={(e) => setFldNameAr(e.target.value)}
                       placeholder="مثال: حقل مجنون النفطي"
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-slate-100"
+                      className="w-full bg-card border border-slate-200 rounded-xl p-2.5 text-slate-800"
                     />
                   </div>
                   <div>
-                    <label className="block text-slate-300 font-bold mb-1">رمز الحقل (Code):</label>
+                    <label className="block text-slate-600 font-bold mb-1">رمز الحقل (Code):</label>
                     <input
                       type="text"
                       value={fldCode}
                       onChange={(e) => setFldCode(e.target.value)}
                       placeholder="MJN"
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 font-mono text-amber-400 font-bold"
+                      className="w-full bg-card border border-slate-200 rounded-xl p-2.5 font-mono text-brand-700 font-bold"
                     />
                   </div>
                 </>
@@ -4609,7 +4091,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               {activeTab === 'unit_types' && (
                 <>
                   <div>
-                    <label className="block text-slate-300 font-bold mb-1">رمز الفئة (Code):</label>
+                    <label className="block text-slate-600 font-bold mb-1">رمز الفئة (Code):</label>
                     <input
                       type="text"
                       required
@@ -4617,18 +4099,18 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       value={utCode}
                       onChange={(e) => setUtCode(e.target.value)}
                       placeholder="CTRL / PMP / GRD"
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 font-mono text-amber-400 font-bold"
+                      className="w-full bg-card border border-slate-200 rounded-xl p-2.5 font-mono text-brand-700 font-bold"
                     />
                   </div>
                   <div>
-                    <label className="block text-slate-300 font-bold mb-1">الاسم بالعربية:</label>
+                    <label className="block text-slate-600 font-bold mb-1">الاسم بالعربية:</label>
                     <input
                       type="text"
                       required
                       value={utNameAr}
                       onChange={(e) => setUtNameAr(e.target.value)}
                       placeholder="مركز سيطرة وتحكم آبار"
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-slate-100"
+                      className="w-full bg-card border border-slate-200 rounded-xl p-2.5 text-slate-800"
                     />
                   </div>
                   <div className="flex items-center gap-2 pt-2">
@@ -4638,7 +4120,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       onChange={(e) => setUtMultiStory(e.target.checked)}
                       id="utMulti"
                     />
-                    <label htmlFor="utMulti" className="text-slate-300 font-semibold">
+                    <label htmlFor="utMulti" className="text-slate-600 font-semibold">
                       يسمح بعدة طوابق (Multi-story building)
                     </label>
                   </div>
@@ -4649,30 +4131,30 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               {activeTab === 'rooms' && (
                 <>
                   <div>
-                    <label className="block text-slate-300 font-bold mb-1">اسم تصنيف الغرفة:</label>
+                    <label className="block text-slate-600 font-bold mb-1">اسم تصنيف الغرفة:</label>
                     <input
                       type="text"
                       required
                       value={rtNameAr}
                       onChange={(e) => setRtNameAr(e.target.value)}
                       placeholder="مختبر فحص الجودة الميداني"
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-slate-100"
+                      className="w-full bg-card border border-slate-200 rounded-xl p-2.5 text-slate-800"
                     />
                   </div>
                   <div>
-                    <label className="block text-slate-300 font-bold mb-1">اللون بالعرض ثلاثي الأبعاد 3D:</label>
+                    <label className="block text-slate-600 font-bold mb-1">اللون بالعرض ثلاثي الأبعاد 3D:</label>
                     <div className="flex items-center gap-3">
                       <input
                         type="color"
                         value={rtColorHex}
                         onChange={(e) => setRtColorHex(e.target.value)}
-                        className="w-12 h-10 rounded border border-slate-800 cursor-pointer"
+                        className="w-12 h-10 rounded border border-slate-200 cursor-pointer"
                       />
                       <input
                         type="text"
                         value={rtColorHex}
                         onChange={(e) => setRtColorHex(e.target.value)}
-                        className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 font-mono text-amber-400"
+                        className="w-full bg-card border border-slate-200 rounded-xl p-2 font-mono text-brand-700"
                       />
                     </div>
                   </div>
@@ -4683,61 +4165,61 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               {activeTab === 'maintenance_depts' && (
                 <>
                   <div>
-                    <label className="block text-slate-300 font-bold mb-1">كود جهة الصيانة (Code):</label>
+                    <label className="block text-slate-600 font-bold mb-1">كود جهة الصيانة (Code):</label>
                     <input
                       type="text"
                       required
                       value={mdeptCode}
                       onChange={(e) => setMdeptCode(e.target.value)}
                       placeholder="ELEC-MAINT / MECH-MAINT"
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 font-mono text-amber-400 font-bold"
+                      className="w-full bg-card border border-slate-200 rounded-xl p-2.5 font-mono text-brand-700 font-bold"
                     />
                   </div>
                   <div>
-                    <label className="block text-slate-300 font-bold mb-1">اسم جهة / قسم الصيانة بالعربية:</label>
+                    <label className="block text-slate-600 font-bold mb-1">اسم جهة / قسم الصيانة بالعربية:</label>
                     <input
                       type="text"
                       required
                       value={mdeptNameAr}
                       onChange={(e) => setMdeptNameAr(e.target.value)}
                       placeholder="الصيانة الكهربائية / الصيانة الميكانيكية / الصيانة الإنشائية"
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-slate-100"
+                      className="w-full bg-card border border-slate-200 rounded-xl p-2.5 text-slate-800"
                     />
                   </div>
                   <div>
-                    <label className="block text-slate-300 font-bold mb-1">الاسم بالإنجليزية (اختياري):</label>
+                    <label className="block text-slate-600 font-bold mb-1">الاسم بالإنجليزية (اختياري):</label>
                     <input
                       type="text"
                       value={mdeptNameEn}
                       onChange={(e) => setMdeptNameEn(e.target.value)}
                       placeholder="Electrical Maintenance Department"
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 font-mono text-slate-300"
+                      className="w-full bg-card border border-slate-200 rounded-xl p-2.5 font-mono text-slate-600"
                     />
                   </div>
                   <div>
-                    <label className="block text-slate-300 font-bold mb-1">الوصف والتخصص الهندسي:</label>
+                    <label className="block text-slate-600 font-bold mb-1">الوصف والتخصص الهندسي:</label>
                     <textarea
                       value={mdeptDescription}
                       onChange={(e) => setMdeptDescription(e.target.value)}
                       placeholder="صيانة القواطع الكهربائية والمولدات ولوحات التوزيع والإنارة"
                       rows={2}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-slate-100 resize-none"
+                      className="w-full bg-card border border-slate-200 rounded-xl p-2.5 text-slate-800 resize-none"
                     />
                   </div>
                 </>
               )}
 
-              <div className="flex justify-end gap-2 pt-4 border-t border-slate-800">
+              <div className="flex justify-end gap-2 pt-4 border-t border-slate-200">
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl hover:bg-slate-700 cursor-pointer"
+                  className="px-4 py-2 bg-slate-100 text-slate-600 rounded-xl hover:bg-slate-100 cursor-pointer"
                 >
                   إلغاء
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl shadow-lg hover:bg-amber-400 cursor-pointer"
+                  className="px-5 py-2 bg-brand-700 text-on-brand font-bold rounded-xl shadow-lg hover:bg-brand-800 cursor-pointer"
                 >
                   حفظ البيانات
                 </button>
@@ -4749,37 +4231,25 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
       {/* ==================== MODAL: Confirm Delete ==================== */}
       {deleteConfirm && (
-        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+        <div className="fixed inset-0 z-50 bg-card/70 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
           <div
-            className={`rounded-2xl max-w-sm w-full p-4 sm:p-6 space-y-4 text-center shadow-2xl border max-h-[90vh] flex flex-col overflow-y-auto ${
-              isLight
-                ? 'bg-white border-red-300 text-slate-900 shadow-slate-900/20'
-                : 'bg-slate-900 border-red-500/40 text-slate-100'
-            }`}
+            className={`rounded-2xl max-w-sm w-full p-4 sm:p-6 space-y-4 text-center shadow-2xl border max-h-[90vh] flex flex-col overflow-y-auto bg-card border-red-200 text-slate-900 shadow-slate-900/20`}
           >
             <div
-              className={`w-12 h-12 rounded-2xl flex items-center justify-center mx-auto border shrink-0 ${
-                isLight
-                  ? 'bg-red-100 text-red-600 border-red-200'
-                  : 'bg-red-500/20 text-red-400 border-red-500/30'
-              }`}
+              className={`w-12 h-12 rounded-2xl flex items-center justify-center mx-auto border shrink-0 bg-red-100 text-red-600 border-red-200`}
             >
               <Trash2 className="w-6 h-6" />
             </div>
-            <h3 className={`font-bold text-sm ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+            <h3 className={`font-bold text-sm text-slate-900`}>
               تأكيد حذف العنصر نهائياً
             </h3>
-            <p className={`text-xs ${isLight ? 'text-slate-600' : 'text-slate-300'}`}>
-              هل أنت متأكد من رغبتك بحذف «<span className="font-bold text-amber-600">{deleteConfirm.name}</span>» من السجل المركزي؟
+            <p className={`text-xs text-slate-600`}>
+              هل أنت متأكد من رغبتك بحذف «<span className="font-bold text-brand-700">{deleteConfirm.name}</span>» من السجل المركزي؟
             </p>
             <div className="flex items-center justify-center gap-3 pt-2">
               <button
                 onClick={() => setDeleteConfirm(null)}
-                className={`px-4 py-2 rounded-xl font-bold cursor-pointer text-xs transition border ${
-                  isLight
-                    ? 'bg-slate-100 text-slate-700 hover:bg-slate-200 border-slate-300'
-                    : 'bg-slate-800 text-slate-300 hover:bg-slate-700 border-transparent'
-                }`}
+                className={`px-4 py-2 rounded-xl font-bold cursor-pointer text-xs transition border bg-slate-100 text-slate-700 hover:bg-slate-200 border-slate-300`}
               >
                 إلغاء
               </button>
@@ -4796,20 +4266,20 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
       {/* ==================== MODAL: Confirm Factory Reset ==================== */}
       {showResetModal && (
-        <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-          <div className="bg-slate-900 border border-red-500/50 rounded-3xl max-w-md w-full p-4 sm:p-6 space-y-4 text-center shadow-2xl max-h-[90vh] flex flex-col overflow-y-auto">
-            <div className="w-12 h-12 sm:w-14 sm:h-14 bg-red-500/20 text-red-400 border border-red-500/40 rounded-2xl flex items-center justify-center mx-auto shrink-0">
+        <div className="fixed inset-0 z-50 bg-card/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+          <div className="bg-card border border-red-500/50 rounded-3xl max-w-md w-full p-4 sm:p-6 space-y-4 text-center shadow-2xl max-h-[90vh] flex flex-col overflow-y-auto">
+            <div className="w-12 h-12 sm:w-14 sm:h-14 bg-red-500/20 text-red-600 border border-red-500/40 rounded-2xl flex items-center justify-center mx-auto shrink-0">
               <RotateCcw className="w-7 h-7 sm:w-8 sm:h-8" />
             </div>
-            <h3 className="font-black text-slate-100 text-base">استعادة ضبط المصنع الشاملة</h3>
-            <p className="text-slate-300 text-xs leading-relaxed">
+            <h3 className="font-black text-slate-800 text-base">استعادة ضبط المصنع الشاملة</h3>
+            <p className="text-slate-600 text-xs leading-relaxed">
               سيتم تفريغ وحذف كافة الأصول والوحدات، طلبات الصيانة، الكشوفات والمعاينات، أوامر التخصيص والإشغال، وسجلات التدقيق، مع حذف جميع حسابات المستخدمين والإبقاء حصرياً على حساب مدير النظام الأستاذ عمر المياحي. هل ترغب بالتنفيذ الفوري؟
             </p>
 
             <div className="flex items-center justify-center gap-3 pt-2">
               <button
                 onClick={() => setShowResetModal(false)}
-                className="px-5 py-2.5 bg-slate-800 text-slate-300 rounded-xl font-bold cursor-pointer hover:bg-slate-700 text-xs"
+                className="px-5 py-2.5 bg-slate-100 text-slate-600 rounded-xl font-bold cursor-pointer hover:bg-slate-100 text-xs"
               >
                 تراجع
               </button>
@@ -4819,7 +4289,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   onFactoryReset();
                   triggerSaveToast('تمت استعادة ضبط المصنع بنجاح!');
                 }}
-                className="px-6 py-2.5 bg-red-500 hover:bg-red-400 text-slate-950 font-black rounded-xl shadow-xl cursor-pointer text-xs"
+                className="px-6 py-2.5 bg-red-500 hover:bg-red-400 text-on-brand font-black rounded-xl shadow-xl cursor-pointer text-xs"
               >
                 نعم، إعادة ضبط المصنع
               </button>
@@ -4830,18 +4300,18 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
       {/* ==================== MODAL: Confirm Custom Granular Reset ==================== */}
       {customResetModal && (
-        <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-          <div className="bg-slate-900 border border-red-500/50 rounded-3xl max-w-md w-full p-4 sm:p-6 space-y-4 text-center shadow-2xl max-h-[90vh] flex flex-col overflow-y-auto">
-            <div className="w-12 h-12 sm:w-14 sm:h-14 bg-red-500/20 text-red-400 border border-red-500/40 rounded-2xl flex items-center justify-center mx-auto shrink-0">
+        <div className="fixed inset-0 z-50 bg-card/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+          <div className="bg-card border border-red-500/50 rounded-3xl max-w-md w-full p-4 sm:p-6 space-y-4 text-center shadow-2xl max-h-[90vh] flex flex-col overflow-y-auto">
+            <div className="w-12 h-12 sm:w-14 sm:h-14 bg-red-500/20 text-red-600 border border-red-500/40 rounded-2xl flex items-center justify-center mx-auto shrink-0">
               <Trash2 className="w-6 h-6 sm:w-7 sm:h-7" />
             </div>
-            <h3 className="font-black text-slate-100 text-base">{customResetModal.title}</h3>
-            <p className="text-slate-300 text-xs leading-relaxed">{customResetModal.description}</p>
+            <h3 className="font-black text-slate-800 text-base">{customResetModal.title}</h3>
+            <p className="text-slate-600 text-xs leading-relaxed">{customResetModal.description}</p>
 
             <div className="flex items-center justify-center gap-3 pt-2">
               <button
                 onClick={() => setCustomResetModal(null)}
-                className="px-5 py-2.5 bg-slate-800 text-slate-300 rounded-xl font-bold cursor-pointer hover:bg-slate-700 text-xs"
+                className="px-5 py-2.5 bg-slate-100 text-slate-600 rounded-xl font-bold cursor-pointer hover:bg-slate-100 text-xs"
               >
                 إلغاء
               </button>
@@ -4852,8 +4322,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 }}
                 className={`px-6 py-2.5 font-black rounded-xl shadow-xl cursor-pointer text-xs ${
                   customResetModal.actionType === 'clear'
-                    ? 'bg-red-500 hover:bg-red-400 text-slate-950'
-                    : 'bg-amber-500 hover:bg-amber-400 text-slate-950'
+                    ? 'bg-red-500 hover:bg-red-400 text-on-brand'
+                    : 'bg-brand-700 hover:bg-brand-800 text-on-brand'
                 }`}
               >
                 تأكيد التنفيذ
@@ -4865,60 +4335,60 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
       {/* ==================== MODAL: Add Manual Audit Log ==================== */}
       {showAddLogModal && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-4 sm:p-6 space-y-4 text-xs shadow-2xl max-h-[90vh] flex flex-col overflow-y-auto">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-800 shrink-0">
-              <h3 className="font-bold text-slate-100 text-sm">تسجيل حدث / نشاط إداري يدوي</h3>
-              <button onClick={() => setShowAddLogModal(false)} className="text-slate-400 hover:text-white cursor-pointer p-1 rounded-lg hover:bg-slate-800">
+        <div className="fixed inset-0 z-50 bg-card/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+          <div className="bg-card border border-slate-200 rounded-2xl max-w-md w-full p-4 sm:p-6 space-y-4 text-xs shadow-2xl max-h-[90vh] flex flex-col overflow-y-auto">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-200 shrink-0">
+              <h3 className="font-bold text-slate-800 text-sm">تسجيل حدث / نشاط إداري يدوي</h3>
+              <button onClick={() => setShowAddLogModal(false)} className="text-slate-500 hover:text-slate-900 cursor-pointer p-1 rounded-lg hover:bg-slate-100">
                 ✕
               </button>
             </div>
 
             <form onSubmit={handleAddManualLog} className="space-y-3">
               <div>
-                <label className="block text-slate-300 font-bold mb-1">اسم المسؤول / المستخدم:</label>
+                <label className="block text-slate-600 font-bold mb-1">اسم المسؤول / المستخدم:</label>
                 <input
                   type="text"
                   required
                   value={newLogUser}
                   onChange={(e) => setNewLogUser(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-slate-100"
+                  className="w-full bg-card border border-slate-200 rounded-xl p-2.5 text-slate-800"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-300 font-bold mb-1">وصف الإجراء / النشاط:</label>
+                <label className="block text-slate-600 font-bold mb-1">وصف الإجراء / النشاط:</label>
                 <input
                   type="text"
                   required
                   value={newLogAction}
                   onChange={(e) => setNewLogAction(e.target.value)}
                   placeholder="مثال: إجراء فحص دوري للمنظومة التبريد"
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-slate-100"
+                  className="w-full bg-card border border-slate-200 rounded-xl p-2.5 text-slate-800"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-300 font-bold mb-1">المجال / القسم المتأثر:</label>
+                <label className="block text-slate-600 font-bold mb-1">المجال / القسم المتأثر:</label>
                 <input
                   type="text"
                   value={newLogField}
                   onChange={(e) => setNewLogField(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-slate-100"
+                  className="w-full bg-card border border-slate-200 rounded-xl p-2.5 text-slate-800"
                 />
               </div>
 
-              <div className="flex justify-end gap-2 pt-3 border-t border-slate-800">
+              <div className="flex justify-end gap-2 pt-3 border-t border-slate-200">
                 <button
                   type="button"
                   onClick={() => setShowAddLogModal(false)}
-                  className="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl"
+                  className="px-4 py-2 bg-slate-100 text-slate-600 rounded-xl"
                 >
                   إلغاء
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl shadow"
+                  className="px-5 py-2 bg-brand-700 text-on-brand font-bold rounded-xl shadow"
                 >
                   تأكيد الإضافة
                 </button>

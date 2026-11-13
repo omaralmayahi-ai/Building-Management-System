@@ -134,16 +134,16 @@ export const LocationPickerMap: React.FC<LocationPickerMapProps> = ({
     const customPinIcon = L.divIcon({
       className: 'custom-gis-picker-pin',
       html: `
-        <div style="position: relative; display: flex; flex-direction: column; align-items: center; cursor: grab;">
-          <div style="background: #f59e0b; color: #020617; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 14px rgba(0,0,0,0.6); border: 2.5px solid #ffffff; animation: bounce 1s infinite alternate;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-              <circle cx="12" cy="10" r="3"></circle>
-            </svg>
-          </div>
-          <div style="width: 4px; height: 10px; background: #f59e0b; border-radius: 2px; margin-top: -2px;"></div>
-        </div>
-      `,
+ <div style="position: relative; display: flex; flex-direction: column; align-items: center; cursor: grab;">
+ <div style="background: #f59e0b; color: #020617; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 14px rgba(0,0,0,0.6); border: 2.5px solid #ffffff; animation: bounce 1s infinite alternate;">
+ <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+ <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+ <circle cx="12" cy="10" r="3"></circle>
+ </svg>
+ </div>
+ <div style="width: 4px; height: 10px; background: #f59e0b; border-radius: 2px; margin-top: -2px;"></div>
+ </div>
+ `,
       iconSize: [34, 42],
       iconAnchor: [17, 42],
     });
@@ -323,13 +323,9 @@ export const LocationPickerMap: React.FC<LocationPickerMapProps> = ({
               }
             }}
             placeholder="ابحث باسم المدينة أو المنطقة في العراق، أو اكتب الإحداثيات مباشرة (مثال: 32.6189, 45.7531)..."
-            className={`w-full text-xs rounded-xl py-2 pl-9 pr-9 border transition outline-none font-medium ${
-              isLight
-                ? 'bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:border-amber-500 shadow-sm'
-                : 'bg-slate-900 border-slate-700 text-slate-100 placeholder-slate-500 focus:border-amber-500'
-            }`}
+            className={`w-full text-xs rounded-xl py-2 pl-9 pr-9 border transition outline-none font-medium bg-card border-slate-300 text-slate-900 placeholder-slate-400 focus:border-brand-600 shadow-sm`}
           />
-          <Search className="w-4 h-4 absolute right-3 top-2.5 text-slate-400 pointer-events-none" />
+          <Search className="w-4 h-4 absolute right-3 top-2.5 text-slate-500 pointer-events-none" />
           {searchQuery && (
             <button
               type="button"
@@ -337,7 +333,7 @@ export const LocationPickerMap: React.FC<LocationPickerMapProps> = ({
                 setSearchQuery('');
                 setSearchFeedback(null);
               }}
-              className="absolute left-3 top-2 text-slate-400 hover:text-slate-200 cursor-pointer"
+              className="absolute left-3 top-2 text-slate-500 hover:text-slate-800 cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
@@ -349,7 +345,7 @@ export const LocationPickerMap: React.FC<LocationPickerMapProps> = ({
           type="button"
           onClick={() => handleSearch()}
           disabled={isSearching || !searchQuery.trim()}
-          className="px-4 py-2 bg-amber-500 hover:bg-amber-600 active:scale-95 text-slate-950 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition disabled:opacity-50 cursor-pointer shadow-md shrink-0"
+          className="px-4 py-2 bg-brand-700 hover:bg-brand-800 active:scale-95 text-on-brand rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition disabled:opacity-50 cursor-pointer shadow-md shrink-0"
         >
           {isSearching ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
           <span>بحث وتكبير الموقع</span>
@@ -359,14 +355,10 @@ export const LocationPickerMap: React.FC<LocationPickerMapProps> = ({
         <button
           type="button"
           onClick={handleResetToIraq}
-          className={`px-3 py-2 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer shrink-0 ${
-            isLight
-              ? 'bg-white hover:bg-slate-100 border-slate-300 text-slate-700'
-              : 'bg-slate-900 hover:bg-slate-800 border-slate-700 text-slate-200'
-          }`}
+          className={`px-3 py-2 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer shrink-0 bg-card hover:bg-slate-100 border-slate-300 text-slate-700`}
           title="إعادة تعيين إلى وضع زوم أوت على كامل خارطة العراق"
         >
-          <RotateCcw className="w-3.5 h-3.5 text-amber-500" />
+          <RotateCcw className="w-3.5 h-3.5 text-brand-700" />
           <span>زوم أوت (العراق)</span>
         </button>
 
@@ -374,17 +366,13 @@ export const LocationPickerMap: React.FC<LocationPickerMapProps> = ({
         <button
           type="button"
           onClick={() => setMapSize(mapSize === 'large' ? 'huge' : mapSize === 'huge' ? 'compact' : 'large')}
-          className={`px-3 py-2 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer shrink-0 ${
-            isLight
-              ? 'bg-white hover:bg-slate-100 border-slate-300 text-slate-700'
-              : 'bg-slate-900 hover:bg-slate-800 border-slate-700 text-slate-200'
-          }`}
+          className={`px-3 py-2 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer shrink-0 bg-card hover:bg-slate-100 border-slate-300 text-slate-700`}
           title="تغيير ارتفاع ومساحة مربع الخريطة"
         >
           {mapSize === 'huge' ? (
-            <Minimize2 className="w-3.5 h-3.5 text-amber-500" />
+            <Minimize2 className="w-3.5 h-3.5 text-brand-700" />
           ) : (
-            <Maximize2 className="w-3.5 h-3.5 text-amber-500" />
+            <Maximize2 className="w-3.5 h-3.5 text-brand-700" />
           )}
           <span>
             {mapSize === 'large' ? 'توسيع إضافي' : mapSize === 'huge' ? 'عرض مدمج' : 'عرض واسع'}
@@ -392,14 +380,14 @@ export const LocationPickerMap: React.FC<LocationPickerMapProps> = ({
         </button>
 
         {/* Map Type Switcher */}
-        <div className="flex items-center gap-1 bg-slate-950/80 p-1 rounded-xl border border-slate-800 self-end sm:self-auto shrink-0">
+        <div className="flex items-center gap-1 bg-card/80 p-1 rounded-xl border border-slate-200 self-end sm:self-auto shrink-0">
           <button
             type="button"
             onClick={() => setMapType('satellite')}
             className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
               mapType === 'satellite'
-                ? 'bg-amber-500 text-slate-950 shadow'
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'bg-brand-700 text-on-brand shadow'
+                : 'text-slate-500 hover:text-slate-800'
             }`}
           >
             أقمار صناعية
@@ -409,8 +397,8 @@ export const LocationPickerMap: React.FC<LocationPickerMapProps> = ({
             onClick={() => setMapType('streets')}
             className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
               mapType === 'streets'
-                ? 'bg-amber-500 text-slate-950 shadow'
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'bg-brand-700 text-on-brand shadow'
+                : 'text-slate-500 hover:text-slate-800'
             }`}
           >
             شوارع وتضاريس
@@ -423,14 +411,14 @@ export const LocationPickerMap: React.FC<LocationPickerMapProps> = ({
         <div
           className={`p-2.5 rounded-xl text-xs font-medium flex items-center gap-2 animate-fadeIn ${
             searchFeedback.includes('تم')
-              ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400'
-              : 'bg-amber-500/10 border border-amber-500/20 text-amber-400'
+              ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-600'
+              : 'bg-brand-50 border border-brand-200 text-brand-700'
           }`}
         >
           {searchFeedback.includes('تم') ? (
-            <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
+            <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
           ) : (
-            <AlertTriangle className="w-4 h-4 shrink-0 text-amber-400" />
+            <AlertTriangle className="w-4 h-4 shrink-0 text-brand-700" />
           )}
           <span>{searchFeedback}</span>
         </div>
@@ -438,7 +426,7 @@ export const LocationPickerMap: React.FC<LocationPickerMapProps> = ({
 
       {/* Leaflet Map Canvas Container with Increased Height */}
       <div
-        className={`relative w-full rounded-2xl overflow-hidden border border-slate-700/60 shadow-inner z-0 transition-all duration-300 ${
+        className={`relative w-full rounded-2xl overflow-hidden border border-slate-200 shadow-inner z-0 transition-all duration-300 ${
           mapSize === 'huge'
             ? 'h-[720px]'
             : mapSize === 'compact'
@@ -449,12 +437,12 @@ export const LocationPickerMap: React.FC<LocationPickerMapProps> = ({
         <div ref={mapContainerRef} className="w-full h-full z-0" />
 
         {/* Live Coordinate Badge Overlay */}
-        <div className="absolute bottom-3 right-3 z-[400] bg-slate-950/90 backdrop-blur-sm border border-slate-800 px-3 py-1.5 rounded-xl text-[11px] font-mono text-slate-200 flex items-center gap-2 shadow-xl">
-          <MapPin className="w-3.5 h-3.5 text-amber-400" />
+        <div className="absolute bottom-3 right-3 z-[400] bg-card/90 backdrop-blur-sm border border-slate-200 px-3 py-1.5 rounded-xl text-[11px] font-mono text-slate-800 flex items-center gap-2 shadow-xl">
+          <MapPin className="w-3.5 h-3.5 text-brand-700" />
           <span>
             {toArabicDigits((lat || currentLat).toFixed(6))}° N, {toArabicDigits((lng || currentLng).toFixed(6))}° E
           </span>
-          <span className="text-[9.5px] text-slate-400 border-r border-slate-700 pr-2 mr-1">
+          <span className="text-[9.5px] text-slate-500 border-r border-slate-200 pr-2 mr-1">
             (اسحب الدبوس أو انقر لتكبير وتثبيت الموقع)
           </span>
         </div>

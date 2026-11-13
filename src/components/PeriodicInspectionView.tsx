@@ -87,7 +87,7 @@ export const getPerformerDisplay = (
   if (!raw) {
     return {
       roleBadgeText: 'موظف الكشف',
-      roleBadgeClass: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30',
+      roleBadgeClass: 'bg-emerald-500/15 text-emerald-700 border-emerald-500/30',
       roleBadgeBorder: 'border-emerald-500/30',
       userName: isCompleted ? 'موظف الكشف' : 'لم يُنجز بعد',
       fullText: isCompleted ? 'موظف الكشف' : 'لم يُنجز بعد',
@@ -119,8 +119,8 @@ export const getPerformerDisplay = (
     ) {
       return {
         roleBadgeText: 'مشغل النظام',
-        roleBadgeClass: 'bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30',
-        roleBadgeBorder: 'border-amber-500/30',
+        roleBadgeClass: 'bg-brand-100 text-brand-700 border-brand-200',
+        roleBadgeBorder: 'border-brand-200',
         userName: cleanName || 'مشغل النظام',
         fullText: isCompleted ? (cleanName ? `مشغل النظام: ${cleanName}` : 'مشغل النظام') : (performedBy ? `مشغل النظام: ${cleanName}` : 'لم يُنجز بعد'),
         isOperator: true,
@@ -136,7 +136,7 @@ export const getPerformerDisplay = (
     ) {
       return {
         roleBadgeText: 'موظف الكشف',
-        roleBadgeClass: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30',
+        roleBadgeClass: 'bg-emerald-500/15 text-emerald-700 border-emerald-500/30',
         roleBadgeBorder: 'border-emerald-500/30',
         userName: cleanName || 'موظف الكشف',
         fullText: isCompleted ? (cleanName ? `موظف الكشف: ${cleanName}` : 'موظف الكشف') : (performedBy ? `موظف الكشف: ${cleanName}` : 'لم يُنجز بعد'),
@@ -152,7 +152,7 @@ export const getPerformerDisplay = (
     ) {
       return {
         roleBadgeText: 'مدير النظام',
-        roleBadgeClass: 'bg-purple-500/15 text-purple-700 dark:text-purple-400 border-purple-500/30',
+        roleBadgeClass: 'bg-purple-500/15 text-purple-700 border-purple-500/30',
         roleBadgeBorder: 'border-purple-500/30',
         userName: cleanName || 'مدير النظام',
         fullText: isCompleted ? (cleanName ? `مدير النظام: ${cleanName}` : 'مدير النظام') : (performedBy ? `مدير النظام: ${cleanName}` : 'لم يُنجز بعد'),
@@ -163,7 +163,7 @@ export const getPerformerDisplay = (
     }
     return {
       roleBadgeText: matchedUser.role || 'مستخدم',
-      roleBadgeClass: 'bg-sky-500/15 text-sky-700 dark:text-sky-400 border-sky-500/30',
+      roleBadgeClass: 'bg-sky-500/15 text-sky-700 border-sky-500/30',
       roleBadgeBorder: 'border-sky-500/30',
       userName: cleanName || matchedUser.role || 'مستخدم',
       fullText: isCompleted ? `${matchedUser.role || 'مستخدم'}: ${cleanName}` : (performedBy ? `${matchedUser.role || 'مستخدم'}: ${cleanName}` : 'لم يُنجز بعد'),
@@ -184,8 +184,8 @@ export const getPerformerDisplay = (
     cleanName = cleanName.replace(/^(?:مشغل النظام|مشغل)\s*[:\-\/]?\s*/g, '').trim();
     return {
       roleBadgeText: 'مشغل النظام',
-      roleBadgeClass: 'bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30',
-      roleBadgeBorder: 'border-amber-500/30',
+      roleBadgeClass: 'bg-brand-100 text-brand-700 border-brand-200',
+      roleBadgeBorder: 'border-brand-200',
       userName: cleanName || 'مشغل النظام',
       fullText: (cleanName && cleanName !== 'مشغل النظام' && cleanName !== 'مشغل') ? `مشغل النظام: ${cleanName}` : 'مشغل النظام',
       isOperator: true,
@@ -203,7 +203,7 @@ export const getPerformerDisplay = (
     cleanName = cleanName.replace(/^(?:مدير النظام|مدير)\s*[:\-\/]?\s*/g, '').trim();
     return {
       roleBadgeText: 'مدير النظام',
-      roleBadgeClass: 'bg-purple-500/15 text-purple-700 dark:text-purple-400 border-purple-500/30',
+      roleBadgeClass: 'bg-purple-500/15 text-purple-700 border-purple-500/30',
       roleBadgeBorder: 'border-purple-500/30',
       userName: cleanName || 'مدير النظام',
       fullText: (cleanName && cleanName !== 'مدير النظام' && cleanName !== 'مدير') ? `مدير النظام: ${cleanName}` : 'مدير النظام',
@@ -225,7 +225,7 @@ export const getPerformerDisplay = (
     cleanName = cleanName.replace(/^(?:موظف الكشف|موظف كشف|مهندس الموقع|مفتش)\s*[:\-\/]?\s*/g, '').trim();
     return {
       roleBadgeText: 'موظف الكشف',
-      roleBadgeClass: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30',
+      roleBadgeClass: 'bg-emerald-500/15 text-emerald-700 border-emerald-500/30',
       roleBadgeBorder: 'border-emerald-500/30',
       userName: cleanName || 'موظف الكشف',
       fullText: (cleanName && cleanName !== 'موظف الكشف') ? `موظف الكشف: ${cleanName}` : 'موظف الكشف',
@@ -238,7 +238,7 @@ export const getPerformerDisplay = (
   const cleanName = raw.replace(/\s*\([^)]*\)/g, '').trim() || raw;
   return {
     roleBadgeText: 'موظف الكشف',
-    roleBadgeClass: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30',
+    roleBadgeClass: 'bg-emerald-500/15 text-emerald-700 border-emerald-500/30',
     roleBadgeBorder: 'border-emerald-500/30',
     userName: cleanName,
     fullText: `موظف الكشف: ${cleanName}`,
@@ -821,16 +821,16 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
   };
 
   const getConditionGradeBadge = (grade?: ConditionGrade) => {
-    if (!grade) return <span className="text-slate-400 font-mono text-xs">غير محدد</span>;
+    if (!grade) return <span className="text-slate-500 font-mono text-xs">غير محدد</span>;
     switch (grade) {
       case 'A':
-        return <span className="px-2.5 py-0.5 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-bold font-mono text-xs">درجة A (ممتاز)</span>;
+        return <span className="px-2.5 py-0.5 rounded-lg bg-emerald-500/20 text-emerald-600 border border-emerald-500/30 font-bold font-mono text-xs">درجة A (ممتاز)</span>;
       case 'B':
-        return <span className="px-2.5 py-0.5 rounded-lg bg-blue-500/20 text-blue-400 border border-blue-500/30 font-bold font-mono text-xs">درجة B (جيد)</span>;
+        return <span className="px-2.5 py-0.5 rounded-lg bg-blue-500/20 text-blue-600 border border-blue-500/30 font-bold font-mono text-xs">درجة B (جيد)</span>;
       case 'C':
-        return <span className="px-2.5 py-0.5 rounded-lg bg-amber-500/20 text-amber-400 border border-amber-500/30 font-bold font-mono text-xs">درجة C (متوسط)</span>;
+        return <span className="px-2.5 py-0.5 rounded-lg bg-brand-100 text-brand-700 border border-brand-200 font-bold font-mono text-xs">درجة C (متوسط)</span>;
       case 'D':
-        return <span className="px-2.5 py-0.5 rounded-lg bg-red-500/20 text-red-400 border border-red-500/30 font-bold font-mono text-xs">درجة D (حرج)</span>;
+        return <span className="px-2.5 py-0.5 rounded-lg bg-red-500/20 text-red-600 border border-red-500/30 font-bold font-mono text-xs">درجة D (حرج)</span>;
     }
   };
 
@@ -838,30 +838,30 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
     switch (status) {
       case 'overdue':
         return (
-          <span className={`px-2.5 py-1 rounded-lg font-bold text-xs flex items-center gap-1 ${isLight ? 'bg-red-100 text-red-800 border border-red-300' : 'bg-red-500/20 text-red-400 border border-red-500/30'}`}>
+          <span className={`px-2.5 py-1 rounded-lg font-bold text-xs flex items-center gap-1 bg-red-100 text-red-800 border border-red-200`}>
             <AlertTriangle className="w-3.5 h-3.5" /> غير مكتمل (مستحق فوراً)
           </span>
         );
       case 'scheduled':
         return (
-          <span className={`px-2.5 py-1 rounded-lg font-bold text-xs flex items-center gap-1 ${isLight ? 'bg-amber-100 text-amber-800 border border-amber-300' : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'}`}>
+          <span className={`px-2.5 py-1 rounded-lg font-bold text-xs flex items-center gap-1 bg-brand-100 text-brand-800 border border-brand-200`}>
             <Clock className="w-3.5 h-3.5" /> غير مكتمل (مجدول)
           </span>
         );
       case 'in_progress':
         return (
-          <span className={`px-2.5 py-1 rounded-lg font-bold text-xs flex items-center gap-1 ${isLight ? 'bg-blue-100 text-blue-800 border border-blue-300' : 'bg-blue-500/20 text-blue-400 border border-blue-500/30'}`}>
+          <span className={`px-2.5 py-1 rounded-lg font-bold text-xs flex items-center gap-1 bg-blue-100 text-blue-800 border border-blue-200`}>
             <RotateCcw className="w-3.5 h-3.5 animate-spin" /> قيد الكشف والمعاينة
           </span>
         );
       case 'completed':
         return (
-          <span className={`px-2.5 py-1 rounded-lg font-bold text-xs flex items-center gap-1 ${isLight ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'}`}>
+          <span className={`px-2.5 py-1 rounded-lg font-bold text-xs flex items-center gap-1 bg-emerald-100 text-emerald-800 border border-emerald-200`}>
             <CheckCircle2 className="w-3.5 h-3.5" /> مكتمل وموثق
           </span>
         );
       default:
-        return <span className={`px-2.5 py-1 rounded-lg font-bold text-xs ${isLight ? 'bg-slate-100 text-slate-700' : 'bg-slate-800 text-slate-300'}`}>{status}</span>;
+        return <span className={`px-2.5 py-1 rounded-lg font-bold text-xs bg-slate-100 text-slate-700`}>{status}</span>;
     }
   };
 
@@ -871,23 +871,23 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
   return (
     <div className="space-y-6">
       {/* Top Banner Header */}
-      <div className={`rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-md relative overflow-hidden transition-colors ${isLight ? 'bg-gradient-to-r from-amber-500/10 via-amber-50/60 to-white border border-amber-200/80' : 'bg-slate-900 border border-slate-800 shadow-xl'}`}>
-        <div className="absolute top-0 left-0 w-96 h-96 bg-amber-500/5 rounded-full blur-3xl -ml-20 -mt-20 pointer-events-none" />
+      <div className={`rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-md relative overflow-hidden transition-colors bg-card border border-slate-200`}>
+        <div className="absolute top-0 left-0 w-96 h-96 bg-brand-50 rounded-full blur-3xl -ml-20 -mt-20 pointer-events-none" />
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
           <div className="flex items-center gap-3 sm:gap-4">
-            <div className={`w-11 h-11 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl flex items-center justify-center font-bold shrink-0 shadow-inner ${isLight ? 'bg-amber-500/15 border border-amber-300 text-amber-700' : 'bg-amber-500/10 border border-amber-500/30 text-amber-400'}`}>
+            <div className={`w-11 h-11 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl flex items-center justify-center font-bold shrink-0 shadow-inner bg-brand-100 border border-brand-200 text-brand-700`}>
               <CalendarCheck className="w-6 h-6 sm:w-8 sm:h-8" />
             </div>
             <div>
               <div className="flex items-center gap-2 flex-wrap">
-                <h1 className={`text-lg sm:text-xl font-black ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                <h1 className={`text-lg sm:text-xl font-black text-slate-900`}>
                   سجل الكشوفات الدورية
                 </h1>
-                <span className={`px-2.5 py-0.5 rounded-full text-[11px] sm:text-xs font-bold border ${isLight ? 'bg-amber-100 text-amber-800 border-amber-300' : 'bg-amber-500/20 text-amber-400 border-amber-500/30'}`}>
+                <span className={`px-2.5 py-0.5 rounded-full text-[11px] sm:text-xs font-bold border bg-brand-100 text-brand-800 border-brand-200`}>
                   شركة نفط الوسط
                 </span>
               </div>
-              <p className={`text-[11px] sm:text-xs mt-1 leading-relaxed ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+              <p className={`text-[11px] sm:text-xs mt-1 leading-relaxed text-slate-600`}>
                 متابعة وحدات الحقول والمحافظات، تحديد تواريخ وتكرار الكشف الدوري، إنجاز المعاينات وترفيع التقارير، وتوثيق طلبات الصيانة في أرشيف الأصل
               </p>
             </div>
@@ -896,7 +896,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
           <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
             <button
               onClick={() => setShowAddModal(true)}
-              className="w-full sm:w-auto px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black rounded-xl text-xs flex items-center justify-center gap-2 shadow-md shadow-amber-500/20 transition cursor-pointer min-h-[42px]"
+              className="w-full sm:w-auto px-4 py-2.5 bg-brand-700 hover:bg-brand-800 text-on-brand font-black rounded-xl text-xs flex items-center justify-center gap-2 shadow-md transition cursor-pointer min-h-[42px]"
             >
               <Plus className="w-4 h-4" />
               <span>جدولة كشف جديد</span>
@@ -905,15 +905,13 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
         </div>
 
         {/* View Toggle Tabs */}
-        <div className="flex items-center gap-2 mt-4 sm:mt-5 border-t border-slate-800/40 pt-3 sm:pt-4 overflow-x-auto scrollbar-none flex-nowrap sm:flex-wrap">
+        <div className="flex items-center gap-2 mt-4 sm:mt-5 border-t border-slate-200 pt-3 sm:pt-4 overflow-x-auto scrollbar-none flex-nowrap sm:flex-wrap">
           <button
             onClick={() => setActiveSubTab('schedules')}
             className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer shrink-0 min-h-[38px] ${
               activeSubTab === 'schedules'
-                ? 'bg-amber-500 text-slate-950 shadow-md font-black'
-                : isLight
-                ? 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                ? 'bg-brand-700 text-on-brand shadow-md font-black'
+                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
             }`}
           >
             <Calendar className="w-4 h-4" />
@@ -924,10 +922,8 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
             onClick={() => setActiveSubTab('hierarchy')}
             className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer shrink-0 min-h-[38px] ${
               activeSubTab === 'hierarchy'
-                ? 'bg-amber-500 text-slate-950 shadow-md font-black'
-                : isLight
-                ? 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                ? 'bg-brand-700 text-on-brand shadow-md font-black'
+                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
             }`}
           >
             <Layers className="w-4 h-4" />
@@ -938,65 +934,63 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
 
       {/* KPI Cards Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
-        <div className={`rounded-xl sm:rounded-2xl p-3 sm:p-4 flex items-center justify-between shadow-sm transition-colors ${isLight ? 'bg-white border border-slate-200' : 'bg-slate-900 border border-slate-800'}`}>
+        <div className={`rounded-xl sm:rounded-2xl p-3 sm:p-4 flex items-center justify-between shadow-sm transition-colors bg-card border border-slate-200`}>
           <div className="min-w-0">
-            <p className={`text-[11px] sm:text-xs font-bold truncate ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>إجمالي الكشوفات المجدولة</p>
-            <h3 className={`text-xl sm:text-2xl font-black mt-0.5 sm:mt-1 ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>{toArabicDigits(totalCount)}</h3>
-            <p className={`text-[10px] sm:text-[11px] mt-0.5 truncate ${isLight ? 'text-slate-500' : 'text-slate-500'}`}>جدول متابعة معتمد للنظام</p>
+            <p className={`text-[11px] sm:text-xs font-bold truncate text-slate-600`}>إجمالي الكشوفات المجدولة</p>
+            <h3 className={`text-xl sm:text-2xl font-black mt-0.5 sm:mt-1 text-slate-900`}>{toArabicDigits(totalCount)}</h3>
+            <p className={`text-[10px] sm:text-[11px] mt-0.5 truncate text-slate-500`}>جدول متابعة معتمد للنظام</p>
           </div>
-          <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center shrink-0 border mr-2 ${isLight ? 'bg-slate-100 border-slate-200 text-slate-700' : 'bg-slate-800 border-slate-700 text-slate-300'}`}>
+          <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center shrink-0 border mr-2 bg-slate-100 border-slate-200 text-slate-700`}>
             <CalendarDays className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
         </div>
 
-        <div className={`rounded-xl sm:rounded-2xl p-3 sm:p-4 flex items-center justify-between shadow-sm transition-colors ${isLight ? 'bg-red-50/70 border border-red-200' : 'bg-slate-900 border border-red-500/30'}`}>
+        <div className={`rounded-xl sm:rounded-2xl p-3 sm:p-4 flex items-center justify-between shadow-sm transition-colors bg-red-50/70 border border-red-200`}>
           <div className="min-w-0">
-            <p className={`text-[11px] sm:text-xs font-bold truncate ${isLight ? 'text-red-800' : 'text-red-400'}`}>غير مكتملة (مستحقة فوراً)</p>
-            <h3 className={`text-xl sm:text-2xl font-black mt-0.5 sm:mt-1 ${isLight ? 'text-red-700' : 'text-red-400'}`}>{toArabicDigits(overdueCount)}</h3>
-            <p className={`text-[10px] sm:text-[11px] mt-0.5 truncate ${isLight ? 'text-red-600/80' : 'text-slate-500'}`}>تتطلب معالجة وإنجاز كشف عاجل</p>
+            <p className={`text-[11px] sm:text-xs font-bold truncate text-red-800`}>غير مكتملة (مستحقة فوراً)</p>
+            <h3 className={`text-xl sm:text-2xl font-black mt-0.5 sm:mt-1 text-red-700`}>{toArabicDigits(overdueCount)}</h3>
+            <p className={`text-[10px] sm:text-[11px] mt-0.5 truncate text-red-600/80`}>تتطلب معالجة وإنجاز كشف عاجل</p>
           </div>
-          <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center shrink-0 border mr-2 ${isLight ? 'bg-red-100 border-red-200 text-red-600' : 'bg-red-500/10 border-red-500/20 text-red-400'}`}>
+          <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center shrink-0 border mr-2 bg-red-100 border-red-200 text-red-600`}>
             <AlertTriangle className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
         </div>
 
-        <div className={`rounded-xl sm:rounded-2xl p-3 sm:p-4 flex items-center justify-between shadow-sm transition-colors ${isLight ? 'bg-amber-50/70 border border-amber-200' : 'bg-slate-900 border border-amber-500/30'}`}>
+        <div className={`rounded-xl sm:rounded-2xl p-3 sm:p-4 flex items-center justify-between shadow-sm transition-colors bg-brand-50 border border-brand-200`}>
           <div className="min-w-0">
-            <p className={`text-[11px] sm:text-xs font-bold truncate ${isLight ? 'text-amber-800' : 'text-amber-400'}`}>غير مكتملة (مجدولة قادمة)</p>
-            <h3 className={`text-xl sm:text-2xl font-black mt-0.5 sm:mt-1 ${isLight ? 'text-amber-700' : 'text-amber-400'}`}>{toArabicDigits(scheduledCount)}</h3>
-            <p className={`text-[10px] sm:text-[11px] mt-0.5 truncate ${isLight ? 'text-amber-700/80' : 'text-slate-500'}`}>بانتظار تاريخ الاستحقاق</p>
+            <p className={`text-[11px] sm:text-xs font-bold truncate text-brand-800`}>غير مكتملة (مجدولة قادمة)</p>
+            <h3 className={`text-xl sm:text-2xl font-black mt-0.5 sm:mt-1 text-brand-700`}>{toArabicDigits(scheduledCount)}</h3>
+            <p className={`text-[10px] sm:text-[11px] mt-0.5 truncate text-brand-700`}>بانتظار تاريخ الاستحقاق</p>
           </div>
-          <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center shrink-0 border mr-2 ${isLight ? 'bg-amber-100 border-amber-200 text-amber-700' : 'bg-amber-500/10 border-amber-500/20 text-amber-400'}`}>
+          <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center shrink-0 border mr-2 bg-brand-100 border-brand-200 text-brand-700`}>
             <Clock className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
         </div>
 
-        <div className={`rounded-xl sm:rounded-2xl p-3 sm:p-4 flex items-center justify-between shadow-sm transition-colors ${isLight ? 'bg-emerald-50/70 border border-emerald-200' : 'bg-slate-900 border border-emerald-500/30'}`}>
+        <div className={`rounded-xl sm:rounded-2xl p-3 sm:p-4 flex items-center justify-between shadow-sm transition-colors bg-emerald-50/70 border border-emerald-200`}>
           <div className="min-w-0">
-            <p className={`text-[11px] sm:text-xs font-bold truncate ${isLight ? 'text-emerald-800' : 'text-emerald-400'}`}>كشوفات مكتملة وموثقة</p>
-            <h3 className={`text-xl sm:text-2xl font-black mt-0.5 sm:mt-1 ${isLight ? 'text-emerald-700' : 'text-emerald-400'}`}>{toArabicDigits(completedCount)}</h3>
-            <p className={`text-[10px] sm:text-[11px] mt-0.5 truncate ${isLight ? 'text-emerald-700/80' : 'text-slate-500'}`}>تم ترفيع تقاريرها وتحديث الدرجة</p>
+            <p className={`text-[11px] sm:text-xs font-bold truncate text-emerald-800`}>كشوفات مكتملة وموثقة</p>
+            <h3 className={`text-xl sm:text-2xl font-black mt-0.5 sm:mt-1 text-emerald-700`}>{toArabicDigits(completedCount)}</h3>
+            <p className={`text-[10px] sm:text-[11px] mt-0.5 truncate text-emerald-700/80`}>تم ترفيع تقاريرها وتحديث الدرجة</p>
           </div>
-          <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center shrink-0 border mr-2 ${isLight ? 'bg-emerald-100 border-emerald-200 text-emerald-700' : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'}`}>
+          <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center shrink-0 border mr-2 bg-emerald-100 border-emerald-200 text-emerald-700`}>
             <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
         </div>
       </div>
 
       {/* Filter and Search Bar */}
-      <div className={`rounded-2xl p-3.5 sm:p-4 space-y-3 transition-colors ${isLight ? 'bg-white border border-slate-200 shadow-sm' : 'bg-slate-900 border border-slate-800'}`}>
+      <div className={`rounded-2xl p-3.5 sm:p-4 space-y-3 transition-colors bg-card border border-slate-200 shadow-sm`}>
         <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-6 gap-2.5 sm:gap-3 text-xs">
           {/* Search Input */}
           <div className="relative col-span-2 sm:col-span-2 lg:col-span-2">
-            <Search className={`w-4 h-4 absolute right-3 top-3 ${isLight ? 'text-slate-400' : 'text-slate-500'}`} />
+            <Search className={`w-4 h-4 absolute right-3 top-3 text-slate-400`} />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="بحث باسم المبنى، الرمز، الفريق، المفتش..."
-              className={`w-full rounded-xl pr-9 pl-3 py-2.5 outline-none font-medium transition min-h-[42px] ${
-                isLight ? 'bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 focus:border-amber-500' : 'bg-slate-950 border border-slate-800 text-slate-100 placeholder-slate-500 focus:border-amber-500'
-              }`}
+              className={`w-full rounded-xl pr-9 pl-3 py-2.5 outline-none font-medium transition min-h-[42px] bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 focus:border-brand-600`}
             />
           </div>
 
@@ -1005,9 +999,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
             <select
               value={selectedGovernorate}
               onChange={(e) => handleGovernorateChange(e.target.value)}
-              className={`w-full rounded-xl p-2.5 font-bold outline-none cursor-pointer transition min-h-[42px] ${
-                isLight ? 'bg-slate-50 border border-slate-200 text-slate-800 focus:border-amber-500' : 'bg-slate-950 border border-slate-800 text-slate-200 focus:border-amber-500'
-              }`}
+              className={`w-full rounded-xl p-2.5 font-bold outline-none cursor-pointer transition min-h-[42px] bg-slate-50 border border-slate-200 text-slate-800 focus:border-brand-600`}
             >
               <option value="all">جميع المحافظات</option>
               {effectiveGovernorates
@@ -1025,9 +1017,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
             <select
               value={selectedOilfield}
               onChange={(e) => setSelectedOilfield(e.target.value)}
-              className={`w-full rounded-xl p-2.5 font-bold outline-none cursor-pointer transition min-h-[42px] ${
-                isLight ? 'bg-slate-50 border border-slate-200 text-slate-800 focus:border-amber-500' : 'bg-slate-950 border border-slate-800 text-slate-200 focus:border-amber-500'
-              }`}
+              className={`w-full rounded-xl p-2.5 font-bold outline-none cursor-pointer transition min-h-[42px] bg-slate-50 border border-slate-200 text-slate-800 focus:border-brand-600`}
             >
               <option value="all">جميع الحقول والقطاعات</option>
               {availableOilfieldOptions.map((f) => (
@@ -1043,9 +1033,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
             <select
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
-              className={`w-full rounded-xl p-2.5 font-bold outline-none cursor-pointer transition min-h-[42px] ${
-                isLight ? 'bg-slate-50 border border-slate-200 text-slate-800 focus:border-amber-500' : 'bg-slate-950 border border-slate-800 text-slate-200 focus:border-amber-500'
-              }`}
+              className={`w-full rounded-xl p-2.5 font-bold outline-none cursor-pointer transition min-h-[42px] bg-slate-50 border border-slate-200 text-slate-800 focus:border-brand-600`}
             >
               <option value="all">جميع الحالات</option>
               <option value="scheduled">غير مكتمل (مجدول)</option>
@@ -1060,9 +1048,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
             <select
               value={selectedFrequency}
               onChange={(e) => setSelectedFrequency(e.target.value)}
-              className={`w-full rounded-xl p-2.5 font-bold outline-none cursor-pointer transition min-h-[42px] ${
-                isLight ? 'bg-slate-50 border border-slate-200 text-slate-800 focus:border-amber-500' : 'bg-slate-950 border border-slate-800 text-slate-200 focus:border-amber-500'
-              }`}
+              className={`w-full rounded-xl p-2.5 font-bold outline-none cursor-pointer transition min-h-[42px] bg-slate-50 border border-slate-200 text-slate-800 focus:border-brand-600`}
             >
               <option value="all">جميع التكرارات</option>
               <option value="monthly">1 شهر (شهري)</option>
@@ -1076,8 +1062,8 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
 
         {/* Active Filters Clear Indicator */}
         {(searchTerm || selectedGovernorate !== 'all' || selectedOilfield !== 'all' || selectedStatus !== 'all' || selectedFrequency !== 'all') && (
-          <div className="flex items-center justify-between pt-1 border-t border-slate-200/60 dark:border-slate-800/60 text-xs">
-            <span className="text-[11px] text-amber-500 font-bold">
+          <div className="flex items-center justify-between pt-1 border-t border-slate-200/60 text-xs">
+            <span className="text-[11px] text-brand-700 font-bold">
               يتم تطبيق معايير التصفية والبحث
             </span>
             <button
@@ -1088,9 +1074,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                 setSelectedStatus('all');
                 setSelectedFrequency('all');
               }}
-              className={`text-[11px] font-bold underline transition cursor-pointer ${
-                isLight ? 'text-slate-600 hover:text-slate-900' : 'text-slate-400 hover:text-slate-200'
-              }`}
+              className={`text-[11px] font-bold underline transition cursor-pointer text-slate-600 hover:text-slate-900`}
             >
               إلغاء وإعادة ضبط الفلاتر
             </button>
@@ -1101,31 +1085,31 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
       {/* Main Content Areas */}
       {activeSubTab === 'schedules' ? (
         /* 1. SCHEDULES TABLE */
-        <div className={`rounded-2xl overflow-hidden shadow-md border transition-colors ${isLight ? 'bg-white border-slate-200' : 'bg-slate-900 border-slate-800'}`}>
-          <div className={`p-4 border-b flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-950 border-slate-800'}`}>
+        <div className={`rounded-2xl overflow-hidden shadow-md border transition-colors bg-card border-slate-200`}>
+          <div className={`p-4 border-b flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50 border-slate-200`}>
             <div className="flex items-center gap-2">
-              <CalendarCheck className={`w-5 h-5 ${isLight ? 'text-amber-600' : 'text-amber-400'}`} />
-              <h3 className={`font-bold text-sm ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+              <CalendarCheck className={`w-5 h-5 text-brand-700`} />
+              <h3 className={`font-bold text-sm text-slate-900`}>
                 جدول الكشوفات والمعاينات الدوريّة ({toArabicDigits(filteredSchedules.length)} سجل)
               </h3>
             </div>
-            <span className={`text-xs ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+            <span className={`text-xs text-slate-500`}>
               سجل مواعيد الكشوفات الدورية للوحدات الميدانية
             </span>
           </div>
 
           {filteredSchedules.length === 0 ? (
             <div className="p-12 text-center text-slate-500 space-y-4">
-              <Info className={`w-12 h-12 mx-auto ${isLight ? 'text-slate-400' : 'text-slate-600'}`} />
+              <Info className={`w-12 h-12 mx-auto text-slate-400`} />
               {schedules.length === 0 ? (
                 <>
-                  <p className={`text-sm font-bold ${isLight ? 'text-slate-800' : 'text-slate-200'}`}>
+                  <p className={`text-sm font-bold text-slate-800`}>
                     لا توجد مواعيد كشوفات مسجلة حالياً. يمكنك إدراج وجدولة كشف جديد للوحدات المتاحة.
                   </p>
                   <div className="flex items-center justify-center pt-2">
                     <button
                       onClick={() => setShowAddModal(true)}
-                      className="px-5 py-2.5 bg-amber-500 text-slate-950 font-black rounded-xl text-xs flex items-center gap-2 hover:bg-amber-400 transition cursor-pointer shadow-md"
+                      className="px-5 py-2.5 bg-brand-700 text-on-brand font-black rounded-xl text-xs flex items-center gap-2 hover:bg-brand-800 transition cursor-pointer shadow-md"
                     >
                       <Plus className="w-4 h-4" />
                       <span>جدولة كشف دوري جديد</span>
@@ -1143,7 +1127,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                       setSelectedStatus('all');
                       setSelectedFrequency('all');
                     }}
-                    className={`px-4 py-2 rounded-xl text-xs font-bold transition ${isLight ? 'bg-slate-100 text-amber-700 hover:bg-slate-200' : 'bg-slate-800 text-amber-400 hover:bg-slate-700'}`}
+                    className={`px-4 py-2 rounded-xl text-xs font-bold transition bg-slate-100 text-brand-700 hover:bg-slate-200`}
                   >
                     إعادة ضبط الفلاتر
                   </button>
@@ -1172,16 +1156,12 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                   return (
                     <div
                       key={sch.id}
-                      className={`p-3.5 rounded-2xl border space-y-2.5 transition ${
-                        isLight ? 'bg-slate-50 border-slate-200 shadow-xs' : 'bg-slate-950/70 border-slate-800 shadow-xs'
-                      }`}
+                      className={`p-3.5 rounded-2xl border space-y-2.5 transition bg-slate-50 border-slate-200 shadow-xs`}
                     >
                       {/* Top: Code, Grade & Status */}
                       <div className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-1.5">
-                          <span className={`font-mono font-black text-xs px-2 py-0.5 rounded-lg border ${
-                            isLight ? 'bg-amber-100 text-amber-900 border-amber-300' : 'bg-amber-500/20 text-amber-400 border-amber-500/30'
-                          }`}>
+                          <span className={`font-mono font-black text-xs px-2 py-0.5 rounded-lg border bg-brand-100 text-brand-800 border-brand-200`}>
                             {toArabicDigits(sch.unitCode)}
                           </span>
                           {matchedUnit && getConditionGradeBadge(sch.conditionGradeGiven || matchedUnit.conditionGrade)}
@@ -1191,43 +1171,43 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
 
                       {/* Title & Facility */}
                       <div>
-                        <h4 className={`font-extrabold text-sm ${isLight ? 'text-slate-900' : 'text-white'}`}>
+                        <h4 className={`font-extrabold text-sm text-slate-900`}>
                           {sch.title}
                         </h4>
-                        <p className={`text-xs mt-0.5 font-bold ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                        <p className={`text-xs mt-0.5 font-bold text-slate-700`}>
                           {occupyingEntity}
                         </p>
                         {sch.unitName && sch.unitName !== sch.unitCode && (
-                          <p className={`text-[11px] ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                          <p className={`text-[11px] text-slate-500`}>
                             {sch.unitName}
                           </p>
                         )}
                       </div>
 
                       {/* Location & Frequency */}
-                      <div className="grid grid-cols-2 gap-2 text-[11px] pt-2 border-t border-slate-200/60 dark:border-slate-800/60">
+                      <div className="grid grid-cols-2 gap-2 text-[11px] pt-2 border-t border-slate-200/60 ">
                         <div>
-                          <span className="text-slate-400 font-medium">الموقع: </span>
+                          <span className="text-slate-500 font-medium">الموقع: </span>
                           <span className="font-bold">{sch.governorate} - {sch.field}</span>
                         </div>
                         <div>
-                          <span className="text-slate-400 font-medium">التكرار: </span>
-                          <span className="font-bold text-amber-500">{getFrequencyLabel(sch.frequency, sch.customIntervalDays)}</span>
+                          <span className="text-slate-500 font-medium">التكرار: </span>
+                          <span className="font-bold text-brand-700">{getFrequencyLabel(sch.frequency, sch.customIntervalDays)}</span>
                         </div>
                         <div>
-                          <span className="text-slate-400 font-medium">تاريخ البدء: </span>
+                          <span className="text-slate-500 font-medium">تاريخ البدء: </span>
                           <span className="font-mono font-bold">{toArabicDigits(sch.lastInspectionDate)}</span>
                         </div>
                         <div>
-                          <span className="text-slate-400 font-medium">الموعد القادم: </span>
-                          <span className={`font-mono font-bold ${sch.status === 'overdue' ? 'text-rose-500 font-black' : 'text-slate-200'}`}>
+                          <span className="text-slate-500 font-medium">الموعد القادم: </span>
+                          <span className={`font-mono font-bold ${sch.status === 'overdue' ? 'text-rose-600 font-black' : 'text-slate-800'}`}>
                             {toArabicDigits(sch.nextDueDate)}
                           </span>
                         </div>
                       </div>
 
                       {/* Performer & Report */}
-                      <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-200/60 dark:border-slate-800/60 text-[11px]">
+                      <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-200/60 text-[11px]">
                         <div>
                           {p ? (
                             <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold border ${p.roleBadgeClass}`}>
@@ -1235,7 +1215,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                               <span>{p.userName || p.roleBadgeText}</span>
                             </span>
                           ) : (
-                            <span className="text-slate-400 text-[10px]">
+                            <span className="text-slate-500 text-[10px]">
                               {sch.inspectorName ? `المكلف: ${sch.inspectorName.replace(/\s*\([^)]*\)/g, '').trim()}` : 'لم يُنجز بعد'}
                             </span>
                           )}
@@ -1256,9 +1236,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                                   size: '1.5 MB',
                                 });
                               }}
-                              className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10.5px] font-bold border cursor-pointer ${
-                                isLight ? 'bg-emerald-50 text-emerald-800 border-emerald-300' : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
-                              }`}
+                              className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10.5px] font-bold border cursor-pointer bg-emerald-50 text-emerald-800 border-emerald-200`}
                             >
                               <Eye className="w-3 h-3" />
                               <span>تقرير</span>
@@ -1268,7 +1246,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                       </div>
 
                       {/* Actions Bar */}
-                      <div className="flex flex-wrap items-center justify-end gap-1.5 pt-2 border-t border-slate-200/60 dark:border-slate-800/60">
+                      <div className="flex flex-wrap items-center justify-end gap-1.5 pt-2 border-t border-slate-200/60 ">
                         {sch.status !== 'completed' && (
                           <button
                             onClick={() => {
@@ -1293,9 +1271,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                               setShowUnitArchiveModal(matchedUnit);
                               setArchiveModalTab('inspections');
                             }}
-                            className={`px-3 py-2 rounded-xl border text-xs font-bold flex items-center gap-1.5 transition cursor-pointer min-h-[38px] ${
-                              isLight ? 'bg-amber-50 text-amber-900 border-amber-200 hover:bg-amber-100' : 'bg-slate-800 text-amber-400 border-slate-700 hover:bg-slate-700'
-                            }`}
+                            className={`px-3 py-2 rounded-xl border text-xs font-bold flex items-center gap-1.5 transition cursor-pointer min-h-[38px] bg-brand-50 text-brand-800 border-brand-200 hover:bg-brand-100`}
                             title="الأرشيف"
                           >
                             <Archive className="w-3.5 h-3.5" />
@@ -1304,18 +1280,14 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                         )}
                         <button
                           onClick={() => handleOpenEdit(sch)}
-                          className={`p-2 rounded-xl border transition cursor-pointer min-h-[38px] min-w-[38px] flex items-center justify-center ${
-                            isLight ? 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200' : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-700'
-                          }`}
+                          className={`p-2 rounded-xl border transition cursor-pointer min-h-[38px] min-w-[38px] flex items-center justify-center bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200`}
                           title="تعديل الموعد والتكرار"
                         >
                           <Edit3 className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => setDeleteConfirmSchedule(sch)}
-                          className={`p-2 rounded-xl border transition cursor-pointer min-h-[38px] min-w-[38px] flex items-center justify-center ${
-                            isLight ? 'bg-red-50 hover:bg-red-100 text-red-600 border-red-200' : 'bg-red-500/10 hover:bg-red-500/20 text-red-400 border-red-500/20'
-                          }`}
+                          className={`p-2 rounded-xl border transition cursor-pointer min-h-[38px] min-w-[38px] flex items-center justify-center bg-red-50 hover:bg-red-100 text-red-600 border-red-200`}
                           title="حذف جدول الكشف الدوري"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -1329,7 +1301,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
               {/* Desktop Table View (hidden md:block) */}
               <div className="hidden md:block overflow-x-auto">
                 <table className="w-full text-right text-xs">
-                <thead className={`font-bold border-b ${isLight ? 'bg-slate-100 text-slate-700 border-slate-200' : 'bg-slate-950 text-slate-400 border-slate-800'}`}>
+                <thead className={`font-bold border-b bg-slate-100 text-slate-700 border-slate-200`}>
                   <tr>
                     <th className="p-3.5">رمز المنشأة والجهة الشاغلة</th>
                     <th className="p-3.5">المحافظة والحقل</th>
@@ -1342,7 +1314,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                     <th className="p-3.5 text-center">الإجراءات والتوثيق</th>
                   </tr>
                 </thead>
-                <tbody className={`divide-y ${isLight ? 'divide-slate-200/80 bg-white' : 'divide-slate-800/60 bg-slate-900/40'}`}>
+                <tbody className={`divide-y divide-slate-200/80 bg-card`}>
                   {filteredSchedules.map((sch) => {
                     const matchedUnit = units.find((u) => u.code === sch.unitCode);
                     const occupyingEntity = matchedUnit
@@ -1354,17 +1326,17 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                               : '')) || 'عام / غير محدد'
                       : 'عام / غير محدد';
                     return (
-                      <tr key={sch.id} className={`transition ${isLight ? 'hover:bg-amber-50/50' : 'hover:bg-slate-800/40'}`}>
+                      <tr key={sch.id} className={`transition hover:bg-brand-50`}>
                         {/* Facility Code and Occupying Entity (Stacked) */}
                         <td className="p-3.5 font-medium">
-                          <div className={`font-mono font-bold text-xs ${isLight ? 'text-amber-700' : 'text-amber-400'}`}>
+                          <div className={`font-mono font-bold text-xs text-brand-700`}>
                             {toArabicDigits(sch.unitCode)}
                           </div>
-                          <div className={`text-xs mt-0.5 font-bold ${isLight ? 'text-slate-800' : 'text-slate-200'}`}>
+                          <div className={`text-xs mt-0.5 font-bold text-slate-800`}>
                             {occupyingEntity}
                           </div>
                           {sch.unitName && sch.unitName !== sch.unitCode && (
-                            <div className={`text-[11px] ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                            <div className={`text-[11px] text-slate-500`}>
                               {sch.unitName}
                             </div>
                           )}
@@ -1377,28 +1349,28 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
 
                         {/* Gov & Field */}
                         <td className="p-3.5">
-                          <div className={`font-bold text-xs ${isLight ? 'text-slate-800' : 'text-slate-200'}`}>
+                          <div className={`font-bold text-xs text-slate-800`}>
                             {sch.governorate}
                           </div>
-                          <div className={`text-[11px] mt-0.5 ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                          <div className={`text-[11px] mt-0.5 text-slate-500`}>
                             حقل {sch.field}
                           </div>
                         </td>
 
                         {/* Title */}
                         <td className="p-3.5">
-                          <div className={`font-bold ${isLight ? 'text-slate-900' : 'text-slate-200'}`}>
+                          <div className={`font-bold text-slate-900`}>
                             {sch.title}
                           </div>
                         </td>
 
                         {/* Start Date & Frequency */}
                         <td className="p-3.5">
-                          <div className={`font-mono ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                          <div className={`font-mono text-slate-700`}>
                             بدء: {toArabicDigits(sch.lastInspectionDate)}
                           </div>
                           <div className="mt-1">
-                            <span className={`px-2.5 py-0.5 rounded-lg font-bold border text-[10px] ${isLight ? 'bg-slate-100 text-amber-900 border-slate-200' : 'bg-slate-950 text-amber-400 border-slate-800'}`}>
+                            <span className={`px-2.5 py-0.5 rounded-lg font-bold border text-[10px] bg-slate-100 text-brand-800 border-slate-200`}>
                               {getFrequencyLabel(sch.frequency, sch.customIntervalDays)}
                             </span>
                           </div>
@@ -1406,11 +1378,11 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
 
                         {/* Next Due Date */}
                         <td className="p-3.5">
-                          <div className={`font-mono font-bold text-xs ${sch.status === 'overdue' ? (isLight ? 'text-red-600 font-black' : 'text-red-400 font-black') : isLight ? 'text-slate-900 font-bold' : 'text-slate-200 font-bold'}`}>
+                          <div className={`font-mono font-bold text-xs ${sch.status === 'overdue' ? ('text-red-600 font-black') : 'text-slate-900 font-bold'}`}>
                             {toArabicDigits(sch.nextDueDate)}
                           </div>
                           {sch.status === 'overdue' && (
-                            <div className="text-[10px] text-red-500 font-bold mt-0.5">
+                            <div className="text-[10px] text-red-600 font-bold mt-0.5">
                               غير مكتمل - مستحق المعاينة!
                             </div>
                           )}
@@ -1435,16 +1407,10 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                                       <UserCheck
                                         className={`w-3.5 h-3.5 shrink-0 ${
                                           p.isOperator
-                                            ? isLight
-                                              ? 'text-amber-600'
-                                              : 'text-amber-400'
+                                            ? 'text-brand-700'
                                             : p.isAdmin
-                                            ? isLight
-                                              ? 'text-purple-600'
-                                              : 'text-purple-400'
-                                            : isLight
-                                            ? 'text-emerald-600'
-                                            : 'text-emerald-400'
+                                            ? 'text-purple-600'
+                                            : 'text-emerald-600'
                                         }`}
                                       />
                                       <span>{p.roleBadgeText}</span>
@@ -1459,19 +1425,13 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                                     <UserCheck
                                       className={`w-3.5 h-3.5 shrink-0 ${
                                         p.isOperator
-                                          ? isLight
-                                            ? 'text-amber-600'
-                                            : 'text-amber-400'
+                                          ? 'text-brand-700'
                                           : p.isAdmin
-                                          ? isLight
-                                            ? 'text-purple-600'
-                                            : 'text-purple-400'
-                                          : isLight
-                                          ? 'text-emerald-600'
-                                          : 'text-emerald-400'
+                                          ? 'text-purple-600'
+                                          : 'text-emerald-600'
                                       }`}
                                     />
-                                    <span className={isLight ? 'text-slate-900' : 'text-slate-100'}>
+                                    <span className={'text-slate-900'}>
                                       {p.userName}
                                     </span>
                                   </div>
@@ -1487,11 +1447,11 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                             })()
                           ) : (
                             <div className="space-y-0.5">
-                              <span className={`text-[11px] font-semibold ${isLight ? 'text-slate-400' : 'text-slate-500'}`}>
+                              <span className={`text-[11px] font-semibold text-slate-400`}>
                                 {sch.status === 'completed' ? '—' : 'لم يُنجز بعد'}
                               </span>
                               {sch.inspectorName && sch.status !== 'completed' && (
-                                <div className="text-[10px] text-slate-400 truncate max-w-[120px]" title={sch.inspectorName}>
+                                <div className="text-[10px] text-slate-500 truncate max-w-[120px]" title={sch.inspectorName}>
                                   المكلف: {sch.inspectorName.replace(/\s*\([^)]*\)/g, '').trim()}
                                 </div>
                               )}
@@ -1515,11 +1475,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                                   size: '1.5 MB',
                                 });
                               }}
-                              className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition cursor-pointer border shadow-sm ${
-                                isLight
-                                  ? 'bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100 hover:border-emerald-400'
-                                  : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 hover:bg-emerald-500/30 hover:border-emerald-400/60'
-                              }`}
+                              className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition cursor-pointer border shadow-sm bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100 hover:border-emerald-200`}
                               title="فتح ومعاينة التقرير أو الصورة"
                             >
                               <Eye className="w-3.5 h-3.5" />
@@ -1528,7 +1484,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                               </span>
                             </button>
                           ) : (
-                            <span className={`text-[10px] ${isLight ? 'text-slate-400' : 'text-slate-500'}`}>لا يوجد تقرير</span>
+                            <span className={`text-[10px] text-slate-400`}>لا يوجد تقرير</span>
                           )}
                         </td>
 
@@ -1548,11 +1504,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                                     setCompleteGrade(matchedUnit.conditionGrade);
                                   }
                                 }}
-                                className={`px-2.5 py-1.5 rounded-lg text-[11px] font-bold flex items-center gap-1 transition cursor-pointer ${
-                                  isLight
-                                    ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm'
-                                    : 'bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/30'
-                                }`}
+                                className={`px-2.5 py-1.5 rounded-lg text-[11px] font-bold flex items-center gap-1 transition cursor-pointer bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm`}
                                 title="إنجاز الكشف وتوثيق التقرير وتقييم A-B-C-D"
                               >
                                 <CheckSquare className="w-3.5 h-3.5" />
@@ -1567,11 +1519,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                                   setShowUnitArchiveModal(matchedUnit);
                                   setArchiveModalTab('inspections');
                                 }}
-                                className={`px-2 py-1.5 rounded-lg border text-[11px] font-bold flex items-center gap-1 transition cursor-pointer ${
-                                  isLight
-                                    ? 'bg-amber-50 text-amber-900 border-amber-200 hover:bg-amber-100'
-                                    : 'bg-slate-800 text-amber-400 border-slate-700 hover:bg-slate-700'
-                                }`}
+                                className={`px-2 py-1.5 rounded-lg border text-[11px] font-bold flex items-center gap-1 transition cursor-pointer bg-brand-50 text-brand-800 border-brand-200 hover:bg-brand-100`}
                                 title="عرض أرشيف الكشوفات والصيانة للوحدة"
                               >
                                 <Archive className="w-3.5 h-3.5" />
@@ -1582,11 +1530,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                             {/* Edit Button */}
                             <button
                               onClick={() => handleOpenEdit(sch)}
-                              className={`p-1.5 rounded-lg border transition cursor-pointer ${
-                                isLight
-                                  ? 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200'
-                                  : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-700'
-                              }`}
+                              className={`p-1.5 rounded-lg border transition cursor-pointer bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200`}
                               title="تعديل معلومات وتفاصيل الجدولة"
                             >
                               <Edit3 className="w-3.5 h-3.5" />
@@ -1595,11 +1539,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                             {/* Delete Button */}
                             <button
                               onClick={() => setDeleteConfirmSchedule(sch)}
-                              className={`p-1.5 rounded-lg border transition cursor-pointer ${
-                                isLight
-                                  ? 'bg-red-50 hover:bg-red-100 text-red-600 border-red-200'
-                                  : 'bg-red-500/10 hover:bg-red-500/20 text-red-400 border-red-500/20'
-                              }`}
+                              className={`p-1.5 rounded-lg border transition cursor-pointer bg-red-50 hover:bg-red-100 text-red-600 border-red-200`}
                               title="حذف جدول الكشف الدوري"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
@@ -1618,9 +1558,9 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
       ) : (
         /* 2. HIERARCHY TREE VIEW BY GOVERNORATE & OILFIELD */
         <div className="space-y-4">
-          <div className={`p-4 rounded-2xl border text-xs flex items-center justify-between ${isLight ? 'bg-amber-50 border-amber-200 text-amber-900' : 'bg-slate-900 border-slate-800 text-slate-300'}`}>
+          <div className={`p-4 rounded-2xl border text-xs flex items-center justify-between bg-brand-50 border-brand-200 text-brand-800`}>
             <div className="flex items-center gap-2">
-              <Building2 className="w-4 h-4 text-amber-500" />
+              <Building2 className="w-4 h-4 text-brand-700" />
               <span className="font-bold">استعراض الهيكلية الجغرافية والمستويات الإدارية لشركة نفط الوسط</span>
             </div>
             <span>انقر على أية منشأة لفتح الأرشيف الخاص بها أو لجدولة كشف جديد</span>
@@ -1634,18 +1574,16 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
               return (
                 <div
                   key={govName}
-                  className={`rounded-2xl border p-4 space-y-4 shadow-sm ${
-                    isLight ? 'bg-white border-slate-200' : 'bg-slate-900 border-slate-800'
-                  }`}
+                  className={`rounded-2xl border p-4 space-y-4 shadow-sm bg-card border-slate-200`}
                 >
-                  <div className="flex items-center justify-between border-b pb-2 border-slate-800/40">
+                  <div className="flex items-center justify-between border-b pb-2 border-slate-200">
                     <div className="flex items-center gap-2">
-                      <MapPin className="w-4 h-4 text-amber-500" />
-                      <h3 className={`font-black text-sm ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                      <MapPin className="w-4 h-4 text-brand-700" />
+                      <h3 className={`font-black text-sm text-slate-900`}>
                         محافظة {govName}
                       </h3>
                     </div>
-                    <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold font-mono ${isLight ? 'bg-amber-100 text-amber-800' : 'bg-amber-500/20 text-amber-400'}`}>
+                    <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold font-mono bg-brand-100 text-brand-800`}>
                       {toArabicDigits(govUnits.length)} منشآت
                     </span>
                   </div>
@@ -1655,15 +1593,15 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                       const fieldUnits = govUnits.filter((u) => u.field === fieldName);
 
                       return (
-                        <div key={fieldName} className={`p-3 rounded-xl border space-y-2 ${isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-950 border-slate-800'}`}>
-                          <div className="flex items-center justify-between text-xs font-bold text-amber-500">
+                        <div key={fieldName} className={`p-3 rounded-xl border space-y-2 bg-slate-50 border-slate-200`}>
+                          <div className="flex items-center justify-between text-xs font-bold text-brand-700">
                             <span>حقل / قطاع: {fieldName}</span>
-                            <span className="text-[11px] text-slate-400 font-mono">
+                            <span className="text-[11px] text-slate-500 font-mono">
                               ({toArabicDigits(fieldUnits.length)} وحدات)
                             </span>
                           </div>
 
-                          <div className="divide-y divide-slate-800/40 text-xs">
+                          <div className="divide-y divide-slate-200 text-xs">
                             {fieldUnits.map((unit) => {
                               const unitSchedules = schedules.filter((s) => s.unitCode === unit.code);
                               const latestSchedule = unitSchedules[0];
@@ -1672,14 +1610,14 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                                 <div key={unit.code} className="py-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                                   <div>
                                     <div className="flex items-center gap-2 flex-wrap">
-                                      <span className="font-mono font-bold text-amber-400">{toArabicDigits(unit.code)}</span>
-                                      <span className={`font-bold ${isLight ? 'text-slate-800' : 'text-slate-200'}`}>{unit.name}</span>
+                                      <span className="font-mono font-bold text-brand-700">{toArabicDigits(unit.code)}</span>
+                                      <span className={`font-bold text-slate-800`}>{unit.name}</span>
                                     </div>
                                     <div className="flex items-center gap-2 mt-1 flex-wrap">
                                       {getConditionGradeBadge(unit.conditionGrade)}
                                       {latestSchedule && (
-                                        <span className="text-[10px] text-slate-400">
-                                          الكشف القادم: <strong className="text-amber-400 font-mono">{toArabicDigits(latestSchedule.nextDueDate)}</strong>
+                                        <span className="text-[10px] text-slate-500">
+                                          الكشف القادم: <strong className="text-brand-700 font-mono">{toArabicDigits(latestSchedule.nextDueDate)}</strong>
                                         </span>
                                       )}
                                     </div>
@@ -1691,9 +1629,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                                         setNewUnitCode(unit.code);
                                         setShowAddModal(true);
                                       }}
-                                      className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition cursor-pointer min-h-[36px] flex items-center gap-1 ${
-                                        isLight ? 'bg-amber-100 text-amber-900 border-amber-300 hover:bg-amber-200' : 'bg-amber-500/20 text-amber-400 border-amber-500/30 hover:bg-amber-500/30'
-                                      }`}
+                                      className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition cursor-pointer min-h-[36px] flex items-center gap-1 bg-brand-100 text-brand-800 border-brand-200 hover:bg-brand-100`}
                                     >
                                       <Plus className="w-3.5 h-3.5" />
                                       <span>جدولة كشف</span>
@@ -1704,9 +1640,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                                         setShowUnitArchiveModal(unit);
                                         setArchiveModalTab('inspections');
                                       }}
-                                      className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition cursor-pointer min-h-[36px] flex items-center gap-1 ${
-                                        isLight ? 'bg-slate-200 text-slate-800 border-slate-300 hover:bg-slate-300' : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700'
-                                      }`}
+                                      className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition cursor-pointer min-h-[36px] flex items-center gap-1 bg-slate-200 text-slate-800 border-slate-300 hover:bg-slate-300`}
                                     >
                                       <Archive className="w-3.5 h-3.5" />
                                       <span>الأرشيف</span>
@@ -1729,23 +1663,23 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
 
       {/* MODAL 1: ADD NEW PERIODIC INSPECTION */}
       {showAddModal && (
-        <div className={`fixed inset-0 z-50 backdrop-blur-sm flex items-center justify-center p-2.5 sm:p-4 overflow-y-auto ${isLight ? 'bg-slate-900/40' : 'bg-slate-950/80'}`}>
-          <div className={`rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 w-full max-w-5xl space-y-4 sm:space-y-5 shadow-2xl relative my-2 sm:my-6 border max-h-[94vh] flex flex-col ${isLight ? 'bg-white border-slate-200 text-slate-900' : 'bg-slate-900 border-slate-800 text-slate-100'}`}>
-            <div className={`flex items-center justify-between border-b pb-3 shrink-0 ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
+        <div className={`fixed inset-0 z-50 backdrop-blur-sm flex items-center justify-center p-2.5 sm:p-4 overflow-y-auto bg-slate-900/40`}>
+          <div className={`rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 w-full max-w-5xl space-y-4 sm:space-y-5 shadow-2xl relative my-2 sm:my-6 border max-h-[94vh] flex flex-col bg-card border-slate-200 text-slate-900`}>
+            <div className={`flex items-center justify-between border-b pb-3 shrink-0 border-slate-200`}>
               <div className="flex items-center gap-2.5 sm:gap-3">
-                <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center font-bold shrink-0 ${isLight ? 'bg-amber-100 border border-amber-300 text-amber-700' : 'bg-amber-500/10 border border-amber-500/30 text-amber-400'}`}>
+                <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center font-bold shrink-0 bg-brand-100 border border-brand-200 text-brand-700`}>
                   <CalendarCheck className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className={`font-bold text-sm sm:text-base ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                  <h3 className={`font-bold text-sm sm:text-base text-slate-900`}>
                     جدولة وتثبيت موعد كشف دوري جديد
                   </h3>
-                  <p className={`text-[11px] sm:text-xs ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                  <p className={`text-[11px] sm:text-xs text-slate-500`}>
                     تحديد تاريخ البدء بالتكرار وحساب تاريخ الاستحقاق القادم تلقائياً
                   </p>
                 </div>
               </div>
-              <button onClick={() => setShowAddModal(false)} className={`p-1.5 rounded-lg cursor-pointer ${isLight ? 'text-slate-400 hover:text-slate-700 hover:bg-slate-100' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'}`}>
+              <button onClick={() => setShowAddModal(false)} className={`p-1.5 rounded-lg cursor-pointer text-slate-400 hover:text-slate-700 hover:bg-slate-100`}>
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -1754,21 +1688,21 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 items-start">
                 
                 {/* RIGHT COLUMN: UNIT PICKER */}
-                <div className={`p-3.5 sm:p-4 rounded-xl sm:rounded-2xl border space-y-3.5 ${isLight ? 'bg-slate-50/80 border-slate-200' : 'bg-slate-950/60 border-slate-800'}`}>
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b pb-2 border-slate-200 dark:border-slate-800">
-                    <label className={`block font-extrabold text-xs ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                <div className={`p-3.5 sm:p-4 rounded-xl sm:rounded-2xl border space-y-3.5 bg-slate-50/80 border-slate-200`}>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b pb-2 border-slate-200 ">
+                    <label className={`block font-extrabold text-xs text-slate-900`}>
                       1. اختيار الوحدة الهندسية:
                     </label>
 
                     {/* View Mode Switcher */}
-                    <div className={`flex items-center gap-1 p-1 rounded-xl border ${isLight ? 'bg-slate-100 border-slate-200' : 'bg-slate-950 border-slate-800'}`}>
+                    <div className={`flex items-center gap-1 p-1 rounded-xl border bg-slate-100 border-slate-200`}>
                       <button
                         type="button"
                         onClick={() => setUnitPickerMode('tree_vertical')}
                         className={`px-2 py-0.5 rounded-lg font-bold text-[10px] flex items-center gap-1 transition cursor-pointer ${
                           unitPickerMode === 'tree_vertical'
-                            ? 'bg-amber-500 text-slate-950 shadow-sm font-black'
-                            : isLight ? 'text-slate-600 hover:text-slate-900' : 'text-slate-400 hover:text-slate-200'
+                            ? 'bg-brand-700 text-on-brand shadow-sm font-black'
+                            : 'text-slate-600 hover:text-slate-900'
                         }`}
                         title="عرض الشجرة الهيكلية (التنفيذي/الرأسي)"
                       >
@@ -1781,8 +1715,8 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                         onClick={() => setUnitPickerMode('tree_horizontal')}
                         className={`px-2 py-0.5 rounded-lg font-bold text-[10px] flex items-center gap-1 transition cursor-pointer ${
                           unitPickerMode === 'tree_horizontal'
-                            ? 'bg-amber-500 text-slate-950 shadow-sm font-black'
-                            : isLight ? 'text-slate-600 hover:text-slate-900' : 'text-slate-400 hover:text-slate-200'
+                            ? 'bg-brand-700 text-on-brand shadow-sm font-black'
+                            : 'text-slate-600 hover:text-slate-900'
                         }`}
                         title="العرض الأفقي الهيكلي"
                       >
@@ -1795,8 +1729,8 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                         onClick={() => setUnitPickerMode('dropdown')}
                         className={`px-2 py-0.5 rounded-lg font-bold text-[10px] flex items-center gap-1 transition cursor-pointer ${
                           unitPickerMode === 'dropdown'
-                            ? 'bg-amber-500 text-slate-950 shadow-sm font-black'
-                            : isLight ? 'text-slate-600 hover:text-slate-900' : 'text-slate-400 hover:text-slate-200'
+                            ? 'bg-brand-700 text-on-brand shadow-sm font-black'
+                            : 'text-slate-600 hover:text-slate-900'
                         }`}
                         title="قائمة اختيار بسيطة"
                       >
@@ -1808,11 +1742,9 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
 
                   {/* Active Selected Unit Badge Summary */}
                   {selectedUnitAsset ? (
-                    <div className={`p-3 rounded-2xl border flex items-center justify-between flex-wrap gap-2 transition ${
-                      isLight ? 'bg-amber-50/90 border-amber-300 text-amber-950' : 'bg-amber-500/10 border-amber-500/30 text-amber-300'
-                    }`}>
+                    <div className={`p-3 rounded-2xl border flex items-center justify-between flex-wrap gap-2 transition bg-brand-50 border-brand-200 text-brand-800`}>
                       <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-xl bg-amber-500 text-slate-950 font-black flex items-center justify-center shrink-0">
+                        <div className="w-8 h-8 rounded-xl bg-brand-700 text-on-brand font-black flex items-center justify-center shrink-0">
                           <Building2 className="w-4 h-4" />
                         </div>
                         <div>
@@ -1823,19 +1755,19 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                           </div>
                           <div className="text-[10px] opacity-80 flex items-center gap-2 mt-0.5">
                             <span className="flex items-center gap-1">
-                              <MapPin className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+                              <MapPin className="w-3 h-3 text-brand-700 " />
                               محافظة {selectedUnitAsset.governorate}
                             </span>
                             <span>•</span>
                             <span className="flex items-center gap-1">
-                              <Flame className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+                              <Flame className="w-3 h-3 text-brand-700 " />
                               حقل {selectedUnitAsset.field}
                             </span>
                           </div>
                         </div>
                       </div>
-                      <span className="px-2 py-0.5 rounded-lg bg-amber-500/20 text-amber-800 dark:text-amber-300 font-bold text-[10px] flex items-center gap-1">
-                        <CheckCircle2 className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+                      <span className="px-2 py-0.5 rounded-lg bg-brand-100 text-brand-800 font-bold text-[10px] flex items-center gap-1">
+                        <CheckCircle2 className="w-3 h-3 text-brand-700 " />
                         محددة
                       </span>
                     </div>
@@ -1844,27 +1776,21 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                   {/* SEARCH INPUT BAR */}
                   {unitPickerMode !== 'dropdown' && (
                     <div className="relative">
-                      <Search className={`w-3.5 h-3.5 absolute right-3 top-3 ${isLight ? 'text-slate-400' : 'text-slate-500'}`} />
+                      <Search className={`w-3.5 h-3.5 absolute right-3 top-3 text-slate-400`} />
                       <input
                         type="text"
                         value={unitSearch}
                         onChange={(e) => setUnitSearch(e.target.value)}
                         placeholder="تصفية / بحث عن وحدة بالاسم أو الكود..."
-                        className={`w-full pr-9 pl-3 py-2 rounded-xl text-xs font-bold outline-none border ${
-                          isLight
-                            ? 'bg-white border-slate-200 text-slate-900 focus:border-amber-500'
-                            : 'bg-slate-950 border-slate-800 text-slate-100 focus:border-amber-500'
-                        }`}
+                        className={`w-full pr-9 pl-3 py-2 rounded-xl text-xs font-bold outline-none border bg-card border-slate-200 text-slate-900 focus:border-brand-600`}
                       />
                     </div>
                   )}
 
                   {/* VIEW 1: VERTICAL TREE VIEW */}
                   {unitPickerMode === 'tree_vertical' && (
-                    <div className={`p-3 rounded-2xl border space-y-2 max-h-64 overflow-y-auto ${
-                      isLight ? 'bg-white border-slate-200' : 'bg-slate-950/80 border-slate-800'
-                    }`}>
-                      <div className="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-slate-800 text-[11px]">
+                    <div className={`p-3 rounded-2xl border space-y-2 max-h-64 overflow-y-auto bg-card border-slate-200`}>
+                      <div className="flex items-center justify-between pb-2 border-b border-slate-200 text-[11px]">
                         <span className="font-bold text-slate-500 text-[10px]">
                           شجرة الوحدات
                         </span>
@@ -1883,7 +1809,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                               setExpandedGovs(allG);
                               setExpandedFields(allF);
                             }}
-                            className="text-amber-600 hover:underline font-bold text-[10px] cursor-pointer"
+                            className="text-brand-700 hover:underline font-bold text-[10px] cursor-pointer"
                           >
                             توسيع الكل
                           </button>
@@ -1902,7 +1828,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                               setExpandedGovs(noG);
                               setExpandedFields(noF);
                             }}
-                            className="text-slate-400 hover:underline font-bold text-[10px] cursor-pointer"
+                            className="text-slate-500 hover:underline font-bold text-[10px] cursor-pointer"
                           >
                             طي الكل
                           </button>
@@ -1924,29 +1850,25 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                                 onClick={() =>
                                   setExpandedGovs((prev) => ({ ...prev, [gov]: !isGovExpanded }))
                                 }
-                                className={`w-full flex items-center justify-between p-2 rounded-xl font-bold text-xs transition cursor-pointer border ${
-                                  isLight
-                                    ? 'bg-slate-50 border-slate-200 text-slate-800 hover:bg-slate-100'
-                                    : 'bg-slate-900 border-slate-800 text-slate-200 hover:bg-slate-800/80'
-                                }`}
+                                className={`w-full flex items-center justify-between p-2 rounded-xl font-bold text-xs transition cursor-pointer border bg-slate-50 border-slate-200 text-slate-800 hover:bg-slate-100`}
                               >
                                 <div className="flex items-center gap-2">
                                   {isGovExpanded ? (
-                                    <ChevronDown className="w-4 h-4 text-amber-500" />
+                                    <ChevronDown className="w-4 h-4 text-brand-700" />
                                   ) : (
-                                    <ChevronRight className="w-4 h-4 text-slate-400" />
+                                    <ChevronRight className="w-4 h-4 text-slate-500" />
                                   )}
-                                  <MapPin className="w-4 h-4 text-amber-500" />
+                                  <MapPin className="w-4 h-4 text-brand-700" />
                                   <span>محافظة {gov}</span>
                                 </div>
-                                <span className="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[10px] font-bold">
+                                <span className="px-2 py-0.5 rounded-full bg-brand-50 text-brand-700 text-[10px] font-bold">
                                   {govUnitsCount} وحدة
                                 </span>
                               </button>
 
                               {/* OILFIELDS UNDER GOVERNORATE */}
                               {isGovExpanded && (
-                                <div className="pr-4 pl-1 space-y-1.5 border-r-2 border-amber-500/30 mr-3 my-1">
+                                <div className="pr-4 pl-1 space-y-1.5 border-r-2 border-brand-200 mr-3 my-1">
                                   {Object.entries(fieldsMap).map(([fld, unitArr]) => {
                                     const fieldKey = `${gov}_${fld}`;
                                     const isFldExpanded = expandedFields[fieldKey] !== false;
@@ -1974,19 +1896,15 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                                               [fieldKey]: !isFldExpanded,
                                             }))
                                           }
-                                          className={`w-full flex items-center justify-between p-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
-                                            isLight
-                                              ? 'bg-slate-100/80 text-slate-700 hover:bg-slate-200/80'
-                                              : 'bg-slate-900/60 text-slate-300 hover:bg-slate-800'
-                                          }`}
+                                          className={`w-full flex items-center justify-between p-1.5 rounded-lg text-xs font-bold transition cursor-pointer bg-slate-100/80 text-slate-700 hover:bg-slate-200/80`}
                                         >
                                           <div className="flex items-center gap-1.5">
                                             {isFldExpanded ? (
-                                              <ChevronDown className="w-3.5 h-3.5 text-amber-500" />
+                                              <ChevronDown className="w-3.5 h-3.5 text-brand-700" />
                                             ) : (
-                                              <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+                                              <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
                                             )}
-                                            <Flame className="w-3.5 h-3.5 text-amber-500" />
+                                            <Flame className="w-3.5 h-3.5 text-brand-700" />
                                             <span>حقل {fld}</span>
                                           </div>
                                           <span className="text-[10px] opacity-70">
@@ -1996,7 +1914,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
 
                                         {/* UNITS UNDER OILFIELD */}
                                         {isFldExpanded && (
-                                          <div className="pr-4 space-y-1 border-r border-slate-300 dark:border-slate-700 mr-2 my-1">
+                                          <div className="pr-4 space-y-1 border-r border-slate-300 mr-2 my-1">
                                             {matchedUnits.map((u) => {
                                               const isSelected = newUnitCode === u.code;
                                               return (
@@ -2005,14 +1923,12 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                                                   onClick={() => setNewUnitCode(u.code)}
                                                   className={`p-2 rounded-xl text-xs font-bold flex items-center justify-between cursor-pointer border transition ${
                                                     isSelected
-                                                      ? 'bg-amber-500 text-slate-950 border-amber-500 shadow-md font-extrabold'
-                                                      : isLight
-                                                      ? 'bg-white border-slate-200 text-slate-800 hover:border-amber-400 hover:bg-amber-50/50'
-                                                      : 'bg-slate-900 border-slate-800 text-slate-200 hover:border-amber-500/50 hover:bg-slate-800'
+                                                      ? 'bg-brand-700 text-on-brand border-brand-600 shadow-md font-extrabold'
+                                                      : 'bg-card border-slate-200 text-slate-800 hover:border-brand-200 hover:bg-brand-50'
                                                   }`}
                                                 >
                                                   <div className="flex items-center gap-2">
-                                                    <div className={`w-2 h-2 rounded-full ${isSelected ? 'bg-slate-950' : 'bg-amber-500'}`} />
+                                                    <div className={`w-2 h-2 rounded-full ${isSelected ? 'bg-card' : 'bg-brand-700'}`} />
                                                     <div>
                                                       <span className="font-mono ml-1.5">{u.code}</span>
                                                       <span>- {u.name}</span>
@@ -2040,17 +1956,15 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
 
                   {/* VIEW 2: HORIZONTAL TREE VIEW */}
                   {unitPickerMode === 'tree_horizontal' && (
-                    <div className={`p-3 rounded-2xl border space-y-3 ${
-                      isLight ? 'bg-white border-slate-200' : 'bg-slate-950/80 border-slate-800'
-                    }`}>
+                    <div className={`p-3 rounded-2xl border space-y-3 bg-card border-slate-200`}>
                       <div className="flex items-center justify-between text-[11px] font-bold text-slate-500">
                         <span>مسار العرض الأفقي</span>
-                        <span className="text-amber-600 dark:text-amber-400">تصفح أفقياً</span>
+                        <span className="text-brand-700 ">تصفح أفقياً</span>
                       </div>
 
                       {/* STEP 1: HORIZONTAL GOVERNORATES */}
                       <div>
-                        <span className="text-[10px] font-bold text-slate-400 block mb-1">
+                        <span className="text-[10px] font-bold text-slate-500 block mb-1">
                           1. اختر المحافظة:
                         </span>
                         <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-thin">
@@ -2069,15 +1983,13 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                                 }}
                                 className={`px-2.5 py-1.5 rounded-xl text-xs font-bold shrink-0 flex items-center gap-1.5 border transition cursor-pointer ${
                                   isActive
-                                    ? 'bg-amber-500 border-amber-500 text-slate-950 shadow-md font-extrabold'
-                                    : isLight
-                                    ? 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
-                                    : 'bg-slate-900 border-slate-800 text-slate-300 hover:bg-slate-800'
+                                    ? 'bg-brand-700 border-brand-600 text-on-brand shadow-md font-extrabold'
+                                    : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
                                 }`}
                               >
                                 <MapPin className="w-3.5 h-3.5" />
                                 <span>{gov}</span>
-                                <span className={`px-1.5 py-0.2 rounded-full text-[10px] ${isActive ? 'bg-slate-950/20 text-slate-950' : 'bg-amber-500/10 text-amber-500'}`}>
+                                <span className={`px-1.5 py-0.2 rounded-full text-[10px] ${isActive ? 'bg-card/20 text-slate-950' : 'bg-brand-50 text-brand-700'}`}>
                                   {govUnitsCount}
                                 </span>
                               </button>
@@ -2089,9 +2001,9 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                       {/* STEP 2: HORIZONTAL OILFIELDS UNDER ACTIVE GOVERNORATE */}
                       {effectiveGov && groupedUnits[effectiveGov] && (
                         <div>
-                          <span className="text-[10px] font-bold text-slate-400 block mb-1 flex items-center gap-1">
+                          <span className="text-[10px] font-bold text-slate-500 block mb-1 flex items-center gap-1">
                             <span>2. اختر الحقل النفطي:</span>
-                            <ChevronLeft className="w-3 h-3 text-amber-500" />
+                            <ChevronLeft className="w-3 h-3 text-brand-700" />
                           </span>
                           <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-thin">
                             {Object.keys(groupedUnits[effectiveGov]).map((fld) => {
@@ -2105,13 +2017,11 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                                   onClick={() => setActiveFieldHoriz(fld)}
                                   className={`px-2.5 py-1 rounded-xl text-xs font-bold shrink-0 flex items-center gap-1.5 border transition cursor-pointer ${
                                     isActive
-                                      ? 'bg-amber-500/20 border-amber-500 text-amber-600 dark:text-amber-400 font-extrabold'
-                                      : isLight
-                                      ? 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
-                                      : 'bg-slate-900 border-slate-800 text-slate-300 hover:bg-slate-800'
+                                      ? 'bg-brand-100 border-brand-600 text-brand-700 font-extrabold'
+                                      : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
                                   }`}
                                 >
-                                  <Flame className="w-3.5 h-3.5 text-amber-500" />
+                                  <Flame className="w-3.5 h-3.5 text-brand-700" />
                                   <span>{fld}</span>
                                   <span className="text-[10px] opacity-70">({count})</span>
                                 </button>
@@ -2124,7 +2034,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                       {/* STEP 3: UNITS GRID / CARDS UNDER ACTIVE FIELD */}
                       {effectiveGov && effectiveField && groupedUnits[effectiveGov]?.[effectiveField] && (
                         <div>
-                          <span className="text-[10px] font-bold text-slate-400 block mb-1.5">
+                          <span className="text-[10px] font-bold text-slate-500 block mb-1.5">
                             3. انقر لاختيار الوحدة:
                           </span>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-40 overflow-y-auto pr-1">
@@ -2145,10 +2055,8 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                                     onClick={() => setNewUnitCode(u.code)}
                                     className={`p-2 rounded-xl border text-xs cursor-pointer transition flex items-center justify-between ${
                                       isSelected
-                                        ? 'bg-amber-500 border-amber-500 text-slate-950 font-extrabold shadow-md'
-                                        : isLight
-                                        ? 'bg-slate-50 border-slate-200 text-slate-800 hover:border-amber-400 hover:bg-amber-50/50'
-                                        : 'bg-slate-900 border-slate-800 text-slate-200 hover:border-amber-500/50 hover:bg-slate-800'
+                                        ? 'bg-brand-700 border-brand-600 text-on-brand font-extrabold shadow-md'
+                                        : 'bg-slate-50 border-slate-200 text-slate-800 hover:border-brand-200 hover:bg-brand-50'
                                     }`}
                                   >
                                     <div>
@@ -2156,13 +2064,11 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                                       <div className="text-[11px] mt-0.5 truncate max-w-[140px]">{u.name}</div>
                                     </div>
                                     {isSelected ? (
-                                      <span className="px-1.5 py-0.5 rounded-lg bg-slate-950 text-amber-400 text-[10px] font-bold flex items-center gap-1">
+                                      <span className="px-1.5 py-0.5 rounded-lg bg-card text-brand-700 text-[10px] font-bold flex items-center gap-1">
                                         <Check className="w-3 h-3" /> تم
                                       </span>
                                     ) : (
-                                      <span className={`px-1.5 py-0.5 rounded-lg text-[10px] font-bold border ${
-                                        isLight ? 'bg-slate-100 border-slate-200 text-slate-600' : 'bg-slate-800 border-slate-700 text-slate-400'
-                                      }`}>
+                                      <span className={`px-1.5 py-0.5 rounded-lg text-[10px] font-bold border bg-slate-100 border-slate-200 text-slate-600`}>
                                         تحديد
                                       </span>
                                     )}
@@ -2180,11 +2086,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                     <select
                       value={newUnitCode}
                       onChange={(e) => setNewUnitCode(e.target.value)}
-                      className={`w-full rounded-xl p-3 font-bold outline-none cursor-pointer border ${
-                        isLight
-                          ? 'bg-white border-slate-200 text-slate-900 focus:border-amber-500'
-                          : 'bg-slate-950 border-slate-800 text-slate-100 focus:border-amber-500'
-                      }`}
+                      className={`w-full rounded-xl p-3 font-bold outline-none cursor-pointer border bg-card border-slate-200 text-slate-900 focus:border-brand-600`}
                     >
                       {units.map((u) => (
                         <option key={u.code} value={u.code}>
@@ -2196,37 +2098,33 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                 </div>
 
                 {/* LEFT COLUMN: SCHEDULE PARAMETERS */}
-                <div className={`p-4 rounded-2xl border space-y-3.5 ${isLight ? 'bg-slate-50/80 border-slate-200' : 'bg-slate-950/60 border-slate-800'}`}>
-                  <label className={`block font-extrabold text-xs border-b pb-2 ${isLight ? 'text-slate-900 border-slate-200' : 'text-slate-100 border-slate-800'}`}>
+                <div className={`p-4 rounded-2xl border space-y-3.5 bg-slate-50/80 border-slate-200`}>
+                  <label className={`block font-extrabold text-xs border-b pb-2 text-slate-900 border-slate-200`}>
                     2. مواعيد وإعدادات الكشف الدوري:
                   </label>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <label className={`block font-bold mb-1 ${isLight ? 'text-amber-900' : 'text-amber-400'}`}>
+                      <label className={`block font-bold mb-1 text-brand-800`}>
                         تاريخ البدء بالكشف:
                       </label>
                       <input
                         type="date"
                         value={newStartDate}
                         onChange={(e) => handleStartDateChange(e.target.value)}
-                        className={`w-full rounded-xl p-2.5 font-bold outline-none border ${
-                          isLight ? 'bg-white border-slate-200 text-slate-900 focus:border-amber-500' : 'bg-slate-900 border-slate-800 text-slate-100 focus:border-amber-500'
-                        }`}
+                        className={`w-full rounded-xl p-2.5 font-bold outline-none border bg-card border-slate-200 text-slate-900 focus:border-brand-600`}
                         required
                       />
                     </div>
 
                     <div>
-                      <label className={`block font-bold mb-1 ${isLight ? 'text-amber-900' : 'text-amber-400'}`}>
+                      <label className={`block font-bold mb-1 text-brand-800`}>
                         التكرار الدوري المحدد:
                       </label>
                       <select
                         value={newFrequency}
                         onChange={(e) => handleFrequencyChange(e.target.value as InspectionFrequency)}
-                        className={`w-full rounded-xl p-2.5 font-bold outline-none cursor-pointer border ${
-                          isLight ? 'bg-white border-slate-200 text-slate-900 focus:border-amber-500' : 'bg-slate-900 border-slate-800 text-slate-100 focus:border-amber-500'
-                        }`}
+                        className={`w-full rounded-xl p-2.5 font-bold outline-none cursor-pointer border bg-card border-slate-200 text-slate-900 focus:border-brand-600`}
                       >
                         <option value="monthly">1 شهر (شهري - 30 يوم)</option>
                         <option value="quarterly">3 أشهر (ربع سنوي - 90 يوم)</option>
@@ -2238,7 +2136,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
 
                     {newFrequency === 'custom' && (
                       <div className="sm:col-span-2">
-                        <label className={`block font-bold mb-1 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                        <label className={`block font-bold mb-1 text-slate-700`}>
                           عدد أيام التكرار المخصص:
                         </label>
                         <input
@@ -2250,9 +2148,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                             setNewCustomDays(val);
                             updateCalculatedNextDate(newStartDate, 'custom', val);
                           }}
-                          className={`w-full rounded-xl p-2.5 font-bold outline-none border ${
-                            isLight ? 'bg-white border-slate-200 text-slate-900' : 'bg-slate-900 border-slate-800 text-slate-100'
-                          }`}
+                          className={`w-full rounded-xl p-2.5 font-bold outline-none border bg-card border-slate-200 text-slate-900`}
                         />
                       </div>
                     )}
@@ -2260,21 +2156,19 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
 
                   {/* Next Due Date */}
                   <div>
-                    <label className={`block font-bold mb-1 ${isLight ? 'text-amber-900' : 'text-amber-400'}`}>
+                    <label className={`block font-bold mb-1 text-brand-800`}>
                       الموعد القادم المستحق (محسوب تلقائياً):
                     </label>
                     <input
                       type="date"
                       value={newNextDate}
                       readOnly
-                      className={`w-full rounded-xl p-2.5 font-bold outline-none border cursor-not-allowed ${
-                        isLight ? 'bg-slate-100 border-slate-200 text-slate-700' : 'bg-slate-950 border-slate-800 text-amber-400'
-                      }`}
+                      className={`w-full rounded-xl p-2.5 font-bold outline-none border cursor-not-allowed bg-slate-100 border-slate-200 text-slate-700`}
                     />
                   </div>
 
                   <div>
-                    <label className={`block font-bold mb-1 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                    <label className={`block font-bold mb-1 text-slate-700`}>
                       ملاحظات عامة:
                     </label>
                     <textarea
@@ -2282,28 +2176,24 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                       onChange={(e) => setNewNotes(e.target.value)}
                       rows={2}
                       placeholder="سجل أية ملاحظات عامة..."
-                      className={`w-full rounded-xl p-2.5 outline-none border ${
-                        isLight ? 'bg-white border-slate-200 text-slate-900' : 'bg-slate-900 border-slate-800 text-slate-100'
-                      }`}
+                      className={`w-full rounded-xl p-2.5 outline-none border bg-card border-slate-200 text-slate-900`}
                     />
                   </div>
                 </div>
 
               </div>
 
-              <div className={`flex flex-col-reverse sm:flex-row items-center justify-end gap-2.5 sm:gap-3 pt-3 border-t shrink-0 ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
+              <div className={`flex flex-col-reverse sm:flex-row items-center justify-end gap-2.5 sm:gap-3 pt-3 border-t shrink-0 border-slate-200`}>
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className={`w-full sm:w-auto px-4 py-2.5 rounded-xl font-bold transition cursor-pointer min-h-[42px] flex items-center justify-center ${
-                    isLight ? 'bg-slate-100 text-slate-700 hover:bg-slate-200' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
-                  }`}
+                  className={`w-full sm:w-auto px-4 py-2.5 rounded-xl font-bold transition cursor-pointer min-h-[42px] flex items-center justify-center bg-slate-100 text-slate-700 hover:bg-slate-200`}
                 >
                   إلغاء
                 </button>
                 <button
                   type="submit"
-                  className="w-full sm:w-auto px-6 py-2.5 bg-amber-500 text-slate-950 rounded-xl font-black hover:bg-amber-600 shadow-md shadow-amber-500/20 transition cursor-pointer min-h-[42px] flex items-center justify-center gap-2"
+                  className="w-full sm:w-auto px-6 py-2.5 bg-brand-700 text-on-brand rounded-xl font-black hover:bg-brand-800 shadow-md transition cursor-pointer min-h-[42px] flex items-center justify-center gap-2"
                 >
                   <CalendarCheck className="w-4 h-4" />
                   <span>حفظ وتثبيت جدول الكشف الدوري</span>
@@ -2316,24 +2206,24 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
 
       {/* MODAL 2: COMPLETE INSPECTION & UPLOAD REPORT & GRADE A-B-C-D & MAINTENANCE TRIGGER */}
       {showCompleteModal && (
-        <div className={`fixed inset-0 z-50 backdrop-blur-sm flex items-center justify-center p-2.5 sm:p-5 overflow-y-auto ${isLight ? 'bg-slate-900/40' : 'bg-slate-950/80'}`}>
-          <div className={`rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 w-full max-w-6xl space-y-3.5 shadow-2xl relative border max-h-[96vh] flex flex-col justify-between my-auto ${isLight ? 'bg-white border-slate-200 text-slate-900' : 'bg-slate-900 border-slate-800 text-slate-100'}`}>
+        <div className={`fixed inset-0 z-50 backdrop-blur-sm flex items-center justify-center p-2.5 sm:p-5 overflow-y-auto bg-slate-900/40`}>
+          <div className={`rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 w-full max-w-6xl space-y-3.5 shadow-2xl relative border max-h-[96vh] flex flex-col justify-between my-auto bg-card border-slate-200 text-slate-900`}>
             {/* Header */}
-            <div className={`flex items-center justify-between border-b pb-2.5 shrink-0 ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
+            <div className={`flex items-center justify-between border-b pb-2.5 shrink-0 border-slate-200`}>
               <div className="flex items-center gap-2.5 sm:gap-3">
-                <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold shrink-0 ${isLight ? 'bg-emerald-100 border border-emerald-300 text-emerald-700' : 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400'}`}>
+                <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold shrink-0 bg-emerald-100 border border-emerald-200 text-emerald-700`}>
                   <CheckSquare className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className={`font-bold text-sm sm:text-base leading-tight ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                  <h3 className={`font-bold text-sm sm:text-base leading-tight text-slate-900`}>
                     توثيق وإنجاز الكشف المعاين
                   </h3>
-                  <p className={`text-[11px] sm:text-xs ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                  <p className={`text-[11px] sm:text-xs text-slate-500`}>
                     {showCompleteModal.unitCode} - {showCompleteModal.title}
                   </p>
                 </div>
               </div>
-              <button onClick={() => setShowCompleteModal(null)} className={`p-1.5 cursor-pointer rounded-lg transition ${isLight ? 'text-slate-400 hover:text-slate-700 hover:bg-slate-100' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'}`}>
+              <button onClick={() => setShowCompleteModal(null)} className={`p-1.5 cursor-pointer rounded-lg transition text-slate-400 hover:text-slate-700 hover:bg-slate-100`}>
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -2343,31 +2233,27 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-3 items-stretch">
                 {/* Column 1: Date */}
                 <div className="sm:col-span-1 md:col-span-3">
-                  <label className={`block font-bold mb-1 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                  <label className={`block font-bold mb-1 text-slate-700`}>
                     تاريخ المعاينة الفعلي:
                   </label>
                   <input
                     type="date"
                     value={completeDate}
                     onChange={(e) => setCompleteDate(e.target.value)}
-                    className={`w-full rounded-xl px-3 py-2 font-bold outline-none border min-h-[42px] ${
-                      isLight ? 'bg-slate-50 border-slate-200 text-slate-900 focus:border-emerald-500' : 'bg-slate-950 border-slate-800 text-slate-100 focus:border-emerald-500'
-                    }`}
+                    className={`w-full rounded-xl px-3 py-2 font-bold outline-none border min-h-[42px] bg-slate-50 border-slate-200 text-slate-900 focus:border-emerald-500`}
                     required
                   />
                 </div>
 
                 {/* Column 2: Condition Grade Selection (A-B-C-D) */}
                 <div className="sm:col-span-1 md:col-span-3">
-                  <label className={`block font-bold mb-1 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                  <label className={`block font-bold mb-1 text-slate-700`}>
                     التقييم الهندسي (Grade):
                   </label>
                   <select
                     value={completeGrade}
                     onChange={(e) => setCompleteGrade(e.target.value as ConditionGrade)}
-                    className={`w-full rounded-xl px-3 py-2 font-bold outline-none cursor-pointer border min-h-[42px] ${
-                      isLight ? 'bg-slate-50 border-slate-200 text-slate-900 focus:border-emerald-500' : 'bg-slate-950 border-slate-800 text-slate-100 focus:border-emerald-500'
-                    }`}
+                    className={`w-full rounded-xl px-3 py-2 font-bold outline-none cursor-pointer border min-h-[42px] bg-slate-50 border-slate-200 text-slate-900 focus:border-emerald-500`}
                   >
                     <option value="A">درجة A (حالة ممتازة)</option>
                     <option value="B">درجة B (حالة جيدة)</option>
@@ -2378,16 +2264,14 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
 
                 {/* Column 3: Performed By (System user selector or custom) */}
                 <div className="sm:col-span-2 md:col-span-3">
-                  <label className={`block font-bold mb-1 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                  <label className={`block font-bold mb-1 text-slate-700`}>
                     مُنفِّذ الكشف (المعتمد في النظام):
                   </label>
                   <div className="space-y-1.5">
                     <select
                       value={completePerformedByName}
                       onChange={(e) => setCompletePerformedByName(e.target.value)}
-                      className={`w-full rounded-xl px-3 py-2 font-bold outline-none border cursor-pointer text-xs min-h-[42px] ${
-                        isLight ? 'bg-slate-50 border-slate-200 text-slate-900 focus:border-emerald-500' : 'bg-slate-950 border-slate-800 text-slate-100 focus:border-emerald-500'
-                      }`}
+                      className={`w-full rounded-xl px-3 py-2 font-bold outline-none border cursor-pointer text-xs min-h-[42px] bg-slate-50 border-slate-200 text-slate-900 focus:border-emerald-500`}
                     >
                       <optgroup label="المستخدمون المعتمدون في النظام">
                         {(users && users.length > 0 ? users : INITIAL_USERS).map((u) => (
@@ -2408,21 +2292,19 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                       value={completePerformedByName}
                       onChange={(e) => setCompletePerformedByName(e.target.value)}
                       placeholder="أو اكتب اسم مخصص لمُنفّذ الكشف..."
-                      className={`w-full rounded-lg px-2.5 py-1.5 text-[11px] font-bold outline-none border min-h-[38px] ${
-                        isLight ? 'bg-white border-slate-200 text-slate-900 focus:border-emerald-500' : 'bg-slate-900 border-slate-800 text-slate-100 focus:border-emerald-500'
-                      }`}
+                      className={`w-full rounded-lg px-2.5 py-1.5 text-[11px] font-bold outline-none border min-h-[38px] bg-card border-slate-200 text-slate-900 focus:border-emerald-500`}
                     />
                   </div>
                 </div>
 
                 {/* Column 4: Upload Report File Section */}
-                <div className={`sm:col-span-2 md:col-span-3 p-2.5 rounded-xl border flex flex-col justify-center ${isLight ? 'bg-emerald-50/50 border-emerald-200' : 'bg-slate-950 border-slate-800'}`}>
+                <div className={`sm:col-span-2 md:col-span-3 p-2.5 rounded-xl border flex flex-col justify-center bg-emerald-50/50 border-emerald-200`}>
                   <div className="flex items-center justify-between mb-1">
-                    <label className={`font-bold flex items-center gap-1.5 text-xs ${isLight ? 'text-emerald-900' : 'text-emerald-400'}`}>
+                    <label className={`font-bold flex items-center gap-1.5 text-xs text-emerald-900`}>
                       <Upload className="w-3.5 h-3.5 shrink-0" />
                       <span>ملف التقرير:</span>
                     </label>
-                    <span className={`text-[10px] font-semibold ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                    <span className={`text-[10px] font-semibold text-slate-500`}>
                       (PDF/صور/Word)
                     </span>
                   </div>
@@ -2441,11 +2323,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                     <button
                       type="button"
                       onClick={() => reportFileInputRef.current?.click()}
-                      className={`px-3 py-2 rounded-lg text-xs font-bold flex items-center gap-1.5 transition cursor-pointer shrink-0 min-h-[38px] ${
-                        isLight
-                          ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm'
-                          : 'bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/40'
-                      }`}
+                      className={`px-3 py-2 rounded-lg text-xs font-bold flex items-center gap-1.5 transition cursor-pointer shrink-0 min-h-[38px] bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm`}
                       title="رفع ملف التقرير من جهاز الحاسوب"
                     >
                       <Upload className="w-3.5 h-3.5" />
@@ -2456,8 +2334,8 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                     {reportFileName ? (
                       <div className="flex items-center justify-between gap-1.5 flex-1 min-w-0 bg-emerald-500/10 border border-emerald-500/30 px-2 py-1 rounded-lg">
                         <div className="flex items-center gap-1.5 min-w-0">
-                          <FileCheck className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                          <span className="text-[11px] font-bold text-emerald-400 truncate max-w-[80px]" title={reportFileName}>
+                          <FileCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                          <span className="text-[11px] font-bold text-emerald-600 truncate max-w-[80px]" title={reportFileName}>
                             {reportFileName}
                           </span>
                         </div>
@@ -2467,12 +2345,10 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                           <button
                             type="button"
                             onClick={handlePreviewReportFile}
-                            className={`px-1.5 py-0.5 rounded-md transition cursor-pointer text-[10px] font-bold flex items-center gap-0.5 ${
-                              isLight ? 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200' : 'bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700'
-                            }`}
+                            className={`px-1.5 py-0.5 rounded-md transition cursor-pointer text-[10px] font-bold flex items-center gap-0.5 bg-card hover:bg-slate-100 text-slate-700 border border-slate-200`}
                             title="معاينة الملف المرفق"
                           >
-                            <Eye className="w-3 h-3 text-sky-400" />
+                            <Eye className="w-3 h-3 text-sky-600" />
                             <span>معاينة</span>
                           </button>
 
@@ -2480,9 +2356,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                           <button
                             type="button"
                             onClick={handleRemoveReportFile}
-                            className={`px-1.5 py-0.5 rounded-md transition cursor-pointer text-[10px] font-bold flex items-center gap-0.5 ${
-                              isLight ? 'bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200' : 'bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 border border-rose-500/30'
-                            }`}
+                            className={`px-1.5 py-0.5 rounded-md transition cursor-pointer text-[10px] font-bold flex items-center gap-0.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200`}
                             title="إزالة الملف المرفق"
                           >
                             <Trash2 className="w-3 h-3" />
@@ -2490,7 +2364,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                         </div>
                       </div>
                     ) : (
-                      <span className={`text-[10px] italic ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                      <span className={`text-[10px] italic text-slate-500`}>
                         لم يتم اختيار ملف
                       </span>
                     )}
@@ -2502,7 +2376,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {/* Findings */}
                 <div>
-                  <label className={`block font-bold mb-1 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                  <label className={`block font-bold mb-1 text-slate-700`}>
                     الملاحظات والنتائج الميدانية (Findings):
                   </label>
                   <textarea
@@ -2510,16 +2384,14 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                     onChange={(e) => setCompleteFindings(e.target.value)}
                     placeholder="سجل أية عيوب، ملاحظات إنشائية، أو أضرار ميكانيكية تم مشاهدتها..."
                     rows={2}
-                    className={`w-full rounded-xl p-2.5 outline-none border resize-none ${
-                      isLight ? 'bg-slate-50 border-slate-200 text-slate-900 focus:border-emerald-500' : 'bg-slate-950 border-slate-800 text-slate-100 focus:border-emerald-500'
-                    }`}
+                    className={`w-full rounded-xl p-2.5 outline-none border resize-none bg-slate-50 border-slate-200 text-slate-900 focus:border-emerald-500`}
                     required
                   />
                 </div>
 
                 {/* Recommendations */}
                 <div>
-                  <label className={`block font-bold mb-1 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                  <label className={`block font-bold mb-1 text-slate-700`}>
                     التوصيات والإجراءات المطلوب اتخاذها (Recommendations):
                   </label>
                   <textarea
@@ -2527,9 +2399,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                     onChange={(e) => setCompleteRecommendations(e.target.value)}
                     placeholder="سجل توصيات السلامة والتوجيهات الفنية المطلوبة..."
                     rows={2}
-                    className={`w-full rounded-xl p-2.5 outline-none border resize-none ${
-                      isLight ? 'bg-slate-50 border-slate-200 text-slate-900 focus:border-emerald-500' : 'bg-slate-950 border-slate-800 text-slate-100 focus:border-emerald-500'
-                    }`}
+                    className={`w-full rounded-xl p-2.5 outline-none border resize-none bg-slate-50 border-slate-200 text-slate-900 focus:border-emerald-500`}
                   />
                 </div>
               </div>
@@ -2537,13 +2407,13 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
               {/* ROW 3: HORIZONTAL MAINTENANCE & AUTO-SCHEDULE OPTIONS */}
               <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-start">
                 {/* MAINTENANCE REQUEST BLOCK (SPAN 8) */}
-                <div className={`md:col-span-8 p-3 rounded-2xl border space-y-2 ${isLight ? 'bg-amber-50/70 border-amber-200' : 'bg-slate-950/80 border-slate-800'}`}>
+                <div className={`md:col-span-8 p-3 rounded-2xl border space-y-2 bg-brand-50 border-brand-200`}>
                   <div className="flex items-center justify-between">
                     <div>
-                      <span className={`font-bold flex items-center gap-1.5 ${isLight ? 'text-amber-900' : 'text-amber-400'}`}>
+                      <span className={`font-bold flex items-center gap-1.5 text-brand-800`}>
                         <Wrench className="w-4 h-4" /> تحرير طلب صيانة جديد لهذا الكشف
                       </span>
-                      <p className={`text-[10px] ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                      <p className={`text-[10px] text-slate-600`}>
                         يبقى الطلب في النظام لحين اتمام المعالجة وتغيير حالته من قبل موظف الإدخال
                       </p>
                     </div>
@@ -2551,14 +2421,14 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                       type="checkbox"
                       checked={createMaintenance}
                       onChange={(e) => setCreateMaintenance(e.target.checked)}
-                      className="w-4 h-4 accent-amber-500 rounded cursor-pointer shrink-0"
+                      className="w-4 h-4 accent-brand-700 rounded cursor-pointer shrink-0"
                     />
                   </div>
 
                   {createMaintenance && (
-                    <div className="pt-2 border-t border-amber-200/60 dark:border-slate-800 grid grid-cols-1 sm:grid-cols-12 gap-2.5">
+                    <div className="pt-2 border-t border-brand-200 grid grid-cols-1 sm:grid-cols-12 gap-2.5">
                       <div className="sm:col-span-4">
-                        <label className={`block font-bold mb-0.5 text-[11px] ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                        <label className={`block font-bold mb-0.5 text-[11px] text-slate-700`}>
                           وصف العطل / المشكلة:
                         </label>
                         <input
@@ -2566,38 +2436,32 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                           value={maintIssue}
                           onChange={(e) => setMaintIssue(e.target.value)}
                           placeholder="مثال: تصليح تسرب أسطح أو استبدال مضخات"
-                          className={`w-full rounded-lg px-2.5 py-1.5 font-bold outline-none border ${
-                            isLight ? 'bg-white border-slate-200 text-slate-900' : 'bg-slate-900 border-slate-800 text-slate-100'
-                          }`}
+                          className={`w-full rounded-lg px-2.5 py-1.5 font-bold outline-none border bg-card border-slate-200 text-slate-900`}
                           required={createMaintenance}
                         />
                       </div>
 
                       <div className="sm:col-span-3">
-                        <label className={`block font-bold mb-0.5 text-[11px] ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                        <label className={`block font-bold mb-0.5 text-[11px] text-slate-700`}>
                           تاريخ طلب الصيانة:
                         </label>
                         <input
                           type="date"
                           value={maintDate}
                           onChange={(e) => setMaintDate(e.target.value)}
-                          className={`w-full rounded-lg px-2.5 py-1.5 font-bold font-mono outline-none border ${
-                            isLight ? 'bg-white border-slate-200 text-slate-900' : 'bg-slate-900 border-slate-800 text-slate-100'
-                          }`}
+                          className={`w-full rounded-lg px-2.5 py-1.5 font-bold font-mono outline-none border bg-card border-slate-200 text-slate-900`}
                           required={createMaintenance}
                         />
                       </div>
 
                       <div className="sm:col-span-2">
-                        <label className={`block font-bold mb-0.5 text-[11px] ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                        <label className={`block font-bold mb-0.5 text-[11px] text-slate-700`}>
                           أولية الطلب:
                         </label>
                         <select
                           value={maintPriority}
                           onChange={(e) => setMaintPriority(e.target.value as any)}
-                          className={`w-full rounded-lg px-2 py-1.5 font-bold outline-none border ${
-                            isLight ? 'bg-white border-slate-200 text-slate-900' : 'bg-slate-900 border-slate-800 text-slate-100'
-                          }`}
+                          className={`w-full rounded-lg px-2 py-1.5 font-bold outline-none border bg-card border-slate-200 text-slate-900`}
                         >
                           <option value="critical">حرج (طارئ)</option>
                           <option value="normal">عادي</option>
@@ -2606,15 +2470,13 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                       </div>
 
                       <div className="sm:col-span-3">
-                        <label className={`block font-bold mb-0.5 text-[11px] ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                        <label className={`block font-bold mb-0.5 text-[11px] text-slate-700`}>
                           جهة الصيانة المختصة (المسجلة بالمنظومة):
                         </label>
                         <select
                           value={maintDept || (activeMaintenanceDepts[0]?.nameAr || '')}
                           onChange={(e) => setMaintDept(e.target.value)}
-                          className={`w-full rounded-lg px-2.5 py-1.5 font-bold outline-none border cursor-pointer ${
-                            isLight ? 'bg-white border-slate-200 text-slate-900' : 'bg-slate-900 border-slate-800 text-slate-100'
-                          }`}
+                          className={`w-full rounded-lg px-2.5 py-1.5 font-bold outline-none border cursor-pointer bg-card border-slate-200 text-slate-900`}
                           required={createMaintenance}
                         >
                           {activeMaintenanceDepts.map((d) => (
@@ -2632,12 +2494,12 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                 </div>
 
                 {/* AUTO SCHEDULE CHECKBOX BLOCK (SPAN 4) */}
-                <div className={`md:col-span-4 p-3 border rounded-2xl flex items-center justify-between h-full ${isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-950/80 border-slate-800'}`}>
+                <div className={`md:col-span-4 p-3 border rounded-2xl flex items-center justify-between h-full bg-slate-50 border-slate-200`}>
                   <div>
-                    <p className={`font-bold text-xs ${isLight ? 'text-slate-800' : 'text-slate-200'}`}>
+                    <p className={`font-bold text-xs text-slate-800`}>
                       جدولة الكشف القادم تلقائياً
                     </p>
-                    <p className={`text-[10px] ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                    <p className={`text-[10px] text-slate-500`}>
                       بحسب التكرار الزمني ({getFrequencyLabel(showCompleteModal.frequency, showCompleteModal.customIntervalDays)})
                     </p>
                   </div>
@@ -2651,13 +2513,11 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
               </div>
 
               {/* ROW 4: ACTION BUTTONS (FOOTER) */}
-              <div className={`flex flex-col-reverse sm:flex-row items-center justify-end gap-2.5 sm:gap-3 pt-3 border-t shrink-0 ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
+              <div className={`flex flex-col-reverse sm:flex-row items-center justify-end gap-2.5 sm:gap-3 pt-3 border-t shrink-0 border-slate-200`}>
                 <button
                   type="button"
                   onClick={() => setShowCompleteModal(null)}
-                  className={`w-full sm:w-auto px-4 py-2.5 rounded-xl font-bold transition cursor-pointer min-h-[42px] flex items-center justify-center ${
-                    isLight ? 'bg-slate-100 text-slate-700 hover:bg-slate-200' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
-                  }`}
+                  className={`w-full sm:w-auto px-4 py-2.5 rounded-xl font-bold transition cursor-pointer min-h-[42px] flex items-center justify-center bg-slate-100 text-slate-700 hover:bg-slate-200`}
                 >
                   إلغاء
                 </button>
@@ -2676,23 +2536,23 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
 
       {/* MODAL 3: EDIT SCHEDULE */}
       {showEditModal && (
-        <div className={`fixed inset-0 z-50 backdrop-blur-sm flex items-center justify-center p-2.5 sm:p-4 overflow-y-auto ${isLight ? 'bg-slate-900/40' : 'bg-slate-950/80'}`}>
-          <div className={`rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 w-full max-w-5xl space-y-4 sm:space-y-5 shadow-2xl relative my-2 sm:my-6 border max-h-[94vh] flex flex-col ${isLight ? 'bg-white border-slate-200 text-slate-900' : 'bg-slate-900 border-slate-800 text-slate-100'}`}>
-            <div className={`flex items-center justify-between border-b pb-3 shrink-0 ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
+        <div className={`fixed inset-0 z-50 backdrop-blur-sm flex items-center justify-center p-2.5 sm:p-4 overflow-y-auto bg-slate-900/40`}>
+          <div className={`rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 w-full max-w-5xl space-y-4 sm:space-y-5 shadow-2xl relative my-2 sm:my-6 border max-h-[94vh] flex flex-col bg-card border-slate-200 text-slate-900`}>
+            <div className={`flex items-center justify-between border-b pb-3 shrink-0 border-slate-200`}>
               <div className="flex items-center gap-2.5 sm:gap-3">
-                <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center font-bold shrink-0 ${isLight ? 'bg-amber-100 border border-amber-300 text-amber-700' : 'bg-amber-500/10 border border-amber-500/30 text-amber-400'}`}>
+                <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center font-bold shrink-0 bg-brand-100 border border-brand-200 text-brand-700`}>
                   <Edit3 className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className={`font-bold text-sm sm:text-base ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                  <h3 className={`font-bold text-sm sm:text-base text-slate-900`}>
                     تعديل معلومات وتفاصيل جدولة الكشف الدوري
                   </h3>
-                  <p className={`text-[11px] sm:text-xs ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                  <p className={`text-[11px] sm:text-xs text-slate-500`}>
                     رمز السجل: {showEditModal.id}
                   </p>
                 </div>
               </div>
-              <button onClick={() => setShowEditModal(null)} className={`p-1.5 rounded-lg cursor-pointer ${isLight ? 'text-slate-400 hover:text-slate-700 hover:bg-slate-100' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'}`}>
+              <button onClick={() => setShowEditModal(null)} className={`p-1.5 rounded-lg cursor-pointer text-slate-400 hover:text-slate-700 hover:bg-slate-100`}>
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -2701,22 +2561,20 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 items-start">
 
                 {/* RIGHT COLUMN: LOCKED UNIT INFORMATION */}
-                <div className={`p-3.5 sm:p-4 rounded-xl sm:rounded-2xl border space-y-3.5 ${isLight ? 'bg-slate-50/80 border-slate-200' : 'bg-slate-950/60 border-slate-800'}`}>
-                  <label className={`block font-extrabold text-xs border-b pb-2 ${isLight ? 'text-slate-900 border-slate-200' : 'text-slate-100 border-slate-800'}`}>
+                <div className={`p-3.5 sm:p-4 rounded-xl sm:rounded-2xl border space-y-3.5 bg-slate-50/80 border-slate-200`}>
+                  <label className={`block font-extrabold text-xs border-b pb-2 text-slate-900 border-slate-200`}>
                     1. بيانات الوحدة الهندسية (مغلقة):
                   </label>
 
                   {/* READ-ONLY LOCKED UNIT CARD */}
-                  <div className={`p-4 rounded-2xl border flex flex-col gap-3 ${
-                    isLight ? 'bg-white border-slate-300 text-slate-900' : 'bg-slate-900 border-slate-800 text-slate-100'
-                  }`}>
+                  <div className={`p-4 rounded-2xl border flex flex-col gap-3 bg-card border-slate-300 text-slate-900`}>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2.5">
-                        <div className="w-9 h-9 rounded-xl bg-amber-500 text-slate-950 font-black flex items-center justify-center shrink-0">
+                        <div className="w-9 h-9 rounded-xl bg-brand-700 text-on-brand font-black flex items-center justify-center shrink-0">
                           <Building2 className="w-5 h-5" />
                         </div>
                         <div>
-                          <div className="text-[10px] text-amber-600 dark:text-amber-400 font-bold flex items-center gap-1 mb-0.5">
+                          <div className="text-[10px] text-brand-700 font-bold flex items-center gap-1 mb-0.5">
                             <Lock className="w-3 h-3" />
                             <span>الوحدة الهندسية المثبتة</span>
                           </div>
@@ -2725,30 +2583,26 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                           </div>
                         </div>
                       </div>
-                      <span className={`px-2.5 py-1 rounded-lg border font-bold text-[10px] flex items-center gap-1 shrink-0 ${
-                        isLight ? 'bg-slate-100 border-slate-300 text-slate-700' : 'bg-slate-950 border-slate-700 text-slate-400'
-                      }`}>
-                        <Lock className="w-3 h-3 text-amber-500" />
+                      <span className={`px-2.5 py-1 rounded-lg border font-bold text-[10px] flex items-center gap-1 shrink-0 bg-slate-100 border-slate-300 text-slate-700`}>
+                        <Lock className="w-3 h-3 text-brand-700" />
                         ثابتة
                       </span>
                     </div>
 
-                    <div className="border-t pt-2.5 border-slate-200 dark:border-slate-800 grid grid-cols-2 gap-2 text-xs">
+                    <div className="border-t pt-2.5 border-slate-200 grid grid-cols-2 gap-2 text-xs">
                       <div>
-                        <span className="text-slate-400 block text-[10px]">المحافظة:</span>
+                        <span className="text-slate-500 block text-[10px]">المحافظة:</span>
                         <span className="font-bold">{showEditModal.governorate}</span>
                       </div>
                       <div>
-                        <span className="text-slate-400 block text-[10px]">الحقل النفطي:</span>
+                        <span className="text-slate-500 block text-[10px]">الحقل النفطي:</span>
                         <span className="font-bold">{showEditModal.field}</span>
                       </div>
                     </div>
                   </div>
 
-                  <div className={`p-3 rounded-xl border text-[11px] leading-relaxed flex items-start gap-2 ${
-                    isLight ? 'bg-amber-50/80 border-amber-200 text-amber-900' : 'bg-amber-500/10 border-amber-500/20 text-amber-300'
-                  }`}>
-                    <Lock className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                  <div className={`p-3 rounded-xl border text-[11px] leading-relaxed flex items-start gap-2 bg-brand-50 border-brand-200 text-brand-800`}>
+                    <Lock className="w-4 h-4 text-brand-700 shrink-0 mt-0.5" />
                     <span>
                       تم تثبيت هذه الوحدة أثناء إنشاء الجدول الدوري، ولا يمكن تغيير الوحدة عند تعديل المواعيد لضمان دقة وتكامل أرشيف المعاينات الهندسية.
                     </span>
@@ -2756,14 +2610,14 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                 </div>
 
                 {/* LEFT COLUMN: EDITABLE SCHEDULE PARAMETERS */}
-                <div className={`p-4 rounded-2xl border space-y-3.5 ${isLight ? 'bg-slate-50/80 border-slate-200' : 'bg-slate-950/60 border-slate-800'}`}>
-                  <label className={`block font-extrabold text-xs border-b pb-2 ${isLight ? 'text-slate-900 border-slate-200' : 'text-slate-100 border-slate-800'}`}>
+                <div className={`p-4 rounded-2xl border space-y-3.5 bg-slate-50/80 border-slate-200`}>
+                  <label className={`block font-extrabold text-xs border-b pb-2 text-slate-900 border-slate-200`}>
                     2. تعديل مواعيد وإعدادات الجدول الدوري:
                   </label>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <label className={`block font-bold mb-1 ${isLight ? 'text-amber-900' : 'text-amber-400'}`}>
+                      <label className={`block font-bold mb-1 text-brand-800`}>
                         تاريخ بدء الكشف / آخر كشف:
                       </label>
                       <input
@@ -2773,14 +2627,12 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                           setEditLastDate(e.target.value);
                           updateEditCalculatedNextDate(e.target.value, editFrequency, editCustomDays);
                         }}
-                        className={`w-full rounded-xl p-2.5 font-bold outline-none border ${
-                          isLight ? 'bg-white border-slate-200 text-slate-900 focus:border-amber-500' : 'bg-slate-900 border-slate-800 text-slate-100 focus:border-amber-500'
-                        }`}
+                        className={`w-full rounded-xl p-2.5 font-bold outline-none border bg-card border-slate-200 text-slate-900 focus:border-brand-600`}
                       />
                     </div>
 
                     <div>
-                      <label className={`block font-bold mb-1 ${isLight ? 'text-amber-900' : 'text-amber-400'}`}>
+                      <label className={`block font-bold mb-1 text-brand-800`}>
                         التكرار الدوري المحدد:
                       </label>
                       <select
@@ -2790,9 +2642,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                           setEditFrequency(freq);
                           updateEditCalculatedNextDate(editLastDate, freq, editCustomDays);
                         }}
-                        className={`w-full rounded-xl p-2.5 font-bold outline-none cursor-pointer border ${
-                          isLight ? 'bg-white border-slate-200 text-slate-900 focus:border-amber-500' : 'bg-slate-900 border-slate-800 text-slate-100 focus:border-amber-500'
-                        }`}
+                        className={`w-full rounded-xl p-2.5 font-bold outline-none cursor-pointer border bg-card border-slate-200 text-slate-900 focus:border-brand-600`}
                       >
                         <option value="monthly">1 شهر (شهري - 30 يوم)</option>
                         <option value="quarterly">3 أشهر (ربع سنوي - 90 يوم)</option>
@@ -2804,7 +2654,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
 
                     {editFrequency === 'custom' && (
                       <div className="sm:col-span-2">
-                        <label className={`block font-bold mb-1 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                        <label className={`block font-bold mb-1 text-slate-700`}>
                           عدد أيام التكرار المخصص:
                         </label>
                         <input
@@ -2816,9 +2666,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                             setEditCustomDays(val);
                             updateEditCalculatedNextDate(editLastDate, 'custom', val);
                           }}
-                          className={`w-full rounded-xl p-2.5 font-bold outline-none border ${
-                            isLight ? 'bg-white border-slate-200 text-slate-900 focus:border-amber-500' : 'bg-slate-900 border-slate-800 text-slate-100 focus:border-amber-500'
-                          }`}
+                          className={`w-full rounded-xl p-2.5 font-bold outline-none border bg-card border-slate-200 text-slate-900 focus:border-brand-600`}
                         />
                       </div>
                     )}
@@ -2826,23 +2674,21 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
 
                   {/* Next Due Date */}
                   <div>
-                    <label className={`block font-bold mb-1 ${isLight ? 'text-amber-900' : 'text-amber-400'}`}>
+                    <label className={`block font-bold mb-1 text-brand-800`}>
                       الموعد القادم المستحق:
                     </label>
                     <input
                       type="date"
                       value={editNextDate}
                       onChange={(e) => setEditNextDate(e.target.value)}
-                      className={`w-full rounded-xl p-2.5 font-bold outline-none border ${
-                        isLight ? 'bg-amber-50 border-amber-300 text-amber-900 focus:border-amber-500' : 'bg-slate-950 border-amber-500/50 text-amber-400 focus:border-amber-500'
-                      }`}
+                      className={`w-full rounded-xl p-2.5 font-bold outline-none border bg-brand-50 border-brand-200 text-brand-800 focus:border-brand-600`}
                       required
                     />
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <label className={`block font-bold mb-1 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                      <label className={`block font-bold mb-1 text-slate-700`}>
                         فريق الكشف المكلف:
                       </label>
                       <input
@@ -2850,23 +2696,19 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                         value={editAssignedTeam}
                         onChange={(e) => setEditAssignedTeam(e.target.value)}
                         placeholder="اسم الفريق المكلف..."
-                        className={`w-full rounded-xl p-2.5 font-bold outline-none border ${
-                          isLight ? 'bg-white border-slate-200 text-slate-900 focus:border-amber-500' : 'bg-slate-900 border-slate-800 text-slate-100 focus:border-amber-500'
-                        }`}
+                        className={`w-full rounded-xl p-2.5 font-bold outline-none border bg-card border-slate-200 text-slate-900 focus:border-brand-600`}
                       />
                     </div>
 
                     <div>
-                      <label className={`block font-bold mb-1 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                      <label className={`block font-bold mb-1 text-slate-700`}>
                         القائم بالكشف / المهندس المسؤول:
                       </label>
                       <div className="space-y-1.5">
                         <select
                           value={editInspectorName}
                           onChange={(e) => setEditInspectorName(e.target.value)}
-                          className={`w-full rounded-xl px-3 py-2 font-bold outline-none border cursor-pointer text-xs ${
-                            isLight ? 'bg-white border-slate-200 text-slate-900 focus:border-amber-500' : 'bg-slate-900 border-slate-800 text-slate-100 focus:border-amber-500'
-                          }`}
+                          className={`w-full rounded-xl px-3 py-2 font-bold outline-none border cursor-pointer text-xs bg-card border-slate-200 text-slate-900 focus:border-brand-600`}
                         >
                           <option value="">-- اختر المستخدم أو حدد صفته --</option>
                           <optgroup label="المستخدمون في النظام">
@@ -2887,16 +2729,14 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                           value={editInspectorName}
                           onChange={(e) => setEditInspectorName(e.target.value)}
                           placeholder="أو اكتب اسماً مخصصاً..."
-                          className={`w-full rounded-lg px-2.5 py-1 text-[11px] font-bold outline-none border ${
-                            isLight ? 'bg-white border-slate-200 text-slate-900 focus:border-amber-500' : 'bg-slate-900 border-slate-800 text-slate-100 focus:border-amber-500'
-                          }`}
+                          className={`w-full rounded-lg px-2.5 py-1 text-[11px] font-bold outline-none border bg-card border-slate-200 text-slate-900 focus:border-brand-600`}
                         />
                       </div>
                     </div>
                   </div>
 
                   <div>
-                    <label className={`block font-bold mb-1 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                    <label className={`block font-bold mb-1 text-slate-700`}>
                       ملاحظات عامة:
                     </label>
                     <textarea
@@ -2904,28 +2744,24 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                       onChange={(e) => setEditNotes(e.target.value)}
                       rows={2}
                       placeholder="أدخل أية ملاحظات تفصيلية هنا..."
-                      className={`w-full rounded-xl p-2.5 outline-none border ${
-                        isLight ? 'bg-white border-slate-200 text-slate-900' : 'bg-slate-900 border-slate-800 text-slate-100'
-                      }`}
+                      className={`w-full rounded-xl p-2.5 outline-none border bg-card border-slate-200 text-slate-900`}
                     />
                   </div>
                 </div>
 
               </div>
 
-              <div className={`flex flex-col-reverse sm:flex-row items-center justify-end gap-2.5 sm:gap-3 pt-3 border-t shrink-0 ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
+              <div className={`flex flex-col-reverse sm:flex-row items-center justify-end gap-2.5 sm:gap-3 pt-3 border-t shrink-0 border-slate-200`}>
                 <button
                   type="button"
                   onClick={() => setShowEditModal(null)}
-                  className={`w-full sm:w-auto px-4 py-2.5 rounded-xl font-bold transition cursor-pointer min-h-[42px] flex items-center justify-center ${
-                    isLight ? 'bg-slate-100 text-slate-700 hover:bg-slate-200' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
-                  }`}
+                  className={`w-full sm:w-auto px-4 py-2.5 rounded-xl font-bold transition cursor-pointer min-h-[42px] flex items-center justify-center bg-slate-100 text-slate-700 hover:bg-slate-200`}
                 >
                   إلغاء
                 </button>
                 <button
                   type="submit"
-                  className="w-full sm:w-auto px-6 py-2.5 bg-amber-500 text-slate-950 rounded-xl font-black hover:bg-amber-600 shadow-md shadow-amber-500/20 transition cursor-pointer min-h-[42px] flex items-center justify-center gap-2"
+                  className="w-full sm:w-auto px-6 py-2.5 bg-brand-700 text-on-brand rounded-xl font-black hover:bg-brand-800 shadow-md transition cursor-pointer min-h-[42px] flex items-center justify-center gap-2"
                 >
                   <Edit3 className="w-4 h-4" />
                   <span>حفظ وتحديث معلومات الجدول</span>
@@ -2938,20 +2774,20 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
 
       {/* MODAL 4: FULL UNIT ARCHIVE MODAL (ARCHIVE OF ALL INSPECTIONS & MAINTENANCE FOR A UNIT) */}
       {showUnitArchiveModal && (
-        <div className={`fixed inset-0 z-50 backdrop-blur-sm flex items-center justify-center p-2.5 sm:p-4 overflow-y-auto ${isLight ? 'bg-slate-900/40' : 'bg-slate-950/80'}`}>
-          <div className={`rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 w-full max-w-[98vw] xl:max-w-7xl space-y-3.5 sm:space-y-5 shadow-2xl relative my-2 sm:my-6 border max-h-[96vh] flex flex-col ${isLight ? 'bg-white border-slate-200 text-slate-900' : 'bg-slate-900 border-slate-800 text-slate-100'}`}>
+        <div className={`fixed inset-0 z-50 backdrop-blur-sm flex items-center justify-center p-2.5 sm:p-4 overflow-y-auto bg-slate-900/40`}>
+          <div className={`rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 w-full max-w-[98vw] xl:max-w-7xl space-y-3.5 sm:space-y-5 shadow-2xl relative my-2 sm:my-6 border max-h-[96vh] flex flex-col bg-card border-slate-200 text-slate-900`}>
             {/* Header */}
-            <div className={`flex items-center justify-between border-b pb-3 sm:pb-4 shrink-0 gap-2 ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
+            <div className={`flex items-center justify-between border-b pb-3 sm:pb-4 shrink-0 gap-2 border-slate-200`}>
               <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-                <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl flex items-center justify-center font-bold shrink-0 ${isLight ? 'bg-amber-100 border border-amber-300 text-amber-800' : 'bg-amber-500/10 border border-amber-500/30 text-amber-400'}`}>
+                <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl flex items-center justify-center font-bold shrink-0 bg-brand-100 border border-brand-200 text-brand-800`}>
                   <Archive className="w-5 h-5 sm:w-6 sm:h-6" />
                 </div>
                 <div className="min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-mono font-bold text-amber-500 text-xs sm:text-sm">{toArabicDigits(showUnitArchiveModal.code)}</span>
-                    <h3 className={`font-black text-sm sm:text-lg truncate ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>{showUnitArchiveModal.name}</h3>
+                    <span className="font-mono font-bold text-brand-700 text-xs sm:text-sm">{toArabicDigits(showUnitArchiveModal.code)}</span>
+                    <h3 className={`font-black text-sm sm:text-lg truncate text-slate-900`}>{showUnitArchiveModal.name}</h3>
                   </div>
-                  <p className={`text-[10.5px] sm:text-xs mt-0.5 truncate ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                  <p className={`text-[10.5px] sm:text-xs mt-0.5 truncate text-slate-600`}>
                     محافظة {showUnitArchiveModal.governorate} | حقل {showUnitArchiveModal.field} | {showUnitArchiveModal.sectorAddress}
                   </p>
                 </div>
@@ -2959,22 +2795,20 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
 
               <div className="flex items-center gap-2 shrink-0">
                 {getConditionGradeBadge(showUnitArchiveModal.conditionGrade)}
-                <button onClick={() => setShowUnitArchiveModal(null)} className={`p-1.5 rounded-lg cursor-pointer ${isLight ? 'text-slate-400 hover:text-slate-700 hover:bg-slate-100' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'}`}>
+                <button onClick={() => setShowUnitArchiveModal(null)} className={`p-1.5 rounded-lg cursor-pointer text-slate-400 hover:text-slate-700 hover:bg-slate-100`}>
                   <X className="w-5 h-5" />
                 </button>
               </div>
             </div>
 
             {/* Modal Tabs & Layout Toggle */}
-            <div className="flex items-center gap-1.5 sm:gap-2 border-b border-slate-800/40 pb-2 overflow-x-auto scrollbar-none flex-nowrap shrink-0">
+            <div className="flex items-center gap-1.5 sm:gap-2 border-b border-slate-200 pb-2 overflow-x-auto scrollbar-none flex-nowrap shrink-0">
               <button
                 onClick={() => setArchiveModalTab('both')}
                 className={`px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shrink-0 min-h-[38px] ${
                   archiveModalTab === 'both'
-                    ? 'bg-amber-500 text-slate-950 font-black shadow-md'
-                    : isLight
-                    ? 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                    : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                    ? 'bg-brand-700 text-on-brand font-black shadow-md'
+                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                 }`}
               >
                 <LayoutGrid className="w-4 h-4" />
@@ -2985,10 +2819,8 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                 onClick={() => setArchiveModalTab('inspections')}
                 className={`px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shrink-0 min-h-[38px] ${
                   archiveModalTab === 'inspections'
-                    ? 'bg-amber-500 text-slate-950 font-black shadow-md'
-                    : isLight
-                    ? 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                    : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                    ? 'bg-brand-700 text-on-brand font-black shadow-md'
+                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                 }`}
               >
                 <CalendarCheck className="w-4 h-4" />
@@ -2999,10 +2831,8 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                 onClick={() => setArchiveModalTab('maintenance')}
                 className={`px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shrink-0 min-h-[38px] ${
                   archiveModalTab === 'maintenance'
-                    ? 'bg-amber-500 text-slate-950 font-black shadow-md'
-                    : isLight
-                    ? 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                    : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                    ? 'bg-brand-700 text-on-brand font-black shadow-md'
+                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                 }`}
               >
                 <Wrench className="w-4 h-4" />
@@ -3014,13 +2844,13 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
             <div className={`grid grid-cols-1 ${archiveModalTab === 'both' ? 'xl:grid-cols-2' : 'grid-cols-1'} gap-4 sm:gap-6 overflow-y-auto max-h-[calc(90vh-140px)] pr-1 pl-1 flex-1`}>
               {/* ARCHIVE 1: INSPECTIONS & PERIODIC CHECKS */}
               {(archiveModalTab === 'both' || archiveModalTab === 'inspections') && (
-                <div className={`p-3.5 sm:p-4 rounded-2xl border space-y-3 ${isLight ? 'bg-slate-50/80 border-slate-200' : 'bg-slate-950/60 border-slate-800/80'}`}>
-                  <div className="flex items-center justify-between pb-2 border-b border-slate-800/30">
-                    <h4 className="font-bold text-xs sm:text-sm text-amber-500 flex items-center gap-2">
+                <div className={`p-3.5 sm:p-4 rounded-2xl border space-y-3 bg-slate-50/80 border-slate-200`}>
+                  <div className="flex items-center justify-between pb-2 border-b border-slate-200">
+                    <h4 className="font-bold text-xs sm:text-sm text-brand-700 flex items-center gap-2">
                       <CalendarCheck className="w-4 h-4" />
                       <span>أرشيف المعاينات والكشوفات الدورية</span>
                     </h4>
-                    <span className="text-[11px] font-bold text-slate-400">
+                    <span className="text-[11px] font-bold text-slate-500">
                       ({toArabicDigits(schedules.filter((s) => s.unitCode === showUnitArchiveModal.code).length)} كشف)
                     </span>
                   </div>
@@ -3041,20 +2871,16 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                             return (
                               <div
                                 key={sch.id}
-                                className={`p-3 rounded-xl border space-y-2.5 transition ${
-                                  isLight ? 'bg-white border-slate-200 shadow-xs' : 'bg-slate-900/90 border-slate-800 shadow-xs'
-                                }`}
+                                className={`p-3 rounded-xl border space-y-2.5 transition bg-card border-slate-200 shadow-xs`}
                               >
                                 {/* Top Title & Badges */}
                                 <div className="flex items-start justify-between gap-2">
                                   <div className="min-w-0">
-                                    <h5 className={`font-extrabold text-xs sm:text-sm leading-snug ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                                    <h5 className={`font-extrabold text-xs sm:text-sm leading-snug text-slate-900`}>
                                       {sch.title}
                                     </h5>
                                     <div className="flex items-center gap-1.5 mt-1 flex-wrap">
-                                      <span className={`px-2 py-0.5 rounded-lg text-[10px] font-bold border ${
-                                        isLight ? 'bg-amber-50 text-amber-900 border-amber-200' : 'bg-amber-500/10 text-amber-400 border-amber-500/30'
-                                      }`}>
+                                      <span className={`px-2 py-0.5 rounded-lg text-[10px] font-bold border bg-brand-50 text-brand-800 border-brand-200`}>
                                         {getFrequencyLabel(sch.frequency, sch.customIntervalDays)}
                                       </span>
                                       {sch.conditionGradeGiven && getConditionGradeBadge(sch.conditionGradeGiven)}
@@ -3066,37 +2892,37 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                                 </div>
 
                                 {/* Dates Grid */}
-                                <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-slate-200/60 dark:border-slate-800/60">
+                                <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-slate-200/60 ">
                                   <div>
-                                    <span className="text-slate-400 text-[10px] block">آخر كشف:</span>
+                                    <span className="text-slate-500 text-[10px] block">آخر كشف:</span>
                                     <span className="font-mono font-bold text-[11px]">{toArabicDigits(sch.lastInspectionDate)}</span>
                                   </div>
                                   <div>
-                                    <span className="text-slate-400 text-[10px] block">الموعد المستحق:</span>
-                                    <span className={`font-mono font-bold text-[11px] ${sch.status === 'overdue' ? 'text-rose-500 font-black' : isLight ? 'text-amber-800' : 'text-amber-400'}`}>
+                                    <span className="text-slate-500 text-[10px] block">الموعد المستحق:</span>
+                                    <span className={`font-mono font-bold text-[11px] ${sch.status === 'overdue' ? 'text-rose-600 font-black' : 'text-brand-800'}`}>
                                       {toArabicDigits(sch.nextDueDate)}
                                     </span>
                                   </div>
                                 </div>
 
                                 {/* Performer */}
-                                <div className="flex items-center justify-between text-xs pt-2 border-t border-slate-200/60 dark:border-slate-800/60">
-                                  <span className="text-slate-400 text-[10px]">المُنفِّذ:</span>
+                                <div className="flex items-center justify-between text-xs pt-2 border-t border-slate-200/60 ">
+                                  <span className="text-slate-500 text-[10px]">المُنفِّذ:</span>
                                   {p ? (
                                     <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold border ${p.roleBadgeClass}`}>
                                       <UserCheck className="w-3 h-3" />
                                       <span>{p.userName || p.roleBadgeText}</span>
                                     </span>
                                   ) : (
-                                    <span className="text-slate-400 text-[10px]">{sch.status === 'completed' ? '—' : 'لم يُنجز بعد'}</span>
+                                    <span className="text-slate-500 text-[10px]">{sch.status === 'completed' ? '—' : 'لم يُنجز بعد'}</span>
                                   )}
                                 </div>
 
                                 {/* Findings & Notes if available */}
                                 {(sch.findings || sch.notes) && (
-                                  <div className={`p-2.5 rounded-xl text-xs space-y-1 ${isLight ? 'bg-slate-50 border border-slate-200' : 'bg-slate-950 border border-slate-800'}`}>
-                                    <span className="font-bold text-[10px] text-slate-400 block">الملاحظات والنتائج:</span>
-                                    <p className={`text-[11px] leading-relaxed ${isLight ? 'text-slate-800' : 'text-slate-200'}`}>
+                                  <div className={`p-2.5 rounded-xl text-xs space-y-1 bg-slate-50 border border-slate-200`}>
+                                    <span className="font-bold text-[10px] text-slate-500 block">الملاحظات والنتائج:</span>
+                                    <p className={`text-[11px] leading-relaxed text-slate-800`}>
                                       {sch.findings || sch.notes}
                                     </p>
                                   </div>
@@ -3104,7 +2930,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
 
                                 {/* Recommendations if available */}
                                 {sch.recommendations && (
-                                  <div className={`p-2.5 rounded-xl text-xs space-y-1 ${isLight ? 'bg-amber-50/70 border border-amber-200 text-amber-900' : 'bg-amber-500/10 border border-amber-500/30 text-amber-300'}`}>
+                                  <div className={`p-2.5 rounded-xl text-xs space-y-1 bg-brand-50 border border-brand-200 text-brand-800`}>
                                     <span className="font-bold text-[10px] opacity-80 block">التوصيات والإجراءات:</span>
                                     <p className="text-[11px] leading-relaxed font-semibold">
                                       {sch.recommendations}
@@ -3113,7 +2939,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                                 )}
 
                                 {/* Report Attachment & Actions */}
-                                <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-200/60 dark:border-slate-800/60">
+                                <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-200/60 ">
                                   <div>
                                     {sch.reportFileName || sch.reportFileUrl ? (
                                       <button
@@ -3129,15 +2955,13 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                                             size: '1.5 MB',
                                           });
                                         }}
-                                        className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer border min-h-[34px] ${
-                                          isLight ? 'bg-emerald-50 text-emerald-800 border-emerald-300' : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
-                                        }`}
+                                        className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer border min-h-[34px] bg-emerald-50 text-emerald-800 border-emerald-200`}
                                       >
                                         <Eye className="w-3.5 h-3.5" />
                                         <span>معاينة التقرير</span>
                                       </button>
                                     ) : (
-                                      <span className="text-slate-400 text-[10px]">لا يوجد مرفق</span>
+                                      <span className="text-slate-500 text-[10px]">لا يوجد مرفق</span>
                                     )}
                                   </div>
 
@@ -3154,19 +2978,13 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                                             setCompleteGrade(sch.conditionGradeGiven || matchedUnit.conditionGrade);
                                           }
                                         }}
-                                        className={`px-3 py-1.5 rounded-lg text-xs font-bold cursor-pointer transition flex items-center gap-1.5 min-h-[34px] ${
-                                          isLight
-                                            ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm'
-                                            : 'bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/30'
-                                        }`}
+                                        className={`px-3 py-1.5 rounded-lg text-xs font-bold cursor-pointer transition flex items-center gap-1.5 min-h-[34px] bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm`}
                                       >
                                         <RefreshCw className="w-3.5 h-3.5" />
                                         <span>تحديث وإنجاز</span>
                                       </button>
                                     ) : (
-                                      <span className={`px-2.5 py-1 rounded-lg text-[11px] font-bold inline-flex items-center gap-1 ${
-                                        isLight ? 'bg-emerald-100 text-emerald-800' : 'bg-emerald-500/15 text-emerald-400'
-                                      }`}>
+                                      <span className={`px-2.5 py-1 rounded-lg text-[11px] font-bold inline-flex items-center gap-1 bg-emerald-100 text-emerald-800`}>
                                         <CheckCircle2 className="w-3.5 h-3.5" />
                                         <span>مكتمل وموثق</span>
                                       </span>
@@ -3181,7 +2999,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                       {/* Desktop Table View (hidden md:block) */}
                       <div className="hidden md:block overflow-x-auto">
                         <table className="w-full text-right text-xs">
-                          <thead className={`font-bold border-b ${isLight ? 'bg-slate-100 text-slate-700' : 'bg-slate-950 text-slate-400'}`}>
+                          <thead className={`font-bold border-b bg-slate-100 text-slate-700`}>
                             <tr>
                               <th className="p-2">عنوان الكشف</th>
                               <th className="p-2">التكرار</th>
@@ -3195,17 +3013,17 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                               <th className="p-2 text-center">تحديث الكشف</th>
                             </tr>
                           </thead>
-                          <tbody className={`divide-y ${isLight ? 'divide-slate-200' : 'divide-slate-800/40'}`}>
+                          <tbody className={`divide-y divide-slate-200`}>
                             {schedules
                               .filter((s) => s.unitCode === showUnitArchiveModal.code)
                               .map((sch) => (
-                                <tr key={sch.id} className={isLight ? 'hover:bg-slate-100/80' : 'hover:bg-slate-800/30'}>
+                                <tr key={sch.id} className={'hover:bg-slate-100/80'}>
                                   <td className="p-2 font-bold">
-                                    <div className={isLight ? 'text-slate-900' : 'text-slate-100'}>{sch.title}</div>
+                                    <div className={'text-slate-900'}>{sch.title}</div>
                                   </td>
-                                  <td className={`p-2 text-[11px] ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>{getFrequencyLabel(sch.frequency, sch.customIntervalDays)}</td>
-                                  <td className={`p-2 font-mono text-[11px] ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>{toArabicDigits(sch.lastInspectionDate)}</td>
-                                  <td className={`p-2 font-mono font-bold text-[11px] ${isLight ? 'text-amber-700' : 'text-amber-400'}`}>{toArabicDigits(sch.nextDueDate)}</td>
+                                  <td className={`p-2 text-[11px] text-slate-700`}>{getFrequencyLabel(sch.frequency, sch.customIntervalDays)}</td>
+                                  <td className={`p-2 font-mono text-[11px] text-slate-700`}>{toArabicDigits(sch.lastInspectionDate)}</td>
+                                  <td className={`p-2 font-mono font-bold text-[11px] text-brand-700`}>{toArabicDigits(sch.nextDueDate)}</td>
                                   <td className="p-2">
                                     <div className="space-y-1">
                                       <div>{getStatusBadge(sch.status)}</div>
@@ -3221,7 +3039,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                                         if (isGenericRole) {
                                           return (
                                             <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold border ${p.roleBadgeClass}`}>
-                                              <UserCheck className={`w-3 h-3 ${p.isOperator ? 'text-amber-500' : p.isAdmin ? 'text-purple-500' : 'text-emerald-500'}`} />
+                                              <UserCheck className={`w-3 h-3 ${p.isOperator ? 'text-brand-700' : p.isAdmin ? 'text-purple-600' : 'text-emerald-600'}`} />
                                               {p.roleBadgeText}
                                             </span>
                                           );
@@ -3230,8 +3048,8 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                                         return (
                                           <div className="space-y-0.5">
                                             <div className="flex items-center gap-1 font-bold">
-                                              <UserCheck className={`w-3 h-3 ${p.isOperator ? 'text-amber-500' : p.isAdmin ? 'text-purple-500' : 'text-emerald-500'}`} />
-                                              <span className={isLight ? 'text-slate-800' : 'text-slate-200'}>{p.userName}</span>
+                                              <UserCheck className={`w-3 h-3 ${p.isOperator ? 'text-brand-700' : p.isAdmin ? 'text-purple-600' : 'text-emerald-600'}`} />
+                                              <span className={'text-slate-800'}>{p.userName}</span>
                                             </div>
                                             <span className={`inline-block px-1.5 py-0.2 rounded text-[9px] font-bold border ${p.roleBadgeClass}`}>
                                               {p.roleBadgeText}
@@ -3240,25 +3058,25 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                                         );
                                       })()
                                     ) : (
-                                      <span className="text-slate-400">{sch.status === 'completed' ? '—' : 'لم يُنجز بعد'}</span>
+                                      <span className="text-slate-500">{sch.status === 'completed' ? '—' : 'لم يُنجز بعد'}</span>
                                     )}
                                   </td>
                                   <td className="p-2 max-w-[160px]">
                                     {sch.findings || sch.notes ? (
-                                      <span className={`text-[11px] line-clamp-2 ${isLight ? 'text-slate-700' : 'text-slate-300'}`} title={sch.findings || sch.notes}>
+                                      <span className={`text-[11px] line-clamp-2 text-slate-700`} title={sch.findings || sch.notes}>
                                         {sch.findings || sch.notes}
                                       </span>
                                     ) : (
-                                      <span className="text-slate-400 text-[10px]">لا توجد ملاحظات</span>
+                                      <span className="text-slate-500 text-[10px]">لا توجد ملاحظات</span>
                                     )}
                                   </td>
                                   <td className="p-2 max-w-[160px]">
                                     {sch.recommendations ? (
-                                      <span className={`text-[11px] line-clamp-2 font-semibold ${isLight ? 'text-amber-900' : 'text-amber-300'}`} title={sch.recommendations}>
+                                      <span className={`text-[11px] line-clamp-2 font-semibold text-brand-800`} title={sch.recommendations}>
                                         {sch.recommendations}
                                       </span>
                                     ) : (
-                                      <span className="text-slate-400 text-[10px]">لا توجد توصيات</span>
+                                      <span className="text-slate-500 text-[10px]">لا توجد توصيات</span>
                                     )}
                                   </td>
                                   <td className="p-2 text-center whitespace-nowrap">
@@ -3276,18 +3094,14 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                                             size: '1.5 MB',
                                           });
                                         }}
-                                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold transition cursor-pointer border shadow-sm ${
-                                          isLight
-                                            ? 'bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100'
-                                            : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 hover:bg-emerald-500/30'
-                                        }`}
+                                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold transition cursor-pointer border shadow-sm bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100`}
                                         title="معاينة المرفق أو الصورة الملتقطة"
                                       >
                                         <Eye className="w-3.5 h-3.5" />
                                         <span className="truncate max-w-[90px]">{sch.reportFileName || 'معاينة المرفق'}</span>
                                       </button>
                                     ) : (
-                                      <span className="text-slate-400 text-[10px]">لا يوجد مرفق</span>
+                                      <span className="text-slate-500 text-[10px]">لا يوجد مرفق</span>
                                     )}
                                   </td>
                                   <td className="p-2 text-center">
@@ -3303,22 +3117,14 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                                             setCompleteGrade(sch.conditionGradeGiven || matchedUnit.conditionGrade);
                                           }
                                         }}
-                                        className={`px-2.5 py-1.5 rounded-lg text-[10px] font-bold cursor-pointer transition flex items-center gap-1.5 mx-auto whitespace-nowrap ${
-                                          isLight
-                                            ? 'bg-emerald-100 hover:bg-emerald-200 text-emerald-800 border border-emerald-300'
-                                            : 'bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/30'
-                                        }`}
+                                        className={`px-2.5 py-1.5 rounded-lg text-[10px] font-bold cursor-pointer transition flex items-center gap-1.5 mx-auto whitespace-nowrap bg-emerald-100 hover:bg-emerald-200 text-emerald-800 border border-emerald-200`}
                                         title="تحديث وإنجاز نتائج الكشف الدوري"
                                       >
                                         <RefreshCw className="w-3 h-3" />
                                         <span>تحديث الكشف</span>
                                       </button>
                                     ) : (
-                                      <span className={`px-2 py-0.5 rounded-lg text-[10px] font-bold inline-block whitespace-nowrap ${
-                                        isLight
-                                          ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
-                                          : 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20'
-                                      }`}>
+                                      <span className={`px-2 py-0.5 rounded-lg text-[10px] font-bold inline-block whitespace-nowrap bg-emerald-100 text-emerald-800 border border-emerald-200`}>
                                         مكتمل وموثق
                                       </span>
                                     )}
@@ -3335,13 +3141,13 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
 
               {/* ARCHIVE 2: MAINTENANCE WORK & REQUESTS */}
               {(archiveModalTab === 'both' || archiveModalTab === 'maintenance') && (
-                <div className={`p-3.5 sm:p-4 rounded-2xl border space-y-3 ${isLight ? 'bg-slate-50/80 border-slate-200' : 'bg-slate-950/60 border-slate-800/80'}`}>
-                  <div className="flex items-center justify-between pb-2 border-b border-slate-800/30">
-                    <h4 className="font-bold text-xs sm:text-sm text-amber-500 flex items-center gap-2">
+                <div className={`p-3.5 sm:p-4 rounded-2xl border space-y-3 bg-slate-50/80 border-slate-200`}>
+                  <div className="flex items-center justify-between pb-2 border-b border-slate-200">
+                    <h4 className="font-bold text-xs sm:text-sm text-brand-700 flex items-center gap-2">
                       <Wrench className="w-4 h-4" />
                       <span>أرشيف أعمال وطلبات الصيانة</span>
                     </h4>
-                    <span className="text-[11px] font-bold text-slate-400">
+                    <span className="text-[11px] font-bold text-slate-500">
                       ({toArabicDigits(maintenanceRequests.filter((r) => r.unitCode === showUnitArchiveModal.code).length)} بلاغ)
                     </span>
                   </div>
@@ -3357,20 +3163,18 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                           .map((req) => (
                             <div
                               key={req.id}
-                              className={`p-3 rounded-xl border space-y-2.5 transition ${
-                                isLight ? 'bg-white border-slate-200 shadow-xs' : 'bg-slate-900/90 border-slate-800 shadow-xs'
-                              }`}
+                              className={`p-3 rounded-xl border space-y-2.5 transition bg-card border-slate-200 shadow-xs`}
                             >
                               {/* Top: ID, Priority, Status */}
                               <div className="flex items-center justify-between gap-2">
                                 <div className="flex items-center gap-2">
-                                  <span className={`font-mono font-bold text-xs ${isLight ? 'text-amber-700' : 'text-amber-400'}`}>
+                                  <span className={`font-mono font-bold text-xs text-brand-700`}>
                                     #{toArabicDigits(req.id)}
                                   </span>
                                   <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
                                     req.priority === 'critical'
-                                      ? isLight ? 'bg-red-100 text-red-800' : 'bg-red-500/20 text-red-400'
-                                      : isLight ? 'bg-blue-100 text-blue-800' : 'bg-blue-500/20 text-blue-400'
+                                      ? 'bg-red-100 text-red-800'
+                                      : 'bg-blue-100 text-blue-800'
                                   }`}>
                                     {req.priority === 'critical' ? 'حرج' : 'عادي'}
                                   </span>
@@ -3378,27 +3182,19 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
 
                                 <div>
                                   {req.status === 'completed' ? (
-                                    <span className={`px-2 py-0.5 rounded-md font-bold border text-[10px] ${
-                                      isLight ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
-                                    }`}>
+                                    <span className={`px-2 py-0.5 rounded-md font-bold border text-[10px] bg-emerald-100 text-emerald-800 border-emerald-200`}>
                                       منجز
                                     </span>
                                   ) : req.status === 'rejected' ? (
-                                    <span className={`px-2 py-0.5 rounded-md font-bold border text-[10px] ${
-                                      isLight ? 'bg-rose-100 text-rose-800 border-rose-300' : 'bg-rose-500/20 text-rose-400 border-rose-500/30'
-                                    }`}>
+                                    <span className={`px-2 py-0.5 rounded-md font-bold border text-[10px] bg-rose-100 text-rose-800 border-rose-200`}>
                                       مرفوض
                                     </span>
                                   ) : req.status === 'cancelled' ? (
-                                    <span className={`px-2 py-0.5 rounded-md font-bold border text-[10px] ${
-                                      isLight ? 'bg-slate-200 text-slate-700 border-slate-300' : 'bg-slate-500/20 text-slate-400 border-slate-500/30'
-                                    }`}>
+                                    <span className={`px-2 py-0.5 rounded-md font-bold border text-[10px] bg-slate-200 text-slate-700 border-slate-300`}>
                                       ملغى
                                     </span>
                                   ) : (
-                                    <span className={`px-2 py-0.5 rounded-md font-bold border text-[10px] ${
-                                      isLight ? 'bg-amber-100 text-amber-800 border-amber-300' : 'bg-amber-500/20 text-amber-400 border-amber-500/30'
-                                    }`}>
+                                    <span className={`px-2 py-0.5 rounded-md font-bold border text-[10px] bg-brand-100 text-brand-800 border-brand-200`}>
                                       قيد المعالجة
                                     </span>
                                   )}
@@ -3407,31 +3203,29 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
 
                               {/* Issue Description */}
                               <div>
-                                <h5 className={`font-bold text-xs leading-relaxed ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                                <h5 className={`font-bold text-xs leading-relaxed text-slate-900`}>
                                   {req.issue}
                                 </h5>
                                 <div className="flex items-center gap-2 mt-1">
-                                  <span className={`px-2 py-0.5 rounded-lg text-[10px] font-bold border ${
-                                    isLight ? 'bg-amber-50 text-amber-900 border-amber-200' : 'bg-amber-500/10 text-amber-400 border-amber-500/30'
-                                  }`}>
+                                  <span className={`px-2 py-0.5 rounded-lg text-[10px] font-bold border bg-brand-50 text-brand-800 border-brand-200`}>
                                     {req.maintenanceDepartment || 'الصيانة العامة'}
                                   </span>
                                 </div>
                               </div>
 
                               {/* Dates Grid */}
-                              <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-slate-200/60 dark:border-slate-800/60">
+                              <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-slate-200/60 ">
                                 <div>
-                                  <span className="text-slate-400 text-[10px] block">تاريخ البلاغ:</span>
+                                  <span className="text-slate-500 text-[10px] block">تاريخ البلاغ:</span>
                                   <span className="font-mono text-[11px] font-medium">{formatDateOnly(req.createdAt)}</span>
                                 </div>
                                 <div>
-                                  <span className="text-slate-400 text-[10px] block">الإنجاز / الإلغاء:</span>
+                                  <span className="text-slate-500 text-[10px] block">الإنجاز / الإلغاء:</span>
                                   <span className="font-mono text-[11px] font-medium">{getCompletionOrCancellationDate(req.completedAt, req.status)}</span>
                                 </div>
                                 <div>
-                                  <span className="text-slate-400 text-[10px] block">مدة الإنجاز:</span>
-                                  <span className={`font-bold text-[11px] ${isLight ? 'text-amber-800' : 'text-amber-400'}`}>
+                                  <span className="text-slate-500 text-[10px] block">مدة الإنجاز:</span>
+                                  <span className={`font-bold text-[11px] text-brand-800`}>
                                     {calculateMaintenanceDurationDays(req.createdAt, req.completedAt, req.status)}
                                   </span>
                                 </div>
@@ -3439,16 +3233,16 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
 
                               {/* Resolution Notes if available */}
                               {req.resolutionNotes && (
-                                <div className={`p-2.5 rounded-xl text-xs space-y-1 ${isLight ? 'bg-slate-50 border border-slate-200' : 'bg-slate-950 border border-slate-800'}`}>
-                                  <span className="font-bold text-[10px] text-slate-400 block">ملاحظات ونتائج المعالجة:</span>
-                                  <p className={`text-[11px] leading-relaxed ${isLight ? 'text-slate-800' : 'text-slate-200'}`}>
+                                <div className={`p-2.5 rounded-xl text-xs space-y-1 bg-slate-50 border border-slate-200`}>
+                                  <span className="font-bold text-[10px] text-slate-500 block">ملاحظات ونتائج المعالجة:</span>
+                                  <p className={`text-[11px] leading-relaxed text-slate-800`}>
                                     {req.resolutionNotes}
                                   </p>
                                 </div>
                               )}
 
                               {/* Attachment & Action button */}
-                              <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-200/60 dark:border-slate-800/60">
+                              <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-200/60 ">
                                 <div>
                                   {req.attachmentUrl || req.attachmentName ? (
                                     <button
@@ -3464,15 +3258,13 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                                           size: '1.2 MB',
                                         });
                                       }}
-                                      className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer border min-h-[34px] ${
-                                        isLight ? 'bg-amber-50 text-amber-800 border-amber-300' : 'bg-amber-500/20 text-amber-300 border-amber-500/40'
-                                      }`}
+                                      className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer border min-h-[34px] bg-brand-50 text-brand-800 border-brand-200`}
                                     >
                                       <Eye className="w-3.5 h-3.5" />
                                       <span>معاينة المرفق</span>
                                     </button>
                                   ) : (
-                                    <span className="text-slate-400 text-[10px]">لا يوجد مرفق</span>
+                                    <span className="text-slate-500 text-[10px]">لا يوجد مرفق</span>
                                   )}
                                 </div>
 
@@ -3483,11 +3275,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                                     setMaintResolutionNotes(req.resolutionNotes || '');
                                     setMaintCompletedDate(req.completedAt?.split(' ')[0] || new Date().toISOString().split('T')[0]);
                                   }}
-                                  className={`px-3 py-1.5 rounded-lg text-xs font-bold cursor-pointer transition whitespace-nowrap border flex items-center gap-1 min-h-[34px] ${
-                                    isLight
-                                      ? 'bg-amber-100 hover:bg-amber-200 text-amber-900 border-amber-300'
-                                      : 'bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 border-amber-500/30'
-                                  }`}
+                                  className={`px-3 py-1.5 rounded-lg text-xs font-bold cursor-pointer transition whitespace-nowrap border flex items-center gap-1 min-h-[34px] bg-brand-100 hover:bg-brand-100 text-brand-800 border-brand-200`}
                                 >
                                   <Edit3 className="w-3.5 h-3.5" />
                                   <span>تحديث الحالة</span>
@@ -3500,7 +3288,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                       {/* Desktop Table View (hidden md:block) */}
                       <div className="hidden md:block overflow-x-auto">
                         <table className="w-full text-right text-xs">
-                          <thead className={`font-bold border-b ${isLight ? 'bg-slate-100 text-slate-700' : 'bg-slate-950 text-slate-400'}`}>
+                          <thead className={`font-bold border-b bg-slate-100 text-slate-700`}>
                             <tr>
                               <th className="p-2 whitespace-nowrap">رقم الطلب</th>
                               <th className="p-2 min-w-[130px] max-w-[180px]">العطل</th>
@@ -3513,67 +3301,59 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                               <th className="p-2 text-center whitespace-nowrap">الإجراءات</th>
                             </tr>
                           </thead>
-                          <tbody className={`divide-y ${isLight ? 'divide-slate-200' : 'divide-slate-800/40'}`}>
+                          <tbody className={`divide-y divide-slate-200`}>
                             {maintenanceRequests
                               .filter((r) => r.unitCode === showUnitArchiveModal.code)
                               .map((req) => (
-                                <tr key={req.id} className={isLight ? 'hover:bg-slate-100/80' : 'hover:bg-slate-800/30'}>
+                                <tr key={req.id} className={'hover:bg-slate-100/80'}>
                                   <td className="p-2 whitespace-nowrap">
                                     <div className="space-y-0.5">
-                                      <div className={`font-mono font-bold text-[11px] ${isLight ? 'text-amber-700' : 'text-amber-400'}`}>
+                                      <div className={`font-mono font-bold text-[11px] text-brand-700`}>
                                         {toArabicDigits(req.id)}
                                       </div>
-                                      <div className={`text-[10px] font-mono ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                                      <div className={`text-[10px] font-mono text-slate-500`}>
                                         {formatDateOnly(req.createdAt)}
                                       </div>
                                     </div>
                                   </td>
                                   <td className="p-2 max-w-[180px]">
-                                    <div className={`font-bold text-xs line-clamp-2 ${isLight ? 'text-slate-900' : 'text-slate-100'}`} title={req.issue}>{req.issue}</div>
+                                    <div className={`font-bold text-xs line-clamp-2 text-slate-900`} title={req.issue}>{req.issue}</div>
                                     <div className="mt-0.5">
                                       <span className={`px-1.5 py-0.2 rounded text-[9px] ${
                                         req.priority === 'critical'
-                                          ? isLight ? 'bg-red-100 text-red-800' : 'bg-red-500/20 text-red-400'
-                                          : isLight ? 'bg-blue-100 text-blue-800' : 'bg-blue-500/20 text-blue-400'
+                                          ? 'bg-red-100 text-red-800'
+                                          : 'bg-blue-100 text-blue-800'
                                       }`}>
                                         {req.priority === 'critical' ? 'حرج' : 'عادي'}
                                       </span>
                                     </div>
                                   </td>
                                   <td className="p-2 whitespace-nowrap">
-                                    <span className={`px-2 py-0.5 rounded-lg text-[10px] font-bold ${isLight ? 'bg-amber-100 text-amber-900 border border-amber-300' : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'}`}>
+                                    <span className={`px-2 py-0.5 rounded-lg text-[10px] font-bold bg-brand-100 text-brand-800 border border-brand-200`}>
                                       {req.maintenanceDepartment || 'الصيانة العامة'}
                                     </span>
                                   </td>
                                   <td className="p-2 whitespace-nowrap">
                                     {req.status === 'completed' ? (
-                                      <span className={`px-2 py-0.5 rounded font-bold border text-[10px] ${
-                                        isLight ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
-                                      }`}>
+                                      <span className={`px-2 py-0.5 rounded font-bold border text-[10px] bg-emerald-100 text-emerald-800 border-emerald-200`}>
                                         منجز
                                       </span>
                                     ) : req.status === 'rejected' ? (
-                                      <span className={`px-2 py-0.5 rounded font-bold border text-[10px] ${
-                                        isLight ? 'bg-rose-100 text-rose-800 border-rose-300' : 'bg-rose-500/20 text-rose-400 border-rose-500/30'
-                                      }`}>
+                                      <span className={`px-2 py-0.5 rounded font-bold border text-[10px] bg-rose-100 text-rose-800 border-rose-200`}>
                                         مرفوض
                                       </span>
                                     ) : req.status === 'cancelled' ? (
-                                      <span className={`px-2 py-0.5 rounded font-bold border text-[10px] ${
-                                        isLight ? 'bg-slate-200 text-slate-700 border-slate-300' : 'bg-slate-500/20 text-slate-400 border-slate-500/30'
-                                      }`}>
+                                      <span className={`px-2 py-0.5 rounded font-bold border text-[10px] bg-slate-200 text-slate-700 border-slate-300`}>
                                         ملغى
                                       </span>
                                     ) : (
-                                      <span className={`px-2 py-0.5 rounded font-bold border text-[10px] ${
-                                        isLight ? 'bg-amber-100 text-amber-800 border-amber-300' : 'bg-amber-500/20 text-amber-400 border-amber-500/30'
-                                      }`}>
+                                      <span className={`px-2 py-0.5 rounded font-bold border text-[10px] bg-brand-100 text-brand-800 border-brand-200`}>
                                         قيد المعالجة
                                       </span>
                                     )}
                                   </td>
-                                  <td className={`p-2 font-mono text-[11px] font-semibold whitespace-nowrap ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>{getCompletionOrCancellationDate(req.completedAt, req.status)}</td>
-                                  <td className={`p-2 font-bold text-[11px] text-center whitespace-nowrap ${isLight ? 'text-amber-700' : 'text-amber-400'}`}>{calculateMaintenanceDurationDays(req.createdAt, req.completedAt, req.status)}</td>
+                                  <td className={`p-2 font-mono text-[11px] font-semibold whitespace-nowrap text-slate-700`}>{getCompletionOrCancellationDate(req.completedAt, req.status)}</td>
+                                  <td className={`p-2 font-bold text-[11px] text-center whitespace-nowrap text-brand-700`}>{calculateMaintenanceDurationDays(req.createdAt, req.completedAt, req.status)}</td>
                                   <td className="p-2 text-center whitespace-nowrap">
                                     {req.attachmentUrl || req.attachmentName ? (
                                       <button
@@ -3589,25 +3369,21 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                                             size: '1.2 MB',
                                           });
                                         }}
-                                        className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-[10px] font-bold transition cursor-pointer border shadow-sm ${
-                                          isLight
-                                            ? 'bg-amber-50 text-amber-800 border-amber-300 hover:bg-amber-100'
-                                            : 'bg-amber-500/20 text-amber-300 border-amber-500/40 hover:bg-amber-500/30'
-                                        }`}
+                                        className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-[10px] font-bold transition cursor-pointer border shadow-sm bg-brand-50 text-brand-800 border-brand-200 hover:bg-brand-100`}
                                         title="معاينة صورة أو مرفق طلب الصيانة"
                                       >
                                         <Eye className="w-3.5 h-3.5" />
                                         <span className="truncate max-w-[80px]">{req.attachmentName || 'معاينة'}</span>
                                       </button>
                                     ) : (
-                                      <span className="text-slate-400 text-[10px]">لا يوجد مرفق</span>
+                                      <span className="text-slate-500 text-[10px]">لا يوجد مرفق</span>
                                     )}
                                   </td>
                                   <td className="p-2 max-w-[150px]">
                                     {req.resolutionNotes ? (
-                                      <span className={`text-[10px] line-clamp-2 block ${isLight ? 'text-slate-700' : 'text-slate-300'}`} title={req.resolutionNotes}>{req.resolutionNotes}</span>
+                                      <span className={`text-[10px] line-clamp-2 block text-slate-700`} title={req.resolutionNotes}>{req.resolutionNotes}</span>
                                     ) : (
-                                      <span className="text-slate-400 text-[10px]">لا توجد ملاحظات</span>
+                                      <span className="text-slate-500 text-[10px]">لا توجد ملاحظات</span>
                                     )}
                                   </td>
                                   <td className="p-2 text-center whitespace-nowrap">
@@ -3618,11 +3394,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                                         setMaintResolutionNotes(req.resolutionNotes || '');
                                         setMaintCompletedDate(req.completedAt?.split(' ')[0] || new Date().toISOString().split('T')[0]);
                                       }}
-                                      className={`px-2.5 py-1 rounded-lg text-[10px] font-bold cursor-pointer transition whitespace-nowrap border ${
-                                        isLight
-                                          ? 'bg-amber-100 hover:bg-amber-200 text-amber-900 border-amber-300'
-                                          : 'bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 border-amber-500/30'
-                                      }`}
+                                      className={`px-2.5 py-1 rounded-lg text-[10px] font-bold cursor-pointer transition whitespace-nowrap border bg-brand-100 hover:bg-brand-100 text-brand-800 border-brand-200`}
                                     >
                                       تحديث الحالة
                                     </button>
@@ -3639,12 +3411,10 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
             </div>
 
             {/* Footer with Actions */}
-            <div className={`flex flex-col sm:flex-row items-center justify-between gap-2.5 sm:gap-3 pt-3 border-t shrink-0 ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
+            <div className={`flex flex-col sm:flex-row items-center justify-between gap-2.5 sm:gap-3 pt-3 border-t shrink-0 border-slate-200`}>
               <button
                 onClick={() => window.print()}
-                className={`w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs font-bold border flex items-center justify-center gap-1.5 transition cursor-pointer min-h-[40px] ${
-                  isLight ? 'bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-300' : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700'
-                }`}
+                className={`w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs font-bold border flex items-center justify-center gap-1.5 transition cursor-pointer min-h-[40px] bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-300`}
               >
                 <Printer className="w-4 h-4" />
                 <span>طباعة أرشيف الوحدة الشامل</span>
@@ -3657,7 +3427,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                       setShowUnitArchiveModal(null);
                       onNavigateTab('reports');
                     }}
-                    className="flex-1 sm:flex-initial px-4 py-2.5 bg-amber-500 text-slate-950 rounded-xl text-xs font-black hover:bg-amber-400 flex items-center justify-center gap-1.5 transition cursor-pointer min-h-[40px]"
+                    className="flex-1 sm:flex-initial px-4 py-2.5 bg-brand-700 text-on-brand rounded-xl text-xs font-black hover:bg-brand-800 flex items-center justify-center gap-1.5 transition cursor-pointer min-h-[40px]"
                   >
                     <ExternalLink className="w-4 h-4" />
                     <span>الاطلاع عبر التقارير</span>
@@ -3666,9 +3436,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
 
                 <button
                   onClick={() => setShowUnitArchiveModal(null)}
-                  className={`flex-1 sm:flex-initial px-4 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer min-h-[40px] flex items-center justify-center ${
-                    isLight ? 'bg-slate-200 text-slate-800 hover:bg-slate-300' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
-                  }`}
+                  className={`flex-1 sm:flex-initial px-4 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer min-h-[40px] flex items-center justify-center bg-slate-200 text-slate-800 hover:bg-slate-300`}
                 >
                   إغلاق النافذة
                 </button>
@@ -3680,32 +3448,30 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
 
       {/* MODAL 5: DATA ENTRY MAINTENANCE EDIT MODAL */}
       {editMaintenanceReq && (
-        <div className={`fixed inset-0 z-50 backdrop-blur-sm flex items-center justify-center p-2.5 sm:p-4 overflow-y-auto ${isLight ? 'bg-slate-900/40' : 'bg-slate-950/80'}`}>
-          <div className={`rounded-2xl sm:rounded-3xl p-4 sm:p-6 w-full max-w-lg space-y-3.5 sm:space-y-4 shadow-2xl relative my-2 sm:my-8 border ${isLight ? 'bg-white border-slate-200 text-slate-900' : 'bg-slate-900 border-slate-800 text-slate-100'}`}>
-            <div className={`flex items-center justify-between border-b pb-3 ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
-              <h3 className={`font-bold text-sm sm:text-base ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+        <div className={`fixed inset-0 z-50 backdrop-blur-sm flex items-center justify-center p-2.5 sm:p-4 overflow-y-auto bg-slate-900/40`}>
+          <div className={`rounded-2xl sm:rounded-3xl p-4 sm:p-6 w-full max-w-lg space-y-3.5 sm:space-y-4 shadow-2xl relative my-2 sm:my-8 border bg-card border-slate-200 text-slate-900`}>
+            <div className={`flex items-center justify-between border-b pb-3 border-slate-200`}>
+              <h3 className={`font-bold text-sm sm:text-base text-slate-900`}>
                 معالجة وتغيير حالة طلب الصيانة ({toArabicDigits(editMaintenanceReq.id)})
               </h3>
-              <button onClick={() => setEditMaintenanceReq(null)} className={`p-1.5 rounded-lg cursor-pointer ${isLight ? 'text-slate-400 hover:text-slate-700 hover:bg-slate-100' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'}`}>
+              <button onClick={() => setEditMaintenanceReq(null)} className={`p-1.5 rounded-lg cursor-pointer text-slate-400 hover:text-slate-700 hover:bg-slate-100`}>
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleSaveMaintenanceResolution} className="space-y-3 text-xs">
-              <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl text-amber-400 font-bold leading-relaxed">
+              <div className="p-3 bg-brand-50 border border-brand-200 rounded-xl text-brand-700 font-bold leading-relaxed">
                 الوحدة: {toArabicDigits(editMaintenanceReq.unitCode)} | المشكلة: {editMaintenanceReq.issue}
               </div>
 
               <div>
-                <label className={`block font-bold mb-1 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                <label className={`block font-bold mb-1 text-slate-700`}>
                   تعديل حالة طلب الصيانة:
                 </label>
                 <select
                   value={maintNewStatus}
                   onChange={(e) => setMaintNewStatus(e.target.value as MaintenanceStatus)}
-                  className={`w-full rounded-xl p-2.5 font-bold outline-none border text-xs sm:text-sm ${
-                    isLight ? 'bg-slate-50 border-slate-200 text-slate-900' : 'bg-slate-950 border-slate-800 text-slate-100'
-                  }`}
+                  className={`w-full rounded-xl p-2.5 font-bold outline-none border text-xs sm:text-sm bg-slate-50 border-slate-200 text-slate-900`}
                 >
                   <option value="completed">تمت المعالجة و الانجاز</option>
                   <option value="rejected">تم رفض طلب الصيانة</option>
@@ -3714,21 +3480,19 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
               </div>
 
               <div>
-                <label className={`block font-bold mb-1 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                <label className={`block font-bold mb-1 text-slate-700`}>
                   تاريخ الإنجاز أو الإلغاء:
                 </label>
                 <input
                   type="date"
                   value={maintCompletedDate}
                   onChange={(e) => setMaintCompletedDate(e.target.value)}
-                  className={`w-full rounded-xl p-2.5 font-mono font-bold outline-none border text-xs sm:text-sm ${
-                    isLight ? 'bg-slate-50 border-slate-200 text-slate-900' : 'bg-slate-950 border-slate-800 text-slate-100'
-                  }`}
+                  className={`w-full rounded-xl p-2.5 font-mono font-bold outline-none border text-xs sm:text-sm bg-slate-50 border-slate-200 text-slate-900`}
                 />
               </div>
 
               <div>
-                <label className={`block font-bold mb-1 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                <label className={`block font-bold mb-1 text-slate-700`}>
                   ملاحظات وتفاصيل المعالجة والإصلاح:
                 </label>
                 <textarea
@@ -3736,25 +3500,21 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                   onChange={(e) => setMaintResolutionNotes(e.target.value)}
                   placeholder="سجل التفاصيل الفنية لأعمال الإصلاح والصيانة المنفذة..."
                   rows={3}
-                  className={`w-full rounded-xl p-2.5 outline-none border text-xs sm:text-sm leading-relaxed ${
-                    isLight ? 'bg-slate-50 border-slate-200 text-slate-900' : 'bg-slate-950 border-slate-800 text-slate-100'
-                  }`}
+                  className={`w-full rounded-xl p-2.5 outline-none border text-xs sm:text-sm leading-relaxed bg-slate-50 border-slate-200 text-slate-900`}
                 />
               </div>
 
-              <div className={`flex flex-col-reverse sm:flex-row items-center justify-end gap-2.5 sm:gap-3 pt-3 border-t ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
+              <div className={`flex flex-col-reverse sm:flex-row items-center justify-end gap-2.5 sm:gap-3 pt-3 border-t border-slate-200`}>
                 <button
                   type="button"
                   onClick={() => setEditMaintenanceReq(null)}
-                  className={`w-full sm:w-auto px-4 py-2.5 rounded-xl font-bold transition cursor-pointer min-h-[40px] flex items-center justify-center ${
-                    isLight ? 'bg-slate-100 text-slate-700 hover:bg-slate-200' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
-                  }`}
+                  className={`w-full sm:w-auto px-4 py-2.5 rounded-xl font-bold transition cursor-pointer min-h-[40px] flex items-center justify-center bg-slate-100 text-slate-700 hover:bg-slate-200`}
                 >
                   إلغاء
                 </button>
                 <button
                   type="submit"
-                  className="w-full sm:w-auto px-5 py-2.5 bg-amber-500 text-slate-950 font-black rounded-xl hover:bg-amber-400 transition cursor-pointer min-h-[40px] flex items-center justify-center shadow-md shadow-amber-500/20"
+                  className="w-full sm:w-auto px-5 py-2.5 bg-brand-700 text-on-brand font-black rounded-xl hover:bg-brand-800 transition cursor-pointer min-h-[40px] flex items-center justify-center shadow-md "
                 >
                   حفظ وتحديث حالة الصيانة
                 </button>
@@ -3766,56 +3526,50 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
 
       {/* MODAL 5: DELETE CONFIRMATION MODAL */}
       {deleteConfirmSchedule && (
-        <div className={`fixed inset-0 z-50 backdrop-blur-sm flex items-center justify-center p-2.5 sm:p-4 overflow-y-auto ${isLight ? 'bg-slate-900/40' : 'bg-slate-950/80'}`}>
-          <div className={`rounded-2xl sm:rounded-3xl p-4 sm:p-6 w-full max-w-md space-y-4 sm:space-y-5 shadow-2xl relative my-2 sm:my-8 border ${
-            isLight ? 'bg-white border-red-200 text-slate-900' : 'bg-slate-900 border-red-500/30 text-slate-100'
-          }`}>
+        <div className={`fixed inset-0 z-50 backdrop-blur-sm flex items-center justify-center p-2.5 sm:p-4 overflow-y-auto bg-slate-900/40`}>
+          <div className={`rounded-2xl sm:rounded-3xl p-4 sm:p-6 w-full max-w-md space-y-4 sm:space-y-5 shadow-2xl relative my-2 sm:my-8 border bg-card border-red-200 text-slate-900`}>
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-red-500/10 border border-red-500/30 text-red-500 flex items-center justify-center shrink-0 font-bold">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-red-500/10 border border-red-500/30 text-red-600 flex items-center justify-center shrink-0 font-bold">
                 <AlertTriangle className="w-5 h-5 sm:w-6 sm:h-6" />
               </div>
               <div>
-                <h3 className={`font-black text-sm sm:text-base ${isLight ? 'text-red-900' : 'text-red-400'}`}>
+                <h3 className={`font-black text-sm sm:text-base text-red-900`}>
                   تأكيد حذف جدول الكشف الدوري
                 </h3>
-                <p className={`text-[11px] sm:text-xs ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                <p className={`text-[11px] sm:text-xs text-slate-500`}>
                   تنبيه: إجراء الحذف نهائي
                 </p>
               </div>
             </div>
 
-            <div className={`p-3 sm:p-3.5 rounded-xl sm:rounded-2xl border space-y-2 text-xs ${
-              isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-950 border-slate-800'
-            }`}>
+            <div className={`p-3 sm:p-3.5 rounded-xl sm:rounded-2xl border space-y-2 text-xs bg-slate-50 border-slate-200`}>
               <div className="flex items-center justify-between gap-2">
-                <span className="text-slate-400 font-bold shrink-0">الوحدة الهندسية:</span>
+                <span className="text-slate-500 font-bold shrink-0">الوحدة الهندسية:</span>
                 <span className="font-extrabold truncate text-left">{deleteConfirmSchedule.unitCode} - {deleteConfirmSchedule.unitName}</span>
               </div>
-              <div className="flex items-center justify-between gap-2 border-t border-slate-800/30 pt-1.5">
-                <span className="text-slate-400 font-bold shrink-0">عنوان الكشف:</span>
+              <div className="flex items-center justify-between gap-2 border-t border-slate-200 pt-1.5">
+                <span className="text-slate-500 font-bold shrink-0">عنوان الكشف:</span>
                 <span className="font-bold truncate text-left">{deleteConfirmSchedule.title}</span>
               </div>
-              <div className="flex items-center justify-between gap-2 border-t border-slate-800/30 pt-1.5">
-                <span className="text-slate-400 font-bold shrink-0">الموقع:</span>
+              <div className="flex items-center justify-between gap-2 border-t border-slate-200 pt-1.5">
+                <span className="text-slate-500 font-bold shrink-0">الموقع:</span>
                 <span className="font-bold truncate text-left">محافظة {deleteConfirmSchedule.governorate} | حقل {deleteConfirmSchedule.field}</span>
               </div>
-              <div className="flex items-center justify-between gap-2 border-t border-slate-800/30 pt-1.5">
-                <span className="text-slate-400 font-bold shrink-0">الموعد القادم:</span>
-                <span className="font-mono font-bold text-amber-500">{toArabicDigits(deleteConfirmSchedule.nextDueDate)}</span>
+              <div className="flex items-center justify-between gap-2 border-t border-slate-200 pt-1.5">
+                <span className="text-slate-500 font-bold shrink-0">الموعد القادم:</span>
+                <span className="font-mono font-bold text-brand-700">{toArabicDigits(deleteConfirmSchedule.nextDueDate)}</span>
               </div>
             </div>
 
-            <p className={`text-xs leading-relaxed ${isLight ? 'text-slate-600' : 'text-slate-300'}`}>
+            <p className={`text-xs leading-relaxed text-slate-600`}>
               هل أنت متأكد من رغبتك في حذف هذا الجدول من قائمة المعاينات الدوريّة؟ لن تتمكن من التراجع عن هذا الإجراء.
             </p>
 
-            <div className={`flex flex-col-reverse sm:flex-row items-center justify-end gap-2.5 sm:gap-3 pt-3 border-t ${isLight ? 'border-slate-200' : 'border-slate-800'}`}>
+            <div className={`flex flex-col-reverse sm:flex-row items-center justify-end gap-2.5 sm:gap-3 pt-3 border-t border-slate-200`}>
               <button
                 type="button"
                 onClick={() => setDeleteConfirmSchedule(null)}
-                className={`w-full sm:w-auto px-4 py-2.5 rounded-xl font-bold text-xs transition cursor-pointer min-h-[40px] flex items-center justify-center ${
-                  isLight ? 'bg-slate-100 text-slate-700 hover:bg-slate-200' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
-                }`}
+                className={`w-full sm:w-auto px-4 py-2.5 rounded-xl font-bold text-xs transition cursor-pointer min-h-[40px] flex items-center justify-center bg-slate-100 text-slate-700 hover:bg-slate-200`}
               >
                 إلغاء
               </button>

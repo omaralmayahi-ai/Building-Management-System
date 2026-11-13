@@ -97,23 +97,19 @@ export const QuickAddOrgEntityModal: React.FC<QuickAddOrgEntityModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 z-[110] overflow-y-auto">
+    <div className="fixed inset-0 bg-card/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 z-[110] overflow-y-auto">
       <div
-        className={`max-w-lg w-full p-4 sm:p-6 rounded-2xl border shadow-2xl transition-all max-h-[92vh] flex flex-col ${
-          isLight ? 'bg-white border-slate-200 text-slate-900' : 'bg-slate-900 border-slate-800 text-slate-100'
-        }`}
+        className={`max-w-lg w-full p-4 sm:p-6 rounded-2xl border shadow-2xl transition-all max-h-[92vh] flex flex-col bg-card border-slate-200 text-slate-900`}
       >
         {/* Header */}
-        <div className={`flex items-center justify-between pb-3 border-b mb-3 shrink-0 ${
-          isLight ? 'border-slate-200' : 'border-slate-800/30'
-        }`}>
+        <div className={`flex items-center justify-between pb-3 border-b mb-3 shrink-0 border-slate-200`}>
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-amber-500/10 text-amber-500">
+            <div className="p-2 rounded-xl bg-brand-50 text-brand-700">
               <Building2 className="w-5 h-5" />
             </div>
             <div>
               <h3 className="font-extrabold text-sm">إضافة جهة شاغلة جديدة وربطها بالهيكل التنظيمي</h3>
-              <p className={`text-[11px] ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+              <p className={`text-[11px] text-slate-500`}>
                 ربط التشكيل مباشرة في شجرة المؤسسة وتحديث القوة البشرية
               </p>
             </div>
@@ -121,16 +117,14 @@ export const QuickAddOrgEntityModal: React.FC<QuickAddOrgEntityModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className={`p-1.5 rounded-lg transition cursor-pointer ${
-              isLight ? 'hover:bg-slate-100 text-slate-500' : 'hover:bg-slate-800 text-slate-400'
-            }`}
+            className={`p-1.5 rounded-lg transition cursor-pointer hover:bg-slate-100 text-slate-500`}
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
         {errorMsg && (
-          <div className="mb-3 p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs flex items-center gap-2 font-bold shrink-0">
+          <div className="mb-3 p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-600 text-xs flex items-center gap-2 font-bold shrink-0">
             <AlertCircle className="w-4 h-4 shrink-0" />
             <span>{errorMsg}</span>
           </div>
@@ -139,8 +133,8 @@ export const QuickAddOrgEntityModal: React.FC<QuickAddOrgEntityModalProps> = ({
         <form onSubmit={handleSubmit} className="space-y-4 text-xs overflow-y-auto flex-1 pr-1">
           {/* Entity Name */}
           <div>
-            <label className={`block font-bold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
-              اسم الجهة / التشكيل الجديد <span className="text-rose-500">*</span>
+            <label className={`block font-bold mb-1.5 text-slate-700`}>
+              اسم الجهة / التشكيل الجديد <span className="text-rose-600">*</span>
             </label>
             <input
               type="text"
@@ -150,17 +144,15 @@ export const QuickAddOrgEntityModal: React.FC<QuickAddOrgEntityModalProps> = ({
                 setErrorMsg('');
               }}
               placeholder="مثال: قسم صيانة الآبار والمعدات / شعبة الأبنية"
-              className={`w-full border rounded-xl p-3 font-bold focus:border-amber-500 outline-none transition ${
-                isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-slate-950 border-slate-800 text-slate-100'
-              }`}
+              className={`w-full border rounded-xl p-3 font-bold focus:border-brand-600 outline-none transition bg-slate-50 border-slate-300 text-slate-900`}
               autoFocus
             />
           </div>
 
           {/* Parent Entity Selection (Mandatory for Org Structure Linking) */}
           <div>
-            <label className={`block font-bold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
-              الجهة الأم (الارتباط في الهيكل التنظيمي) <span className="text-rose-500">*</span>
+            <label className={`block font-bold mb-1.5 text-slate-700`}>
+              الجهة الأم (الارتباط في الهيكل التنظيمي) <span className="text-rose-600">*</span>
             </label>
             <div className="relative">
               <select
@@ -169,9 +161,7 @@ export const QuickAddOrgEntityModal: React.FC<QuickAddOrgEntityModalProps> = ({
                   setParentId(e.target.value);
                   setErrorMsg('');
                 }}
-                className={`w-full border rounded-xl p-3 font-bold focus:border-amber-500 outline-none transition cursor-pointer ${
-                  isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-slate-950 border-slate-800 text-slate-100'
-                }`}
+                className={`w-full border rounded-xl p-3 font-bold focus:border-brand-600 outline-none transition cursor-pointer bg-slate-50 border-slate-300 text-slate-900`}
               >
                 {activeEntities.map((ent) => (
                   <option key={ent.id} value={ent.id}>
@@ -180,7 +170,7 @@ export const QuickAddOrgEntityModal: React.FC<QuickAddOrgEntityModalProps> = ({
                 ))}
               </select>
             </div>
-            <p className={`text-[11px] mt-1 flex items-center gap-1 ${isLight ? 'text-amber-700' : 'text-amber-400'}`}>
+            <p className={`text-[11px] mt-1 flex items-center gap-1 text-brand-700`}>
               <GitFork className="w-3 h-3 shrink-0" />
               <span>شرط ربط التشكيل بالهيكل التنظيمي لتوثيق التبعية وسلسلة المراجع الرسمية.</span>
             </p>
@@ -189,15 +179,13 @@ export const QuickAddOrgEntityModal: React.FC<QuickAddOrgEntityModalProps> = ({
           {/* Grid Level & Employee Count */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className={`block font-bold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+              <label className={`block font-bold mb-1.5 text-slate-700`}>
                 المستوى التنظيمي:
               </label>
               <select
                 value={level}
                 onChange={(e) => setLevel(e.target.value as OrgLevel)}
-                className={`w-full border rounded-xl p-2.5 font-bold focus:border-amber-500 outline-none transition cursor-pointer ${
-                  isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-slate-950 border-slate-800 text-slate-100'
-                }`}
+                className={`w-full border rounded-xl p-2.5 font-bold focus:border-brand-600 outline-none transition cursor-pointer bg-slate-50 border-slate-300 text-slate-900`}
               >
                 {Object.entries(levelLabels).map(([lvlKey, lvlName]) => (
                   <option key={lvlKey} value={lvlKey}>
@@ -208,7 +196,7 @@ export const QuickAddOrgEntityModal: React.FC<QuickAddOrgEntityModalProps> = ({
             </div>
 
             <div>
-              <label className={`block font-bold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+              <label className={`block font-bold mb-1.5 text-slate-700`}>
                 عدد موظفي/كادر التشكيل:
               </label>
               <div className="relative">
@@ -217,11 +205,9 @@ export const QuickAddOrgEntityModal: React.FC<QuickAddOrgEntityModalProps> = ({
                   min="0"
                   value={employeeCount}
                   onChange={(e) => setEmployeeCount(Math.max(0, parseInt(e.target.value) || 0))}
-                  className={`w-full border rounded-xl p-2.5 font-bold focus:border-amber-500 outline-none transition ${
-                    isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-slate-950 border-slate-800 text-slate-100'
-                  }`}
+                  className={`w-full border rounded-xl p-2.5 font-bold focus:border-brand-600 outline-none transition bg-slate-50 border-slate-300 text-slate-900`}
                 />
-                <span className="absolute left-3 top-2.5 text-slate-400 text-xs">
+                <span className="absolute left-3 top-2.5 text-slate-500 text-xs">
                   <Users className="w-4 h-4 inline" />
                 </span>
               </div>
@@ -230,7 +216,7 @@ export const QuickAddOrgEntityModal: React.FC<QuickAddOrgEntityModalProps> = ({
 
           {/* Code */}
           <div>
-            <label className={`block font-bold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+            <label className={`block font-bold mb-1.5 text-slate-700`}>
               رمز التشكيل (اختياري):
             </label>
             <input
@@ -238,28 +224,22 @@ export const QuickAddOrgEntityModal: React.FC<QuickAddOrgEntityModalProps> = ({
               value={code}
               onChange={(e) => setCode(e.target.value)}
               placeholder="مثال: DEP-AHD-01"
-              className={`w-full border rounded-xl p-2.5 font-mono font-bold focus:border-amber-500 outline-none transition ${
-                isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-slate-950 border-slate-800 text-slate-100'
-              }`}
+              className={`w-full border rounded-xl p-2.5 font-mono font-bold focus:border-brand-600 outline-none transition bg-slate-50 border-slate-300 text-slate-900`}
             />
           </div>
 
           {/* Footer Actions */}
-          <div className={`flex items-center justify-end gap-2 pt-3 border-t ${
-            isLight ? 'border-slate-200' : 'border-slate-800/30'
-          }`}>
+          <div className={`flex items-center justify-end gap-2 pt-3 border-t border-slate-200`}>
             <button
               type="button"
               onClick={onClose}
-              className={`px-4 py-2 rounded-xl font-bold transition cursor-pointer ${
-                isLight ? 'bg-slate-100 text-slate-700 hover:bg-slate-200' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
-              }`}
+              className={`px-4 py-2 rounded-xl font-bold transition cursor-pointer bg-slate-100 text-slate-700 hover:bg-slate-200`}
             >
               إلغاء
             </button>
             <button
               type="submit"
-              className="px-5 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-xl transition cursor-pointer shadow-lg shadow-amber-500/20 flex items-center gap-1.5"
+              className="px-5 py-2 bg-brand-700 hover:bg-brand-800 text-on-brand font-black rounded-xl transition cursor-pointer shadow-lg flex items-center gap-1.5"
             >
               <Plus className="w-4 h-4" />
               <span>حفظ التشكيل بالهيكل التنظيمي</span>

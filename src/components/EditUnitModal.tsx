@@ -420,23 +420,23 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
   const getFileIcon = (typeStr: string) => {
     switch (typeStr.toLowerCase()) {
       case 'pdf':
-        return <FileText className="w-5 h-5 text-rose-500 shrink-0" />;
+        return <FileText className="w-5 h-5 text-rose-600 shrink-0" />;
       case 'dwg':
       case 'cad':
-        return <FileCode className="w-5 h-5 text-indigo-400 shrink-0" />;
+        return <FileCode className="w-5 h-5 text-indigo-600 shrink-0" />;
       case 'image':
       case 'png':
       case 'jpg':
-        return <Image className="w-5 h-5 text-emerald-400 shrink-0" />;
+        return <Image className="w-5 h-5 text-emerald-600 shrink-0" />;
       case 'doc':
       case 'docx':
-        return <FileCheck className="w-5 h-5 text-sky-400 shrink-0" />;
+        return <FileCheck className="w-5 h-5 text-sky-600 shrink-0" />;
       case 'archive':
       case 'zip':
       case 'rar':
-        return <FolderArchive className="w-5 h-5 text-amber-400 shrink-0" />;
+        return <FolderArchive className="w-5 h-5 text-brand-700 shrink-0" />;
       default:
-        return <Paperclip className="w-5 h-5 text-amber-500 shrink-0" />;
+        return <Paperclip className="w-5 h-5 text-brand-700 shrink-0" />;
     }
   };
 
@@ -691,32 +691,26 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-1.5 sm:p-4 overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-card/80 backdrop-blur-md p-1.5 sm:p-4 overflow-y-auto">
       <div
-        className={`w-full max-w-5xl rounded-2xl sm:rounded-3xl border shadow-2xl overflow-hidden my-auto max-h-[96dvh] sm:max-h-[92vh] flex flex-col transition-all ${
-          isLight
-            ? 'bg-white border-slate-200 text-slate-900'
-            : 'bg-slate-950 border-slate-800 text-slate-100'
-        }`}
+        className={`w-full max-w-5xl rounded-2xl sm:rounded-3xl border shadow-2xl overflow-hidden my-auto max-h-[96dvh] sm:max-h-[92vh] flex flex-col transition-all bg-card border-slate-200 text-slate-900`}
       >
         {/* Header */}
         <div
-          className={`px-3 sm:px-6 py-2.5 sm:py-4 border-b flex items-center justify-between gap-2.5 shrink-0 ${
-            isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-900 border-slate-800'
-          }`}
+          className={`px-3 sm:px-6 py-2.5 sm:py-4 border-b flex items-center justify-between gap-2.5 shrink-0 bg-slate-50 border-slate-200`}
         >
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-amber-500 text-slate-950 flex items-center justify-center font-bold shadow-md shrink-0">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-brand-700 text-on-brand flex items-center justify-center font-bold shadow-md shrink-0">
               <Edit3 className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
                 <h3 className="text-xs sm:text-base font-black truncate">تعديل بيانات وتصميم المنشأة (3D)</h3>
-                <span className="font-mono text-[10px] sm:text-xs px-2 py-0.5 rounded-full font-bold bg-amber-500/20 text-amber-500 border border-amber-500/30">
+                <span className="font-mono text-[10px] sm:text-xs px-2 py-0.5 rounded-full font-bold bg-brand-100 text-brand-700 border border-brand-200">
                   {toArabicDigits(unit.code)}
                 </span>
               </div>
-              <p className={`text-[10px] sm:text-xs mt-0.5 truncate hidden sm:block ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+              <p className={`text-[10px] sm:text-xs mt-0.5 truncate hidden sm:block text-slate-600`}>
                 تحديث شامل مطابق لاستمارة تسجيل الوحدات الجديدة (الهوية، أبعاد 3D، الإحداثيات، الغرف، والمعدات)
               </p>
             </div>
@@ -724,27 +718,21 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
 
           <button
             onClick={onClose}
-            className={`p-1.5 sm:p-2 rounded-xl transition cursor-pointer shrink-0 ${
-              isLight
-                ? 'hover:bg-slate-200 text-slate-600'
-                : 'hover:bg-slate-800 text-slate-400 hover:text-white'
-            }`}
+            className={`p-1.5 sm:p-2 rounded-xl transition cursor-pointer shrink-0 hover:bg-slate-200 text-slate-600`}
           >
             <X className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
         </div>
 
         {/* Tab Navigation Ribbon - Responsive with Smooth Mobile Sliding */}
-        <div className={`px-2.5 sm:px-6 py-1.5 sm:py-2 border-b flex items-center gap-1 sm:gap-2 overflow-x-auto text-xs font-bold shrink-0 scrollbar-none ${
-          isLight ? 'bg-slate-100/80 border-slate-200' : 'bg-slate-900/60 border-slate-800/80'
-        }`}>
+        <div className={`px-2.5 sm:px-6 py-1.5 sm:py-2 border-b flex items-center gap-1 sm:gap-2 overflow-x-auto text-xs font-bold shrink-0 scrollbar-none bg-slate-100/80 border-slate-200`}>
           <button
             type="button"
             onClick={() => setActiveTab('basic')}
             className={`px-2.5 sm:px-3.5 py-1.5 rounded-xl transition flex items-center gap-1 sm:gap-1.5 cursor-pointer whitespace-nowrap text-xs shrink-0 ${
               activeTab === 'basic'
-                ? 'bg-amber-500 text-slate-950 font-black shadow-sm'
-                : isLight ? 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/70' : 'text-slate-400 hover:text-white hover:bg-slate-800/80'
+                ? 'bg-brand-700 text-on-brand font-black shadow-sm'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/70'
             }`}
           >
             <Building className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
@@ -757,8 +745,8 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
             onClick={() => setActiveTab('shape3d')}
             className={`px-2.5 sm:px-3.5 py-1.5 rounded-xl transition flex items-center gap-1 sm:gap-1.5 cursor-pointer whitespace-nowrap text-xs shrink-0 ${
               activeTab === 'shape3d'
-                ? 'bg-amber-500 text-slate-950 font-black shadow-sm'
-                : isLight ? 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/70' : 'text-slate-400 hover:text-white hover:bg-slate-800/80'
+                ? 'bg-brand-700 text-on-brand font-black shadow-sm'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/70'
             }`}
           >
             <Box className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
@@ -771,8 +759,8 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
             onClick={() => setActiveTab('location')}
             className={`px-2.5 sm:px-3.5 py-1.5 rounded-xl transition flex items-center gap-1 sm:gap-1.5 cursor-pointer whitespace-nowrap text-xs shrink-0 ${
               activeTab === 'location'
-                ? 'bg-amber-500 text-slate-950 font-black shadow-sm'
-                : isLight ? 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/70' : 'text-slate-400 hover:text-white hover:bg-slate-800/80'
+                ? 'bg-brand-700 text-on-brand font-black shadow-sm'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/70'
             }`}
           >
             <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
@@ -785,8 +773,8 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
             onClick={() => setActiveTab('rooms')}
             className={`px-2.5 sm:px-3.5 py-1.5 rounded-xl transition flex items-center gap-1 sm:gap-1.5 cursor-pointer whitespace-nowrap text-xs shrink-0 ${
               activeTab === 'rooms'
-                ? 'bg-amber-500 text-slate-950 font-black shadow-sm'
-                : isLight ? 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/70' : 'text-slate-400 hover:text-white hover:bg-slate-800/80'
+                ? 'bg-brand-700 text-on-brand font-black shadow-sm'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/70'
             }`}
           >
             <Layers className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
@@ -799,8 +787,8 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
             onClick={() => setActiveTab('docs')}
             className={`px-2.5 sm:px-3.5 py-1.5 rounded-xl transition flex items-center gap-1 sm:gap-1.5 cursor-pointer whitespace-nowrap text-xs shrink-0 ${
               activeTab === 'docs'
-                ? 'bg-amber-500 text-slate-950 font-black shadow-sm'
-                : isLight ? 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/70' : 'text-slate-400 hover:text-white hover:bg-slate-800/80'
+                ? 'bg-brand-700 text-on-brand font-black shadow-sm'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/70'
             }`}
           >
             <Paperclip className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
@@ -815,28 +803,22 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
           {/* TAB 1: Basic Identity */}
           {activeTab === 'basic' && (
             <div
-              className={`p-5 rounded-2xl border space-y-4 ${
-                isLight ? 'bg-slate-50/70 border-slate-200' : 'bg-slate-900/60 border-slate-800'
-              }`}
+              className={`p-5 rounded-2xl border space-y-4 bg-slate-50/70 border-slate-200`}
             >
-              <h4 className="text-xs font-bold text-amber-500 flex items-center gap-2">
+              <h4 className="text-xs font-bold text-brand-700 flex items-center gap-2">
                 <Building className="w-4 h-4" />
                 <span>البيانات الأساسية والتعريفية للمنشأة</span>
               </h4>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
                 <div>
-                  <label className={`block font-bold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                  <label className={`block font-bold mb-1.5 text-slate-700`}>
                     فئة ونوع المنشأة المرجعي:
                   </label>
                   <select
                     value={type}
                     onChange={(e) => setType(e.target.value as UnitType)}
-                    className={`w-full border rounded-xl p-2.5 font-bold outline-none transition focus:border-amber-500 cursor-pointer ${
-                      isLight
-                        ? 'bg-white border-slate-300 text-slate-900'
-                        : 'bg-slate-950 border-slate-800 text-slate-100'
-                    }`}
+                    className={`w-full border rounded-xl p-2.5 font-bold outline-none transition focus:border-brand-600 cursor-pointer bg-card border-slate-300 text-slate-900`}
                   >
                     {unitTypes.length > 0 ? (
                       unitTypes.map((ut) => {
@@ -858,7 +840,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                 </div>
 
                 <div>
-                  <label className={`block font-bold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                  <label className={`block font-bold mb-1.5 text-slate-700`}>
                     الاسم الكامل الرسمي للمنشأة / المبنى:
                   </label>
                   <input
@@ -866,26 +848,18 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                     required
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className={`w-full border rounded-xl p-2.5 font-bold outline-none transition focus:border-amber-500 ${
-                      isLight
-                        ? 'bg-white border-slate-300 text-slate-900'
-                        : 'bg-slate-950 border-slate-800 text-slate-100'
-                    }`}
+                    className={`w-full border rounded-xl p-2.5 font-bold outline-none transition focus:border-brand-600 bg-card border-slate-300 text-slate-900`}
                   />
                 </div>
 
                 <div>
-                  <label className={`block font-bold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                  <label className={`block font-bold mb-1.5 text-slate-700`}>
                     المحافظة العراقية:
                   </label>
                   <select
                     value={governorate}
                     onChange={(e) => setGovernorate(e.target.value)}
-                    className={`w-full border rounded-xl p-2.5 font-bold outline-none transition focus:border-amber-500 cursor-pointer ${
-                      isLight
-                        ? 'bg-white border-slate-300 text-slate-900'
-                        : 'bg-slate-950 border-slate-800 text-slate-100'
-                    }`}
+                    className={`w-full border rounded-xl p-2.5 font-bold outline-none transition focus:border-brand-600 cursor-pointer bg-card border-slate-300 text-slate-900`}
                   >
                     {governorates.length > 0 ? (
                       governorates.map((g) => (
@@ -907,17 +881,13 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                 </div>
 
                 <div>
-                  <label className={`block font-bold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                  <label className={`block font-bold mb-1.5 text-slate-700`}>
                     الحقل النفطي الميداني:
                   </label>
                   <select
                     value={field}
                     onChange={(e) => setField(e.target.value)}
-                    className={`w-full border rounded-xl p-2.5 font-bold outline-none transition focus:border-amber-500 cursor-pointer ${
-                      isLight
-                        ? 'bg-white border-slate-300 text-slate-900'
-                        : 'bg-slate-950 border-slate-800 text-slate-100'
-                    }`}
+                    className={`w-full border rounded-xl p-2.5 font-bold outline-none transition focus:border-brand-600 cursor-pointer bg-card border-slate-300 text-slate-900`}
                   >
                     {oilfields.length > 0 ? (
                       oilfields.map((f) => (
@@ -938,17 +908,15 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                   </select>
                 </div>
 
-                <div className="space-y-3 md:col-span-2 border-t pt-3 mt-1 border-slate-200 dark:border-slate-800">
+                <div className="space-y-3 md:col-span-2 border-t pt-3 mt-1 border-slate-200 ">
                   <div className="flex items-center justify-between">
-                    <label className={`block font-bold ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                    <label className={`block font-bold text-slate-700`}>
                       الجهات الشاغلة للمنشأة (يمكن إضافة أكثر من جهة):
                     </label>
                     <button
                       type="button"
                       onClick={() => setShowQuickAddOrgModal(true)}
-                      className={`text-[11px] font-bold hover:underline flex items-center gap-1 cursor-pointer ${
-                        isLight ? 'text-amber-700' : 'text-amber-400'
-                      }`}
+                      className={`text-[11px] font-bold hover:underline flex items-center gap-1 cursor-pointer text-brand-700`}
                     >
                       <Plus className="w-3 h-3" />
                       <span>إضافة جهة جديدة الى الهيكل التنظيمي</span>
@@ -960,13 +928,13 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                     <button
                       type="button"
                       onClick={() => setShowOrgChartModal(true)}
-                      className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs sm:text-sm transition cursor-pointer shadow-md shadow-amber-500/20 active:scale-[0.99]"
+                      className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-brand-700 hover:bg-brand-800 text-on-brand font-black text-xs sm:text-sm transition cursor-pointer shadow-md active:scale-[0.99]"
                       title="فتح الهيكل التنظيمي المعتمد لاختيار وتحديد التشكيلات والجهات الشاغلة"
                     >
                       <Network className="w-4 h-4 text-slate-950" />
                       <span>عرض الهيكل التنظيمي لاختيار وتحديد التشكيلات والجهات الشاغلة</span>
                       {selectedDepartments.length > 0 && (
-                        <span className="px-2 py-0.5 rounded-full bg-slate-950 text-amber-300 text-[11px] font-black mr-1.5">
+                        <span className="px-2 py-0.5 rounded-full bg-card text-brand-700 text-[11px] font-black mr-1.5">
                           {toArabicDigits(selectedDepartments.length)} محددة
                         </span>
                       )}
@@ -976,11 +944,11 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                   {/* Selected Occupying Entities Display Cards/Chips */}
                   <div className="space-y-2 pt-1">
                     <div className="flex items-center justify-between text-[11px]">
-                      <span className={`font-bold ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                      <span className={`font-bold text-slate-600`}>
                         الجهات الشاغلة المخصصة للمنشأة ({toArabicDigits(selectedDepartments.length)}):
                       </span>
                       {selectedDepartments.length > 0 && (
-                        <span className={`text-[10px] ${isLight ? 'text-amber-800' : 'text-amber-400'}`}>
+                        <span className={`text-[10px] text-brand-800`}>
                           الجهة الأولى هي "الجهة الرئيسية"
                         </span>
                       )}
@@ -988,11 +956,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
 
                     {selectedDepartments.length === 0 ? (
                       <div
-                        className={`p-3 rounded-xl border border-dashed text-center text-xs ${
-                          isLight
-                            ? 'bg-amber-50/40 border-amber-200 text-slate-500'
-                            : 'bg-slate-900/40 border-slate-800 text-slate-400'
-                        }`}
+                        className={`p-3 rounded-xl border border-dashed text-center text-xs bg-brand-50 border-brand-200 text-slate-500`}
                       >
                         لم يتم اختيار جهات شاغلة بعد. اضغط على زر "عرض الهيكل التنظيمي" أعلاه لتحديد التشكيلات الشاغلة.
                       </div>
@@ -1005,23 +969,15 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                               key={deptName}
                               className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs transition shadow-xs ${
                                 isPrimary
-                                  ? isLight
-                                    ? 'bg-amber-100/90 border-amber-400 text-amber-950 font-bold'
-                                    : 'bg-amber-500/20 border-amber-500/40 text-amber-300 font-bold'
-                                  : isLight
-                                  ? 'bg-white border-slate-300 text-slate-800 hover:border-slate-400'
-                                  : 'bg-slate-900 border-slate-700/80 text-slate-200'
+                                  ? 'bg-brand-100 border-brand-200 text-brand-800 font-bold'
+                                  : 'bg-card border-slate-300 text-slate-800 hover:border-slate-400'
                               }`}
                             >
-                              <Users className={`w-3.5 h-3.5 ${isPrimary ? 'text-amber-600' : 'text-slate-400'}`} />
+                              <Users className={`w-3.5 h-3.5 ${isPrimary ? 'text-brand-700' : 'text-slate-500'}`} />
                               <span className="truncate">{deptName}</span>
                               {isPrimary ? (
                                 <span
-                                  className={`text-[10px] px-1.5 py-0.5 rounded font-black border ${
-                                    isLight
-                                      ? 'bg-amber-200 border-amber-400 text-amber-900'
-                                      : 'bg-amber-500/30 border-amber-500/50 text-amber-300'
-                                  }`}
+                                  className={`text-[10px] px-1.5 py-0.5 rounded font-black border bg-brand-100 border-brand-200 text-brand-800`}
                                 >
                                   رئيسية
                                 </span>
@@ -1029,9 +985,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                                 <button
                                   type="button"
                                   onClick={() => handleSetPrimaryDepartment(deptName)}
-                                  className={`text-[10px] underline hover:no-underline transition cursor-pointer ${
-                                    isLight ? 'text-slate-600 hover:text-amber-800' : 'text-slate-400 hover:text-amber-400'
-                                  }`}
+                                  className={`text-[10px] underline hover:no-underline transition cursor-pointer text-slate-600 hover:text-brand-800`}
                                   title="تعيين هذه الجهة كجهة شاغلة رئيسية للمنشأة"
                                 >
                                   جعلها رئيسية
@@ -1040,7 +994,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                               <button
                                 type="button"
                                 onClick={() => handleRemoveDepartment(deptName)}
-                                className="text-slate-400 hover:text-rose-500 p-0.5 rounded transition cursor-pointer ml-0.5"
+                                className="text-slate-500 hover:text-rose-600 p-0.5 rounded transition cursor-pointer ml-0.5"
                                 title="إزالة الجهة الشاغلة"
                               >
                                 <X className="w-3.5 h-3.5" />
@@ -1054,7 +1008,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                 </div>
 
                 <div>
-                  <label className={`block font-bold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                  <label className={`block font-bold mb-1.5 text-slate-700`}>
                     سنة الإنشاء والتشغيل:
                   </label>
                   <input
@@ -1063,11 +1017,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                     max={2030}
                     value={constructionYear}
                     onChange={(e) => setConstructionYear(Number(e.target.value))}
-                    className={`w-full border rounded-xl p-2.5 font-bold outline-none transition focus:border-amber-500 ${
-                      isLight
-                        ? 'bg-white border-slate-300 text-slate-900'
-                        : 'bg-slate-950 border-slate-800 text-slate-100'
-                    }`}
+                    className={`w-full border rounded-xl p-2.5 font-bold outline-none transition focus:border-brand-600 bg-card border-slate-300 text-slate-900`}
                   />
                 </div>
 
@@ -1085,19 +1035,15 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
 
                   return (
                     <div
-                      className={`md:col-span-2 p-4 rounded-2xl border space-y-3 ${
-                        isLight
-                          ? 'bg-indigo-50/50 border-indigo-200'
-                          : 'bg-indigo-950/20 border-indigo-900/40'
-                      }`}
+                      className={`md:col-span-2 p-4 rounded-2xl border space-y-3 bg-indigo-50/50 border-indigo-200`}
                     >
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                         <div className="flex items-center gap-2">
-                          <Layers className="w-4 h-4 text-indigo-500 shrink-0" />
-                          <label className={`font-black text-xs ${isLight ? 'text-slate-800' : 'text-slate-200'}`}>
+                          <Layers className="w-4 h-4 text-indigo-600 shrink-0" />
+                          <label className={`font-black text-xs text-slate-800`}>
                             رمز الأصل في سجلات أصول الشركة:
                           </label>
-                          <span className="text-[10px] text-amber-500 font-bold bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full">
+                          <span className="text-[10px] text-brand-700 font-bold bg-brand-50 border border-brand-200 px-2 py-0.5 rounded-full">
                             (حقل اختياري / فريد)
                           </span>
                         </div>
@@ -1108,12 +1054,8 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                               <span
                                 className={`text-[10px] px-2.5 py-0.5 rounded-full font-bold flex items-center gap-1 border ${
                                   validation.isIdeal
-                                    ? isLight
-                                      ? 'bg-emerald-500/15 text-emerald-700 border-emerald-500/30'
-                                      : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
-                                    : isLight
-                                    ? 'bg-amber-500/15 text-amber-700 border-amber-500/30'
-                                    : 'bg-amber-500/20 text-amber-300 border-amber-500/30'
+                                    ? 'bg-emerald-500/15 text-emerald-700 border-emerald-500/30'
+                                    : 'bg-brand-100 text-brand-700 border-brand-200'
                                 }`}
                               >
                                 <Check className="w-3 h-3" />
@@ -1121,12 +1063,12 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                               </span>
                             )}
                             {!validation?.isValid && (
-                              <span className="bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/30 text-[10px] px-2.5 py-0.5 rounded-full font-bold">
+                              <span className="bg-rose-500/20 text-rose-600 border border-rose-500/30 text-[10px] px-2.5 py-0.5 rounded-full font-bold">
                                 {validation?.message}
                               </span>
                             )}
                             {validation?.isValid && !isUnique && (
-                              <span className="bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/30 text-[10px] px-2.5 py-0.5 rounded-full font-bold">
+                              <span className="bg-rose-500/20 text-rose-600 border border-rose-500/30 text-[10px] px-2.5 py-0.5 rounded-full font-bold">
                                 رمز الأصل مكرر ومسجل مسبقاً لمنشأة أخرى!
                               </span>
                             )}
@@ -1149,11 +1091,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                                 ? '123.1234.123 (أرقام مع فواصل للكرفانات)'
                                 : '0123456789 (أرقام بدون فواصل للأبنية)'
                             }
-                            className={`w-full border rounded-xl p-2.5 font-mono font-bold text-xs tracking-wider outline-none transition focus:border-indigo-500 ${
-                              isLight
-                                ? 'bg-white border-slate-300 text-slate-900 placeholder:text-slate-400'
-                                : 'bg-slate-950 border-slate-700 text-slate-100 placeholder:text-slate-500'
-                            }`}
+                            className={`w-full border rounded-xl p-2.5 font-mono font-bold text-xs tracking-wider outline-none transition focus:border-indigo-500 bg-card border-slate-300 text-slate-900 placeholder:text-slate-400`}
                           />
                         </div>
 
@@ -1184,54 +1122,38 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
 
                       {/* صندوق معايير وتنسيق رمز الأصل */}
                       <div
-                        className={`p-3 rounded-xl border space-y-2 text-xs ${
-                          isLight
-                            ? 'bg-white/80 border-indigo-100'
-                            : 'bg-slate-950/70 border-slate-800/80'
-                        }`}
+                        className={`p-3 rounded-xl border space-y-2 text-xs bg-card/80 border-indigo-100`}
                       >
                         <p
-                          className={`font-bold flex items-center gap-1.5 text-[11px] ${
-                            isLight ? 'text-slate-800' : 'text-slate-300'
-                          }`}
+                          className={`font-bold flex items-center gap-1.5 text-[11px] text-slate-800`}
                         >
-                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 inline-block"></span>
+                          <span className="w-1.5 h-1.5 rounded-full bg-brand-700 inline-block"></span>
                           <span>المعلومات داخل الحقل تكون بهذا الشكل:</span>
                         </p>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
                           <div
-                            className={`flex items-center gap-2 p-2 rounded-lg border ${
-                              isLight
-                                ? 'bg-slate-50 border-slate-200'
-                                : 'bg-slate-900/90 border-slate-800/90'
-                            }`}
+                            className={`flex items-center gap-2 p-2 rounded-lg border bg-slate-50 border-slate-200`}
                           >
-                            <span className="font-mono text-emerald-600 dark:text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 shrink-0">
+                            <span className="font-mono text-emerald-600 font-bold bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 shrink-0">
                               0123456789
                             </span>
-                            <span className={isLight ? 'text-slate-700 font-medium' : 'text-slate-300 font-medium'}>
+                            <span className={'text-slate-700 font-medium'}>
                               أرقام بدون فواصل للأبنية
                             </span>
                           </div>
                           <div
-                            className={`flex items-center gap-2 p-2 rounded-lg border ${
-                              isLight
-                                ? 'bg-slate-50 border-slate-200'
-                                : 'bg-slate-900/90 border-slate-800/90'
-                            }`}
+                            className={`flex items-center gap-2 p-2 rounded-lg border bg-slate-50 border-slate-200`}
                           >
-                            <span className="font-mono text-cyan-600 dark:text-cyan-400 font-bold bg-cyan-500/10 px-2 py-0.5 rounded border border-cyan-500/20 shrink-0">
+                            <span className="font-mono text-cyan-600 font-bold bg-cyan-500/10 px-2 py-0.5 rounded border border-cyan-500/20 shrink-0">
                               123.1234.123
                             </span>
-                            <span className={isLight ? 'text-slate-700 font-medium' : 'text-slate-300 font-medium'}>
+                            <span className={'text-slate-700 font-medium'}>
                               أرقام مع فواصل للكرفانات
                             </span>
                           </div>
                         </div>
                         <p
-                          className={`text-[10px] leading-relaxed pt-0.5 ${
-                            isLight ? 'text-slate-500' : 'text-slate-400'
-                          }`}
+                          className={`text-[10px] leading-relaxed pt-0.5 text-slate-500`}
                         >
                           يتم اعتماد هذا الفورمات كتقييم لحالة إدخال رمز الأصل ومطابقته للتنسيق المثالي في سجلات أصول الشركة.
                         </p>
@@ -1246,23 +1168,21 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
           {/* TAB 2: 3D Shape & Dimensions */}
           {activeTab === 'shape3d' && (
             <div
-              className={`p-5 rounded-2xl border space-y-4 ${
-                isLight ? 'bg-amber-50/50 border-amber-200' : 'bg-slate-900/60 border-slate-800'
-              }`}
+              className={`p-5 rounded-2xl border space-y-4 bg-brand-50 border-brand-200`}
             >
-              <h4 className="text-xs font-bold text-amber-500 flex items-center justify-between">
+              <h4 className="text-xs font-bold text-brand-700 flex items-center justify-between">
                 <span className="flex items-center gap-2">
                   <Box className="w-4 h-4" />
                   <span>أبعاد وهندسة تصميم المبنى الـ 3D</span>
                 </span>
-                <span className="font-mono text-[11px] bg-amber-500/20 text-amber-500 px-2.5 py-0.5 rounded-md border border-amber-500/30">
+                <span className="font-mono text-[11px] bg-brand-100 text-brand-700 px-2.5 py-0.5 rounded-md border border-brand-200">
                   المساحة الكلية = {toArabicDigits(totalAreaSqM)} م²
                 </span>
               </h4>
 
               <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-4 text-xs">
                 <div>
-                  <label className={`block font-bold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                  <label className={`block font-bold mb-1.5 text-slate-700`}>
                     طول الوحدة (أمتار):
                   </label>
                   <input
@@ -1271,16 +1191,12 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                     step="0.5"
                     value={lengthM}
                     onChange={(e) => handleLengthChange(Number(e.target.value))}
-                    className={`w-full border rounded-xl p-2.5 font-bold font-mono outline-none transition focus:border-amber-500 ${
-                      isLight
-                        ? 'bg-white border-slate-300 text-slate-900'
-                        : 'bg-slate-950 border-slate-800 text-amber-400'
-                    }`}
+                    className={`w-full border rounded-xl p-2.5 font-bold font-mono outline-none transition focus:border-brand-600 bg-card border-slate-300 text-slate-900`}
                   />
                 </div>
 
                 <div>
-                  <label className={`block font-bold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                  <label className={`block font-bold mb-1.5 text-slate-700`}>
                     عرض الوحدة (أمتار):
                   </label>
                   <input
@@ -1289,17 +1205,13 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                     step="0.5"
                     value={widthM}
                     onChange={(e) => handleWidthChange(Number(e.target.value))}
-                    className={`w-full border rounded-xl p-2.5 font-bold font-mono outline-none transition focus:border-amber-500 ${
-                      isLight
-                        ? 'bg-white border-slate-300 text-slate-900'
-                        : 'bg-slate-950 border-slate-800 text-amber-400'
-                    }`}
+                    className={`w-full border rounded-xl p-2.5 font-bold font-mono outline-none transition focus:border-brand-600 bg-card border-slate-300 text-slate-900`}
                   />
                 </div>
 
                 <div>
-                  <label className={`block font-bold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
-                    ارتفاع السقف (أمتار): <span className="text-[10px] text-amber-500 font-normal">(افتراضي 3م)</span>
+                  <label className={`block font-bold mb-1.5 text-slate-700`}>
+                    ارتفاع السقف (أمتار): <span className="text-[10px] text-brand-700 font-normal">(افتراضي 3م)</span>
                   </label>
                   <input
                     type="number"
@@ -1308,16 +1220,12 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                     step="0.1"
                     value={heightM}
                     onChange={(e) => setHeightM(Number(e.target.value))}
-                    className={`w-full border rounded-xl p-2.5 font-bold font-mono outline-none transition focus:border-amber-500 ${
-                      isLight
-                        ? 'bg-white border-slate-300 text-slate-900'
-                        : 'bg-slate-950 border-slate-800 text-slate-100'
-                    }`}
+                    className={`w-full border rounded-xl p-2.5 font-bold font-mono outline-none transition focus:border-brand-600 bg-card border-slate-300 text-slate-900`}
                   />
                 </div>
 
                 <div>
-                  <label className={`block font-bold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                  <label className={`block font-bold mb-1.5 text-slate-700`}>
                     مساحة الوحدة الكلية (م²):
                   </label>
                   <input
@@ -1326,18 +1234,14 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                     max={50000}
                     value={totalAreaSqM}
                     onChange={(e) => setTotalAreaSqM(Number(e.target.value))}
-                    className={`w-full border rounded-xl p-2.5 font-black font-mono outline-none transition focus:border-amber-500 ${
-                      isLight
-                        ? 'bg-amber-100/60 border-amber-300 text-amber-950'
-                        : 'bg-slate-950 border-amber-500/50 text-amber-400'
-                    }`}
+                    className={`w-full border rounded-xl p-2.5 font-black font-mono outline-none transition focus:border-brand-600 bg-brand-100 border-brand-200 text-brand-800`}
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs pt-1">
                 <div>
-                  <label className={`block font-bold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                  <label className={`block font-bold mb-1.5 text-slate-700`}>
                     عدد الطوابق الإجمالي:
                   </label>
                   <input
@@ -1346,26 +1250,18 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                     max={20}
                     value={floorsCount}
                     onChange={(e) => setFloorsCount(Math.max(1, Math.min(20, Number(e.target.value))))}
-                    className={`w-full border rounded-xl p-2.5 font-bold outline-none transition focus:border-amber-500 ${
-                      isLight
-                        ? 'bg-white border-slate-300 text-slate-900'
-                        : 'bg-slate-950 border-slate-800 text-slate-100'
-                    }`}
+                    className={`w-full border rounded-xl p-2.5 font-bold outline-none transition focus:border-brand-600 bg-card border-slate-300 text-slate-900`}
                   />
                 </div>
 
                 <div>
-                  <label className={`block font-bold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                  <label className={`block font-bold mb-1.5 text-slate-700`}>
                     حالة جودة وصلاحية المبنى (Condition Grade):
                   </label>
                   <select
                     value={conditionGrade}
                     onChange={(e) => setConditionGrade(e.target.value as ConditionGrade)}
-                    className={`w-full border rounded-xl p-2.5 font-bold outline-none transition focus:border-amber-500 cursor-pointer ${
-                      isLight
-                        ? 'bg-white border-slate-300 text-slate-900'
-                        : 'bg-slate-950 border-slate-800 text-slate-100'
-                    }`}
+                    className={`w-full border rounded-xl p-2.5 font-bold outline-none transition focus:border-brand-600 cursor-pointer bg-card border-slate-300 text-slate-900`}
                   >
                     <option value="A">درجة A - ممتاز وشغال بالكامل</option>
                     <option value="B">درجة B - جيد مع ملاحظات خفيفة</option>
@@ -1377,7 +1273,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
 
               {/* Building Shape Selector Options */}
               <div className="space-y-2 pt-2">
-                <label className={`block font-bold text-xs ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                <label className={`block font-bold text-xs text-slate-900`}>
                   شكل وهندسة تصميم المبنى (Building Layout Shape):
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
@@ -1390,10 +1286,8 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                         onClick={() => handleShapeChange(shp.id)}
                         className={`p-2.5 rounded-xl border text-right transition cursor-pointer flex flex-col justify-between ${
                           isSelected
-                            ? 'bg-amber-500 text-slate-950 border-amber-600 font-bold shadow-md'
-                            : isLight
-                              ? 'bg-white border-slate-200 text-slate-800 hover:border-amber-400'
-                              : 'bg-slate-950 border-slate-800 text-slate-300 hover:border-slate-700'
+                            ? 'bg-brand-700 text-on-brand border-brand-600 font-bold shadow-md'
+                            : 'bg-card border-slate-200 text-slate-800 hover:border-brand-200'
                         }`}
                       >
                         <div className="flex items-center justify-between w-full">
@@ -1410,21 +1304,19 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
               </div>
 
               {/* Unit Custom Architectural Features & Finishings Section */}
-              <div className={`space-y-3 pt-3 border-t ${isLight ? 'border-amber-200/80' : 'border-slate-800'}`}>
-                <label className={`block font-bold text-xs ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+              <div className={`space-y-3 pt-3 border-t border-brand-200`}>
+                <label className={`block font-bold text-xs text-slate-900`}>
                   المعالم واللمسات المعمارية المخصصة لهذه الوحدة:
                 </label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                   <div>
-                    <label className={`block font-bold mb-1 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                    <label className={`block font-bold mb-1 text-slate-700`}>
                       النمط المعماري للواجهة:
                     </label>
                     <select
                       value={archStyle}
                       onChange={(e) => setArchStyle(e.target.value as any)}
-                      className={`w-full border rounded-xl p-2.5 font-bold outline-none cursor-pointer transition ${
-                        isLight ? 'bg-white border-slate-300 text-slate-900' : 'bg-slate-950 border-slate-800 text-slate-100'
-                      }`}
+                      className={`w-full border rounded-xl p-2.5 font-bold outline-none cursor-pointer transition bg-card border-slate-300 text-slate-900`}
                     >
                       <option value="modern">حديث معاصر (Modern Glass & Steel)</option>
                       <option value="classic">كلاسيكي صناعي (Classic Industrial)</option>
@@ -1434,15 +1326,13 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                   </div>
 
                   <div>
-                    <label className={`block font-bold mb-1 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                    <label className={`block font-bold mb-1 text-slate-700`}>
                       نوع السطح والتصميم (متوافق مع أبعاد الوحدة):
                     </label>
                     <select
                       value={roofType}
                       onChange={(e) => setRoofType(e.target.value as any)}
-                      className={`w-full border rounded-xl p-2.5 font-bold outline-none cursor-pointer transition ${
-                        isLight ? 'bg-white border-slate-300 text-slate-900' : 'bg-slate-950 border-slate-800 text-slate-100'
-                      }`}
+                      className={`w-full border rounded-xl p-2.5 font-bold outline-none cursor-pointer transition bg-card border-slate-300 text-slate-900`}
                     >
                       <option value="flat">سطح مسطح (سطح مستوي)</option>
                       <option value="flat_parapet">سطح مسطح مع سياج السطح</option>
@@ -1450,18 +1340,16 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                       <option value="pitched_tile">سطح من القرميد مائل الشكل</option>
                       <option value="garden">سطح حديقة خضراء (Roof Garden)</option>
                     </select>
-                    <p className="text-[11px] font-bold text-amber-500 mt-1 flex items-center gap-1">
+                    <p className="text-[11px] font-bold text-brand-700 mt-1 flex items-center gap-1">
                       <span>✓ مساحة السطح المطابقة لأبعاد الوحدة:</span>
-                      <span className="font-mono bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">
+                      <span className="font-mono bg-brand-50 px-1.5 py-0.5 rounded border border-brand-200">
                         {toArabicDigits((lengthM && widthM) ? (lengthM * widthM) : Math.round(totalAreaSqM / Math.max(1, floorsCount)))} م²
                       </span>
                     </p>
                   </div>
                 </div>
 
-                <div className={`grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs pt-1 p-3 rounded-xl border ${
-                  isLight ? 'bg-white border-slate-200' : 'bg-slate-950 border-slate-800'
-                }`}>
+                <div className={`grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs pt-1 p-3 rounded-xl border bg-card border-slate-200`}>
                   <label className="flex items-center gap-2 cursor-pointer font-bold">
                     <input
                       type="checkbox"
@@ -1494,18 +1382,16 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                 </div>
 
                 {/* Lighting Control Section */}
-                <div className={`p-3.5 rounded-xl border space-y-3 ${
-                  isLight ? 'bg-amber-50/50 border-amber-200' : 'bg-slate-900/80 border-slate-800'
-                }`}>
-                  <label className={`block font-extrabold text-xs flex items-center gap-1.5 ${isLight ? 'text-amber-800' : 'text-amber-400'}`}>
+                <div className={`p-3.5 rounded-xl border space-y-3 bg-brand-50 border-brand-200`}>
+                  <label className={`block font-extrabold text-xs flex items-center gap-1.5 text-brand-800`}>
                     <span>💡 التحكم بشدة وصلابة الإنارة للنموذج الـ 3D:</span>
                   </label>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                     <div>
                       <div className="flex items-center justify-between mb-1 font-bold">
-                        <span className={isLight ? 'text-slate-700' : 'text-slate-300'}>الإنارة الداخلية (الغرف والواجهات):</span>
-                        <span className="font-mono text-amber-600 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">
+                        <span className={'text-slate-700'}>الإنارة الداخلية (الغرف والواجهات):</span>
+                        <span className="font-mono text-brand-700 bg-brand-50 px-1.5 py-0.5 rounded border border-brand-200">
                           {toArabicDigits(interiorLightIntensity.toFixed(1))}×
                         </span>
                       </div>
@@ -1516,13 +1402,13 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                         step="0.5"
                         value={interiorLightIntensity}
                         onChange={(e) => setInteriorLightIntensity(parseFloat(e.target.value))}
-                        className="w-full accent-amber-500 cursor-pointer h-2 bg-slate-200 dark:bg-slate-800 rounded-lg"
+                        className="w-full accent-brand-700 cursor-pointer h-2 bg-slate-200 rounded-lg"
                       />
                     </div>
 
                     <div>
                       <div className="flex items-center justify-between mb-1 font-bold">
-                        <span className={isLight ? 'text-slate-700' : 'text-slate-300'}>الإنارة الخارجية (الكشافات والمحيط):</span>
+                        <span className={'text-slate-700'}>الإنارة الخارجية (الكشافات والمحيط):</span>
                         <span className="font-mono text-sky-600 bg-sky-500/10 px-1.5 py-0.5 rounded border border-sky-500/20">
                           {toArabicDigits(exteriorLightIntensity.toFixed(1))}×
                         </span>
@@ -1534,7 +1420,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                         step="0.5"
                         value={exteriorLightIntensity}
                         onChange={(e) => setExteriorLightIntensity(parseFloat(e.target.value))}
-                        className="w-full accent-sky-500 cursor-pointer h-2 bg-slate-200 dark:bg-slate-800 rounded-lg"
+                        className="w-full accent-sky-500 cursor-pointer h-2 bg-slate-200 rounded-lg"
                       />
                     </div>
                   </div>
@@ -1546,9 +1432,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
           {/* TAB 3: Location & Coordinates */}
           {activeTab === 'location' && (
             <div
-              className={`p-5 rounded-2xl border space-y-4 ${
-                isLight ? 'bg-slate-50/70 border-slate-200' : 'bg-slate-900/60 border-slate-800'
-              }`}
+              className={`p-5 rounded-2xl border space-y-4 bg-slate-50/70 border-slate-200`}
             >
               {/* Interactive Location Picker Map Component */}
               <div className="space-y-2">
@@ -1565,7 +1449,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs pt-2">
                 <div>
-                  <label className={`block font-bold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                  <label className={`block font-bold mb-1.5 text-slate-700`}>
                     خط العرض (GPS Latitude):
                   </label>
                   <input
@@ -1573,16 +1457,12 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                     step="0.000001"
                     value={lat}
                     onChange={(e) => setLat(Number(e.target.value))}
-                    className={`w-full border rounded-xl p-2.5 font-mono font-bold outline-none transition focus:border-amber-500 ${
-                      isLight
-                        ? 'bg-white border-slate-300 text-slate-900'
-                        : 'bg-slate-950 border-slate-800 text-amber-400'
-                    }`}
+                    className={`w-full border rounded-xl p-2.5 font-mono font-bold outline-none transition focus:border-brand-600 bg-card border-slate-300 text-slate-900`}
                   />
                 </div>
 
                 <div>
-                  <label className={`block font-bold mb-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                  <label className={`block font-bold mb-1.5 text-slate-700`}>
                     خط الطول (GPS Longitude):
                   </label>
                   <input
@@ -1590,11 +1470,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                     step="0.000001"
                     value={lng}
                     onChange={(e) => setLng(Number(e.target.value))}
-                    className={`w-full border rounded-xl p-2.5 font-mono font-bold outline-none transition focus:border-amber-500 ${
-                      isLight
-                        ? 'bg-white border-slate-300 text-slate-900'
-                        : 'bg-slate-950 border-slate-800 text-amber-400'
-                    }`}
+                    className={`w-full border rounded-xl p-2.5 font-mono font-bold outline-none transition focus:border-brand-600 bg-card border-slate-300 text-slate-900`}
                   />
                 </div>
               </div>
@@ -1604,24 +1480,22 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
           {/* TAB 4: Rooms */}
           {activeTab === 'rooms' && (
             <div
-              className={`p-3.5 sm:p-5 rounded-2xl border space-y-3.5 sm:space-y-4 ${
-                isLight ? 'bg-slate-50/70 border-slate-200' : 'bg-slate-900/60 border-slate-800'
-              }`}
+              className={`p-3.5 sm:p-5 rounded-2xl border space-y-3.5 sm:space-y-4 bg-slate-50/70 border-slate-200`}
             >
               {/* Header: Title, View Switcher & Action Buttons */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3">
                 <div className="flex items-center gap-2 min-w-0">
-                  <div className="w-8 h-8 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-500 shrink-0">
+                  <div className="w-8 h-8 rounded-xl bg-brand-100 border border-brand-200 flex items-center justify-center text-brand-700 shrink-0">
                     <Layers className="w-4 h-4" />
                   </div>
                   <div className="min-w-0">
-                    <h4 className="text-xs sm:text-sm font-black text-amber-500 flex items-center gap-1.5 flex-wrap">
+                    <h4 className="text-xs sm:text-sm font-black text-brand-700 flex items-center gap-1.5 flex-wrap">
                       <span>تفاصيل وحصر غرف وقاعات المبنى</span>
-                      <span className="font-mono text-[11px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30 shrink-0">
+                      <span className="font-mono text-[11px] px-2 py-0.5 rounded-full bg-brand-100 text-brand-700 border border-brand-200 shrink-0">
                         {toArabicDigits(rooms.length)}
                       </span>
                     </h4>
-                    <p className={`text-[10px] sm:text-[11px] truncate ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                    <p className={`text-[10px] sm:text-[11px] truncate text-slate-500`}>
                       إدارة تقسيم الغرف، الرموز القياسية، الطوابق، السعة، والجهات الشاغلة
                     </p>
                   </div>
@@ -1629,16 +1503,14 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
 
                 <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap sm:flex-nowrap justify-between sm:justify-end shrink-0">
                   {/* View Mode Switcher: Cards vs Table */}
-                  <div className={`p-0.5 rounded-xl border flex items-center gap-0.5 shrink-0 ${
-                    isLight ? 'bg-slate-100 border-slate-300' : 'bg-slate-950 border-slate-800'
-                  }`}>
+                  <div className={`p-0.5 rounded-xl border flex items-center gap-0.5 shrink-0 bg-slate-100 border-slate-300`}>
                     <button
                       type="button"
                       onClick={() => setRoomsViewMode('cards')}
                       className={`px-2.5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition cursor-pointer ${
                         roomsViewMode === 'cards'
-                          ? 'bg-amber-500 text-slate-950 font-black shadow-xs'
-                          : isLight ? 'text-slate-600 hover:text-slate-900' : 'text-slate-400 hover:text-white'
+                          ? 'bg-brand-700 text-on-brand font-black shadow-xs'
+                          : 'text-slate-600 hover:text-slate-900'
                       }`}
                       title="عرض الغرف كبطاقات تفاعلية (مثالي للهواتف والتحكم السريع)"
                     >
@@ -1650,8 +1522,8 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                       onClick={() => setRoomsViewMode('table')}
                       className={`px-2.5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition cursor-pointer ${
                         roomsViewMode === 'table'
-                          ? 'bg-amber-500 text-slate-950 font-black shadow-xs'
-                          : isLight ? 'text-slate-600 hover:text-slate-900' : 'text-slate-400 hover:text-white'
+                          ? 'bg-brand-700 text-on-brand font-black shadow-xs'
+                          : 'text-slate-600 hover:text-slate-900'
                       }`}
                       title="عرض الغرف كجدول شامل (للشاشات الكبيرة والمكتبية)"
                     >
@@ -1665,14 +1537,10 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                     <button
                       type="button"
                       onClick={handleRegenerateAllRoomCodes}
-                      className={`px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold border flex items-center gap-1.5 transition cursor-pointer shadow-xs ${
-                        isLight
-                          ? 'bg-white hover:bg-slate-100 text-slate-700 border-slate-300'
-                          : 'bg-slate-800/90 hover:bg-slate-700 text-slate-200 border-slate-700'
-                      }`}
+                      className={`px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold border flex items-center gap-1.5 transition cursor-pointer shadow-xs bg-card hover:bg-slate-100 text-slate-700 border-slate-300`}
                       title="إعادة توليد وترقيم كافة الرموز القياسية للغرف دفعة واحدة"
                     >
-                      <RefreshCw className="w-3.5 h-3.5 text-amber-500" />
+                      <RefreshCw className="w-3.5 h-3.5 text-brand-700" />
                       <span className="hidden xs:inline">ترقيم الرموز</span>
                       <span className="xs:hidden">ترقيم</span>
                     </button>
@@ -1680,7 +1548,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                     <button
                       type="button"
                       onClick={handleAddRoom}
-                      className="bg-amber-500 hover:bg-amber-400 text-slate-950 px-3 sm:px-3.5 py-1.5 rounded-xl text-xs font-black flex items-center gap-1.5 transition cursor-pointer shadow-md shadow-amber-500/20 active:scale-95"
+                      className="bg-brand-700 hover:bg-brand-800 text-on-brand px-3 sm:px-3.5 py-1.5 rounded-xl text-xs font-black flex items-center gap-1.5 transition cursor-pointer shadow-md active:scale-95"
                     >
                       <Plus className="w-4 h-4 stroke-[2.5]" />
                       <span>إضافة غرفة</span>
@@ -1692,47 +1560,37 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
               {/* Statistics & Quick Summary Bar */}
               {rooms.length > 0 && (
                 <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-5 gap-1.5 sm:gap-2 text-xs">
-                  <div className={`p-2 rounded-xl border flex flex-col items-center justify-center text-center ${
-                    isLight ? 'bg-white border-slate-200' : 'bg-slate-950/70 border-slate-800'
-                  }`}>
-                    <span className="text-[10px] text-slate-400 font-bold">إجمالي الغرف</span>
-                    <span className="font-black text-amber-500 text-xs sm:text-sm font-mono mt-0.5">
+                  <div className={`p-2 rounded-xl border flex flex-col items-center justify-center text-center bg-card border-slate-200`}>
+                    <span className="text-[10px] text-slate-500 font-bold">إجمالي الغرف</span>
+                    <span className="font-black text-brand-700 text-xs sm:text-sm font-mono mt-0.5">
                       {toArabicDigits(rooms.length)}
                     </span>
                   </div>
 
-                  <div className={`p-2 rounded-xl border flex flex-col items-center justify-center text-center ${
-                    isLight ? 'bg-white border-slate-200' : 'bg-slate-950/70 border-slate-800'
-                  }`}>
-                    <span className="text-[10px] text-slate-400 font-bold">المساحة الإجمالية</span>
-                    <span className="font-black text-sky-500 text-xs sm:text-sm font-mono mt-0.5">
+                  <div className={`p-2 rounded-xl border flex flex-col items-center justify-center text-center bg-card border-slate-200`}>
+                    <span className="text-[10px] text-slate-500 font-bold">المساحة الإجمالية</span>
+                    <span className="font-black text-sky-600 text-xs sm:text-sm font-mono mt-0.5">
                       {toArabicDigits(roomStats.totalArea)} م²
                     </span>
                   </div>
 
-                  <div className={`p-2 rounded-xl border flex flex-col items-center justify-center text-center ${
-                    isLight ? 'bg-white border-slate-200' : 'bg-slate-950/70 border-slate-800'
-                  }`}>
-                    <span className="text-[10px] text-slate-400 font-bold">نشطة بالخدمة</span>
-                    <span className="font-black text-emerald-500 text-xs sm:text-sm font-mono mt-0.5">
+                  <div className={`p-2 rounded-xl border flex flex-col items-center justify-center text-center bg-card border-slate-200`}>
+                    <span className="text-[10px] text-slate-500 font-bold">نشطة بالخدمة</span>
+                    <span className="font-black text-emerald-600 text-xs sm:text-sm font-mono mt-0.5">
                       {toArabicDigits(roomStats.activeCount)} 🟢
                     </span>
                   </div>
 
-                  <div className={`p-2 rounded-xl border flex flex-col items-center justify-center text-center ${
-                    isLight ? 'bg-white border-slate-200' : 'bg-slate-950/70 border-slate-800'
-                  }`}>
-                    <span className="text-[10px] text-slate-400 font-bold">متوقفة / معطلة</span>
-                    <span className="font-black text-rose-500 text-xs sm:text-sm font-mono mt-0.5">
+                  <div className={`p-2 rounded-xl border flex flex-col items-center justify-center text-center bg-card border-slate-200`}>
+                    <span className="text-[10px] text-slate-500 font-bold">متوقفة / معطلة</span>
+                    <span className="font-black text-rose-600 text-xs sm:text-sm font-mono mt-0.5">
                       {toArabicDigits(roomStats.stoppedCount)} {roomStats.stoppedCount > 0 ? '🔴' : ''}
                     </span>
                   </div>
 
-                  <div className={`p-2 rounded-xl border flex flex-col items-center justify-center text-center col-span-2 xs:col-span-1 ${
-                    isLight ? 'bg-white border-slate-200' : 'bg-slate-950/70 border-slate-800'
-                  }`}>
-                    <span className="text-[10px] text-slate-400 font-bold">شاغرة (فارغة)</span>
-                    <span className="font-black text-amber-400 text-xs sm:text-sm font-mono mt-0.5">
+                  <div className={`p-2 rounded-xl border flex flex-col items-center justify-center text-center col-span-2 xs:col-span-1 bg-card border-slate-200`}>
+                    <span className="text-[10px] text-slate-500 font-bold">شاغرة (فارغة)</span>
+                    <span className="font-black text-brand-700 text-xs sm:text-sm font-mono mt-0.5">
                       {toArabicDigits(roomStats.vacantCount)}
                     </span>
                   </div>
@@ -1749,18 +1607,14 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                       value={roomSearchQuery}
                       onChange={(e) => setRoomSearchQuery(e.target.value)}
                       placeholder="ابحث بالاسم، الرمز، أو الجهة..."
-                      className={`w-full text-xs rounded-xl py-1.5 pl-7 pr-8 border outline-none font-medium transition ${
-                        isLight
-                          ? 'bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:border-amber-500'
-                          : 'bg-slate-950 border-slate-800 text-slate-100 placeholder-slate-500 focus:border-amber-500'
-                      }`}
+                      className={`w-full text-xs rounded-xl py-1.5 pl-7 pr-8 border outline-none font-medium transition bg-card border-slate-300 text-slate-900 placeholder-slate-400 focus:border-brand-600`}
                     />
-                    <Search className="w-3.5 h-3.5 absolute right-2.5 top-2.5 text-slate-400 pointer-events-none" />
+                    <Search className="w-3.5 h-3.5 absolute right-2.5 top-2.5 text-slate-500 pointer-events-none" />
                     {roomSearchQuery && (
                       <button
                         type="button"
                         onClick={() => setRoomSearchQuery('')}
-                        className="absolute left-2.5 top-2 text-slate-400 hover:text-rose-400 cursor-pointer"
+                        className="absolute left-2.5 top-2 text-slate-500 hover:text-rose-600 cursor-pointer"
                       >
                         <X className="w-3.5 h-3.5" />
                       </button>
@@ -1770,16 +1624,14 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                   {/* Floor Filters (Horizontal scrolling chips) */}
                   {availableFloors.length > 1 && (
                     <div className="flex items-center gap-1 overflow-x-auto scrollbar-none py-0.5">
-                      <span className="text-[10px] text-slate-400 font-bold shrink-0 ml-1">الطابق:</span>
+                      <span className="text-[10px] text-slate-500 font-bold shrink-0 ml-1">الطابق:</span>
                       <button
                         type="button"
                         onClick={() => setRoomFloorFilter('all')}
                         className={`px-2 py-0.5 rounded-lg text-[10px] font-bold shrink-0 transition cursor-pointer ${
                           roomFloorFilter === 'all'
-                            ? 'bg-amber-500 text-slate-950 font-black'
-                            : isLight
-                            ? 'bg-white text-slate-600 border border-slate-200'
-                            : 'bg-slate-950 text-slate-400 border border-slate-800'
+                            ? 'bg-brand-700 text-on-brand font-black'
+                            : 'bg-card text-slate-600 border border-slate-200'
                         }`}
                       >
                         الكل
@@ -1791,10 +1643,8 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                           onClick={() => setRoomFloorFilter(flr)}
                           className={`px-2 py-0.5 rounded-lg text-[10px] font-bold shrink-0 transition cursor-pointer ${
                             roomFloorFilter === flr
-                              ? 'bg-amber-500 text-slate-950 font-black'
-                              : isLight
-                              ? 'bg-white text-slate-600 border border-slate-200'
-                              : 'bg-slate-950 text-slate-400 border border-slate-800'
+                              ? 'bg-brand-700 text-on-brand font-black'
+                              : 'bg-card text-slate-600 border border-slate-200'
                           }`}
                         >
                           {flr}
@@ -1807,15 +1657,15 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
 
               {/* Warning Banner after re-generating codes */}
               {roomCodeChangeWarning && (
-                <div className="p-3 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-700 dark:text-amber-300 flex items-start justify-between gap-2 text-xs font-bold animate-fadeIn">
+                <div className="p-3 rounded-xl bg-brand-100 border border-brand-200 text-brand-700 flex items-start justify-between gap-2 text-xs font-bold animate-fadeIn">
                   <div className="flex items-center gap-2">
-                    <AlertTriangle className="w-4 h-4 shrink-0 text-amber-500" />
+                    <AlertTriangle className="w-4 h-4 shrink-0 text-brand-700" />
                     <span>{roomCodeChangeWarning}</span>
                   </div>
                   <button
                     type="button"
                     onClick={() => setRoomCodeChangeWarning(null)}
-                    className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-0.5"
+                    className="text-slate-500 hover:text-slate-600 p-0.5"
                   >
                     <X className="w-3.5 h-3.5" />
                   </button>
@@ -1825,21 +1675,19 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
               {/* Empty States */}
               {rooms.length === 0 ? (
                 <div
-                  className={`p-6 sm:p-8 text-center text-xs border border-dashed rounded-2xl flex flex-col items-center justify-center gap-2.5 ${
-                    isLight ? 'border-slate-300 text-slate-500 bg-white' : 'border-slate-800 text-slate-400 bg-slate-950/60'
-                  }`}
+                  className={`p-6 sm:p-8 text-center text-xs border border-dashed rounded-2xl flex flex-col items-center justify-center gap-2.5 border-slate-300 text-slate-500 bg-card`}
                 >
-                  <div className="w-10 h-10 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-500 flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-2xl bg-brand-50 border border-brand-200 text-brand-700 flex items-center justify-center">
                     <Layers className="w-5 h-5" />
                   </div>
-                  <div className="font-bold text-sm text-slate-200">لا توجد غرف مخصصة لهذا المبنى حالياً</div>
-                  <p className="max-w-sm text-slate-400 text-xs">
+                  <div className="font-bold text-sm text-slate-800">لا توجد غرف مخصصة لهذا المبنى حالياً</div>
+                  <p className="max-w-sm text-slate-500 text-xs">
                     اضغط زر "إضافة غرفة جديدة" للبدء في تقسيم وحصر غرف وقاعات المنشأة.
                   </p>
                   <button
                     type="button"
                     onClick={handleAddRoom}
-                    className="mt-1 bg-amber-500 hover:bg-amber-400 text-slate-950 px-4 py-2 rounded-xl text-xs font-black flex items-center gap-1.5 transition cursor-pointer shadow-md"
+                    className="mt-1 bg-brand-700 hover:bg-brand-800 text-on-brand px-4 py-2 rounded-xl text-xs font-black flex items-center gap-1.5 transition cursor-pointer shadow-md"
                   >
                     <Plus className="w-4 h-4" />
                     <span>إضافة غرفة جديدة الآن</span>
@@ -1847,9 +1695,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                 </div>
               ) : filteredRooms.length === 0 ? (
                 <div
-                  className={`p-6 text-center text-xs border border-dashed rounded-xl ${
-                    isLight ? 'border-slate-300 text-slate-500 bg-white' : 'border-slate-800 text-slate-400 bg-slate-950/60'
-                  }`}
+                  className={`p-6 text-center text-xs border border-dashed rounded-xl border-slate-300 text-slate-500 bg-card`}
                 >
                   لا توجد غرف مطابقة لخيارات البحث أو الفلترة الحالية.
                   <button
@@ -1858,7 +1704,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                       setRoomSearchQuery('');
                       setRoomFloorFilter('all');
                     }}
-                    className="block mx-auto mt-2 text-amber-500 font-bold hover:underline cursor-pointer"
+                    className="block mx-auto mt-2 text-brand-700 font-bold hover:underline cursor-pointer"
                   >
                     إعادة ضبط البحث والفلاتر
                   </button>
@@ -1880,23 +1726,19 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                         key={rm.id}
                         className={`rounded-2xl border p-3 sm:p-4 space-y-2.5 transition shadow-xs hover:shadow-sm relative ${
                           isStopped
-                            ? isLight
-                              ? 'bg-rose-50/50 border-rose-300 ring-1 ring-rose-200'
-                              : 'bg-rose-950/20 border-rose-800/80 ring-1 ring-rose-500/20'
-                            : isLight
-                            ? 'bg-white border-slate-200 hover:border-slate-300'
-                            : 'bg-slate-950/80 border-slate-800 hover:border-slate-700'
+                            ? 'bg-rose-50/50 border-rose-200 ring-1 ring-rose-200'
+                            : 'bg-card border-slate-200 hover:border-slate-300'
                         }`}
                       >
                         {/* Card Header: Room Index, Standard Code, QR, Regenerate, Status toggle & Delete */}
-                        <div className="flex items-center justify-between gap-1.5 pb-2 border-b border-slate-200 dark:border-slate-800/80">
+                        <div className="flex items-center justify-between gap-1.5 pb-2 border-b border-slate-200 ">
                           {/* Right side: Code Badge & Actions */}
                           <div className="flex items-center gap-1.5 min-w-0">
-                            <span className="w-5 h-5 rounded-md bg-amber-500 text-slate-950 text-[10px] font-black flex items-center justify-center shrink-0">
+                            <span className="w-5 h-5 rounded-md bg-brand-700 text-on-brand text-[10px] font-black flex items-center justify-center shrink-0">
                               {toArabicDigits(idx + 1)}
                             </span>
                             <span
-                              className="font-mono font-black text-[11px] text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-lg border border-amber-500/25 shrink-0"
+                              className="font-mono font-black text-[11px] text-brand-700 bg-brand-50 px-2 py-0.5 rounded-lg border border-brand-200 shrink-0"
                               dir="ltr"
                               title={`رمز الغرفة القياسي: ${roomComputedCode}`}
                             >
@@ -1905,7 +1747,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                             <button
                               type="button"
                               onClick={() => setSelectedRoomForQr({ ...rm, code: roomComputedCode })}
-                              className="p-1 rounded-lg bg-amber-500/10 hover:bg-amber-500 text-amber-500 hover:text-slate-950 transition cursor-pointer shrink-0"
+                              className="p-1 rounded-lg bg-brand-50 hover:bg-brand-800 text-brand-700 hover:text-on-brand transition cursor-pointer shrink-0"
                               title="استعراض وطباعة بطاقة QR للغرفة"
                             >
                               <QrCode className="w-3.5 h-3.5" />
@@ -1913,7 +1755,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                             <button
                               type="button"
                               onClick={() => handleRegenerateSingleRoomCode(rm.id)}
-                              className="p-1 rounded-lg bg-slate-500/10 hover:bg-slate-700 text-slate-400 hover:text-white transition cursor-pointer shrink-0"
+                              className="p-1 rounded-lg bg-slate-500/10 hover:bg-slate-100 text-slate-500 hover:text-slate-900 transition cursor-pointer shrink-0"
                               title="إعادة توليد الرمز القياسي لهذه الغرفة"
                             >
                               <RefreshCw className="w-3 h-3" />
@@ -1927,8 +1769,8 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                               onClick={() => handleUpdateRoom(rm.id, 'status', isStopped ? 'Active' : 'Stopped')}
                               className={`text-[10.5px] px-2 py-0.5 rounded-full font-bold border transition cursor-pointer shrink-0 ${
                                 isStopped
-                                  ? 'bg-rose-500/20 text-rose-500 border-rose-500/40 hover:bg-rose-500/30'
-                                  : 'bg-emerald-500/20 text-emerald-500 border-emerald-500/40 hover:bg-emerald-500/30'
+                                  ? 'bg-rose-500/20 text-rose-600 border-rose-500/40 hover:bg-rose-500/30'
+                                  : 'bg-emerald-500/20 text-emerald-600 border-emerald-500/40 hover:bg-emerald-500/30'
                               }`}
                               title={isStopped ? 'انقر لتفعيل الغرفة' : 'انقر لإيقاف الغرفة'}
                             >
@@ -1938,7 +1780,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                             <button
                               type="button"
                               onClick={() => handleDeleteRoom(rm.id)}
-                              className="p-1 text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 rounded-lg transition cursor-pointer shrink-0"
+                              className="p-1 text-slate-500 hover:text-rose-600 hover:bg-rose-500/10 rounded-lg transition cursor-pointer shrink-0"
                               title="حذف هذه الغرفة"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
@@ -1948,7 +1790,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
 
                         {/* Room Name Input */}
                         <div>
-                          <label className={`block text-[10px] font-bold mb-1 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                          <label className={`block text-[10px] font-bold mb-1 text-slate-600`}>
                             اسم الغرفة / القاعة:
                           </label>
                           <input
@@ -1956,46 +1798,38 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                             value={rm.name}
                             onChange={(e) => handleUpdateRoom(rm.id, 'name', e.target.value)}
                             placeholder="مثال: مكتب المهندس المقيم / غرفة الاجتماعات"
-                            className={`w-full border rounded-xl px-2.5 py-1.5 text-xs font-bold outline-none transition focus:border-amber-500 ${
-                              isLight
-                                ? 'bg-slate-50 border-slate-300 text-slate-900 focus:bg-white'
-                                : 'bg-slate-900 border-slate-800 text-slate-100 focus:bg-slate-950'
-                            }`}
+                            className={`w-full border rounded-xl px-2.5 py-1.5 text-xs font-bold outline-none transition focus:border-brand-600 bg-slate-50 border-slate-300 text-slate-900 focus:bg-card`}
                           />
                         </div>
 
                         {/* 3-Field Specifications Grid: Type, Floor, Area */}
                         <div className="grid grid-cols-3 gap-1.5 sm:gap-2 text-xs">
                           <div>
-                            <label className={`block text-[9.5px] font-bold mb-0.5 truncate ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                            <label className={`block text-[9.5px] font-bold mb-0.5 truncate text-slate-600`}>
                               نوع الاستخدام:
                             </label>
                             <input
                               type="text"
                               value={rm.type}
                               onChange={(e) => handleUpdateRoom(rm.id, 'type', e.target.value)}
-                              className={`w-full border rounded-lg px-2 py-1 text-xs outline-none transition focus:border-amber-500 ${
-                                isLight ? 'bg-slate-50 border-slate-300 text-slate-900 focus:bg-white' : 'bg-slate-900 border-slate-800 text-slate-100 focus:bg-slate-950'
-                              }`}
+                              className={`w-full border rounded-lg px-2 py-1 text-xs outline-none transition focus:border-brand-600 bg-slate-50 border-slate-300 text-slate-900 focus:bg-card`}
                             />
                           </div>
 
                           <div>
-                            <label className={`block text-[9.5px] font-bold mb-0.5 truncate ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                            <label className={`block text-[9.5px] font-bold mb-0.5 truncate text-slate-600`}>
                               الطابق:
                             </label>
                             <input
                               type="text"
                               value={rm.floor}
                               onChange={(e) => handleUpdateRoom(rm.id, 'floor', e.target.value)}
-                              className={`w-full border rounded-lg px-2 py-1 text-xs font-bold outline-none transition focus:border-amber-500 ${
-                                isLight ? 'bg-slate-50 border-slate-300 text-slate-900 focus:bg-white' : 'bg-slate-900 border-slate-800 text-slate-100 focus:bg-slate-950'
-                              }`}
+                              className={`w-full border rounded-lg px-2 py-1 text-xs font-bold outline-none transition focus:border-brand-600 bg-slate-50 border-slate-300 text-slate-900 focus:bg-card`}
                             />
                           </div>
 
                           <div>
-                            <label className={`block text-[9.5px] font-bold mb-0.5 truncate ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                            <label className={`block text-[9.5px] font-bold mb-0.5 truncate text-slate-600`}>
                               المساحة (م²):
                             </label>
                             <input
@@ -2003,23 +1837,21 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                               min="1"
                               value={rm.areaSqM}
                               onChange={(e) => handleUpdateRoom(rm.id, 'areaSqM', Number(e.target.value))}
-                              className={`w-full border rounded-lg px-2 py-1 text-xs font-bold outline-none transition focus:border-amber-500 ${
-                                isLight ? 'bg-slate-50 border-slate-300 text-slate-900 focus:bg-white' : 'bg-slate-900 border-slate-800 text-amber-400 focus:bg-slate-950'
-                              }`}
+                              className={`w-full border rounded-lg px-2 py-1 text-xs font-bold outline-none transition focus:border-brand-600 bg-slate-50 border-slate-300 text-slate-900 focus:bg-card`}
                             />
                           </div>
                         </div>
 
                         {/* Occupancy / Capacity & Department Selection */}
-                        <div className="space-y-1.5 pt-1.5 border-t border-slate-200/80 dark:border-slate-800/60">
+                        <div className="space-y-1.5 pt-1.5 border-t border-slate-200/80 ">
                           {/* Occupancy or Capacity Row */}
                           <div className="flex items-center justify-between text-xs gap-2">
-                            <span className={`text-[10px] font-bold shrink-0 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                            <span className={`text-[10px] font-bold shrink-0 text-slate-600`}>
                               الإشغال والسعة:
                             </span>
 
                             {isNonOcc ? (
-                              <span className="text-slate-400 text-[10px] px-2 py-0.5 bg-slate-500/10 rounded-lg border border-slate-500/20 truncate">
+                              <span className="text-slate-500 text-[10px] px-2 py-0.5 bg-slate-500/10 rounded-lg border border-slate-500/20 truncate">
                                 — (غير مخصص للإشغال البشري)
                               </span>
                             ) : isCap ? (
@@ -2030,11 +1862,9 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                                   placeholder="السعة"
                                   value={rm.capacity ?? ''}
                                   onChange={(e) => handleUpdateRoom(rm.id, 'capacity', Number(e.target.value) || 0)}
-                                  className={`w-14 sm:w-16 border rounded-lg px-2 py-0.5 text-xs font-bold outline-none text-center ${
-                                    isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-slate-900 border-slate-800 text-slate-100'
-                                  }`}
+                                  className={`w-14 sm:w-16 border rounded-lg px-2 py-0.5 text-xs font-bold outline-none text-center bg-slate-50 border-slate-300 text-slate-900`}
                                 />
-                                <span className="text-[10px] text-sky-500 font-bold whitespace-nowrap">طاقة استيعابية</span>
+                                <span className="text-[10px] text-sky-600 font-bold whitespace-nowrap">طاقة استيعابية</span>
                               </div>
                             ) : (
                               <div className="flex items-center gap-1.5 shrink-0">
@@ -2044,13 +1874,11 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                                   placeholder="الشاغلين"
                                   value={rm.occupantsCount ?? ''}
                                   onChange={(e) => handleUpdateRoom(rm.id, 'occupantsCount', Number(e.target.value) || 0)}
-                                  className={`w-14 sm:w-16 border rounded-lg px-2 py-0.5 text-xs font-bold outline-none text-center ${
-                                    isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-slate-900 border-slate-800 text-slate-100'
-                                  }`}
+                                  className={`w-14 sm:w-16 border rounded-lg px-2 py-0.5 text-xs font-bold outline-none text-center bg-slate-50 border-slate-300 text-slate-900`}
                                 />
-                                <span className="text-[10px] text-emerald-500 font-bold whitespace-nowrap">شاغل</span>
+                                <span className="text-[10px] text-emerald-600 font-bold whitespace-nowrap">شاغل</span>
                                 {isVacant && (
-                                  <span className="text-[9.5px] text-amber-500 font-bold mr-1">(شاغرة)</span>
+                                  <span className="text-[9.5px] text-brand-700 font-bold mr-1">(شاغرة)</span>
                                 )}
                               </div>
                             )}
@@ -2058,7 +1886,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
 
                           {/* Occupying Department Selector */}
                           <div>
-                            <label className={`block text-[10px] font-bold mb-0.5 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                            <label className={`block text-[10px] font-bold mb-0.5 text-slate-600`}>
                               الجهة الشاغلة المخصصة للغرفة:
                             </label>
                             <select
@@ -2072,11 +1900,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                                   handleUpdateRoom(rm.id, 'status', 'Active');
                                 }
                               }}
-                              className={`w-full border rounded-xl px-2.5 py-1.5 text-xs outline-none cursor-pointer transition font-medium ${
-                                isLight
-                                  ? 'bg-slate-50 border-slate-300 text-slate-900 focus:border-amber-500'
-                                  : 'bg-slate-900 border-slate-800 text-slate-100 focus:border-amber-500'
-                              }`}
+                              className={`w-full border rounded-xl px-2.5 py-1.5 text-xs outline-none cursor-pointer transition font-medium bg-slate-50 border-slate-300 text-slate-900 focus:border-brand-600`}
                             >
                               <option value="">🏢 شاغرة (بدون إشغال / فارغة)</option>
                               {selectedDepartments.length > 0 ? (
@@ -2099,10 +1923,8 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
 
                         {/* Stopped Reason Box (Only if stopped) */}
                         {isStopped && (
-                          <div className={`p-2 rounded-xl border text-xs space-y-1 animate-in fade-in duration-150 ${
-                            isLight ? 'bg-rose-100/60 border-rose-300' : 'bg-rose-950/40 border-rose-900/60'
-                          }`}>
-                            <label className="block text-[10px] font-black text-rose-600 dark:text-rose-400">
+                          <div className={`p-2 rounded-xl border text-xs space-y-1 animate-in fade-in duration-150 bg-rose-100/60 border-rose-200`}>
+                            <label className="block text-[10px] font-black text-rose-600 ">
                               سبب التوقف وملاحظات العطل:
                             </label>
                             <input
@@ -2110,11 +1932,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                               placeholder="أدخل سبب التوقف أو متطلبات الصيانة..."
                               value={rm.notes || ''}
                               onChange={(e) => handleUpdateRoom(rm.id, 'notes', e.target.value)}
-                              className={`w-full border rounded-lg px-2 py-1 text-xs outline-none font-bold transition ${
-                                isLight
-                                  ? 'bg-white border-rose-300 text-rose-900 placeholder-rose-400 focus:border-rose-500'
-                                  : 'bg-slate-950 border-rose-800 text-rose-200 placeholder-rose-500/50 focus:border-rose-500'
-                              }`}
+                              className={`w-full border rounded-lg px-2 py-1 text-xs outline-none font-bold transition bg-card border-rose-200 text-rose-900 placeholder-rose-400 focus:border-rose-500`}
                             />
                           </div>
                         )}
@@ -2128,7 +1946,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                 /* ========================================================================= */
                 <div className="space-y-2">
                   {/* Subtle helper banner on mobile */}
-                  <div className="md:hidden p-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-500 text-[11px] font-medium flex items-center justify-between gap-1.5">
+                  <div className="md:hidden p-2 rounded-xl bg-brand-50 border border-brand-200 text-brand-700 text-[11px] font-medium flex items-center justify-between gap-1.5">
                     <span>💡 مرّر الجدول أفقياً لتعديل كافة الأعمدة، أو بدّل إلى وضع "بطاقات" لتحكم أسهل باللمس.</span>
                     <button
                       type="button"
@@ -2140,15 +1958,11 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                   </div>
 
                   <div
-                    className={`overflow-x-auto border rounded-2xl shadow-xs scrollbar-thin ${
-                      isLight ? 'border-slate-200 bg-white' : 'border-slate-800 bg-slate-950'
-                    }`}
+                    className={`overflow-x-auto border rounded-2xl shadow-xs scrollbar-thin border-slate-200 bg-card`}
                   >
                     <table className="w-full text-right text-xs min-w-[850px]">
                       <thead
-                        className={`font-black border-b sticky top-0 z-10 ${
-                          isLight ? 'bg-slate-100 text-slate-700 border-slate-200' : 'bg-slate-900 text-slate-300 border-slate-800'
-                        }`}
+                        className={`font-black border-b sticky top-0 z-10 bg-slate-100 text-slate-700 border-slate-200`}
                       >
                         <tr>
                           <th className="p-2.5 w-10 text-center">#</th>
@@ -2164,7 +1978,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                           <th className="p-2.5 text-center w-12">حذف</th>
                         </tr>
                       </thead>
-                      <tbody className={`divide-y ${isLight ? 'divide-slate-200' : 'divide-slate-800/60'}`}>
+                      <tbody className={`divide-y divide-slate-200`}>
                         {filteredRooms.map((rm, idx) => {
                           const isStopped = rm.status === 'Stopped' || rm.status === 'متوقفة';
                           const roomComputedCode = (rm.code && rm.code.trim()) ? rm.code.trim() : getStandardRoomCode(unit.code, rm, rooms);
@@ -2177,11 +1991,11 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                               key={rm.id}
                               className={`transition ${
                                 isStopped
-                                  ? isLight ? 'bg-rose-50/60' : 'bg-rose-950/20'
-                                  : isLight ? 'hover:bg-slate-50' : 'hover:bg-slate-900/40'
+                                  ? 'bg-rose-50/60'
+                                  : 'hover:bg-slate-50'
                               }`}
                             >
-                              <td className="p-2 text-center font-bold text-slate-400 font-mono text-[11px]">
+                              <td className="p-2 text-center font-bold text-slate-500 font-mono text-[11px]">
                                 {toArabicDigits(idx + 1)}
                               </td>
 
@@ -2190,21 +2004,19 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                                   type="text"
                                   value={rm.name}
                                   onChange={(e) => handleUpdateRoom(rm.id, 'name', e.target.value)}
-                                  className={`w-full border rounded-lg px-2.5 py-1 text-xs outline-none font-bold ${
-                                    isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-slate-900 border-slate-800 text-slate-100'
-                                  }`}
+                                  className={`w-full border rounded-lg px-2.5 py-1 text-xs outline-none font-bold bg-slate-50 border-slate-300 text-slate-900`}
                                 />
                               </td>
 
                               <td className="p-2">
                                 <div className="flex items-center gap-1.5 whitespace-nowrap">
-                                  <span className="font-mono font-black text-[11px] text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-lg border border-amber-500/20 shrink-0" dir="ltr">
+                                  <span className="font-mono font-black text-[11px] text-brand-700 bg-brand-50 px-2 py-0.5 rounded-lg border border-brand-200 shrink-0" dir="ltr">
                                     {roomComputedCode}
                                   </span>
                                   <button
                                     type="button"
                                     onClick={() => setSelectedRoomForQr({ ...rm, code: roomComputedCode })}
-                                    className="p-1 rounded-lg bg-amber-500/10 hover:bg-amber-500 text-amber-500 hover:text-slate-950 transition cursor-pointer shrink-0"
+                                    className="p-1 rounded-lg bg-brand-50 hover:bg-brand-800 text-brand-700 hover:text-on-brand transition cursor-pointer shrink-0"
                                     title="استعراض وطباعة بطاقة QR للغرفة"
                                   >
                                     <QrCode className="w-3.5 h-3.5" />
@@ -2212,7 +2024,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                                   <button
                                     type="button"
                                     onClick={() => handleRegenerateSingleRoomCode(rm.id)}
-                                    className="p-1 rounded-lg bg-slate-500/10 hover:bg-slate-700 text-slate-400 hover:text-white transition cursor-pointer shrink-0"
+                                    className="p-1 rounded-lg bg-slate-500/10 hover:bg-slate-100 text-slate-500 hover:text-slate-900 transition cursor-pointer shrink-0"
                                     title="إعادة توليد الرمز القياسي لهذه الغرفة"
                                   >
                                     <RefreshCw className="w-3.5 h-3.5" />
@@ -2225,9 +2037,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                                   type="text"
                                   value={rm.type}
                                   onChange={(e) => handleUpdateRoom(rm.id, 'type', e.target.value)}
-                                  className={`w-full border rounded-lg px-2 py-1 text-xs outline-none ${
-                                    isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-slate-900 border-slate-800 text-slate-100'
-                                  }`}
+                                  className={`w-full border rounded-lg px-2 py-1 text-xs outline-none bg-slate-50 border-slate-300 text-slate-900`}
                                 />
                               </td>
 
@@ -2236,9 +2046,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                                   type="text"
                                   value={rm.floor}
                                   onChange={(e) => handleUpdateRoom(rm.id, 'floor', e.target.value)}
-                                  className={`w-full border rounded-lg px-2 py-1 text-xs font-bold outline-none ${
-                                    isLight ? 'bg-slate-50 border-slate-300' : 'bg-slate-900 border-slate-800'
-                                  }`}
+                                  className={`w-full border rounded-lg px-2 py-1 text-xs font-bold outline-none bg-slate-50 border-slate-300`}
                                 />
                               </td>
 
@@ -2247,15 +2055,13 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                                   type="number"
                                   value={rm.areaSqM}
                                   onChange={(e) => handleUpdateRoom(rm.id, 'areaSqM', Number(e.target.value))}
-                                  className={`w-full border rounded-lg px-2 py-1 text-xs font-bold outline-none ${
-                                    isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-slate-900 border-slate-800 text-amber-400'
-                                  }`}
+                                  className={`w-full border rounded-lg px-2 py-1 text-xs font-bold outline-none bg-slate-50 border-slate-300 text-slate-900`}
                                 />
                               </td>
 
                               <td className="p-2">
                                 {isNonOcc ? (
-                                  <span className="text-slate-400 text-[11px] font-normal px-2 py-1 bg-slate-500/5 rounded-lg border border-slate-500/10 block text-center">
+                                  <span className="text-slate-500 text-[11px] font-normal px-2 py-1 bg-slate-500/5 rounded-lg border border-slate-500/10 block text-center">
                                     — (غير مخصص)
                                   </span>
                                 ) : isCap ? (
@@ -2266,11 +2072,9 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                                       placeholder="السعة"
                                       value={rm.capacity ?? ''}
                                       onChange={(e) => handleUpdateRoom(rm.id, 'capacity', Number(e.target.value) || 0)}
-                                      className={`w-full border rounded-lg px-2 py-1 text-xs font-bold outline-none ${
-                                        isLight ? 'bg-slate-50 border-slate-300' : 'bg-slate-900 border-slate-800'
-                                      }`}
+                                      className={`w-full border rounded-lg px-2 py-1 text-xs font-bold outline-none bg-slate-50 border-slate-300`}
                                     />
-                                    <span className="text-[10px] text-sky-500 font-semibold whitespace-nowrap">طاقة</span>
+                                    <span className="text-[10px] text-sky-600 font-semibold whitespace-nowrap">طاقة</span>
                                   </div>
                                 ) : (
                                   <div className="space-y-0.5">
@@ -2281,14 +2085,12 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                                         placeholder="شاغلين"
                                         value={rm.occupantsCount ?? ''}
                                         onChange={(e) => handleUpdateRoom(rm.id, 'occupantsCount', Number(e.target.value) || 0)}
-                                        className={`w-full border rounded-lg px-2 py-1 text-xs font-bold outline-none ${
-                                          isLight ? 'bg-slate-50 border-slate-300' : 'bg-slate-900 border-slate-800'
-                                        }`}
+                                        className={`w-full border rounded-lg px-2 py-1 text-xs font-bold outline-none bg-slate-50 border-slate-300`}
                                       />
-                                      <span className="text-[10px] text-emerald-500 font-semibold whitespace-nowrap">شاغل</span>
+                                      <span className="text-[10px] text-emerald-600 font-semibold whitespace-nowrap">شاغل</span>
                                     </div>
                                     {isVacant && (
-                                      <span className="text-[9px] text-amber-500 block">شاغرة</span>
+                                      <span className="text-[9px] text-brand-700 block">شاغرة</span>
                                     )}
                                   </div>
                                 )}
@@ -2306,9 +2108,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                                       handleUpdateRoom(rm.id, 'status', 'Active');
                                     }
                                   }}
-                                  className={`w-full border rounded-lg px-2 py-1 text-xs outline-none cursor-pointer transition ${
-                                    isLight ? 'bg-slate-50 border-slate-300 text-slate-900 font-medium focus:border-amber-500' : 'bg-slate-900 border-slate-800 text-slate-100 focus:border-amber-500'
-                                  }`}
+                                  className={`w-full border rounded-lg px-2 py-1 text-xs outline-none cursor-pointer transition bg-slate-50 border-slate-300 text-slate-900 font-medium focus:border-brand-600`}
                                 >
                                   <option value="">🏢 شاغرة (بدون إشغال / فارغة)</option>
                                   {selectedDepartments.length > 0 ? (
@@ -2334,8 +2134,8 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                                   onChange={(e) => handleUpdateRoom(rm.id, 'status', e.target.value)}
                                   className={`w-full border rounded-lg px-2 py-1 text-xs font-bold outline-none cursor-pointer transition ${
                                     isStopped
-                                      ? 'bg-rose-500/20 text-rose-500 border-rose-500/40'
-                                      : 'bg-emerald-500/20 text-emerald-500 border-emerald-500/40'
+                                      ? 'bg-rose-500/20 text-rose-600 border-rose-500/40'
+                                      : 'bg-emerald-500/20 text-emerald-600 border-emerald-500/40'
                                   }`}
                                 >
                                   <option value="Active">فعالة 🟢</option>
@@ -2350,14 +2150,10 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                                     placeholder="أدخل سبب التوقف..."
                                     value={rm.notes || ''}
                                     onChange={(e) => handleUpdateRoom(rm.id, 'notes', e.target.value)}
-                                    className={`w-full border rounded-lg px-2 py-1 text-xs outline-none font-bold transition ${
-                                      isLight
-                                        ? 'bg-rose-50 border-rose-300 text-rose-900 placeholder-rose-400 focus:border-rose-500'
-                                        : 'bg-rose-950/40 border-rose-800 text-rose-200 placeholder-rose-500/60 focus:border-rose-500'
-                                    }`}
+                                    className={`w-full border rounded-lg px-2 py-1 text-xs outline-none font-bold transition bg-rose-50 border-rose-200 text-rose-900 placeholder-rose-400 focus:border-rose-500`}
                                   />
                                 ) : (
-                                  <span className={`text-[11px] font-semibold italic ${isLight ? 'text-slate-400' : 'text-slate-500'}`}>
+                                  <span className={`text-[11px] font-semibold italic text-slate-400`}>
                                     نشطة (تحذف ملاحظة التوقف تلقائياً)
                                   </span>
                                 )}
@@ -2367,7 +2163,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                                 <button
                                   type="button"
                                   onClick={() => handleDeleteRoom(rm.id)}
-                                  className="p-1 text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 rounded transition cursor-pointer"
+                                  className="p-1 text-slate-500 hover:text-rose-600 hover:bg-rose-500/10 rounded transition cursor-pointer"
                                   title="حذف الغرفة"
                                 >
                                   <Trash2 className="w-3.5 h-3.5 mx-auto" />
@@ -2381,7 +2177,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                   </div>
 
                   {/* Advice for mobile users while on table view */}
-                  <div className="sm:hidden text-center text-[10.5px] text-amber-500 flex items-center justify-center gap-1">
+                  <div className="sm:hidden text-center text-[10.5px] text-brand-700 flex items-center justify-center gap-1">
                     <span>💡 نصيحة: وضع</span>
                     <button
                       type="button"
@@ -2400,17 +2196,15 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
           {/* TAB 5: Attachments & Archives */}
           {activeTab === 'docs' && (
             <div
-              className={`p-5 rounded-2xl border space-y-4 ${
-                isLight ? 'bg-slate-50/70 border-slate-200' : 'bg-slate-900/60 border-slate-800'
-              }`}
+              className={`p-5 rounded-2xl border space-y-4 bg-slate-50/70 border-slate-200`}
             >
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-800">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-200">
                 <div>
-                  <h4 className="text-sm font-bold text-amber-500 flex items-center gap-2">
+                  <h4 className="text-sm font-bold text-brand-700 flex items-center gap-2">
                     <Paperclip className="w-4 h-4" />
                     <span>المرفقات والوثائق الهندسية والأرشيف الرقمي للوحدة</span>
                   </h4>
-                  <p className="text-[11px] text-slate-400 mt-0.5">
+                  <p className="text-[11px] text-slate-500 mt-0.5">
                     إدارة واستعراض وإضافة وحذف المخططات الهندسية ومستندات الاستلام والوثائق الرسمية.
                   </p>
                 </div>
@@ -2418,7 +2212,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                 <div className="flex items-center gap-2 shrink-0">
                   <label
                     htmlFor="edit-modal-file-input"
-                    className="bg-amber-500 hover:bg-amber-400 text-slate-950 px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition cursor-pointer shadow"
+                    className="bg-brand-700 hover:bg-brand-800 text-on-brand px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition cursor-pointer shadow"
                   >
                     <Upload className="w-4 h-4" />
                     <span>رفع ملفات سريعة</span>
@@ -2434,7 +2228,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                   <button
                     type="button"
                     onClick={() => setShowAddAttachmentModal(true)}
-                    className="bg-slate-800 hover:bg-slate-700 text-amber-400 border border-slate-700 px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition cursor-pointer"
+                    className="bg-slate-100 hover:bg-slate-100 text-brand-700 border border-slate-200 px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition cursor-pointer"
                   >
                     <Plus className="w-4 h-4" />
                     <span>إضافة وثيقة يدوياً</span>
@@ -2456,29 +2250,25 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                   }
                 }}
                 onClick={() => document.getElementById('edit-modal-file-input')?.click()}
-                className={`p-4 border-2 border-dashed rounded-2xl text-center space-y-1.5 cursor-pointer transition hover:border-amber-500/80 ${
-                  isLight ? 'border-slate-300 bg-slate-100/60 hover:bg-slate-200/50' : 'border-slate-800 bg-slate-950/40 hover:bg-slate-900/60'
-                }`}
+                className={`p-4 border-2 border-dashed rounded-2xl text-center space-y-1.5 cursor-pointer transition hover:border-brand-200 border-slate-300 bg-slate-100/60 hover:bg-slate-200/50`}
               >
-                <Upload className="w-7 h-7 text-amber-500 mx-auto opacity-80" />
-                <p className={`text-xs font-bold ${isLight ? 'text-slate-800' : 'text-slate-200'}`}>
+                <Upload className="w-7 h-7 text-brand-700 mx-auto opacity-80" />
+                <p className={`text-xs font-bold text-slate-800`}>
                   اسحب وأسقط المخططات الهندسية أو اضغط لتصفح جهازك (PDF, DWG, PNG, DOC, ZIP)
                 </p>
                 <p className="text-[11px] text-slate-500">
-                  عدد الوثائق الأرشيفية المرفقة حالياً: <strong className="text-amber-400 font-mono text-xs">{toArabicDigits(attachments.length)}</strong> وثيقة
+                  عدد الوثائق الأرشيفية المرفقة حالياً: <strong className="text-brand-700 font-mono text-xs">{toArabicDigits(attachments.length)}</strong> وثيقة
                 </p>
               </div>
 
               {/* Attachments List */}
               {attachments.length === 0 ? (
-                <div className={`p-8 text-center text-xs border border-dashed rounded-2xl ${
-                  isLight ? 'border-slate-300 text-slate-500' : 'border-slate-800 text-slate-500'
-                }`}>
+                <div className={`p-8 text-center text-xs border border-dashed rounded-2xl border-slate-300 text-slate-500`}>
                   لا توجد مرفقات أو وثائق مضافة لهذه المنشأة حالياً. اضغط "رفع ملفات" أو "إضافة وثيقة" للبدء.
                 </div>
               ) : (
                 <div className="space-y-2.5">
-                  <div className="flex items-center justify-between text-xs font-bold px-1 text-slate-400">
+                  <div className="flex items-center justify-between text-xs font-bold px-1 text-slate-500">
                     <span>سجل الوثائق والمرفقات المعتمدة ({toArabicDigits(attachments.length)}):</span>
                   </div>
 
@@ -2486,26 +2276,24 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                     {attachments.map((att) => (
                       <div
                         key={att.id}
-                        className={`p-3.5 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition ${
-                          isLight ? 'bg-white border-slate-200 hover:border-amber-400' : 'bg-slate-950 border-slate-800/80 hover:border-slate-700'
-                        }`}
+                        className={`p-3.5 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition bg-card border-slate-200 hover:border-brand-200`}
                       >
                         <div className="flex items-start gap-3 min-w-0">
-                          <div className="p-2.5 bg-slate-900/80 border border-slate-800 rounded-xl shrink-0">
+                          <div className="p-2.5 bg-card/80 border border-slate-200 rounded-xl shrink-0">
                             {getFileIcon(att.type)}
                           </div>
 
                           <div className="space-y-1 min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
-                              <span className={`font-bold text-xs truncate ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                              <span className={`font-bold text-xs truncate text-slate-900`}>
                                 {att.name}
                               </span>
-                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-500 border border-amber-500/20">
+                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-brand-50 text-brand-700 border border-brand-200">
                                 {att.category}
                               </span>
                             </div>
 
-                            <p className="text-[11px] text-slate-400 leading-relaxed truncate">
+                            <p className="text-[11px] text-slate-500 leading-relaxed truncate">
                               {att.notes || 'لا توجد ملاحظات إضافية'}
                             </p>
 
@@ -2514,7 +2302,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                               <span>•</span>
                               <span>الحجم: {att.sizeMB ? `${toArabicDigits(att.sizeMB)} MB` : 'غير محدد'}</span>
                               <span>•</span>
-                              <span className="uppercase text-amber-400">{att.type}</span>
+                              <span className="uppercase text-brand-700">{att.type}</span>
                             </div>
                           </div>
                         </div>
@@ -2524,7 +2312,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                           <button
                             type="button"
                             onClick={() => setPreviewAttachment(att)}
-                            className="p-2 bg-amber-500/10 text-amber-500 hover:bg-amber-500 hover:text-slate-950 rounded-lg text-xs font-bold transition flex items-center gap-1 cursor-pointer"
+                            className="p-2 bg-brand-50 text-brand-700 hover:bg-brand-800 hover:text-on-brand rounded-lg text-xs font-bold transition flex items-center gap-1 cursor-pointer"
                             title="معاينة واستعراض الوثيقة"
                           >
                             <Eye className="w-3.5 h-3.5" />
@@ -2534,7 +2322,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                           <button
                             type="button"
                             onClick={() => setEditingAttachment({ ...att })}
-                            className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-bold transition flex items-center gap-1 cursor-pointer"
+                            className="p-2 bg-slate-100 hover:bg-slate-100 text-slate-800 rounded-lg text-xs font-bold transition flex items-center gap-1 cursor-pointer"
                             title="تعديل اسم أو بيانات المرفق"
                           >
                             <Edit3 className="w-3.5 h-3.5" />
@@ -2544,7 +2332,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                           <button
                             type="button"
                             onClick={() => handleDeleteAttachment(att.id)}
-                            className="p-2 bg-red-500/10 hover:bg-red-500 text-red-400 hover:text-white rounded-lg text-xs font-bold transition flex items-center gap-1 cursor-pointer"
+                            className="p-2 bg-red-500/10 hover:bg-red-500 text-red-600 hover:text-white rounded-lg text-xs font-bold transition flex items-center gap-1 cursor-pointer"
                             title="حذف هذا المرفق نهائياً"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -2563,12 +2351,10 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
 
           {/* Actions Footer - Docked at Bottom of Modal */}
           <div
-            className={`px-3.5 sm:px-6 py-2.5 sm:py-3.5 border-t shrink-0 flex flex-col sm:flex-row items-center justify-between gap-2.5 sm:gap-4 ${
-              isLight ? 'bg-slate-50/95 border-slate-200' : 'bg-slate-900/95 border-slate-800 backdrop-blur-md'
-            }`}
+            className={`px-3.5 sm:px-6 py-2.5 sm:py-3.5 border-t shrink-0 flex flex-col sm:flex-row items-center justify-between gap-2.5 sm:gap-4 bg-slate-50/95 border-slate-200`}
           >
-            <div className="flex items-center gap-2 text-[11px] sm:text-xs text-slate-400 order-2 sm:order-1 text-center sm:text-right">
-              <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+            <div className="flex items-center gap-2 text-[11px] sm:text-xs text-slate-500 order-2 sm:order-1 text-center sm:text-right">
+              <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
               <span>يتم توثيق التعديلات مباشرة بسجل التدقيق الأمني للشركة</span>
             </div>
 
@@ -2576,18 +2362,14 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
               <button
                 type="button"
                 onClick={onClose}
-                className={`flex-1 sm:flex-initial px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs font-bold transition cursor-pointer text-center ${
-                  isLight
-                    ? 'bg-slate-100 hover:bg-slate-200 text-slate-700'
-                    : 'bg-slate-800 hover:bg-slate-700 text-slate-300'
-                }`}
+                className={`flex-1 sm:flex-initial px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs font-bold transition cursor-pointer text-center bg-slate-100 hover:bg-slate-200 text-slate-700`}
               >
                 إلغاء
               </button>
 
               <button
                 type="submit"
-                className="flex-1 sm:flex-initial bg-amber-500 hover:bg-amber-400 text-slate-950 px-5 sm:px-6 py-2 sm:py-2.5 rounded-xl text-xs font-black flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20 transition cursor-pointer active:scale-98"
+                className="flex-1 sm:flex-initial bg-brand-700 hover:bg-brand-800 text-on-brand px-5 sm:px-6 py-2 sm:py-2.5 rounded-xl text-xs font-black flex items-center justify-center gap-2 shadow-lg transition cursor-pointer active:scale-98"
               >
                 <Save className="w-4 h-4 shrink-0" />
                 <span>حفظ كافة التعديلات والـ 3D</span>
@@ -2599,54 +2381,46 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
 
       {/* MODAL 1: Add New Attachment */}
       {showAddAttachmentModal && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className={`border rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-4 ${
-            isLight ? 'bg-white border-slate-200 text-slate-900' : 'bg-slate-900 border-slate-800 text-white'
-          }`}>
-            <div className="flex items-center justify-between border-b pb-3 border-amber-500/30">
-              <h4 className="font-bold text-sm text-amber-500 flex items-center gap-2">
+        <div className="fixed inset-0 z-50 bg-card/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className={`border rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-4 bg-card border-slate-200 text-slate-900`}>
+            <div className="flex items-center justify-between border-b pb-3 border-brand-200">
+              <h4 className="font-bold text-sm text-brand-700 flex items-center gap-2">
                 <Paperclip className="w-4 h-4" />
                 <span>إضافة وثيقة / مرفق جديد للوحدة</span>
               </h4>
-              <button onClick={() => setShowAddAttachmentModal(false)} className="text-slate-400 hover:text-white p-1">
+              <button onClick={() => setShowAddAttachmentModal(false)} className="text-slate-500 hover:text-slate-900 p-1">
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             <div className="space-y-3 text-xs">
               <div>
-                <label className="block font-bold mb-1 text-slate-300">اختيار الملف (معاينة وتحميل مباشر):</label>
+                <label className="block font-bold mb-1 text-slate-600">اختيار الملف (معاينة وتحميل مباشر):</label>
                 <input
                   type="file"
                   onChange={handleModalFileSelected}
-                  className={`w-full text-xs p-2 rounded-xl border cursor-pointer ${
-                    isLight ? 'bg-slate-50 border-slate-300 text-slate-800' : 'bg-slate-950 border-slate-800 text-slate-200'
-                  }`}
+                  className={`w-full text-xs p-2 rounded-xl border cursor-pointer bg-slate-50 border-slate-300 text-slate-800`}
                 />
               </div>
 
               <div>
-                <label className="block font-bold mb-1 text-slate-300">اسم الوثيقة / المستند:</label>
+                <label className="block font-bold mb-1 text-slate-600">اسم الوثيقة / المستند:</label>
                 <input
                   type="text"
                   value={newAttName}
                   onChange={(e) => setNewAttName(e.target.value)}
                   placeholder="مثال: المخطط الهندسي لشبكة الإطفاء.pdf"
-                  className={`w-full border rounded-xl p-2.5 outline-none font-bold ${
-                    isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-slate-950 border-slate-800 text-slate-100'
-                  }`}
+                  className={`w-full border rounded-xl p-2.5 outline-none font-bold bg-slate-50 border-slate-300 text-slate-900`}
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold mb-1 text-slate-300">التصنيف الأرشيفي:</label>
+                  <label className="block font-bold mb-1 text-slate-600">التصنيف الأرشيفي:</label>
                   <select
                     value={newAttCategory}
                     onChange={(e) => setNewAttCategory(e.target.value)}
-                    className={`w-full border rounded-xl p-2.5 outline-none font-bold cursor-pointer ${
-                      isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-slate-950 border-slate-800 text-slate-100'
-                    }`}
+                    className={`w-full border rounded-xl p-2.5 outline-none font-bold cursor-pointer bg-slate-50 border-slate-300 text-slate-900`}
                   >
                     <option value="مخططات هندسية">مخططات هندسية</option>
                     <option value="محاضر استلام">محاضر استلام</option>
@@ -2657,13 +2431,11 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                 </div>
 
                 <div>
-                  <label className="block font-bold mb-1 text-slate-300">نوع الملف:</label>
+                  <label className="block font-bold mb-1 text-slate-600">نوع الملف:</label>
                   <select
                     value={newAttType}
                     onChange={(e) => setNewAttType(e.target.value)}
-                    className={`w-full border rounded-xl p-2.5 outline-none font-bold cursor-pointer ${
-                      isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-slate-950 border-slate-800 text-slate-100'
-                    }`}
+                    className={`w-full border rounded-xl p-2.5 outline-none font-bold cursor-pointer bg-slate-50 border-slate-300 text-slate-900`}
                   >
                     <option value="pdf">PDF Document</option>
                     <option value="dwg">AutoCAD (DWG)</option>
@@ -2675,37 +2447,33 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
               </div>
 
               <div>
-                <label className="block font-bold mb-1 text-slate-300">حجم الملف المقدر (MB):</label>
+                <label className="block font-bold mb-1 text-slate-600">حجم الملف المقدر (MB):</label>
                 <input
                   type="number"
                   step="0.1"
                   value={newAttSizeMB}
                   onChange={(e) => setNewAttSizeMB(Number(e.target.value))}
-                  className={`w-full border rounded-xl p-2.5 outline-none font-bold ${
-                    isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-slate-950 border-slate-800 text-slate-100'
-                  }`}
+                  className={`w-full border rounded-xl p-2.5 outline-none font-bold bg-slate-50 border-slate-300 text-slate-900`}
                 />
               </div>
 
               <div>
-                <label className="block font-bold mb-1 text-slate-300">ملاحظات إضافية:</label>
+                <label className="block font-bold mb-1 text-slate-600">ملاحظات إضافية:</label>
                 <textarea
                   value={newAttNotes}
                   onChange={(e) => setNewAttNotes(e.target.value)}
                   placeholder="ملاحظات حول المرفق أو أرقام الصادر والوارد..."
                   rows={2}
-                  className={`w-full border rounded-xl p-2.5 outline-none ${
-                    isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-slate-950 border-slate-800 text-slate-100'
-                  }`}
+                  className={`w-full border rounded-xl p-2.5 outline-none bg-slate-50 border-slate-300 text-slate-900`}
                 />
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-800 text-xs">
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-200 text-xs">
               <button
                 type="button"
                 onClick={() => setShowAddAttachmentModal(false)}
-                className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold"
+                className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-100 text-slate-600 font-bold"
               >
                 إلغاء
               </button>
@@ -2713,7 +2481,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                 type="button"
                 onClick={handleSaveNewAttachment}
                 disabled={!newAttName.trim()}
-                className="px-5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold shadow disabled:opacity-50"
+                className="px-5 py-2 rounded-xl bg-brand-700 hover:bg-brand-800 text-on-brand font-bold shadow disabled:opacity-50"
               >
                 حفظ الوثيقة
               </button>
@@ -2724,42 +2492,36 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
 
       {/* MODAL 2: Edit Attachment */}
       {editingAttachment && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className={`border rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-4 ${
-            isLight ? 'bg-white border-slate-200 text-slate-900' : 'bg-slate-900 border-slate-800 text-white'
-          }`}>
-            <div className="flex items-center justify-between border-b pb-3 border-amber-500/30">
-              <h4 className="font-bold text-sm text-amber-500 flex items-center gap-2">
+        <div className="fixed inset-0 z-50 bg-card/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className={`border rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-4 bg-card border-slate-200 text-slate-900`}>
+            <div className="flex items-center justify-between border-b pb-3 border-brand-200">
+              <h4 className="font-bold text-sm text-brand-700 flex items-center gap-2">
                 <Edit3 className="w-4 h-4" />
                 <span>تعديل بيانات المرفق الأرشيفي</span>
               </h4>
-              <button onClick={() => setEditingAttachment(null)} className="text-slate-400 hover:text-white p-1">
+              <button onClick={() => setEditingAttachment(null)} className="text-slate-500 hover:text-slate-900 p-1">
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             <div className="space-y-3 text-xs">
               <div>
-                <label className="block font-bold mb-1 text-slate-300">اسم الوثيقة / المستند:</label>
+                <label className="block font-bold mb-1 text-slate-600">اسم الوثيقة / المستند:</label>
                 <input
                   type="text"
                   value={editingAttachment.name}
                   onChange={(e) => setEditingAttachment({ ...editingAttachment, name: e.target.value })}
-                  className={`w-full border rounded-xl p-2.5 outline-none font-bold ${
-                    isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-slate-950 border-slate-800 text-slate-100'
-                  }`}
+                  className={`w-full border rounded-xl p-2.5 outline-none font-bold bg-slate-50 border-slate-300 text-slate-900`}
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold mb-1 text-slate-300">التصنيف الأرشيفي:</label>
+                  <label className="block font-bold mb-1 text-slate-600">التصنيف الأرشيفي:</label>
                   <select
                     value={editingAttachment.category}
                     onChange={(e) => setEditingAttachment({ ...editingAttachment, category: e.target.value })}
-                    className={`w-full border rounded-xl p-2.5 outline-none font-bold cursor-pointer ${
-                      isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-slate-950 border-slate-800 text-slate-100'
-                    }`}
+                    className={`w-full border rounded-xl p-2.5 outline-none font-bold cursor-pointer bg-slate-50 border-slate-300 text-slate-900`}
                   >
                     <option value="مخططات هندسية">مخططات هندسية</option>
                     <option value="محاضر استلام">محاضر استلام</option>
@@ -2770,13 +2532,11 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                 </div>
 
                 <div>
-                  <label className="block font-bold mb-1 text-slate-300">نوع الملف:</label>
+                  <label className="block font-bold mb-1 text-slate-600">نوع الملف:</label>
                   <select
                     value={editingAttachment.type}
                     onChange={(e) => setEditingAttachment({ ...editingAttachment, type: e.target.value })}
-                    className={`w-full border rounded-xl p-2.5 outline-none font-bold cursor-pointer ${
-                      isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-slate-950 border-slate-800 text-slate-100'
-                    }`}
+                    className={`w-full border rounded-xl p-2.5 outline-none font-bold cursor-pointer bg-slate-50 border-slate-300 text-slate-900`}
                   >
                     <option value="pdf">PDF Document</option>
                     <option value="dwg">AutoCAD (DWG)</option>
@@ -2788,42 +2548,38 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
               </div>
 
               <div>
-                <label className="block font-bold mb-1 text-slate-300">تاريخ الإرفاق:</label>
+                <label className="block font-bold mb-1 text-slate-600">تاريخ الإرفاق:</label>
                 <input
                   type="date"
                   value={editingAttachment.uploadDate}
                   onChange={(e) => setEditingAttachment({ ...editingAttachment, uploadDate: e.target.value })}
-                  className={`w-full border rounded-xl p-2.5 outline-none font-bold ${
-                    isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-slate-950 border-slate-800 text-slate-100'
-                  }`}
+                  className={`w-full border rounded-xl p-2.5 outline-none font-bold bg-slate-50 border-slate-300 text-slate-900`}
                 />
               </div>
 
               <div>
-                <label className="block font-bold mb-1 text-slate-300">ملاحظات وتفاصيل إضافية:</label>
+                <label className="block font-bold mb-1 text-slate-600">ملاحظات وتفاصيل إضافية:</label>
                 <textarea
                   value={editingAttachment.notes || ''}
                   onChange={(e) => setEditingAttachment({ ...editingAttachment, notes: e.target.value })}
                   rows={2}
-                  className={`w-full border rounded-xl p-2.5 outline-none ${
-                    isLight ? 'bg-slate-50 border-slate-300 text-slate-900' : 'bg-slate-950 border-slate-800 text-slate-100'
-                  }`}
+                  className={`w-full border rounded-xl p-2.5 outline-none bg-slate-50 border-slate-300 text-slate-900`}
                 />
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-800 text-xs">
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-200 text-xs">
               <button
                 type="button"
                 onClick={() => setEditingAttachment(null)}
-                className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold"
+                className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-100 text-slate-600 font-bold"
               >
                 إلغاء
               </button>
               <button
                 type="button"
                 onClick={handleSaveEditAttachment}
-                className="px-5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold shadow"
+                className="px-5 py-2 rounded-xl bg-brand-700 hover:bg-brand-800 text-on-brand font-bold shadow"
               >
                 تعديل وحفظ
               </button>

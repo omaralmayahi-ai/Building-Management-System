@@ -60,33 +60,33 @@ const MAX_FILE_SIZE = 15 * 1024 * 1024; // Up to 15 MB before compression
 const getRoomTypeConfig = (typeStr: string) => {
   const t = (typeStr || '').toLowerCase();
   if (t.includes('مكتب') || t.includes('off') || t.includes('office')) {
-    return { name: 'مكتب إداري', color: 'text-sky-600 dark:text-sky-400 bg-sky-500/10 border-sky-500/30', icon: Briefcase };
+    return { name: 'مكتب إداري', color: 'text-sky-600 bg-sky-500/10 border-sky-500/30', icon: Briefcase };
   }
   if (t.includes('اجتماع') || t.includes('mtg') || t.includes('meeting')) {
-    return { name: 'قاعة اجتماعات', color: 'text-purple-600 dark:text-purple-400 bg-purple-500/10 border-purple-500/30', icon: Users };
+    return { name: 'قاعة اجتماعات', color: 'text-purple-600 bg-purple-500/10 border-purple-500/30', icon: Users };
   }
   if (t.includes('مخزن') || t.includes('مستودع') || t.includes('str') || t.includes('storage')) {
-    return { name: 'مخزن ومستودع', color: 'text-amber-600 dark:text-amber-400 bg-amber-500/10 border-amber-500/30', icon: Archive };
+    return { name: 'مخزن ومستودع', color: 'text-brand-700 bg-brand-50 border-brand-200', icon: Archive };
   }
   if (t.includes('سيرفر') || t.includes('شبك') || t.includes('srv') || t.includes('server')) {
-    return { name: 'سيرفرات وتقنية', color: 'text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 border-indigo-500/30', icon: Server };
+    return { name: 'سيرفرات وتقنية', color: 'text-indigo-600 bg-indigo-500/10 border-indigo-500/30', icon: Server };
   }
   if (t.includes('مختبر') || t.includes('تحليل') || t.includes('lab')) {
-    return { name: 'مختبر وتحاليل', color: 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/30', icon: FlaskConical };
+    return { name: 'مختبر وتحاليل', color: 'text-emerald-600 bg-emerald-500/10 border-emerald-500/30', icon: FlaskConical };
   }
   if (t.includes('صحي') || t.includes('حمام') || t.includes('مياه') || t.includes('wsh') || t.includes('bath')) {
-    return { name: 'خدمات وصحيات', color: 'text-cyan-600 dark:text-cyan-400 bg-cyan-500/10 border-cyan-500/30', icon: Bath };
+    return { name: 'خدمات وصحيات', color: 'text-cyan-600 bg-cyan-500/10 border-cyan-500/30', icon: Bath };
   }
   if (t.includes('استراح') || t.includes('سكن') || t.includes('bed') || t.includes('living')) {
-    return { name: 'سكن واستراحة', color: 'text-teal-600 dark:text-teal-400 bg-teal-500/10 border-teal-500/30', icon: Bed };
+    return { name: 'سكن واستراحة', color: 'text-teal-600 bg-teal-500/10 border-teal-500/30', icon: Bed };
   }
   if (t.includes('مطبخ') || t.includes('بوفيه') || t.includes('طعام') || t.includes('ktn') || t.includes('din')) {
-    return { name: 'مطبخ وبوفيه', color: 'text-rose-600 dark:text-rose-400 bg-rose-500/10 border-rose-500/30', icon: Utensils };
+    return { name: 'مطبخ وبوفيه', color: 'text-rose-600 bg-rose-500/10 border-rose-500/30', icon: Utensils };
   }
   if (t.includes('سيطرة') || t.includes('تحكم') || t.includes('مراقبة')) {
-    return { name: 'سيطرة ومراقبة', color: 'text-orange-600 dark:text-orange-400 bg-orange-500/10 border-orange-500/30', icon: Cpu };
+    return { name: 'سيطرة ومراقبة', color: 'text-orange-600 bg-orange-500/10 border-orange-500/30', icon: Cpu };
   }
-  return { name: typeStr || 'فضاء / غرفة', color: 'text-slate-600 dark:text-slate-400 bg-slate-500/10 border-slate-500/30', icon: DoorClosed };
+  return { name: typeStr || 'فضاء / غرفة', color: 'text-slate-600 bg-slate-500/10 border-slate-500/30', icon: DoorClosed };
 };
 
 interface NewMaintenanceModalProps {
@@ -429,34 +429,28 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
   };
 
   return (
-    <div className={`fixed inset-0 z-50 backdrop-blur-md flex items-center justify-center p-2.5 sm:p-5 overflow-y-auto ${
-      isLight ? 'bg-slate-900/40' : 'bg-slate-950/80'
-    }`}>
+    <div className={`fixed inset-0 z-50 backdrop-blur-md flex items-center justify-center p-2.5 sm:p-5 overflow-y-auto bg-slate-900/40`}>
       <div
-        className={`rounded-2xl max-w-4xl w-full p-3.5 sm:p-5 shadow-2xl border flex flex-col max-h-[92vh] space-y-3.5 sm:space-y-4 text-xs ${
-          isLight ? 'bg-white border-slate-200 text-slate-800' : 'bg-slate-900 border-slate-800 text-slate-100'
-        }`}
+        className={`rounded-2xl max-w-4xl w-full p-3.5 sm:p-5 shadow-2xl border flex flex-col max-h-[92vh] space-y-3.5 sm:space-y-4 text-xs bg-card border-slate-200 text-slate-800`}
       >
         {/* MODAL HEADER */}
-        <div className="flex items-center justify-between pb-2.5 sm:pb-3 border-b border-slate-200 dark:border-slate-800 shrink-0">
+        <div className="flex items-center justify-between pb-2.5 sm:pb-3 border-b border-slate-200 shrink-0">
           <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
-            <div className="p-1.5 sm:p-2 rounded-xl bg-amber-500/10 text-amber-500 border border-amber-500/20 shrink-0">
+            <div className="p-1.5 sm:p-2 rounded-xl bg-brand-50 text-brand-700 border border-brand-200 shrink-0">
               <Wrench className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
             <div className="min-w-0">
-              <h3 className={`font-bold text-sm sm:text-base truncate ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+              <h3 className={`font-bold text-sm sm:text-base truncate text-slate-900`}>
                 طلب صيانة جديد
               </h3>
-              <p className={`text-[10px] sm:text-[11px] truncate ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+              <p className={`text-[10px] sm:text-[11px] truncate text-slate-500`}>
                 توثيق وإصدار طلب صيانة جديد وتكليف الجهة الفنية المختصة
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className={`p-1.5 rounded-xl transition cursor-pointer shrink-0 ${
-              isLight ? 'hover:bg-slate-100 text-slate-400 hover:text-slate-700' : 'hover:bg-slate-800 text-slate-400 hover:text-slate-200'
-            }`}
+            className={`p-1.5 rounded-xl transition cursor-pointer shrink-0 hover:bg-slate-100 text-slate-400 hover:text-slate-700`}
           >
             <X className="w-5 h-5" />
           </button>
@@ -465,16 +459,16 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
         {/* FORM CONTENT */}
         <form onSubmit={handleSubmit} className="space-y-4 overflow-y-auto pr-1 flex-1">
           {/* SECTION 1: UNIT SELECTION */}
-          <div className={`p-4 rounded-2xl border space-y-3.5 ${isLight ? 'bg-slate-50/80 border-slate-200' : 'bg-slate-950/60 border-slate-800'}`}>
+          <div className={`p-4 rounded-2xl border space-y-3.5 bg-slate-50/80 border-slate-200`}>
             {isLocked ? (
               /* LOCKED UNIT VIEW (e.g. Scanned QR Code) */
               <div className="space-y-3">
-                <div className="flex items-center justify-between border-b pb-2 border-slate-200 dark:border-slate-800">
-                  <label className={`block font-extrabold text-xs ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                <div className="flex items-center justify-between border-b pb-2 border-slate-200 ">
+                  <label className={`block font-extrabold text-xs text-slate-900`}>
                     1. المنشأة / الأصل المحدد للطلب:
                   </label>
-                  <span className="px-2.5 py-1 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-700 dark:text-amber-300 font-black text-[11px] flex items-center gap-1.5 shadow-sm">
-                    <Lock className="w-3.5 h-3.5 text-amber-500" />
+                  <span className="px-2.5 py-1 rounded-lg bg-brand-100 border border-brand-200 text-brand-700 font-black text-[11px] flex items-center gap-1.5 shadow-sm">
+                    <Lock className="w-3.5 h-3.5 text-brand-700" />
                     <span>
                       {isRoomLockedEffective
                         ? 'تم التحديد والقفل عبر رمز الوصول السريع للغرفة (QR)'
@@ -484,39 +478,37 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
                 </div>
 
                 {/* Locked Unit Details Card */}
-                <div className={`p-3.5 rounded-2xl border transition ${
-                  isLight ? 'bg-amber-50/90 border-amber-300 text-amber-950 shadow-sm' : 'bg-amber-500/10 border-amber-500/30 text-amber-200'
-                }`}>
+                <div className={`p-3.5 rounded-2xl border transition bg-brand-50 border-brand-200 text-brand-800 shadow-sm`}>
                   <div className="flex items-start justify-between gap-3 flex-wrap sm:flex-nowrap">
                     <div className="flex items-center gap-3">
-                      <div className="w-11 h-11 rounded-2xl bg-amber-500 text-slate-950 font-black flex items-center justify-center shrink-0 shadow-md">
+                      <div className="w-11 h-11 rounded-2xl bg-brand-700 text-on-brand font-black flex items-center justify-center shrink-0 shadow-md">
                         <Building2 className="w-6 h-6" />
                       </div>
                       <div>
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-mono text-sm font-black text-amber-700 dark:text-amber-400 bg-amber-500/10 dark:bg-amber-500/20 px-2 py-0.5 rounded-lg border border-amber-500/20">
+                          <span className="font-mono text-sm font-black text-brand-700 bg-brand-50 px-2 py-0.5 rounded-lg border border-brand-200">
                             {selectedUnitAsset?.code || unitCode}
                           </span>
                           <span className="opacity-60">•</span>
-                          <span className="font-extrabold text-sm text-slate-900 dark:text-slate-100">
+                          <span className="font-extrabold text-sm text-slate-900 ">
                             {selectedUnitAsset?.name || 'الوحدة الهندسية'}
                           </span>
                         </div>
                         <div className="text-xs opacity-90 flex items-center gap-3 mt-1.5 flex-wrap font-medium">
                           {selectedUnitAsset?.governorate && (
                             <span className="flex items-center gap-1">
-                              <MapPin className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+                              <MapPin className="w-3.5 h-3.5 text-brand-700 " />
                               محافظة {selectedUnitAsset.governorate}
                             </span>
                           )}
                           {selectedUnitAsset?.field && (
                             <span className="flex items-center gap-1">
-                              <Flame className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+                              <Flame className="w-3.5 h-3.5 text-brand-700 " />
                               حقل {selectedUnitAsset.field}
                             </span>
                           )}
                           {selectedUnitAsset?.site && (
-                            <span className="text-[11px] text-slate-600 dark:text-slate-400">
+                            <span className="text-[11px] text-slate-600 ">
                               (الموقع: {selectedUnitAsset.site})
                             </span>
                           )}
@@ -524,22 +516,22 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-xs font-bold shrink-0">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-700 text-xs font-bold shrink-0">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 " />
                       <span>أصل معتمد ومقفل</span>
                     </div>
                   </div>
 
                   {selectedUnitAsset?.department && (
-                    <div className="mt-3 pt-2.5 border-t border-amber-500/20 text-xs flex items-center justify-between flex-wrap gap-2 text-slate-700 dark:text-slate-300">
+                    <div className="mt-3 pt-2.5 border-t border-brand-200 text-xs flex items-center justify-between flex-wrap gap-2 text-slate-700 ">
                       <div className="flex items-center gap-1.5">
-                        <strong className="text-slate-900 dark:text-slate-100">الجهة الشاغلة:</strong>
+                        <strong className="text-slate-900 ">الجهة الشاغلة:</strong>
                         <span>{selectedUnitAsset.department}</span>
                       </div>
                       {selectedUnitAsset.conditionGrade && (
                         <div className="flex items-center gap-1.5">
-                          <strong className="text-slate-900 dark:text-slate-100">التقييم الفني:</strong>
-                          <span className="font-mono font-bold text-amber-700 dark:text-amber-400 bg-amber-500/15 px-2 py-0.5 rounded-md">
+                          <strong className="text-slate-900 ">التقييم الفني:</strong>
+                          <span className="font-mono font-bold text-brand-700 bg-brand-100 px-2 py-0.5 rounded-md">
                             {selectedUnitAsset.conditionGrade}
                           </span>
                         </div>
@@ -548,10 +540,8 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
                   )}
                 </div>
 
-                <div className={`p-2.5 rounded-xl text-xs flex items-center gap-2 border ${
-                  isLight ? 'bg-slate-100/90 border-slate-200 text-slate-700' : 'bg-slate-900/90 border-slate-800 text-slate-300'
-                }`}>
-                  <Lock className="w-4 h-4 text-amber-500 shrink-0" />
+                <div className={`p-2.5 rounded-xl text-xs flex items-center gap-2 border bg-slate-100/90 border-slate-200 text-slate-700`}>
+                  <Lock className="w-4 h-4 text-brand-700 shrink-0" />
                   <span>
                     {isRoomLockedEffective
                       ? 'تم قفل طلب الصيانة على هذه المنشأة بموجب مسح رمز الوصول السريع للغرفة (QR) ولا يمكن تغيير المنشأة.'
@@ -561,20 +551,20 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
               </div>
             ) : (
               <>
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b pb-2 border-slate-200 dark:border-slate-800">
-                  <label className={`block font-extrabold text-xs ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b pb-2 border-slate-200 ">
+                  <label className={`block font-extrabold text-xs text-slate-900`}>
                     1. تحديد الوحدة الهندسية / الأصل:
                   </label>
 
               {/* View Mode Switcher */}
-              <div className={`flex items-center gap-1 p-1 rounded-xl border ${isLight ? 'bg-slate-100 border-slate-200' : 'bg-slate-950 border-slate-800'}`}>
+              <div className={`flex items-center gap-1 p-1 rounded-xl border bg-slate-100 border-slate-200`}>
                 <button
                   type="button"
                   onClick={() => setUnitPickerMode('tree_vertical')}
                   className={`px-2.5 py-1 rounded-lg font-bold text-[11px] flex items-center gap-1 transition cursor-pointer ${
                     unitPickerMode === 'tree_vertical'
-                      ? 'bg-amber-500 text-slate-950 shadow-sm font-black'
-                      : isLight ? 'text-slate-600 hover:text-slate-900' : 'text-slate-400 hover:text-slate-200'
+                      ? 'bg-brand-700 text-on-brand shadow-sm font-black'
+                      : 'text-slate-600 hover:text-slate-900'
                   }`}
                   title="عرض الشجرة الهيكلية (محافظات وحقول)"
                 >
@@ -587,8 +577,8 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
                   onClick={() => setUnitPickerMode('tree_horizontal')}
                   className={`px-2.5 py-1 rounded-lg font-bold text-[11px] flex items-center gap-1 transition cursor-pointer ${
                     unitPickerMode === 'tree_horizontal'
-                      ? 'bg-amber-500 text-slate-950 shadow-sm font-black'
-                      : isLight ? 'text-slate-600 hover:text-slate-900' : 'text-slate-400 hover:text-slate-200'
+                      ? 'bg-brand-700 text-on-brand shadow-sm font-black'
+                      : 'text-slate-600 hover:text-slate-900'
                   }`}
                   title="العرض الأفقي الهيكلي"
                 >
@@ -601,8 +591,8 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
                   onClick={() => setUnitPickerMode('dropdown')}
                   className={`px-2.5 py-1 rounded-lg font-bold text-[11px] flex items-center gap-1 transition cursor-pointer ${
                     unitPickerMode === 'dropdown'
-                      ? 'bg-amber-500 text-slate-950 shadow-sm font-black'
-                      : isLight ? 'text-slate-600 hover:text-slate-900' : 'text-slate-400 hover:text-slate-200'
+                      ? 'bg-brand-700 text-on-brand shadow-sm font-black'
+                      : 'text-slate-600 hover:text-slate-900'
                   }`}
                   title="قائمة اختيار بسيطة"
                 >
@@ -614,11 +604,9 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
 
             {/* Active Selected Unit Badge Summary */}
             {selectedUnitAsset ? (
-              <div className={`p-3 rounded-2xl border flex items-center justify-between flex-wrap gap-2 transition ${
-                isLight ? 'bg-amber-50/90 border-amber-300 text-amber-950' : 'bg-amber-500/10 border-amber-500/30 text-amber-300'
-              }`}>
+              <div className={`p-3 rounded-2xl border flex items-center justify-between flex-wrap gap-2 transition bg-brand-50 border-brand-200 text-brand-800`}>
                 <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-xl bg-amber-500 text-slate-950 font-black flex items-center justify-center shrink-0">
+                  <div className="w-8 h-8 rounded-xl bg-brand-700 text-on-brand font-black flex items-center justify-center shrink-0">
                     <Building2 className="w-4 h-4" />
                   </div>
                   <div>
@@ -629,19 +617,19 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
                     </div>
                     <div className="text-[10px] opacity-80 flex items-center gap-2 mt-0.5">
                       <span className="flex items-center gap-1">
-                        <MapPin className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+                        <MapPin className="w-3 h-3 text-brand-700 " />
                         محافظة {selectedUnitAsset.governorate}
                       </span>
                       <span>•</span>
                       <span className="flex items-center gap-1">
-                        <Flame className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+                        <Flame className="w-3 h-3 text-brand-700 " />
                         حقل {selectedUnitAsset.field}
                       </span>
                     </div>
                   </div>
                 </div>
-                <span className="px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-800 dark:text-amber-300 font-bold text-[11px] flex items-center gap-1">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+                <span className="px-2.5 py-1 rounded-lg bg-brand-100 text-brand-800 font-bold text-[11px] flex items-center gap-1">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-brand-700 " />
                   تم التحديد
                 </span>
               </div>
@@ -650,27 +638,21 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
             {/* SEARCH INPUT BAR */}
             {unitPickerMode !== 'dropdown' && (
               <div className="relative">
-                <Search className={`w-3.5 h-3.5 absolute right-3 top-3 ${isLight ? 'text-slate-400' : 'text-slate-500'}`} />
+                <Search className={`w-3.5 h-3.5 absolute right-3 top-3 text-slate-400`} />
                 <input
                   type="text"
                   value={unitSearch}
                   onChange={(e) => setUnitSearch(e.target.value)}
                   placeholder="تصفية / بحث عن وحدة بالاسم أو الكود..."
-                  className={`w-full pr-9 pl-3 py-2 rounded-xl text-xs font-bold outline-none border ${
-                    isLight
-                      ? 'bg-white border-slate-200 text-slate-900 focus:border-amber-500'
-                      : 'bg-slate-950 border-slate-800 text-slate-100 focus:border-amber-500'
-                  }`}
+                  className={`w-full pr-9 pl-3 py-2 rounded-xl text-xs font-bold outline-none border bg-card border-slate-200 text-slate-900 focus:border-brand-600`}
                 />
               </div>
             )}
 
             {/* VIEW 1: VERTICAL TREE VIEW */}
             {unitPickerMode === 'tree_vertical' && (
-              <div className={`p-3 rounded-2xl border space-y-2 max-h-56 overflow-y-auto ${
-                isLight ? 'bg-white border-slate-200' : 'bg-slate-950/80 border-slate-800'
-              }`}>
-                <div className="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-slate-800 text-[11px]">
+              <div className={`p-3 rounded-2xl border space-y-2 max-h-56 overflow-y-auto bg-card border-slate-200`}>
+                <div className="flex items-center justify-between pb-2 border-b border-slate-200 text-[11px]">
                   <span className="font-bold text-slate-500 text-[10px]">
                     شجرة المحافظات والحقول والمنشآت
                   </span>
@@ -689,7 +671,7 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
                         setExpandedGovs(allG);
                         setExpandedFields(allF);
                       }}
-                      className="text-amber-600 hover:underline font-bold text-[10px] cursor-pointer"
+                      className="text-brand-700 hover:underline font-bold text-[10px] cursor-pointer"
                     >
                       توسيع الكل
                     </button>
@@ -708,7 +690,7 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
                         setExpandedGovs(noG);
                         setExpandedFields(noF);
                       }}
-                      className="text-slate-400 hover:underline font-bold text-[10px] cursor-pointer"
+                      className="text-slate-500 hover:underline font-bold text-[10px] cursor-pointer"
                     >
                       طي الكل
                     </button>
@@ -728,29 +710,25 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
                         <button
                           type="button"
                           onClick={() => setExpandedGovs((prev) => ({ ...prev, [gov]: !isGovExpanded }))}
-                          className={`w-full flex items-center justify-between p-2 rounded-xl font-bold text-xs transition cursor-pointer border ${
-                            isLight
-                              ? 'bg-slate-50 border-slate-200 text-slate-800 hover:bg-slate-100'
-                              : 'bg-slate-900 border-slate-800 text-slate-200 hover:bg-slate-800/80'
-                          }`}
+                          className={`w-full flex items-center justify-between p-2 rounded-xl font-bold text-xs transition cursor-pointer border bg-slate-50 border-slate-200 text-slate-800 hover:bg-slate-100`}
                         >
                           <div className="flex items-center gap-2">
                             {isGovExpanded ? (
-                              <ChevronDown className="w-4 h-4 text-amber-500" />
+                              <ChevronDown className="w-4 h-4 text-brand-700" />
                             ) : (
-                              <ChevronRight className="w-4 h-4 text-slate-400" />
+                              <ChevronRight className="w-4 h-4 text-slate-500" />
                             )}
-                            <MapPin className="w-4 h-4 text-amber-500" />
+                            <MapPin className="w-4 h-4 text-brand-700" />
                             <span>محافظة {gov}</span>
                           </div>
-                          <span className="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[10px] font-bold">
+                          <span className="px-2 py-0.5 rounded-full bg-brand-50 text-brand-700 text-[10px] font-bold">
                             {govUnitsCount} وحدة
                           </span>
                         </button>
 
                         {/* OILFIELDS UNDER GOVERNORATE */}
                         {isGovExpanded && (
-                          <div className="pr-4 pl-1 space-y-1.5 border-r-2 border-amber-500/30 mr-3 my-1">
+                          <div className="pr-4 pl-1 space-y-1.5 border-r-2 border-brand-200 mr-3 my-1">
                             {Object.entries(fieldsMap).map(([fld, unitArr]) => {
                               const fieldKey = `${gov}_${fld}`;
                               const isFldExpanded = expandedFields[fieldKey] !== false;
@@ -776,19 +754,15 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
                                         [fieldKey]: !isFldExpanded,
                                       }))
                                     }
-                                    className={`w-full flex items-center justify-between p-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
-                                      isLight
-                                        ? 'bg-slate-100/80 text-slate-700 hover:bg-slate-200/80'
-                                        : 'bg-slate-900/60 text-slate-300 hover:bg-slate-800'
-                                    }`}
+                                    className={`w-full flex items-center justify-between p-1.5 rounded-lg text-xs font-bold transition cursor-pointer bg-slate-100/80 text-slate-700 hover:bg-slate-200/80`}
                                   >
                                     <div className="flex items-center gap-1.5">
                                       {isFldExpanded ? (
-                                        <ChevronDown className="w-3.5 h-3.5 text-amber-500" />
+                                        <ChevronDown className="w-3.5 h-3.5 text-brand-700" />
                                       ) : (
-                                        <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+                                        <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
                                       )}
-                                      <Flame className="w-3.5 h-3.5 text-amber-500" />
+                                      <Flame className="w-3.5 h-3.5 text-brand-700" />
                                       <span>حقل {fld}</span>
                                     </div>
                                     <span className="text-[10px] opacity-70">
@@ -798,7 +772,7 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
 
                                   {/* UNITS UNDER OILFIELD */}
                                   {isFldExpanded && (
-                                    <div className="pr-4 space-y-1 border-r border-slate-300 dark:border-slate-700 mr-2 my-1">
+                                    <div className="pr-4 space-y-1 border-r border-slate-300 mr-2 my-1">
                                       {matchedUnits.map((u) => {
                                         const isSelected = unitCode === u.code;
                                         return (
@@ -807,14 +781,12 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
                                             onClick={() => setUnitCode(u.code)}
                                             className={`p-2 rounded-xl text-xs font-bold flex items-center justify-between cursor-pointer border transition ${
                                               isSelected
-                                                ? 'bg-amber-500 text-slate-950 border-amber-500 shadow-md font-extrabold'
-                                                : isLight
-                                                ? 'bg-white border-slate-200 text-slate-800 hover:border-amber-400 hover:bg-amber-50/50'
-                                                : 'bg-slate-900 border-slate-800 text-slate-200 hover:border-amber-500/50 hover:bg-slate-800'
+                                                ? 'bg-brand-700 text-on-brand border-brand-600 shadow-md font-extrabold'
+                                                : 'bg-card border-slate-200 text-slate-800 hover:border-brand-200 hover:bg-brand-50'
                                             }`}
                                           >
                                             <div className="flex items-center gap-2">
-                                              <div className={`w-2 h-2 rounded-full ${isSelected ? 'bg-slate-950' : 'bg-amber-500'}`} />
+                                              <div className={`w-2 h-2 rounded-full ${isSelected ? 'bg-card' : 'bg-brand-700'}`} />
                                               <div>
                                                 <span className="font-mono ml-1.5">{u.code}</span>
                                                 <span>- {u.name}</span>
@@ -842,17 +814,15 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
 
             {/* VIEW 2: HORIZONTAL TREE VIEW */}
             {unitPickerMode === 'tree_horizontal' && (
-              <div className={`p-3 rounded-2xl border space-y-3 ${
-                isLight ? 'bg-white border-slate-200' : 'bg-slate-950/80 border-slate-800'
-              }`}>
+              <div className={`p-3 rounded-2xl border space-y-3 bg-card border-slate-200`}>
                 <div className="flex items-center justify-between text-[11px] font-bold text-slate-500">
                   <span>مسار الاختيار الأفقي الهيكلي</span>
-                  <span className="text-amber-600 dark:text-amber-400">تصفح أفقياً</span>
+                  <span className="text-brand-700 ">تصفح أفقياً</span>
                 </div>
 
                 {/* STEP 1: HORIZONTAL GOVERNORATES */}
                 <div>
-                  <span className="text-[10px] font-bold text-slate-400 block mb-1">
+                  <span className="text-[10px] font-bold text-slate-500 block mb-1">
                     1. اختر المحافظة:
                   </span>
                   <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-thin">
@@ -871,15 +841,13 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
                           }}
                           className={`px-2.5 py-1.5 rounded-xl text-xs font-bold shrink-0 flex items-center gap-1.5 border transition cursor-pointer ${
                             isActive
-                              ? 'bg-amber-500 border-amber-500 text-slate-950 shadow-md font-extrabold'
-                              : isLight
-                              ? 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
-                              : 'bg-slate-900 border-slate-800 text-slate-300 hover:bg-slate-800'
+                              ? 'bg-brand-700 border-brand-600 text-on-brand shadow-md font-extrabold'
+                              : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
                           }`}
                         >
                           <MapPin className="w-3.5 h-3.5" />
                           <span>{gov}</span>
-                          <span className={`px-1.5 py-0.2 rounded-full text-[10px] ${isActive ? 'bg-slate-950/20 text-slate-950' : 'bg-amber-500/10 text-amber-500'}`}>
+                          <span className={`px-1.5 py-0.2 rounded-full text-[10px] ${isActive ? 'bg-card/20 text-slate-950' : 'bg-brand-50 text-brand-700'}`}>
                             {govUnitsCount}
                           </span>
                         </button>
@@ -891,9 +859,9 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
                 {/* STEP 2: HORIZONTAL OILFIELDS UNDER ACTIVE GOVERNORATE */}
                 {effectiveGov && groupedUnits[effectiveGov] && (
                   <div>
-                    <span className="text-[10px] font-bold text-slate-400 block mb-1 flex items-center gap-1">
+                    <span className="text-[10px] font-bold text-slate-500 block mb-1 flex items-center gap-1">
                       <span>2. اختر الحقل النفطي:</span>
-                      <ChevronLeft className="w-3 h-3 text-amber-500" />
+                      <ChevronLeft className="w-3 h-3 text-brand-700" />
                     </span>
                     <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-thin">
                       {Object.keys(groupedUnits[effectiveGov]).map((fld) => {
@@ -907,13 +875,11 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
                             onClick={() => setActiveFieldHoriz(fld)}
                             className={`px-2.5 py-1 rounded-xl text-xs font-bold shrink-0 flex items-center gap-1.5 border transition cursor-pointer ${
                               isActive
-                                ? 'bg-amber-500/20 border-amber-500 text-amber-600 dark:text-amber-400 font-extrabold'
-                                : isLight
-                                ? 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
-                                : 'bg-slate-900 border-slate-800 text-slate-300 hover:bg-slate-800'
+                                ? 'bg-brand-100 border-brand-600 text-brand-700 font-extrabold'
+                                : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
                             }`}
                           >
-                            <Flame className="w-3.5 h-3.5 text-amber-500" />
+                            <Flame className="w-3.5 h-3.5 text-brand-700" />
                             <span>{fld}</span>
                             <span className="text-[10px] opacity-70">({count})</span>
                           </button>
@@ -926,7 +892,7 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
                 {/* STEP 3: UNITS GRID UNDER ACTIVE FIELD */}
                 {effectiveGov && effectiveField && groupedUnits[effectiveGov]?.[effectiveField] && (
                   <div>
-                    <span className="text-[10px] font-bold text-slate-400 block mb-1.5">
+                    <span className="text-[10px] font-bold text-slate-500 block mb-1.5">
                       3. انقر لاختيار الوحدة:
                     </span>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-40 overflow-y-auto pr-1">
@@ -945,10 +911,8 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
                               onClick={() => setUnitCode(u.code)}
                               className={`p-2 rounded-xl border text-xs cursor-pointer transition flex items-center justify-between ${
                                 isSelected
-                                  ? 'bg-amber-500 border-amber-500 text-slate-950 font-extrabold shadow-md'
-                                  : isLight
-                                  ? 'bg-slate-50 border-slate-200 text-slate-800 hover:border-amber-400 hover:bg-amber-50/50'
-                                  : 'bg-slate-900 border-slate-800 text-slate-200 hover:border-amber-500/50 hover:bg-slate-800'
+                                  ? 'bg-brand-700 border-brand-600 text-on-brand font-extrabold shadow-md'
+                                  : 'bg-slate-50 border-slate-200 text-slate-800 hover:border-brand-200 hover:bg-brand-50'
                               }`}
                             >
                               <div>
@@ -956,13 +920,11 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
                                 <div className="text-[11px] mt-0.5 truncate max-w-[140px]">{u.name}</div>
                               </div>
                               {isSelected ? (
-                                <span className="px-1.5 py-0.5 rounded-lg bg-slate-950 text-amber-400 text-[10px] font-bold flex items-center gap-1">
+                                <span className="px-1.5 py-0.5 rounded-lg bg-card text-brand-700 text-[10px] font-bold flex items-center gap-1">
                                   <Check className="w-3 h-3" /> تم
                                 </span>
                               ) : (
-                                <span className={`px-1.5 py-0.5 rounded-lg text-[10px] font-bold border ${
-                                  isLight ? 'bg-slate-100 border-slate-200 text-slate-600' : 'bg-slate-800 border-slate-700 text-slate-400'
-                                }`}>
+                                <span className={`px-1.5 py-0.5 rounded-lg text-[10px] font-bold border bg-slate-100 border-slate-200 text-slate-600`}>
                                   تحديد
                                 </span>
                               )}
@@ -980,11 +942,7 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
               <select
                 value={unitCode}
                 onChange={(e) => setUnitCode(e.target.value)}
-                className={`w-full rounded-xl p-3 font-bold outline-none cursor-pointer border ${
-                  isLight
-                    ? 'bg-white border-slate-200 text-slate-900 focus:border-amber-500'
-                    : 'bg-slate-950 border-slate-800 text-slate-100 focus:border-amber-500'
-                }`}
+                className={`w-full rounded-xl p-3 font-bold outline-none cursor-pointer border bg-card border-slate-200 text-slate-900 focus:border-brand-600`}
               >
                 {units.map((u) => (
                   <option key={u.code} value={u.code}>
@@ -999,49 +957,45 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
 
           {/* SECTION 2: MAINTENANCE SCOPE & ROOM SELECTION */}
           {isRoomLockedEffective ? (
-            <div className={`p-4 rounded-2xl border space-y-3.5 transition ${
-              isLight ? 'bg-amber-50/70 border-amber-300 shadow-xs' : 'bg-amber-500/10 border-amber-500/30'
-            }`}>
-              <div className="flex items-center justify-between border-b pb-2 border-slate-200 dark:border-slate-800">
-                <label className={`block font-extrabold text-xs flex items-center gap-1.5 ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
-                  <DoorClosed className="w-4 h-4 text-amber-500" />
+            <div className={`p-4 rounded-2xl border space-y-3.5 transition bg-brand-50 border-brand-200 shadow-xs`}>
+              <div className="flex items-center justify-between border-b pb-2 border-slate-200 ">
+                <label className={`block font-extrabold text-xs flex items-center gap-1.5 text-slate-900`}>
+                  <DoorClosed className="w-4 h-4 text-brand-700" />
                   <span>2. الغرفة / الفضاء المحدد لطلب الصيانة:</span>
                 </label>
-                <span className="px-2.5 py-1 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-700 dark:text-amber-300 font-black text-[11px] flex items-center gap-1.5 shadow-sm">
-                  <Lock className="w-3.5 h-3.5 text-amber-500" />
+                <span className="px-2.5 py-1 rounded-lg bg-brand-100 border border-brand-200 text-brand-700 font-black text-[11px] flex items-center gap-1.5 shadow-sm">
+                  <Lock className="w-3.5 h-3.5 text-brand-700" />
                   <span>تم التحديد والقفل عبر رمز الوصول السريع للغرفة (QR)</span>
                 </span>
               </div>
 
               {/* Locked Room Details Card */}
-              <div className={`p-3.5 rounded-2xl border transition ${
-                isLight ? 'bg-white border-amber-200 text-slate-800 shadow-sm' : 'bg-slate-900 border-amber-500/30 text-slate-200'
-              }`}>
+              <div className={`p-3.5 rounded-2xl border transition bg-card border-brand-200 text-slate-800 shadow-sm`}>
                 <div className="flex items-start justify-between gap-3 flex-wrap sm:flex-nowrap">
                   <div className="flex items-center gap-3">
-                    <div className="w-11 h-11 rounded-2xl bg-amber-500 text-slate-950 font-black flex items-center justify-center shrink-0 shadow-md">
+                    <div className="w-11 h-11 rounded-2xl bg-brand-700 text-on-brand font-black flex items-center justify-center shrink-0 shadow-md">
                       <DoorClosed className="w-6 h-6" />
                     </div>
                     <div>
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-extrabold text-sm text-slate-900 dark:text-slate-100">
+                        <span className="font-extrabold text-sm text-slate-900 ">
                           {selectedRoomName || 'غرفة مخصصة'}
                         </span>
                         {selectedRoomCode && (
                           <>
                             <span className="opacity-60">•</span>
-                            <span className="font-mono text-xs font-black text-amber-700 dark:text-amber-400 bg-amber-500/10 dark:bg-amber-500/20 px-2 py-0.5 rounded-lg border border-amber-500/20">
+                            <span className="font-mono text-xs font-black text-brand-700 bg-brand-50 px-2 py-0.5 rounded-lg border border-brand-200">
                               {selectedRoomCode}
                             </span>
                           </>
                         )}
                       </div>
                       <div className="text-xs opacity-90 flex items-center gap-3 mt-1.5 flex-wrap font-medium">
-                        <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
+                        <span className="flex items-center gap-1 text-emerald-600 ">
                           <Layers className="w-3.5 h-3.5" />
                           <span>{selectedRoomFloor || 'الطابق 1'}</span>
                         </span>
-                        <span className="flex items-center gap-1 text-sky-600 dark:text-sky-400">
+                        <span className="flex items-center gap-1 text-sky-600 ">
                           <UserCheck className="w-3.5 h-3.5" />
                           <span>الجهة الشاغلة: {occupyingEntity || selectedUnitAsset?.department || 'غير محدد'}</span>
                         </span>
@@ -1049,39 +1003,33 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-xs font-bold shrink-0">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-700 text-xs font-bold shrink-0">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 " />
                     <span>غرفة مقفلة بموجب QR</span>
                   </div>
                 </div>
               </div>
 
-              <div className={`p-2.5 rounded-xl text-xs flex items-center gap-2 border ${
-                isLight ? 'bg-slate-100/90 border-slate-200 text-slate-700' : 'bg-slate-900/90 border-slate-800 text-slate-300'
-              }`}>
-                <Lock className="w-4 h-4 text-amber-500 shrink-0" />
+              <div className={`p-2.5 rounded-xl text-xs flex items-center gap-2 border bg-slate-100/90 border-slate-200 text-slate-700`}>
+                <Lock className="w-4 h-4 text-brand-700 shrink-0" />
                 <span>تم قفل المنشأة والغرفة تلقائياً بموجب رمز الوصول السريع للغرفة، ولا تظهر خيارات تغيير المنشأة أو الغرفة لضمان دقة توجيه البلاغ.</span>
               </div>
             </div>
           ) : isUnitLockedByQr ? (
-            <div className={`p-4 rounded-2xl border space-y-3.5 transition ${
-              isLight ? 'bg-sky-50/70 border-sky-300 shadow-xs' : 'bg-sky-500/10 border-sky-500/30'
-            }`}>
-              <div className="flex items-center justify-between border-b pb-2 border-slate-200 dark:border-slate-800">
-                <label className={`block font-extrabold text-xs flex items-center gap-1.5 ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
-                  <Building2 className="w-4 h-4 text-sky-500" />
+            <div className={`p-4 rounded-2xl border space-y-3.5 transition bg-sky-50/70 border-sky-200 shadow-xs`}>
+              <div className="flex items-center justify-between border-b pb-2 border-slate-200 ">
+                <label className={`block font-extrabold text-xs flex items-center gap-1.5 text-slate-900`}>
+                  <Building2 className="w-4 h-4 text-sky-600" />
                   <span>2. نطاق الصيانة (طلب عام للمنشأة):</span>
                 </label>
-                <span className="px-2.5 py-1 rounded-lg bg-sky-500/15 border border-sky-500/30 text-sky-700 dark:text-sky-300 font-black text-[11px] flex items-center gap-1.5 shadow-sm">
-                  <Lock className="w-3.5 h-3.5 text-sky-500" />
+                <span className="px-2.5 py-1 rounded-lg bg-sky-500/15 border border-sky-500/30 text-sky-700 font-black text-[11px] flex items-center gap-1.5 shadow-sm">
+                  <Lock className="w-3.5 h-3.5 text-sky-600" />
                   <span>مقفل لكامل المنشأة بموجب رمز الوصول السريع (QR)</span>
                 </span>
               </div>
 
               {/* Locked Unit Maintenance Info Card */}
-              <div className={`p-3.5 rounded-2xl border transition ${
-                isLight ? 'bg-white border-sky-200 text-slate-800 shadow-sm' : 'bg-slate-900 border-sky-500/30 text-slate-200'
-              }`}>
+              <div className={`p-3.5 rounded-2xl border transition bg-card border-sky-200 text-slate-800 shadow-sm`}>
                 <div className="flex items-start justify-between gap-3 flex-wrap sm:flex-nowrap">
                   <div className="flex items-center gap-3">
                     <div className="w-11 h-11 rounded-2xl bg-sky-500 text-white font-black flex items-center justify-center shrink-0 shadow-md">
@@ -1089,19 +1037,19 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
                     </div>
                     <div>
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-extrabold text-sm text-slate-900 dark:text-slate-100">
+                        <span className="font-extrabold text-sm text-slate-900 ">
                           {selectedUnitAsset?.name || unitCode}
                         </span>
-                        <span className="font-mono text-xs font-black text-sky-700 dark:text-sky-400 bg-sky-500/10 dark:bg-sky-500/20 px-2 py-0.5 rounded-lg border border-sky-500/20">
+                        <span className="font-mono text-xs font-black text-sky-700 bg-sky-500/10 px-2 py-0.5 rounded-lg border border-sky-500/20">
                           {unitCode}
                         </span>
                       </div>
                       <div className="text-xs opacity-90 flex items-center gap-3 mt-1.5 flex-wrap font-medium">
-                        <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
+                        <span className="flex items-center gap-1 text-emerald-600 ">
                           <MapPin className="w-3.5 h-3.5" />
                           <span>{selectedUnitAsset?.field} ({selectedUnitAsset?.governorate})</span>
                         </span>
-                        <span className="flex items-center gap-1 text-sky-600 dark:text-sky-400">
+                        <span className="flex items-center gap-1 text-sky-600 ">
                           <UserCheck className="w-3.5 h-3.5" />
                           <span>الجهة الشاغلة: {selectedUnitAsset?.department || 'غير محدد'}</span>
                         </span>
@@ -1109,42 +1057,40 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-sky-500/15 border border-sky-500/30 text-sky-700 dark:text-sky-300 text-xs font-bold shrink-0">
-                    <CheckCircle2 className="w-4 h-4 text-sky-600 dark:text-sky-400" />
+                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-sky-500/15 border border-sky-500/30 text-sky-700 text-xs font-bold shrink-0">
+                    <CheckCircle2 className="w-4 h-4 text-sky-600 " />
                     <span>طلب عام لكامل المنشأة</span>
                   </div>
                 </div>
               </div>
 
-              <div className={`p-2.5 rounded-xl text-xs flex items-center gap-2 border ${
-                isLight ? 'bg-slate-100/90 border-slate-200 text-slate-700' : 'bg-slate-900/90 border-slate-800 text-slate-300'
-              }`}>
-                <Lock className="w-4 h-4 text-sky-500 shrink-0" />
+              <div className={`p-2.5 rounded-xl text-xs flex items-center gap-2 border bg-slate-100/90 border-slate-200 text-slate-700`}>
+                <Lock className="w-4 h-4 text-sky-600 shrink-0" />
                 <span>تم قفل طلب الصيانة ليكون طلباً عاماً لكامل المنشأة حصراً بموجب مسح رمز الوصول السريع للمنشأة (QR Code)، ولا يمكن تحديد غرف فردية.</span>
               </div>
             </div>
           ) : (
           <div className={`p-4 rounded-2xl border space-y-4 transition ${
             maintenanceScope === 'room'
-              ? isLight ? 'bg-amber-50/70 border-amber-300 shadow-xs' : 'bg-amber-500/10 border-amber-500/30'
-              : isLight ? 'bg-slate-50/80 border-slate-200' : 'bg-slate-950/60 border-slate-800'
+              ? 'bg-brand-50 border-brand-200 shadow-xs'
+              : 'bg-slate-50/80 border-slate-200'
           }`}>
             {/* Header & Scope Switcher */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 border-b pb-3 border-slate-200 dark:border-slate-800">
-              <label className={`block font-extrabold text-xs flex items-center gap-1.5 ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
-                <DoorClosed className="w-4 h-4 text-amber-500" />
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 border-b pb-3 border-slate-200 ">
+              <label className={`block font-extrabold text-xs flex items-center gap-1.5 text-slate-900`}>
+                <DoorClosed className="w-4 h-4 text-brand-700" />
                 <span>2. نطاق الصيانة (لكامل المنشأة أو لغرفة محددة):</span>
               </label>
 
               {/* Scope Segmented Control */}
-              <div className="flex items-center gap-1 bg-slate-200/80 dark:bg-slate-900 p-1 rounded-xl border border-slate-300 dark:border-slate-700 self-start sm:self-auto">
+              <div className="flex items-center gap-1 bg-slate-200/80 p-1 rounded-xl border border-slate-300 self-start sm:self-auto">
                 <button
                   type="button"
                   onClick={() => handleScopeChange('unit')}
                   className={`px-3 py-1 rounded-lg font-bold text-xs flex items-center gap-1.5 transition ${
                     maintenanceScope === 'unit'
-                      ? 'bg-amber-500 text-slate-950 shadow-xs'
-                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+                      ? 'bg-brand-700 text-on-brand shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900 '
                   }`}
                 >
                   <Building2 className="w-3.5 h-3.5" />
@@ -1155,14 +1101,14 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
                   onClick={() => handleScopeChange('room')}
                   className={`px-3 py-1 rounded-lg font-bold text-xs flex items-center gap-1.5 transition ${
                     maintenanceScope === 'room'
-                      ? 'bg-amber-500 text-slate-950 shadow-xs'
-                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+                      ? 'bg-brand-700 text-on-brand shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900 '
                   }`}
                 >
                   <DoorClosed className="w-3.5 h-3.5" />
                   <span>لغرفة / فضاء مخصص</span>
                   {selectedUnitAsset?.rooms && selectedUnitAsset.rooms.length > 0 && (
-                    <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-slate-950/20 dark:bg-white/20 font-mono">
+                    <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-card/20 font-mono">
                       {selectedUnitAsset.rooms.length}
                     </span>
                   )}
@@ -1172,11 +1118,9 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
 
             {/* Scope = Whole Unit Banner */}
             {maintenanceScope === 'unit' && (
-              <div className={`p-3.5 rounded-xl border flex items-center justify-between gap-3 ${
-                isLight ? 'bg-sky-50/70 border-sky-200 text-sky-900' : 'bg-sky-500/10 border-sky-500/20 text-sky-200'
-              }`}>
+              <div className={`p-3.5 rounded-xl border flex items-center justify-between gap-3 bg-sky-50/70 border-sky-200 text-sky-900`}>
                 <div className="flex items-center gap-2.5">
-                  <div className="p-2 rounded-lg bg-sky-500/20 text-sky-500 shrink-0">
+                  <div className="p-2 rounded-lg bg-sky-500/20 text-sky-600 shrink-0">
                     <Building2 className="w-4 h-4" />
                   </div>
                   <div>
@@ -1189,7 +1133,7 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
                 <button
                   type="button"
                   onClick={() => handleScopeChange('room')}
-                  className="px-2.5 py-1 rounded-lg font-bold text-[11px] bg-white dark:bg-slate-800 text-sky-600 dark:text-sky-400 border border-sky-200 dark:border-sky-800 hover:bg-sky-50 transition shrink-0"
+                  className="px-2.5 py-1 rounded-lg font-bold text-[11px] bg-card text-sky-600 border border-sky-200 hover:bg-sky-50 transition shrink-0"
                 >
                   تحديد غرفة معينة
                 </button>
@@ -1206,23 +1150,19 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
                       {/* Room Search & View Switcher */}
                       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2">
                         <div className="relative flex-1">
-                          <Search className="w-3.5 h-3.5 absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                          <Search className="w-3.5 h-3.5 absolute right-3 top-1/2 -translate-y-1/2 text-slate-500" />
                           <input
                             type="text"
                             value={roomSearchQuery}
                             onChange={(e) => setRoomSearchQuery(e.target.value)}
                             placeholder="ابحث في غرف المنشأة بالاسم أو الرمز أو الجهة الشاغلة..."
-                            className={`w-full pr-8 pl-3 py-1.5 rounded-xl text-xs outline-none border transition ${
-                              isLight
-                                ? 'bg-white border-slate-200 text-slate-900 focus:border-amber-500'
-                                : 'bg-slate-900 border-slate-800 text-slate-100 focus:border-amber-500'
-                            }`}
+                            className={`w-full pr-8 pl-3 py-1.5 rounded-xl text-xs outline-none border transition bg-card border-slate-200 text-slate-900 focus:border-brand-600`}
                           />
                           {roomSearchQuery && (
                             <button
                               type="button"
                               onClick={() => setRoomSearchQuery('')}
-                              className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                              className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-600"
                             >
                               <X className="w-3.5 h-3.5" />
                             </button>
@@ -1230,14 +1170,14 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
                         </div>
 
                         {/* View Switcher */}
-                        <div className="flex items-center gap-1 bg-slate-200/60 dark:bg-slate-900 p-0.5 rounded-xl border border-slate-300 dark:border-slate-700 self-end sm:self-auto shrink-0">
+                        <div className="flex items-center gap-1 bg-slate-200/60 p-0.5 rounded-xl border border-slate-300 self-end sm:self-auto shrink-0">
                           <button
                             type="button"
                             onClick={() => setRoomViewMode('cards')}
                             className={`px-2 py-1 rounded-lg font-bold text-[10px] flex items-center gap-1 transition ${
                               roomViewMode === 'cards'
-                                ? 'bg-amber-500 text-slate-950 shadow-xs'
-                                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                                ? 'bg-brand-700 text-on-brand shadow-xs'
+                                : 'text-slate-600 hover:text-slate-900'
                             }`}
                             title="عرض بطاقات الغرف التفاعلية"
                           >
@@ -1249,8 +1189,8 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
                             onClick={() => setRoomViewMode('dropdown')}
                             className={`px-2 py-1 rounded-lg font-bold text-[10px] flex items-center gap-1 transition ${
                               roomViewMode === 'dropdown'
-                                ? 'bg-amber-500 text-slate-950 shadow-xs'
-                                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                                ? 'bg-brand-700 text-on-brand shadow-xs'
+                                : 'text-slate-600 hover:text-slate-900'
                             }`}
                             title="قائمة منسدلة سريعة"
                           >
@@ -1262,8 +1202,8 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
                             onClick={() => setRoomViewMode('manual')}
                             className={`px-2 py-1 rounded-lg font-bold text-[10px] flex items-center gap-1 transition ${
                               roomViewMode === 'manual'
-                                ? 'bg-amber-500 text-slate-950 shadow-xs'
-                                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                                ? 'bg-brand-700 text-on-brand shadow-xs'
+                                : 'text-slate-600 hover:text-slate-900'
                             }`}
                             title="إدخال يدوي لغرفة مخصصة"
                           >
@@ -1276,7 +1216,7 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
                       {/* Filter Chips by Room Types */}
                       {availableRoomTypes.length > 1 && (
                         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-thin">
-                          <span className="text-[11px] font-bold text-slate-400 shrink-0 flex items-center gap-1">
+                          <span className="text-[11px] font-bold text-slate-500 shrink-0 flex items-center gap-1">
                             <Filter className="w-3 h-3" />
                             <span>النوع:</span>
                           </span>
@@ -1285,10 +1225,8 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
                             onClick={() => setRoomTypeFilter('all')}
                             className={`px-2.5 py-1 rounded-lg font-bold text-[11px] whitespace-nowrap transition ${
                               roomTypeFilter === 'all'
-                                ? 'bg-amber-500 text-slate-950 shadow-xs'
-                                : isLight
-                                ? 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
-                                : 'bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700'
+                                ? 'bg-brand-700 text-on-brand shadow-xs'
+                                : 'bg-card text-slate-700 hover:bg-slate-100 border border-slate-200'
                             }`}
                           >
                             كافة الأنواع ({selectedUnitAsset.rooms.length})
@@ -1304,10 +1242,8 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
                                 onClick={() => setRoomTypeFilter(type)}
                                 className={`px-2.5 py-1 rounded-lg font-bold text-[11px] whitespace-nowrap transition flex items-center gap-1 ${
                                   isTypeActive
-                                    ? 'bg-amber-500 text-slate-950 shadow-xs'
-                                    : isLight
-                                    ? 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
-                                    : 'bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700'
+                                    ? 'bg-brand-700 text-on-brand shadow-xs'
+                                    : 'bg-card text-slate-700 hover:bg-slate-100 border border-slate-200'
                                 }`}
                               >
                                 <IconComponent className="w-3 h-3 shrink-0" />
@@ -1322,7 +1258,7 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
                       {/* Filter Chips by Floor */}
                       {availableFloors.length > 1 && (
                         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-thin">
-                          <span className="text-[11px] font-bold text-slate-400 shrink-0 flex items-center gap-1">
+                          <span className="text-[11px] font-bold text-slate-500 shrink-0 flex items-center gap-1">
                             <Layers className="w-3 h-3" />
                             <span>الطابق:</span>
                           </span>
@@ -1331,10 +1267,8 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
                             onClick={() => setRoomFloorFilter('all')}
                             className={`px-2.5 py-0.5 rounded-lg font-bold text-[10px] whitespace-nowrap transition ${
                               roomFloorFilter === 'all'
-                                ? 'bg-sky-500 text-slate-950 shadow-xs'
-                                : isLight
-                                ? 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                                : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
+                                ? 'bg-sky-500 text-on-brand shadow-xs'
+                                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                             }`}
                           >
                             كافة الطوابق
@@ -1348,10 +1282,8 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
                                 onClick={() => setRoomFloorFilter(floor)}
                                 className={`px-2.5 py-0.5 rounded-lg font-bold text-[10px] whitespace-nowrap transition flex items-center gap-1 ${
                                   isFloorActive
-                                    ? 'bg-sky-500 text-slate-950 shadow-xs'
-                                    : isLight
-                                    ? 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                                    : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
+                                    ? 'bg-sky-500 text-on-brand shadow-xs'
+                                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                                 }`}
                               >
                                 <span>{floor}</span>
@@ -1367,10 +1299,8 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
                     {roomViewMode === 'cards' && (
                       <div className="space-y-2">
                         {filteredRooms.length === 0 ? (
-                          <div className={`p-6 rounded-xl border text-center space-y-1.5 ${
-                            isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-900/60 border-slate-800'
-                          }`}>
-                            <DoorClosed className="w-6 h-6 text-slate-400 mx-auto" />
+                          <div className={`p-6 rounded-xl border text-center space-y-1.5 bg-slate-50 border-slate-200`}>
+                            <DoorClosed className="w-6 h-6 text-slate-500 mx-auto" />
                             <div className="font-bold text-xs text-slate-500">لا توجد غرف تطابق معايير البحث والفلترة</div>
                             <button
                               type="button"
@@ -1379,7 +1309,7 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
                                 setRoomFloorFilter('all');
                                 setRoomSearchQuery('');
                               }}
-                              className="text-[11px] font-bold text-amber-500 hover:underline"
+                              className="text-[11px] font-bold text-brand-700 hover:underline"
                             >
                               إعادة ضبط الفلاتر
                             </button>
@@ -1398,12 +1328,8 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
                                   onClick={() => handleSelectRoom(rm.code || rm.name)}
                                   className={`text-right p-3 rounded-xl border flex flex-col justify-between gap-2 transition group relative ${
                                     isSelected
-                                      ? isLight
-                                        ? 'bg-amber-50 border-amber-400 ring-2 ring-amber-400/30 shadow-sm'
-                                        : 'bg-amber-500/20 border-amber-400 ring-2 ring-amber-400/30'
-                                      : isLight
-                                      ? 'bg-white hover:bg-slate-50 border-slate-200 hover:border-amber-300'
-                                      : 'bg-slate-900 hover:bg-slate-800/80 border-slate-800 hover:border-slate-700'
+                                      ? 'bg-brand-50 border-brand-200 ring-2 ring-brand-600/30 shadow-sm'
+                                      : 'bg-card hover:bg-slate-50 border-slate-200 hover:border-brand-200'
                                   }`}
                                 >
                                   {/* Top Row: Type badge & Selection indicator */}
@@ -1414,12 +1340,12 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
                                     </span>
 
                                     {isSelected ? (
-                                      <span className="flex items-center gap-0.5 text-amber-600 dark:text-amber-400 font-bold text-[10px] bg-amber-500/20 px-1.5 py-0.5 rounded-md">
+                                      <span className="flex items-center gap-0.5 text-brand-700 font-bold text-[10px] bg-brand-100 px-1.5 py-0.5 rounded-md">
                                         <Check className="w-3 h-3" />
                                         <span>محددة</span>
                                       </span>
                                     ) : (
-                                      <span className="text-[10px] font-mono text-slate-400">
+                                      <span className="text-[10px] font-mono text-slate-500">
                                         {rm.floor || 'الطابق 1'}
                                       </span>
                                     )}
@@ -1427,22 +1353,22 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
 
                                   {/* Middle Row: Room Name & Code */}
                                   <div className="w-full">
-                                    <div className={`font-black text-xs group-hover:text-amber-500 transition line-clamp-1 ${
-                                      isSelected ? 'text-amber-900 dark:text-amber-200' : isLight ? 'text-slate-900' : 'text-slate-100'
+                                    <div className={`font-black text-xs group-hover:text-brand-700 transition line-clamp-1 ${
+                                      isSelected ? 'text-brand-800 ' : 'text-slate-900'
                                     }`}>
                                       {rm.name}
                                     </div>
                                     {rm.code && (
-                                      <div className="font-mono text-[10px] text-slate-400 line-clamp-1 mt-0.5">
+                                      <div className="font-mono text-[10px] text-slate-500 line-clamp-1 mt-0.5">
                                         {rm.code}
                                       </div>
                                     )}
                                   </div>
 
                                   {/* Bottom Row: Occupying entity & Area */}
-                                  <div className="flex items-center justify-between text-[10px] text-slate-500 dark:text-slate-400 pt-1.5 border-t border-slate-100 dark:border-slate-800/60 w-full">
+                                  <div className="flex items-center justify-between text-[10px] text-slate-500 pt-1.5 border-t border-slate-100 w-full">
                                     <span className="line-clamp-1 flex items-center gap-1">
-                                      <UserCheck className="w-3 h-3 text-sky-500 shrink-0" />
+                                      <UserCheck className="w-3 h-3 text-sky-600 shrink-0" />
                                       <span>{rm.occupiedBy || selectedUnitAsset?.department || 'غير محدد'}</span>
                                     </span>
                                     {rm.areaSqM ? (
@@ -1463,11 +1389,7 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
                         <select
                           value={selectedRoomCode}
                           onChange={(e) => handleSelectRoom(e.target.value)}
-                          className={`w-full rounded-xl p-2.5 font-bold text-xs outline-none cursor-pointer border transition ${
-                            isLight
-                              ? 'bg-white border-slate-200 text-slate-900 focus:border-amber-500'
-                              : 'bg-slate-900 border-slate-800 text-slate-100 focus:border-amber-500'
-                          }`}
+                          className={`w-full rounded-xl p-2.5 font-bold text-xs outline-none cursor-pointer border transition bg-card border-slate-200 text-slate-900 focus:border-brand-600`}
                         >
                           <option value="">-- اختر الغرفة المطلوبة من السجل ({selectedUnitAsset.rooms.length} غرف) --</option>
                           {selectedUnitAsset.rooms.map((rm) => (
@@ -1480,11 +1402,9 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
                     )}
                   </>
                 ) : (
-                  <div className={`p-3 rounded-xl border text-xs space-y-1 ${
-                    isLight ? 'bg-amber-50/50 border-amber-200 text-amber-900' : 'bg-amber-500/10 border-amber-500/20 text-amber-200'
-                  }`}>
+                  <div className={`p-3 rounded-xl border text-xs space-y-1 bg-brand-50 border-brand-200 text-brand-800`}>
                     <div className="font-bold flex items-center gap-1.5">
-                      <DoorClosed className="w-4 h-4 text-amber-500" />
+                      <DoorClosed className="w-4 h-4 text-brand-700" />
                       <span>لا توجد غرف مسبقة مدخلة في سجل هذه المنشأة</span>
                     </div>
                     <p className="text-[11px] opacity-85">
@@ -1494,12 +1414,10 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
                 )}
 
                 {/* Selected Room Details Preview & Manual Editing Fields */}
-                <div className={`p-3 rounded-xl border space-y-3 ${
-                  isLight ? 'bg-white border-slate-200' : 'bg-slate-900/90 border-slate-800'
-                }`}>
+                <div className={`p-3 rounded-xl border space-y-3 bg-card border-slate-200`}>
                   <div className="flex items-center justify-between">
                     <span className="font-bold text-[11px] text-slate-500 flex items-center gap-1">
-                      <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                      <Sparkles className="w-3.5 h-3.5 text-brand-700" />
                       <span>بيانات الغرفة المحددة لأمر الصيانة:</span>
                     </span>
                     {selectedRoomCode && (
@@ -1510,7 +1428,7 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
                           setSelectedRoomName('');
                           setSelectedRoomFloor('');
                         }}
-                        className="text-[10px] font-bold text-red-500 hover:underline"
+                        className="text-[10px] font-bold text-red-600 hover:underline"
                       >
                         إلغاء تحديد الغرفة
                       </button>
@@ -1519,7 +1437,7 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
 
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                     <div>
-                      <label className={`block font-bold mb-1 text-[11px] ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                      <label className={`block font-bold mb-1 text-[11px] text-slate-700`}>
                         رمز الغرفة (Room Code):
                       </label>
                       <input
@@ -1527,16 +1445,12 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
                         value={selectedRoomCode}
                         onChange={(e) => setSelectedRoomCode(e.target.value)}
                         placeholder="مثال: A398-F1-OFF-101"
-                        className={`w-full rounded-xl p-2 font-mono font-bold text-xs outline-none border transition ${
-                          isLight
-                            ? 'bg-white border-slate-200 text-slate-900 focus:border-amber-500'
-                            : 'bg-slate-900 border-slate-800 text-slate-100 focus:border-amber-500'
-                        }`}
+                        className={`w-full rounded-xl p-2 font-mono font-bold text-xs outline-none border transition bg-card border-slate-200 text-slate-900 focus:border-brand-600`}
                       />
                     </div>
 
                     <div>
-                      <label className={`block font-bold mb-1 text-[11px] ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                      <label className={`block font-bold mb-1 text-[11px] text-slate-700`}>
                         اسم / وصف الغرفة:
                       </label>
                       <input
@@ -1544,16 +1458,12 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
                         value={selectedRoomName}
                         onChange={(e) => setSelectedRoomName(e.target.value)}
                         placeholder="مثال: مكتب مدير القسم"
-                        className={`w-full rounded-xl p-2 font-bold text-xs outline-none border transition ${
-                          isLight
-                            ? 'bg-white border-slate-200 text-slate-900 focus:border-amber-500'
-                            : 'bg-slate-900 border-slate-800 text-slate-100 focus:border-amber-500'
-                        }`}
+                        className={`w-full rounded-xl p-2 font-bold text-xs outline-none border transition bg-card border-slate-200 text-slate-900 focus:border-brand-600`}
                       />
                     </div>
 
                     <div>
-                      <label className={`block font-bold mb-1 text-[11px] ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                      <label className={`block font-bold mb-1 text-[11px] text-slate-700`}>
                         الطابق:
                       </label>
                       <input
@@ -1561,33 +1471,25 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
                         value={selectedRoomFloor}
                         onChange={(e) => setSelectedRoomFloor(e.target.value)}
                         placeholder="مثال: الطابق 1"
-                        className={`w-full rounded-xl p-2 font-bold text-xs outline-none border transition ${
-                          isLight
-                            ? 'bg-white border-slate-200 text-slate-900 focus:border-amber-500'
-                            : 'bg-slate-900 border-slate-800 text-slate-100 focus:border-amber-500'
-                        }`}
+                        className={`w-full rounded-xl p-2 font-bold text-xs outline-none border transition bg-card border-slate-200 text-slate-900 focus:border-brand-600`}
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className={`block font-bold mb-1 text-[11px] flex items-center gap-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
-                      <UserCheck className="w-3.5 h-3.5 text-sky-500" />
+                    <label className={`block font-bold mb-1 text-[11px] flex items-center gap-1.5 text-slate-700`}>
+                      <UserCheck className="w-3.5 h-3.5 text-sky-600" />
                       <span>الجهة الشاغلة (Occupying Entity):</span>
-                      <span className="text-[10px] text-amber-500 font-normal mr-auto">(تحدد تلقائياً من بيانات الأصل)</span>
+                      <span className="text-[10px] text-brand-700 font-normal mr-auto">(تحدد تلقائياً من بيانات الأصل)</span>
                     </label>
                     <input
                       type="text"
                       value={occupyingEntity}
                       readOnly
                       placeholder="الجهة الشاغلة من بيانات الغرفة / المنشأة"
-                      className={`w-full rounded-xl p-2 font-bold text-xs outline-none border transition cursor-not-allowed ${
-                        isLight
-                          ? 'bg-slate-100 border-slate-200 text-slate-700'
-                          : 'bg-slate-950/70 border-slate-800 text-slate-300'
-                      }`}
+                      className={`w-full rounded-xl p-2 font-bold text-xs outline-none border transition cursor-not-allowed bg-slate-100 border-slate-200 text-slate-700`}
                     />
-                    <span className="text-[10px] text-slate-400 mt-1 block">
+                    <span className="text-[10px] text-slate-500 mt-1 block">
                       الجهة الشاغلة مستوردة تلقائياً من بيانات الغرفة المعتمدة بالسجل ولا يمكن تعديلها يدوياً.
                     </span>
                   </div>
@@ -1598,23 +1500,19 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
             {/* Scope = Whole unit occupying entity input */}
             {maintenanceScope === 'unit' && (
               <div>
-                <label className={`block font-bold mb-1 text-xs flex items-center gap-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
-                  <UserCheck className="w-3.5 h-3.5 text-sky-500" />
+                <label className={`block font-bold mb-1 text-xs flex items-center gap-1.5 text-slate-700`}>
+                  <UserCheck className="w-3.5 h-3.5 text-sky-600" />
                   <span>الجهة الشاغلة / المسؤولة عن المنشأة:</span>
-                  <span className="text-[10px] text-amber-500 font-normal mr-auto">(تحدد تلقائياً من بيانات الأصل)</span>
+                  <span className="text-[10px] text-brand-700 font-normal mr-auto">(تحدد تلقائياً من بيانات الأصل)</span>
                 </label>
                 <input
                   type="text"
                   value={occupyingEntity}
                   readOnly
                   placeholder="الجهة الشاغلة من بيانات المنشأة"
-                  className={`w-full rounded-xl p-2.5 font-bold text-xs outline-none border transition cursor-not-allowed ${
-                    isLight
-                      ? 'bg-slate-100 border-slate-200 text-slate-700'
-                      : 'bg-slate-950/70 border-slate-800 text-slate-300'
-                  }`}
+                  className={`w-full rounded-xl p-2.5 font-bold text-xs outline-none border transition cursor-not-allowed bg-slate-100 border-slate-200 text-slate-700`}
                 />
-                <span className="text-[10px] text-slate-400 mt-1 block">
+                <span className="text-[10px] text-slate-500 mt-1 block">
                   الجهة الشاغلة مستوردة تلقائياً من سجل المنشأة ولا يمكن تعديلها يدوياً لضمان سلامة التوثيق.
                 </span>
               </div>
@@ -1623,14 +1521,14 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
           )}
 
           {/* SECTION 3: MAINTENANCE REQUEST DETAILS */}
-          <div className={`p-4 rounded-2xl border space-y-3.5 ${isLight ? 'bg-slate-50/80 border-slate-200' : 'bg-slate-950/60 border-slate-800'}`}>
-            <label className={`block font-extrabold text-xs border-b pb-2 ${isLight ? 'text-slate-900 border-slate-200' : 'text-slate-100 border-slate-800'}`}>
+          <div className={`p-4 rounded-2xl border space-y-3.5 bg-slate-50/80 border-slate-200`}>
+            <label className={`block font-extrabold text-xs border-b pb-2 text-slate-900 border-slate-200`}>
               3. تفاصيل ومعلومات طلب الصيانة:
             </label>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
               <div className="sm:col-span-2">
-                <label className={`block font-bold mb-1 text-xs ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                <label className={`block font-bold mb-1 text-xs text-slate-700`}>
                   وصف العطل / المشكلة:
                 </label>
                 <textarea
@@ -1638,44 +1536,32 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
                   value={issue}
                   onChange={(e) => setIssue(e.target.value)}
                   placeholder="مثال: تسرب مياه، أعطال منظومة التكييف والتبريد، تلف القواطع الكهربائية..."
-                  className={`w-full rounded-xl p-3 font-medium outline-none border transition ${
-                    isLight
-                      ? 'bg-white border-slate-200 text-slate-900 focus:border-amber-500'
-                      : 'bg-slate-900 border-slate-800 text-slate-100 focus:border-amber-500'
-                  }`}
+                  className={`w-full rounded-xl p-3 font-medium outline-none border transition bg-card border-slate-200 text-slate-900 focus:border-brand-600`}
                   required
                 />
               </div>
 
               <div>
-                <label className={`block font-bold mb-1 text-xs ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                <label className={`block font-bold mb-1 text-xs text-slate-700`}>
                   تاريخ طلب الصيانة:
                 </label>
                 <input
                   type="date"
                   value={requestDate}
                   onChange={(e) => setRequestDate(e.target.value)}
-                  className={`w-full rounded-xl p-2.5 font-bold font-mono outline-none border transition ${
-                    isLight
-                      ? 'bg-white border-slate-200 text-slate-900 focus:border-amber-500'
-                      : 'bg-slate-900 border-slate-800 text-slate-100 focus:border-amber-500'
-                  }`}
+                  className={`w-full rounded-xl p-2.5 font-bold font-mono outline-none border transition bg-card border-slate-200 text-slate-900 focus:border-brand-600`}
                   required
                 />
               </div>
 
               <div>
-                <label className={`block font-bold mb-1 text-xs ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                <label className={`block font-bold mb-1 text-xs text-slate-700`}>
                   أولوية الطلب:
                 </label>
                 <select
                   value={priority}
                   onChange={(e) => setPriority(e.target.value as MaintenancePriority)}
-                  className={`w-full rounded-xl p-2.5 font-bold outline-none cursor-pointer border transition ${
-                    isLight
-                      ? 'bg-white border-slate-200 text-slate-900 focus:border-amber-500'
-                      : 'bg-slate-900 border-slate-800 text-slate-100 focus:border-amber-500'
-                  }`}
+                  className={`w-full rounded-xl p-2.5 font-bold outline-none cursor-pointer border transition bg-card border-slate-200 text-slate-900 focus:border-brand-600`}
                 >
                   <option value="critical">حرج جداً (طارئ وفوري)</option>
                   <option value="normal">عادي (اعتيادي)</option>
@@ -1684,17 +1570,13 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
               </div>
 
               <div className="sm:col-span-2">
-                <label className={`block font-bold mb-1 text-xs ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                <label className={`block font-bold mb-1 text-xs text-slate-700`}>
                   جهة الصيانة المختصة (توجيه الطلب):
                 </label>
                 <select
                   value={maintenanceDepartment}
                   onChange={(e) => setMaintenanceDepartment(e.target.value)}
-                  className={`w-full rounded-xl p-2.5 font-bold outline-none cursor-pointer border transition ${
-                    isLight
-                      ? 'bg-white border-slate-200 text-slate-900 focus:border-amber-500'
-                      : 'bg-slate-900 border-slate-800 text-slate-100 focus:border-amber-500'
-                  }`}
+                  className={`w-full rounded-xl p-2.5 font-bold outline-none cursor-pointer border transition bg-card border-slate-200 text-slate-900 focus:border-brand-600`}
                   required
                 >
                   {maintenanceDepartments
@@ -1717,13 +1599,13 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
           </div>
 
           {/* SECTION 3: ATTACHMENT / CAMERA UPLOAD (OPTIONAL) */}
-          <div className={`p-4 rounded-2xl border space-y-3 ${isLight ? 'bg-slate-50/80 border-slate-200' : 'bg-slate-950/60 border-slate-800'}`}>
-            <div className="flex items-center justify-between border-b pb-2 border-slate-200 dark:border-slate-800">
-              <label className={`block font-extrabold text-xs flex items-center gap-1.5 ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
-                <Camera className="w-4 h-4 text-amber-500" />
+          <div className={`p-4 rounded-2xl border space-y-3 bg-slate-50/80 border-slate-200`}>
+            <div className="flex items-center justify-between border-b pb-2 border-slate-200 ">
+              <label className={`block font-extrabold text-xs flex items-center gap-1.5 text-slate-900`}>
+                <Camera className="w-4 h-4 text-brand-700" />
                 <span>3. رفع ملفات أو التقاط صور للعطل (يتم ضغطها وتشفيرها تلقائياً):</span>
               </label>
-              <span className="text-[10px] text-slate-400 font-bold bg-amber-500/10 px-2 py-0.5 rounded-full text-amber-600 dark:text-amber-400">
+              <span className="text-[10px] text-slate-500 font-bold bg-brand-50 px-2 py-0.5 rounded-full text-brand-700 ">
                 {attachments.length > 0 ? `${attachments.length} مرفق مضاف` : 'اختياري'}
               </span>
             </div>
@@ -1752,7 +1634,7 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
                 type="button"
                 disabled={isProcessingFiles}
                 onClick={() => cameraInputRef.current?.click()}
-                className="py-2.5 px-3 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-slate-950 flex items-center justify-center gap-2 shadow-md transition cursor-pointer active:scale-95 disabled:opacity-50"
+                className="py-2.5 px-3 rounded-xl text-xs font-bold bg-brand-700 hover:bg-brand-800 text-on-brand flex items-center justify-center gap-2 shadow-md transition cursor-pointer active:scale-95 disabled:opacity-50"
               >
                 {isProcessingFiles ? (
                   <Loader2 className="w-4 h-4 animate-spin text-slate-950" />
@@ -1766,16 +1648,12 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
                 type="button"
                 disabled={isProcessingFiles}
                 onClick={() => fileInputRef.current?.click()}
-                className={`py-2.5 px-3 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-2 cursor-pointer active:scale-95 disabled:opacity-50 ${
-                  isLight
-                    ? 'bg-white hover:bg-slate-100 border-slate-300 text-slate-700'
-                    : 'bg-slate-900 hover:bg-slate-800 border-slate-700 text-slate-200'
-                }`}
+                className={`py-2.5 px-3 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-2 cursor-pointer active:scale-95 disabled:opacity-50 bg-card hover:bg-slate-100 border-slate-300 text-slate-700`}
               >
                 {isProcessingFiles ? (
-                  <Loader2 className="w-4 h-4 animate-spin text-emerald-400" />
+                  <Loader2 className="w-4 h-4 animate-spin text-emerald-600" />
                 ) : (
-                  <Upload className="w-4 h-4 text-emerald-400" />
+                  <Upload className="w-4 h-4 text-emerald-600" />
                 )}
                 <span>{isProcessingFiles ? 'جاري تجهيز المرفقات...' : 'اختيار ملفات / صور من الجهاز'}</span>
               </button>
@@ -1798,10 +1676,10 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
                           referrerPolicy="no-referrer"
                         />
                       ) : (
-                        <FileCheck className="w-6 h-6 text-emerald-400 shrink-0" />
+                        <FileCheck className="w-6 h-6 text-emerald-600 shrink-0" />
                       )}
                       <div className="min-w-0">
-                        <div className="font-bold text-emerald-400 truncate max-w-[200px]" title={att.name}>
+                        <div className="font-bold text-emerald-600 truncate max-w-[200px]" title={att.name}>
                           {att.name}
                         </div>
                         {att.size && (
@@ -1831,7 +1709,7 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
                       <button
                         type="button"
                         onClick={() => handleRemoveAttachment(att.id)}
-                        className="p-1.5 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 border border-rose-500/40 transition cursor-pointer"
+                        className="p-1.5 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-600 border border-rose-500/40 transition cursor-pointer"
                         title="إزالة المرفق"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -1841,7 +1719,7 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
                 ))}
               </div>
             ) : (
-              <p className="text-[11px] text-slate-400 text-center py-0.5">
+              <p className="text-[11px] text-slate-500 text-center py-0.5">
                 يمكنك التقاط صورة من الكاميرا مباشرة لتوثيق العطل أو إرسال الطلب بدون مرفق.
               </p>
             )}
@@ -1849,8 +1727,8 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
 
           {/* VALIDATION ERROR MESSAGE */}
           {validationError && (
-            <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-500 font-bold text-xs flex items-center gap-2">
-              <X className="w-4 h-4 shrink-0 text-red-500" />
+            <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-600 font-bold text-xs flex items-center gap-2">
+              <X className="w-4 h-4 shrink-0 text-red-600" />
               <span>{validationError}</span>
             </div>
           )}
@@ -1860,15 +1738,13 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className={`w-full sm:w-auto px-5 py-2.5 rounded-xl font-bold transition cursor-pointer text-center ${
-                isLight ? 'bg-slate-100 hover:bg-slate-200 text-slate-700' : 'bg-slate-800 hover:bg-slate-700 text-slate-300'
-              }`}
+              className={`w-full sm:w-auto px-5 py-2.5 rounded-xl font-bold transition cursor-pointer text-center bg-slate-100 hover:bg-slate-200 text-slate-700`}
             >
               إلغاء
             </button>
             <button
               type="submit"
-              className="w-full sm:w-auto px-6 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-xl shadow-lg shadow-amber-500/20 transition cursor-pointer flex items-center justify-center gap-2"
+              className="w-full sm:w-auto px-6 py-2.5 bg-brand-700 hover:bg-brand-800 text-on-brand font-black rounded-xl shadow-lg transition cursor-pointer flex items-center justify-center gap-2"
             >
               <Wrench className="w-4 h-4" />
               <span>إرسال وحفظ طلب الصيانة</span>
@@ -1879,23 +1755,23 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
 
       {/* FULL PREVIEW MODAL FOR ATTACHMENT */}
       {previewItem && (
-        <div className="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 animate-fadeIn">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-4 sm:p-5 w-full max-w-2xl space-y-4 shadow-2xl flex flex-col max-h-[90vh]">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div className="fixed inset-0 z-50 bg-card/90 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 animate-fadeIn">
+          <div className="bg-card border border-slate-200 rounded-3xl p-4 sm:p-5 w-full max-w-2xl space-y-4 shadow-2xl flex flex-col max-h-[90vh]">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
               <div className="flex items-center gap-2">
-                <ImageIcon className="w-5 h-5 text-amber-500" />
-                <h3 className="font-bold text-sm sm:text-base text-white">{previewItem.title}</h3>
+                <ImageIcon className="w-5 h-5 text-brand-700" />
+                <h3 className="font-bold text-sm sm:text-base text-slate-900">{previewItem.title}</h3>
               </div>
               <button
                 type="button"
                 onClick={() => setPreviewItem(null)}
-                className="p-1.5 rounded-xl bg-slate-800 text-slate-400 hover:text-white transition cursor-pointer"
+                className="p-1.5 rounded-xl bg-slate-100 text-slate-500 hover:text-slate-900 transition cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="flex-1 overflow-auto rounded-2xl bg-black/50 border border-slate-800/80 flex items-center justify-center p-2 min-h-[220px]">
+            <div className="flex-1 overflow-auto rounded-2xl bg-black/50 border border-slate-200 flex items-center justify-center p-2 min-h-[220px]">
               {previewItem.url.startsWith('data:image/') ||
               previewItem.fileName.match(/\.(jpeg|jpg|png|webp|gif|svg)$/i) ? (
                 <img
@@ -1906,18 +1782,18 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
                 />
               ) : (
                 <div className="text-center p-6 space-y-3">
-                  <FileText className="w-16 h-16 text-amber-500 mx-auto" />
-                  <p className="text-sm font-bold text-white">{previewItem.fileName}</p>
-                  <p className="text-xs text-slate-400">مستند مرفق</p>
+                  <FileText className="w-16 h-16 text-brand-700 mx-auto" />
+                  <p className="text-sm font-bold text-slate-900">{previewItem.fileName}</p>
+                  <p className="text-xs text-slate-500">مستند مرفق</p>
                 </div>
               )}
             </div>
 
-            <div className="flex items-center justify-between pt-2 border-t border-slate-800">
+            <div className="flex items-center justify-between pt-2 border-t border-slate-200">
               <a
                 href={previewItem.url}
                 download={previewItem.fileName}
-                className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs flex items-center gap-1.5 transition cursor-pointer shadow-md"
+                className="px-4 py-2 bg-brand-700 hover:bg-brand-800 text-on-brand font-bold rounded-xl text-xs flex items-center gap-1.5 transition cursor-pointer shadow-md"
               >
                 <Download className="w-4 h-4" />
                 <span>تنزيل المرفق</span>
@@ -1926,7 +1802,7 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
               <button
                 type="button"
                 onClick={() => setPreviewItem(null)}
-                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl text-xs transition cursor-pointer"
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-100 text-slate-600 font-bold rounded-xl text-xs transition cursor-pointer"
               >
                 إغلاق
               </button>

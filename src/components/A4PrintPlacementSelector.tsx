@@ -54,26 +54,22 @@ export const A4PrintPlacementSelector: React.FC<A4PrintPlacementSelectorProps> =
 
   return (
     <div
-      className={`rounded-2xl border p-3 sm:p-4 space-y-3 transition-colors ${
-        isLight
-          ? 'bg-amber-50/50 border-amber-200/80 text-slate-800'
-          : 'bg-slate-900/90 border-amber-500/30 text-slate-200'
-      }`}
+      className={`rounded-2xl border p-3 sm:p-4 space-y-3 transition-colors bg-brand-50 border-brand-200 text-slate-800`}
     >
       {/* Top Header: Controls Summary & Display Toggle */}
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b pb-2.5 border-slate-200 dark:border-slate-800">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b pb-2.5 border-slate-200 ">
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-amber-500/20 text-amber-500 flex items-center justify-center font-bold">
+          <div className="w-7 h-7 rounded-lg bg-brand-100 text-brand-700 flex items-center justify-center font-bold">
             <Sliders className="w-4 h-4" />
           </div>
           <div>
             <h4 className="text-xs font-black flex items-center gap-1.5">
               <span>تخصيص الحجم وموضع الطباعة على ورقة A4</span>
-              <span className="text-[10px] px-1.5 py-0.2 rounded font-bold bg-amber-500/20 text-amber-600 dark:text-amber-400">
+              <span className="text-[10px] px-1.5 py-0.2 rounded font-bold bg-brand-100 text-brand-700 ">
                 منع هدر الورق
               </span>
             </h4>
-            <p className="text-[10px] text-slate-500 dark:text-slate-400">
+            <p className="text-[10px] text-slate-500 ">
               حدد حجم البطاقة وموضعها داخل الورقة قبل الطباعة
             </p>
           </div>
@@ -81,14 +77,14 @@ export const A4PrintPlacementSelector: React.FC<A4PrintPlacementSelectorProps> =
 
         {/* View mode toggle (Card vs Simulated Sheet) */}
         {!hideSheetPreviewToggle && setDisplayMode && (
-          <div className="flex items-center gap-1 bg-slate-200/80 dark:bg-slate-950 p-1 rounded-xl text-[11px] font-bold">
+          <div className="flex items-center gap-1 bg-slate-200/80 p-1 rounded-xl text-[11px] font-bold">
             <button
               type="button"
               onClick={() => setDisplayMode('card')}
               className={`px-2.5 py-1 rounded-lg transition flex items-center gap-1 cursor-pointer ${
                 displayMode === 'card'
-                  ? 'bg-white dark:bg-slate-800 text-amber-600 dark:text-amber-400 shadow-xs'
-                  : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                  ? 'bg-card text-brand-700 shadow-xs'
+                  : 'text-slate-500 hover:text-slate-700 '
               }`}
             >
               <LayoutTemplate className="w-3.5 h-3.5" />
@@ -99,8 +95,8 @@ export const A4PrintPlacementSelector: React.FC<A4PrintPlacementSelectorProps> =
               onClick={() => setDisplayMode('sheet')}
               className={`px-2.5 py-1 rounded-lg transition flex items-center gap-1 cursor-pointer ${
                 displayMode === 'sheet'
-                  ? 'bg-white dark:bg-slate-800 text-amber-600 dark:text-amber-400 shadow-xs'
-                  : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                  ? 'bg-card text-brand-700 shadow-xs'
+                  : 'text-slate-500 hover:text-slate-700 '
               }`}
               title="معاينة شكل ورقة A4 الكاملة وموضع البطاقة داخلها"
             >
@@ -113,7 +109,7 @@ export const A4PrintPlacementSelector: React.FC<A4PrintPlacementSelectorProps> =
 
       {/* Row 1: Size Selector Pills */}
       <div className="space-y-1">
-        <label className="text-[10.5px] font-bold text-slate-600 dark:text-slate-400 block">
+        <label className="text-[10.5px] font-bold text-slate-600 block">
           ١. اختر حجم البطاقة المطلوب:
         </label>
         <div className="grid grid-cols-3 gap-1 sm:gap-2">
@@ -123,10 +119,8 @@ export const A4PrintPlacementSelector: React.FC<A4PrintPlacementSelectorProps> =
             onClick={() => handleSizeChange('compact')}
             className={`p-1.5 sm:p-2 rounded-xl text-right border transition cursor-pointer flex flex-col justify-between ${
               size === 'compact'
-                ? 'bg-amber-500 text-slate-950 border-amber-500 shadow-sm'
-                : isLight
-                ? 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
-                : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-750'
+                ? 'bg-brand-700 text-on-brand border-brand-600 shadow-sm'
+                : 'bg-card text-slate-700 border-slate-200 hover:bg-slate-50'
             }`}
           >
             <div className="flex items-center justify-between">
@@ -138,7 +132,7 @@ export const A4PrintPlacementSelector: React.FC<A4PrintPlacementSelectorProps> =
             </div>
             <span
               className={`text-[8.5px] sm:text-[9.5px] mt-0.5 font-medium leading-tight ${
-                size === 'compact' ? 'text-slate-900 font-bold' : 'text-slate-500 dark:text-slate-400'
+                size === 'compact' ? 'text-slate-900 font-bold' : 'text-slate-500 '
               }`}
             >
               ربع ورقة • ٤ بطاقات
@@ -151,10 +145,8 @@ export const A4PrintPlacementSelector: React.FC<A4PrintPlacementSelectorProps> =
             onClick={() => handleSizeChange('medium')}
             className={`p-1.5 sm:p-2 rounded-xl text-right border transition cursor-pointer flex flex-col justify-between ${
               size === 'medium'
-                ? 'bg-amber-500 text-slate-950 border-amber-500 shadow-sm'
-                : isLight
-                ? 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
-                : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-750'
+                ? 'bg-brand-700 text-on-brand border-brand-600 shadow-sm'
+                : 'bg-card text-slate-700 border-slate-200 hover:bg-slate-50'
             }`}
           >
             <div className="flex items-center justify-between">
@@ -166,7 +158,7 @@ export const A4PrintPlacementSelector: React.FC<A4PrintPlacementSelectorProps> =
             </div>
             <span
               className={`text-[8.5px] sm:text-[9.5px] mt-0.5 font-medium leading-tight ${
-                size === 'medium' ? 'text-slate-900 font-bold' : 'text-slate-500 dark:text-slate-400'
+                size === 'medium' ? 'text-slate-900 font-bold' : 'text-slate-500 '
               }`}
             >
               نصف ورقة • بطاقتان
@@ -179,10 +171,8 @@ export const A4PrintPlacementSelector: React.FC<A4PrintPlacementSelectorProps> =
             onClick={() => handleSizeChange('full')}
             className={`p-1.5 sm:p-2 rounded-xl text-right border transition cursor-pointer flex flex-col justify-between ${
               size === 'full'
-                ? 'bg-amber-500 text-slate-950 border-amber-500 shadow-sm'
-                : isLight
-                ? 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
-                : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-750'
+                ? 'bg-brand-700 text-on-brand border-brand-600 shadow-sm'
+                : 'bg-card text-slate-700 border-slate-200 hover:bg-slate-50'
             }`}
           >
             <div className="flex items-center justify-between">
@@ -194,7 +184,7 @@ export const A4PrintPlacementSelector: React.FC<A4PrintPlacementSelectorProps> =
             </div>
             <span
               className={`text-[8.5px] sm:text-[9.5px] mt-0.5 font-medium leading-tight ${
-                size === 'full' ? 'text-slate-900 font-bold' : 'text-slate-500 dark:text-slate-400'
+                size === 'full' ? 'text-slate-900 font-bold' : 'text-slate-500 '
               }`}
             >
               لوحة جدارية كاملة
@@ -205,10 +195,10 @@ export const A4PrintPlacementSelector: React.FC<A4PrintPlacementSelectorProps> =
 
       {/* Row 2: Placement Selector on A4 Sheet */}
       {size !== 'full' ? (
-        <div className="space-y-1.5 pt-1 border-t border-slate-200 dark:border-slate-800">
-          <label className="text-[10px] sm:text-[10.5px] font-bold text-slate-600 dark:text-slate-400 flex items-center justify-between">
+        <div className="space-y-1.5 pt-1 border-t border-slate-200 ">
+          <label className="text-[10px] sm:text-[10.5px] font-bold text-slate-600 flex items-center justify-between">
             <span>٢. موضع البطاقة داخل ورقة A4:</span>
-            <span className="text-[9.5px] text-amber-600 dark:text-amber-400 font-normal hidden sm:inline">
+            <span className="text-[9.5px] text-brand-700 font-normal hidden sm:inline">
               (انقر على أي زاوية داخل الورقة أو اختر من الأزرار)
             </span>
           </label>
@@ -216,12 +206,10 @@ export const A4PrintPlacementSelector: React.FC<A4PrintPlacementSelectorProps> =
           <div className="flex flex-row items-center gap-2 sm:gap-4 w-full">
             {/* Interactive Visual A4 Sheet Simulation Widget */}
             <div
-              className={`w-16 h-24 sm:w-22 sm:h-32 border-2 rounded-md shadow-md p-1 shrink-0 flex flex-col justify-between relative select-none transition-all ${
-                isLight ? 'bg-white border-slate-300' : 'bg-slate-950 border-slate-700'
-              }`}
+              className={`w-16 h-24 sm:w-22 sm:h-32 border-2 rounded-md shadow-md p-1 shrink-0 flex flex-col justify-between relative select-none transition-all bg-card border-slate-300`}
               title="ورقة A4 التفاعلية: اضغط على الموضع المطلوب لوضع البطاقة فيه"
             >
-              <span className="absolute -top-2 right-1.5 text-[7.5px] sm:text-[8px] font-bold px-1 bg-slate-200 dark:bg-slate-800 rounded text-slate-600 dark:text-slate-300">
+              <span className="absolute -top-2 right-1.5 text-[7.5px] sm:text-[8px] font-bold px-1 bg-slate-200 rounded text-slate-600 ">
                 A4
               </span>
 
@@ -234,8 +222,8 @@ export const A4PrintPlacementSelector: React.FC<A4PrintPlacementSelectorProps> =
                     onClick={() => setPlacement('top-right')}
                     className={`rounded border text-[7.5px] font-bold flex flex-col items-center justify-center transition cursor-pointer ${
                       placement === 'top-right' || placement === 'four-copies'
-                        ? 'bg-amber-500 text-slate-950 border-amber-600 font-black shadow-xs ring-1 ring-amber-400'
-                        : 'border-dashed border-slate-300 dark:border-slate-700 hover:bg-amber-50 dark:hover:bg-slate-800 text-slate-400'
+                        ? 'bg-brand-700 text-on-brand border-brand-600 font-black shadow-xs ring-1 ring-brand-600'
+                        : 'border-dashed border-slate-300 hover:bg-brand-50 text-slate-500'
                     }`}
                     title="أعلى اليمين"
                   >
@@ -249,8 +237,8 @@ export const A4PrintPlacementSelector: React.FC<A4PrintPlacementSelectorProps> =
                     onClick={() => setPlacement('top-left')}
                     className={`rounded border text-[7.5px] font-bold flex flex-col items-center justify-center transition cursor-pointer ${
                       placement === 'top-left' || placement === 'four-copies'
-                        ? 'bg-amber-500 text-slate-950 border-amber-600 font-black shadow-xs ring-1 ring-amber-400'
-                        : 'border-dashed border-slate-300 dark:border-slate-700 hover:bg-amber-50 dark:hover:bg-slate-800 text-slate-400'
+                        ? 'bg-brand-700 text-on-brand border-brand-600 font-black shadow-xs ring-1 ring-brand-600'
+                        : 'border-dashed border-slate-300 hover:bg-brand-50 text-slate-500'
                     }`}
                     title="أعلى اليسار"
                   >
@@ -264,8 +252,8 @@ export const A4PrintPlacementSelector: React.FC<A4PrintPlacementSelectorProps> =
                     onClick={() => setPlacement('bottom-right')}
                     className={`rounded border text-[7.5px] font-bold flex flex-col items-center justify-center transition cursor-pointer ${
                       placement === 'bottom-right' || placement === 'four-copies'
-                        ? 'bg-amber-500 text-slate-950 border-amber-600 font-black shadow-xs ring-1 ring-amber-400'
-                        : 'border-dashed border-slate-300 dark:border-slate-700 hover:bg-amber-50 dark:hover:bg-slate-800 text-slate-400'
+                        ? 'bg-brand-700 text-on-brand border-brand-600 font-black shadow-xs ring-1 ring-brand-600'
+                        : 'border-dashed border-slate-300 hover:bg-brand-50 text-slate-500'
                     }`}
                     title="أسفل اليمين"
                   >
@@ -279,8 +267,8 @@ export const A4PrintPlacementSelector: React.FC<A4PrintPlacementSelectorProps> =
                     onClick={() => setPlacement('bottom-left')}
                     className={`rounded border text-[7.5px] font-bold flex flex-col items-center justify-center transition cursor-pointer ${
                       placement === 'bottom-left' || placement === 'four-copies'
-                        ? 'bg-amber-500 text-slate-950 border-amber-600 font-black shadow-xs ring-1 ring-amber-400'
-                        : 'border-dashed border-slate-300 dark:border-slate-700 hover:bg-amber-50 dark:hover:bg-slate-800 text-slate-400'
+                        ? 'bg-brand-700 text-on-brand border-brand-600 font-black shadow-xs ring-1 ring-brand-600'
+                        : 'border-dashed border-slate-300 hover:bg-brand-50 text-slate-500'
                     }`}
                     title="أسفل اليسار"
                   >
@@ -296,8 +284,8 @@ export const A4PrintPlacementSelector: React.FC<A4PrintPlacementSelectorProps> =
                     onClick={() => setPlacement('top')}
                     className={`rounded border text-[8px] font-bold flex items-center justify-center transition cursor-pointer ${
                       placement === 'top' || placement === 'two-copies'
-                        ? 'bg-amber-500 text-slate-950 border-amber-600 font-black shadow-xs ring-1 ring-amber-400'
-                        : 'border-dashed border-slate-300 dark:border-slate-700 hover:bg-amber-50 dark:hover:bg-slate-800 text-slate-400'
+                        ? 'bg-brand-700 text-on-brand border-brand-600 font-black shadow-xs ring-1 ring-brand-600'
+                        : 'border-dashed border-slate-300 hover:bg-brand-50 text-slate-500'
                     }`}
                     title="النصف العلوي"
                   >
@@ -308,8 +296,8 @@ export const A4PrintPlacementSelector: React.FC<A4PrintPlacementSelectorProps> =
                     onClick={() => setPlacement('bottom')}
                     className={`rounded border text-[8px] font-bold flex items-center justify-center transition cursor-pointer ${
                       placement === 'bottom' || placement === 'two-copies'
-                        ? 'bg-amber-500 text-slate-950 border-amber-600 font-black shadow-xs ring-1 ring-amber-400'
-                        : 'border-dashed border-slate-300 dark:border-slate-700 hover:bg-amber-50 dark:hover:bg-slate-800 text-slate-400'
+                        ? 'bg-brand-700 text-on-brand border-brand-600 font-black shadow-xs ring-1 ring-brand-600'
+                        : 'border-dashed border-slate-300 hover:bg-brand-50 text-slate-500'
                     }`}
                     title="النصف السفلي"
                   >
@@ -328,10 +316,8 @@ export const A4PrintPlacementSelector: React.FC<A4PrintPlacementSelectorProps> =
                     onClick={() => setPlacement('top-right')}
                     className={`px-1.5 py-1 sm:py-1.5 rounded-lg text-[10.5px] sm:text-xs font-bold border transition text-center cursor-pointer ${
                       placement === 'top-right'
-                        ? 'bg-amber-500 text-slate-950 border-amber-500 font-black'
-                        : isLight
-                        ? 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
-                        : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-750'
+                        ? 'bg-brand-700 text-on-brand border-brand-600 font-black'
+                        : 'bg-card text-slate-700 border-slate-200 hover:bg-slate-50'
                     }`}
                   >
                     أعلى اليمين
@@ -341,10 +327,8 @@ export const A4PrintPlacementSelector: React.FC<A4PrintPlacementSelectorProps> =
                     onClick={() => setPlacement('top-left')}
                     className={`px-1.5 py-1 sm:py-1.5 rounded-lg text-[10.5px] sm:text-xs font-bold border transition text-center cursor-pointer ${
                       placement === 'top-left'
-                        ? 'bg-amber-500 text-slate-950 border-amber-500 font-black'
-                        : isLight
-                        ? 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
-                        : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-750'
+                        ? 'bg-brand-700 text-on-brand border-brand-600 font-black'
+                        : 'bg-card text-slate-700 border-slate-200 hover:bg-slate-50'
                     }`}
                   >
                     أعلى اليسار
@@ -354,10 +338,8 @@ export const A4PrintPlacementSelector: React.FC<A4PrintPlacementSelectorProps> =
                     onClick={() => setPlacement('bottom-right')}
                     className={`px-1.5 py-1 sm:py-1.5 rounded-lg text-[10.5px] sm:text-xs font-bold border transition text-center cursor-pointer ${
                       placement === 'bottom-right'
-                        ? 'bg-amber-500 text-slate-950 border-amber-500 font-black'
-                        : isLight
-                        ? 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
-                        : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-750'
+                        ? 'bg-brand-700 text-on-brand border-brand-600 font-black'
+                        : 'bg-card text-slate-700 border-slate-200 hover:bg-slate-50'
                     }`}
                   >
                     أسفل اليمين
@@ -367,10 +349,8 @@ export const A4PrintPlacementSelector: React.FC<A4PrintPlacementSelectorProps> =
                     onClick={() => setPlacement('bottom-left')}
                     className={`px-1.5 py-1 sm:py-1.5 rounded-lg text-[10.5px] sm:text-xs font-bold border transition text-center cursor-pointer ${
                       placement === 'bottom-left'
-                        ? 'bg-amber-500 text-slate-950 border-amber-500 font-black'
-                        : isLight
-                        ? 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
-                        : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-750'
+                        ? 'bg-brand-700 text-on-brand border-brand-600 font-black'
+                        : 'bg-card text-slate-700 border-slate-200 hover:bg-slate-50'
                     }`}
                   >
                     أسفل اليسار
@@ -381,10 +361,8 @@ export const A4PrintPlacementSelector: React.FC<A4PrintPlacementSelectorProps> =
                     onClick={() => setPlacement('center')}
                     className={`px-1.5 py-1 sm:py-1.5 rounded-lg text-[10.5px] sm:text-xs font-bold border transition text-center cursor-pointer ${
                       placement === 'center'
-                        ? 'bg-amber-500 text-slate-950 border-amber-500 font-black'
-                        : isLight
-                        ? 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
-                        : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-750'
+                        ? 'bg-brand-700 text-on-brand border-brand-600 font-black'
+                        : 'bg-card text-slate-700 border-slate-200 hover:bg-slate-50'
                     }`}
                   >
                     وسط الصفحة
@@ -395,9 +373,7 @@ export const A4PrintPlacementSelector: React.FC<A4PrintPlacementSelectorProps> =
                     className={`px-1.5 py-1 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-bold border transition text-center cursor-pointer flex items-center justify-center gap-1 ${
                       placement === 'four-copies'
                         ? 'bg-emerald-600 text-white border-emerald-600 font-black'
-                        : isLight
-                        ? 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100'
-                        : 'bg-emerald-950/40 text-emerald-300 border-emerald-800 hover:bg-emerald-900/60'
+                        : 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100'
                     }`}
                     title="تعبئة الأركان الأربعة بـ 4 نسخ من البطاقة لتوفير الورق"
                   >
@@ -413,10 +389,8 @@ export const A4PrintPlacementSelector: React.FC<A4PrintPlacementSelectorProps> =
                     onClick={() => setPlacement('top')}
                     className={`px-1.5 py-1 sm:py-1.5 rounded-lg text-[10.5px] sm:text-xs font-bold border transition text-center cursor-pointer ${
                       placement === 'top'
-                        ? 'bg-amber-500 text-slate-950 border-amber-500 font-black'
-                        : isLight
-                        ? 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
-                        : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-750'
+                        ? 'bg-brand-700 text-on-brand border-brand-600 font-black'
+                        : 'bg-card text-slate-700 border-slate-200 hover:bg-slate-50'
                     }`}
                   >
                     النصف العلوي
@@ -426,10 +400,8 @@ export const A4PrintPlacementSelector: React.FC<A4PrintPlacementSelectorProps> =
                     onClick={() => setPlacement('bottom')}
                     className={`px-1.5 py-1 sm:py-1.5 rounded-lg text-[10.5px] sm:text-xs font-bold border transition text-center cursor-pointer ${
                       placement === 'bottom'
-                        ? 'bg-amber-500 text-slate-950 border-amber-500 font-black'
-                        : isLight
-                        ? 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
-                        : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-750'
+                        ? 'bg-brand-700 text-on-brand border-brand-600 font-black'
+                        : 'bg-card text-slate-700 border-slate-200 hover:bg-slate-50'
                     }`}
                   >
                     النصف السفلي
@@ -439,10 +411,8 @@ export const A4PrintPlacementSelector: React.FC<A4PrintPlacementSelectorProps> =
                     onClick={() => setPlacement('center')}
                     className={`px-1.5 py-1 sm:py-1.5 rounded-lg text-[10.5px] sm:text-xs font-bold border transition text-center cursor-pointer ${
                       placement === 'center'
-                        ? 'bg-amber-500 text-slate-950 border-amber-500 font-black'
-                        : isLight
-                        ? 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
-                        : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-750'
+                        ? 'bg-brand-700 text-on-brand border-brand-600 font-black'
+                        : 'bg-card text-slate-700 border-slate-200 hover:bg-slate-50'
                     }`}
                   >
                     وسط الصفحة
@@ -453,9 +423,7 @@ export const A4PrintPlacementSelector: React.FC<A4PrintPlacementSelectorProps> =
                     className={`px-1.5 py-1 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-bold border transition text-center cursor-pointer flex items-center justify-center gap-1 ${
                       placement === 'two-copies'
                         ? 'bg-emerald-600 text-white border-emerald-600 font-black'
-                        : isLight
-                        ? 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100'
-                        : 'bg-emerald-950/40 text-emerald-300 border-emerald-800 hover:bg-emerald-900/60'
+                        : 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100'
                     }`}
                     title="تعبئة النصفين العلوي والسفلي بنسختين"
                   >
@@ -468,7 +436,7 @@ export const A4PrintPlacementSelector: React.FC<A4PrintPlacementSelectorProps> =
           </div>
         </div>
       ) : (
-        <div className="text-[11px] text-slate-500 dark:text-slate-400 p-2 bg-slate-100 dark:bg-slate-800/60 rounded-xl">
+        <div className="text-[11px] text-slate-500 p-2 bg-slate-100 rounded-xl">
           سيتم طباعة البطاقة بحجم لوحة كاملة تتوسط ورقة الـ A4 بالكامل.
         </div>
       )}
