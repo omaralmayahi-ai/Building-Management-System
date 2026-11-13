@@ -277,7 +277,7 @@ export const UnitLocationMapModal: React.FC<UnitLocationMapModalProps> = ({
                   {isRoom && roomDetails?.roomCode ? roomDetails.roomCode : toArabicDigits(unit.code)}
                 </span>
                 <span
-                  className="px-1.5 sm:px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold text-slate-900 shadow-sm shrink-0"
+                  className="px-1.5 sm:px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold ds-off text-slate-900 shadow-sm shrink-0"
                   style={{ backgroundColor: gradeColor }}
                 >
                   Grade {unit.conditionGrade}

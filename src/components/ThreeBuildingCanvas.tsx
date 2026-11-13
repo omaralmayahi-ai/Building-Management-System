@@ -100,6 +100,8 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
   // Controls & Display State
   const [autoRotate, setAutoRotate] = useState<boolean>(false);
   const [isNightMode, setIsNightMode] = useState<boolean>(false);
+  // مظهر أشرطة الأدوات المحيطة بالمجسّم: داكن في الوضع الليلي للمجسّم أو في الوضع الداكن للنظام
+  const darkChrome = isNightMode || theme !== 'light';
   const [isNightLightsOn, setIsNightLightsOn] = useState<boolean>(true);
   const [explodePercent, setExplodePercent] = useState<number>(0);
   const [showExplodePopover, setShowExplodePopover] = useState<boolean>(false);
@@ -1599,25 +1601,25 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
       ref={containerRef}
       className={`ds-off transition-all duration-300 ${
         isFullscreen
-          ? `fixed inset-0 z-50 w-screen h-screen ${isNightMode ? 'bg-slate-950' : 'bg-slate-100'} flex flex-col p-2 space-y-2 overflow-hidden`
+          ? `fixed inset-0 z-50 w-screen h-screen ${darkChrome ? 'bg-slate-950' : 'bg-slate-100'} flex flex-col p-2 space-y-2 overflow-hidden`
           : 'space-y-3'
       }`}
     >
       {/* 3D Control Bar - Positioned outside above the 3D canvas (hidden in drone mode to keep 3D view clean and unobstructed) */}
       {!isDroneMode && (
         <div className={`p-1.5 sm:p-2 rounded-2xl border shadow-md flex flex-wrap items-center justify-between gap-1.5 text-xs transition-colors w-full min-w-0 ${
-          isNightMode ? 'bg-slate-900/90 border-slate-800 text-slate-300' : 'bg-white/90 border-slate-200 text-slate-800'
+          darkChrome ? 'bg-slate-900/90 border-slate-800 text-slate-300' : 'bg-white/90 border-slate-200 text-slate-800'
         }`}>
         {/* Camera Views Perspective Shortcuts */}
         <div className={`flex items-center gap-0.5 p-0.5 rounded-xl border shrink-0 transition-colors ${
-          isNightMode ? 'bg-slate-950/60 border-slate-800' : 'bg-slate-100 border-slate-200'
+          darkChrome ? 'bg-slate-950/60 border-slate-800' : 'bg-slate-100 border-slate-200'
         }`}>
           <button
             onClick={() => setCameraPerspective('isometric')}
             className={`px-2 sm:px-2.5 py-1 rounded-lg text-[10.5px] sm:text-xs font-bold transition-all cursor-pointer ${
               activePerspective === 'isometric'
                 ? 'bg-amber-500 text-slate-950 shadow-sm'
-                : isNightMode
+                : darkChrome
                 ? 'text-slate-300 hover:text-white hover:bg-slate-800'
                 : 'text-slate-700 hover:text-slate-900 hover:bg-slate-200'
             }`}
@@ -1630,7 +1632,7 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
             className={`px-2 sm:px-2.5 py-1 rounded-lg text-[10.5px] sm:text-xs font-bold transition-all cursor-pointer ${
               activePerspective === 'top'
                 ? 'bg-amber-500 text-slate-950 shadow-sm'
-                : isNightMode
+                : darkChrome
                 ? 'text-slate-300 hover:text-white hover:bg-slate-800'
                 : 'text-slate-700 hover:text-slate-900 hover:bg-slate-200'
             }`}
@@ -1643,7 +1645,7 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
             className={`px-2 sm:px-2.5 py-1 rounded-lg text-[10.5px] sm:text-xs font-bold transition-all cursor-pointer ${
               activePerspective === 'front'
                 ? 'bg-amber-500 text-slate-950 shadow-sm'
-                : isNightMode
+                : darkChrome
                 ? 'text-slate-300 hover:text-white hover:bg-slate-800'
                 : 'text-slate-700 hover:text-slate-900 hover:bg-slate-200'
             }`}
@@ -1698,7 +1700,7 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
             className={`px-2 py-1 rounded-xl border transition flex items-center gap-1 cursor-pointer text-[10.5px] sm:text-xs ${
               autoRotate
                 ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40'
-                : isNightMode
+                : darkChrome
                 ? 'bg-slate-800 text-slate-300 border-slate-700 hover:text-white'
                 : 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200'
             }`}
@@ -1716,7 +1718,7 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
               className={`px-2 sm:px-2.5 py-1 rounded-xl border transition flex items-center gap-1 cursor-pointer text-[10.5px] sm:text-xs ${
                 explodePercent > 0 || showExplodePopover
                   ? 'bg-amber-500 text-slate-950 border-amber-400 font-bold shadow'
-                  : isNightMode
+                  : darkChrome
                   ? 'bg-slate-800 text-slate-300 border-slate-700 hover:text-white'
                   : 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200'
               }`}
@@ -1741,7 +1743,7 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
             className={`px-2 sm:px-2.5 py-1 rounded-xl border transition flex items-center gap-1 cursor-pointer text-[10.5px] sm:text-xs ${
               isDroneMode
                 ? 'bg-amber-500 text-slate-950 border-amber-400 shadow animate-pulse'
-                : isNightMode
+                : darkChrome
                 ? 'bg-slate-800 text-slate-300 border-slate-700 hover:text-white'
                 : 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200'
             }`}
@@ -1759,7 +1761,7 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
                 ? 'bg-amber-500 text-slate-950 border-amber-400 font-extrabold ring-2 ring-amber-500/30'
                 : customElements.length > 0
                 ? 'bg-amber-500/20 text-amber-400 border-amber-500/40 hover:bg-amber-500/30'
-                : isNightMode
+                : darkChrome
                 ? 'bg-slate-800 text-slate-300 border-slate-700 hover:text-white'
                 : 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200'
             }`}
@@ -1783,7 +1785,7 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
             className={`px-2 sm:px-2.5 py-1 rounded-xl border transition flex items-center gap-1 cursor-pointer text-[10.5px] sm:text-xs ${
               isFullscreen
                 ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-md'
-                : isNightMode
+                : darkChrome
                 ? 'bg-slate-800 text-slate-300 border-slate-700 hover:text-white'
                 : 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200'
             }`}
@@ -1801,7 +1803,7 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
         className={`relative w-full ${
           isFullscreen ? 'flex-1 h-full rounded-none border-0' : 'h-[360px] xs:h-[440px] sm:h-[540px] rounded-2xl border'
         } overflow-hidden shadow-2xl flex flex-col select-none transition-all duration-300 min-w-0 ${
-          isNightMode ? 'bg-slate-950 border-slate-800' : 'bg-slate-100 border-slate-300'
+          darkChrome ? 'bg-slate-950 border-slate-800' : 'bg-slate-100 border-slate-300'
         }`}
         onDragOver={(e) => {
           e.preventDefault();
@@ -1819,27 +1821,27 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
         {!isCaravan && floorsCount > 1 && showExplodePopover && !isDroneMode && (
           <div
             className={`absolute top-3 left-3 sm:left-auto sm:right-3 z-30 p-3.5 sm:p-4 rounded-2xl border shadow-2xl backdrop-blur-md w-72 sm:w-80 max-w-[92vw] space-y-3 text-xs animate-in fade-in slide-in-from-top-2 transition-all ${
-              isNightMode
+              darkChrome
                 ? 'bg-slate-900/95 border-amber-500/40 text-slate-200 shadow-black/80 ring-1 ring-amber-500/20'
                 : 'bg-white/95 border-amber-500/50 text-slate-800 shadow-slate-400/50 ring-1 ring-amber-500/20'
             }`}
           >
             {/* Header with Title and Close Button */}
-            <div className={`flex items-center justify-between border-b pb-2.5 ${isNightMode ? 'border-slate-800' : 'border-slate-200'}`}>
+            <div className={`flex items-center justify-between border-b pb-2.5 ${darkChrome ? 'border-slate-800' : 'border-slate-200'}`}>
               <div className="flex items-center gap-2">
                 <div className="p-1.5 rounded-xl bg-amber-500/20 text-amber-500 border border-amber-500/30">
                   <Layers className="w-4 h-4" />
                 </div>
                 <div>
                   <h4 className="font-black text-xs sm:text-sm text-amber-500">تفكيك وفصل الطوابق</h4>
-                  <p className={`text-[10px] ${isNightMode ? 'text-slate-400' : 'text-slate-500'}`}>فصل الطوابق رأسياً لمعاينة التقسيمات والمعدات</p>
+                  <p className={`text-[10px] ${darkChrome ? 'text-slate-400' : 'text-slate-500'}`}>فصل الطوابق رأسياً لمعاينة التقسيمات والمعدات</p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setShowExplodePopover(false)}
                 className={`p-1 rounded-lg transition cursor-pointer ${
-                  isNightMode ? 'hover:bg-slate-800 text-slate-400 hover:text-white' : 'hover:bg-slate-100 text-slate-500 hover:text-slate-900'
+                  darkChrome ? 'hover:bg-slate-800 text-slate-400 hover:text-white' : 'hover:bg-slate-100 text-slate-500 hover:text-slate-900'
                 }`}
                 title="إغلاق اللوحة"
               >
@@ -1849,7 +1851,7 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
 
             {/* Live Percentage & Quick Reset */}
             <div className="flex items-center justify-between font-bold">
-              <span className={isNightMode ? 'text-slate-300' : 'text-slate-700'}>مسافة التباعد العمودي:</span>
+              <span className={darkChrome ? 'text-slate-300' : 'text-slate-700'}>مسافة التباعد العمودي:</span>
               <div className="flex items-center gap-1.5">
                 <span className="font-mono font-black text-xs sm:text-sm px-2 py-0.5 rounded-lg bg-amber-500 text-slate-950 shadow-sm">
                   {toArabicDigits(explodePercent)}%
@@ -1859,7 +1861,7 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
                     type="button"
                     onClick={() => setExplodePercent(0)}
                     className={`p-1 rounded-lg transition cursor-pointer ${
-                      isNightMode ? 'bg-slate-800 hover:bg-slate-700 text-amber-400' : 'bg-slate-100 hover:bg-slate-200 text-amber-600'
+                      darkChrome ? 'bg-slate-800 hover:bg-slate-700 text-amber-400' : 'bg-slate-100 hover:bg-slate-200 text-amber-600'
                     }`}
                     title="إعادة ضم الطوابق بالكامل (0%)"
                   >
@@ -1888,7 +1890,7 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
                 className={`py-1 px-1 rounded-lg font-bold text-[10px] text-center transition cursor-pointer border ${
                   explodePercent === 0
                     ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-sm'
-                    : isNightMode
+                    : darkChrome
                     ? 'bg-slate-800/80 text-slate-300 border-slate-700 hover:bg-slate-700'
                     : 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200'
                 }`}
@@ -1901,7 +1903,7 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
                 className={`py-1 px-1 rounded-lg font-bold text-[10px] text-center transition cursor-pointer border ${
                   explodePercent === 30
                     ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-sm'
-                    : isNightMode
+                    : darkChrome
                     ? 'bg-slate-800/80 text-slate-300 border-slate-700 hover:bg-slate-700'
                     : 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200'
                 }`}
@@ -1914,7 +1916,7 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
                 className={`py-1 px-1 rounded-lg font-bold text-[10px] text-center transition cursor-pointer border ${
                   explodePercent === 60
                     ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-sm'
-                    : isNightMode
+                    : darkChrome
                     ? 'bg-slate-800/80 text-slate-300 border-slate-700 hover:bg-slate-700'
                     : 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200'
                 }`}
@@ -1927,7 +1929,7 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
                 className={`py-1 px-1 rounded-lg font-bold text-[10px] text-center transition cursor-pointer border ${
                   explodePercent === 100
                     ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-sm'
-                    : isNightMode
+                    : darkChrome
                     ? 'bg-slate-800/80 text-slate-300 border-slate-700 hover:bg-slate-700'
                     : 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200'
                 }`}
@@ -1938,7 +1940,7 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
 
             {/* Informational Hint */}
             <div className={`text-[10px] p-2 rounded-xl border flex items-center gap-1.5 ${
-              isNightMode ? 'bg-amber-500/10 border-amber-500/20 text-amber-300' : 'bg-amber-50 border-amber-200 text-amber-900'
+              darkChrome ? 'bg-amber-500/10 border-amber-500/20 text-amber-300' : 'bg-amber-50 border-amber-200 text-amber-900'
             }`}>
               <Info className="w-3.5 h-3.5 shrink-0 text-amber-500" />
               <span>يمكنك تدوير المبنى أو تكبيره بحرية لرؤية الغرف والمعدات أثناء التفكيك.</span>
@@ -1951,39 +1953,39 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
       {/* Selected Room Details Floating Overlay Card (Raycaster Selection) */}
       {selectedRoomData && (
         <div className={`absolute bottom-14 left-3 right-3 sm:right-auto sm:w-80 z-20 backdrop-blur-md rounded-2xl p-3.5 border shadow-2xl text-xs space-y-2 animate-in fade-in slide-in-from-bottom-2 transition-colors ${
-          isNightMode
+          darkChrome
             ? 'bg-slate-900/95 border-amber-500/40 text-slate-200'
             : 'bg-white/95 border-amber-500/60 text-slate-800'
         }`}>
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-2">
               <span className={`p-2 rounded-xl font-bold ${
-                isNightMode ? 'bg-amber-500/20 text-amber-400' : 'bg-amber-100 text-amber-700'
+                darkChrome ? 'bg-amber-500/20 text-amber-400' : 'bg-amber-100 text-amber-700'
               }`}>
                 <DoorOpen className="w-4 h-4" />
               </span>
               <div>
-                <h4 className={`font-extrabold text-sm ${isNightMode ? 'text-white' : 'text-slate-900'}`}>{selectedRoomData.name}</h4>
-                <p className={`font-bold text-[11px] ${isNightMode ? 'text-amber-400' : 'text-amber-700'}`}>{selectedRoomData.floorName}</p>
+                <h4 className={`font-extrabold text-sm ${darkChrome ? 'text-white' : 'text-slate-900'}`}>{selectedRoomData.name}</h4>
+                <p className={`font-bold text-[11px] ${darkChrome ? 'text-amber-400' : 'text-amber-700'}`}>{selectedRoomData.floorName}</p>
               </div>
             </div>
             <button
               onClick={() => setSelectedRoomData(null)}
-              className={`p-1 rounded-lg ${isNightMode ? 'text-slate-400 hover:text-white' : 'text-slate-400 hover:text-slate-800'}`}
+              className={`p-1 rounded-lg ${darkChrome ? 'text-slate-400 hover:text-white' : 'text-slate-400 hover:text-slate-800'}`}
             >
               <X className="w-4 h-4" />
             </button>
           </div>
 
           <div className={`p-2 rounded-xl border flex items-center justify-between ${
-            isNightMode ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200'
+            darkChrome ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200'
           }`}>
             <span className="text-slate-500 text-xs font-bold">المساحة:</span>
-            <strong className={`font-bold text-sm ${isNightMode ? 'text-emerald-400' : 'text-emerald-600'}`}>{toArabicDigits(selectedRoomData.area)}</strong>
+            <strong className={`font-bold text-sm ${darkChrome ? 'text-emerald-400' : 'text-emerald-600'}`}>{toArabicDigits(selectedRoomData.area)}</strong>
           </div>
 
           <div className={`p-2 rounded-xl border flex items-center justify-between ${
-            isNightMode ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200'
+            darkChrome ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200'
           }`}>
             <span className="text-slate-500 text-xs font-bold">الجهة الشاغلة:</span>
             <strong className={`font-bold text-xs ${
@@ -1999,7 +2001,7 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
                 <span
                   key={idx}
                   className={`px-2 py-0.5 rounded font-semibold text-[10px] border ${
-                    isNightMode
+                    darkChrome
                       ? 'bg-slate-800 text-slate-300 border-slate-700'
                       : 'bg-slate-100 text-slate-700 border-slate-200/90 shadow-sm'
                   }`}
@@ -2035,7 +2037,7 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
                 selectedElementIdRef.current = null;
               }}
               roofHeight={floorsCount * storyHeight}
-              isNightMode={isNightMode}
+              isNightMode={darkChrome}
             />
           );
         })()
@@ -2068,7 +2070,7 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
           onToggleFullscreen={toggleFullscreen}
           unitCode={unitCode}
           onManualMove={handleDroneManualMove}
-          isNightMode={isNightMode}
+          isNightMode={darkChrome}
         />
       )}
 
@@ -2091,7 +2093,7 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
         roofHeight={floorsCount * storyHeight}
         buildingWidth={width}
         buildingDepth={depth}
-        isNightMode={isNightMode}
+        isNightMode={darkChrome}
         theme={theme}
         archStyle={archStyle}
         roofType={roofType}
@@ -2125,7 +2127,7 @@ const ThreeBuildingCanvasComponent: React.FC<ThreeBuildingCanvasProps> = ({
         }}
         onDeleteElement={handleDeleteElement}
         selectedElementId={selectedElementId}
-        isNightMode={isNightMode}
+        isNightMode={darkChrome}
         buildingHeight={floorsCount * storyHeight}
       />
       </div>
