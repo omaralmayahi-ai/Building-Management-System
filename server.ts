@@ -4,6 +4,7 @@ import fs from 'fs';
 import https from 'https';
 import crypto from 'crypto';
 import rateLimit from 'express-rate-limit';
+import { z } from 'zod';
 import { createServer as createViteServer } from 'vite';
 import { getDbPool, query } from './src/db/dbClient';
 import {
@@ -31,7 +32,7 @@ async function startServer() {
   // Trust first proxy (Cloud Run / Nginx reverse proxy)
   app.set('trust proxy', 1);
 
-  const PORT = 3000;
+  const PORT = Number(process.env.PORT) || 3000;
   const API_SECRET_KEY = process.env.API_SECRET_KEY || 'CHANGE_ME_BEFORE_DEPLOY';
 
   // Production Security Warning Check for insecure placeholder secrets
@@ -54,8 +55,8 @@ async function startServer() {
     }
   }
 
-  app.use(express.json({ limit: '50mb' }));
-  app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+  app.use(express.json({ limit: '25mb' }));
+  app.use(express.urlencoded({ extended: true, limit: '25mb' }));
 
   // Enterprise Cyber Defense: Security Headers
   app.use((_req, res, next) => {
@@ -76,6 +77,7 @@ async function startServer() {
     name: string;
     createdAt: number;
     expiresAt: number;
+    mustChangePassword?: boolean;
   }
   const activeSessions = new Map<string, ActiveSession>();
   const failedLoginAttempts = new Map<string, { count: number; lockedUntil: number }>();
@@ -98,19 +100,59 @@ async function startServer() {
     return safeUser;
   }
 
-  function hashSecurePassword(password: string): string {
-    if (!password) return '';
-    if (password.startsWith('sha256$')) return password;
-    const salt = 'mdoc_sec_salt_2026';
-    const hash = crypto.createHmac('sha256', salt).update(password).digest('hex');
-    return `sha256$${hash}`;
+  // كلمات المرور تُخزَّن مجزّأة بـ scrypt مع ملح عشوائي لكل حساب: scrypt$<salt>$<hash>
+  function isPasswordHashed(value: any): boolean {
+    return typeof value === 'string' && value.startsWith('scrypt$');
   }
 
-  function verifyPasswordMatch(plainInput: string, storedHashOrPlain: string): boolean {
-    if (!plainInput || !storedHashOrPlain) return false;
-    if (storedHashOrPlain === plainInput) return true;
-    const computed = hashSecurePassword(plainInput);
-    return computed === storedHashOrPlain;
+  function hashSecurePassword(password: string): string {
+    if (!password) return '';
+    if (isPasswordHashed(password)) return password;
+    const salt = crypto.randomBytes(16).toString('hex');
+    const hash = crypto.scryptSync(password, salt, 64).toString('hex');
+    return `scrypt$${salt}$${hash}`;
+  }
+
+  function verifyPasswordMatch(plainInput: string, stored: string): boolean {
+    if (!plainInput || !stored) return false;
+    if (isPasswordHashed(stored)) {
+      const parts = stored.split('$');
+      if (parts.length !== 3) return false;
+      const expected = Buffer.from(parts[2], 'hex');
+      const actual = crypto.scryptSync(plainInput, parts[1], 64);
+      return expected.length === actual.length && crypto.timingSafeEqual(expected, actual);
+    }
+    if (stored.startsWith('sha256$')) {
+      // صيغة قديمة (ملح ثابت): تُقبل مرة واحدة ثم تُرقّى عند الدخول
+      const legacy = crypto.createHmac('sha256', 'mdoc_sec_salt_2026').update(plainInput).digest('hex');
+      return `sha256$${legacy}` === stored;
+    }
+    // نص صريح قديم: يُقبل مرة واحدة ثم يُرقّى إلى scrypt عند الدخول
+    return stored === plainInput;
+  }
+
+  // تجهيز قائمة مستخدمين للحفظ: تجزئة كلمات المرور الجديدة والإبقاء على الحالية إن لم تُرسل كلمة جديدة
+  function secureUsersForStore(incoming: any[], existing: any[]): any[] {
+    return (incoming || []).map((u: any) => {
+      if (!u || typeof u !== 'object') return u;
+      const { passwordHash, ...rest } = u;
+      const prev = (existing || []).find((e: any) => e && e.id === u.id);
+      const supplied = typeof rest.password === 'string' ? rest.password.trim() : '';
+      if (supplied) {
+        rest.password = hashSecurePassword(supplied);
+      } else if (prev && prev.password) {
+        rest.password = hashSecurePassword(prev.password);
+      } else {
+        delete rest.password;
+      }
+      return rest;
+    });
+  }
+
+  const DEFAULT_PASSWORDS = ['admin123', '123'];
+
+  function isAdminRole(role: any): boolean {
+    return role === 'مدير النظام' || role === 'admin' || role === 'super_admin';
   }
 
   const OFFICIAL_MOC_LOGO_SVG = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512"><g fill="%23248d9c"><rect x="36" y="412" width="440" height="44" rx="4"/><path d="M 152 412 L 152 260 L 194 260 L 194 68 L 366 138 L 366 412 Z"/></g><g fill="%23ffffff"><rect x="222" y="110" width="24" height="24" rx="2"/><rect x="222" y="154" width="24" height="24" rx="2"/><rect x="222" y="198" width="24" height="24" rx="2"/><rect x="260" y="126" width="24" height="24" rx="2"/><rect x="260" y="170" width="24" height="24" rx="2"/><rect x="260" y="214" width="24" height="24" rx="2"/><rect x="170" y="286" width="22" height="22" rx="2"/><rect x="202" y="286" width="22" height="22" rx="2"/><rect x="234" y="286" width="22" height="22" rx="2"/><rect x="266" y="286" width="22" height="22" rx="2"/><rect x="170" y="326" width="22" height="22" rx="2"/><rect x="202" y="326" width="22" height="22" rx="2"/><rect x="234" y="326" width="22" height="22" rx="2"/><rect x="266" y="326" width="22" height="22" rx="2"/><rect x="170" y="366" width="22" height="22" rx="2"/><rect x="202" y="366" width="22" height="22" rx="2"/><rect x="234" y="366" width="22" height="22" rx="2"/><rect x="266" y="366" width="22" height="22" rx="2"/><rect x="304" y="176" width="50" height="16" rx="2"/><rect x="304" y="214" width="50" height="16" rx="2"/><rect x="304" y="252" width="50" height="16" rx="2"/><rect x="304" y="290" width="50" height="16" rx="2"/><rect x="304" y="328" width="50" height="16" rx="2"/><rect x="304" y="366" width="50" height="16" rx="2"/></g></svg>`;
@@ -137,12 +179,11 @@ async function startServer() {
     users: [
       {
         id: 'USR-101',
-        name: 'عمر المياحي',
+        name: 'مدير النظام',
         username: 'admin',
         password: 'admin123',
         role: 'مدير النظام',
         email: 'admin@mdoc.gov.iq',
-        phone: '07701784629',
         governorate: 'واسط',
         field: 'الأحدب',
         status: 'active',
@@ -152,7 +193,19 @@ async function startServer() {
     referenceData: null as any,
   };
 
-  const PERSISTENCE_FILE_PATH = path.join(process.cwd(), 'data_store_backup.json');
+  // ملف البيانات في .data\store.json (نفس ترتيب بقية الأنظمة). الملف القديم data_store_backup.json يُنقل تلقائياً عند أول تشغيل.
+  const DATA_DIR = process.env.BMS_DATA_DIR || path.join(process.cwd(), '.data');
+  const PERSISTENCE_FILE_PATH = path.join(DATA_DIR, 'store.json');
+  const LEGACY_PERSISTENCE_FILE_PATH = path.join(process.cwd(), 'data_store_backup.json');
+  try {
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+    if (!fs.existsSync(PERSISTENCE_FILE_PATH) && fs.existsSync(LEGACY_PERSISTENCE_FILE_PATH)) {
+      fs.copyFileSync(LEGACY_PERSISTENCE_FILE_PATH, PERSISTENCE_FILE_PATH);
+      fs.chmodSync(PERSISTENCE_FILE_PATH, 0o644);
+    }
+  } catch (err) {
+    console.warn('Note: Could not prepare data directory:', err);
+  }
 
   // Load from disk if present to survive dev reboots and sync across all sessions
   try {
@@ -178,8 +231,8 @@ async function startServer() {
             return {
               ...u,
               id: 'USR-101',
-              name: u.name || 'عمر المياحي',
-              phone: u.phone || '07701784629',
+              name: u.name || 'مدير النظام',
+              phone: u.phone || '',
               role: 'مدير النظام',
               status: 'active',
               password: u.password || 'admin123',
@@ -200,6 +253,53 @@ async function startServer() {
     try {
       fs.writeFileSync(PERSISTENCE_FILE_PATH, JSON.stringify(memStore, null, 2), 'utf-8');
     } catch (e) {}
+  }
+
+  // ترقية كلمات المرور المخزنة كنص صريح إلى scrypt عند الإقلاع
+  if (memStore.users.some((u: any) => u && u.password && !isPasswordHashed(u.password))) {
+    memStore.users = secureUsersForStore(memStore.users, memStore.users);
+    try {
+      fs.writeFileSync(PERSISTENCE_FILE_PATH, JSON.stringify(memStore, null, 2), 'utf-8');
+    } catch (e) {}
+  }
+
+  // الجلسات تُحفظ على القرص حتى لا يُسجَّل خروج المستخدمين عند إعادة تشغيل الخادم
+  const SESSIONS_FILE_PATH = path.join(DATA_DIR, 'sessions.json');
+  try {
+    if (fs.existsSync(SESSIONS_FILE_PATH)) {
+      const saved = JSON.parse(fs.readFileSync(SESSIONS_FILE_PATH, 'utf-8'));
+      if (Array.isArray(saved)) {
+        for (const s of saved) {
+          if (s && s.token && s.expiresAt > Date.now()) activeSessions.set(s.token, s);
+        }
+      }
+    }
+  } catch (err) {
+    console.warn('Note: Could not load sessions file:', err);
+  }
+
+  function saveSessions() {
+    try {
+      fs.writeFileSync(SESSIONS_FILE_PATH, JSON.stringify(Array.from(activeSessions.values())), 'utf-8');
+    } catch (err) {
+      console.warn('Note: Could not write sessions file:', err);
+    }
+  }
+
+  function getRequestSession(req: express.Request): ActiveSession | null {
+    const header = String(req.headers.authorization || '');
+    let token = header.replace(/^Bearer\s+/i, '').trim();
+    // EventSource لا يرسل ترويسات: يُقبل الرمز في عنوان الطلب لمسار الأحداث فقط
+    if (!token && req.path === '/sync/events' && typeof req.query.token === 'string') token = req.query.token;
+    if (!token) return null;
+    const session = activeSessions.get(token);
+    if (!session) return null;
+    if (session.expiresAt < Date.now()) {
+      activeSessions.delete(token);
+      saveSessions();
+      return null;
+    }
+    return session;
   }
 
   function saveMemStoreToDisk() {
@@ -251,6 +351,109 @@ async function startServer() {
     next();
   });
 
+  // ==========================================================================
+  // المصادقة والصلاحيات: كل مسارات /api تتطلب جلسة صالحة عدا القائمة العامة أدناه
+  // ==========================================================================
+  // ---- جدول الصلاحيات حسب الدور (يطابق ما تعرضه الواجهة لكل دور) ----
+  type RoleKind = 'admin' | 'operator' | 'inspector' | 'maintenance' | 'user';
+  function roleKind(role: any): RoleKind {
+    if (isAdminRole(role)) return 'admin';
+    if (role === 'مشغل النظام' || role === 'operator') return 'operator';
+    if (role === 'موظف الكشف والصيانة' || role === 'inspector') return 'inspector';
+    if (role === 'موظف الصيانة' || role === 'maintenance_employee') return 'maintenance';
+    return 'user';
+  }
+
+  function isWriteAllowed(method: string, apiPath: string, kind: RoleKind): boolean {
+    if (kind === 'admin') return true;
+    if (apiPath.startsWith('/auth/')) return true;
+    // الإعدادات والمستخدمون والهيكل التنظيمي وكل عمليات الاستبدال الجماعي: مدير النظام فقط
+    if (ADMIN_ONLY_PREFIXES.some((p) => apiPath === p || apiPath.startsWith(p + '/'))) return false;
+    if (apiPath.endsWith('/bulk')) return false;
+    const section = apiPath.split('/')[1] || '';
+    if (method === 'DELETE') return kind === 'operator' && ['units', 'maintenance', 'occupancy', 'inspections'].includes(section);
+    switch (section) {
+      case 'units':
+        // الإنشاء للمشغل؛ التعديل (درجة الحالة بعد الكشف أو الصيانة) للمشغل وموظفي الكشف والصيانة
+        if (method === 'POST') return kind === 'operator';
+        return kind === 'operator' || kind === 'inspector' || kind === 'maintenance';
+      case 'occupancy':
+        return kind === 'operator';
+      case 'inspections':
+        return kind === 'operator' || kind === 'inspector';
+      case 'maintenance':
+        // أي مستخدم يستطيع رفع طلب صيانة؛ التعديل لغير دور «مستخدم»
+        return method === 'POST' ? true : kind !== 'user';
+      case 'audit-logs':
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  // ---- التحقق من مدخلات مسارات الكتابة ----
+  const idField = z.string().trim().min(1).max(128);
+  const unitSchema = z.object({ code: idField, name: z.string().trim().min(1).max(255) }).passthrough();
+  const linkedRecordSchema = z.object({ id: idField, unitCode: idField }).passthrough();
+  const orgEntitySchema = z.object({ id: idField }).passthrough();
+  const bodySchemas: Array<{ method: string; pattern: RegExp; schema: z.ZodTypeAny }> = [
+    { method: 'POST', pattern: /^\/auth\/login$/, schema: z.object({ username: z.string().min(1).max(200), password: z.string().min(1).max(500) }) },
+    { method: 'POST', pattern: /^\/units$/, schema: unitSchema },
+    { method: 'PUT', pattern: /^\/units\/[^/]+$/, schema: unitSchema },
+    { method: 'POST', pattern: /^\/units\/bulk$/, schema: z.object({ units: z.array(unitSchema).max(50000).optional() }).passthrough() },
+    { method: 'POST', pattern: /^\/(maintenance|occupancy|inspections)$/, schema: linkedRecordSchema },
+    { method: 'PUT', pattern: /^\/(maintenance|occupancy|inspections)\/[^/]+$/, schema: linkedRecordSchema },
+    { method: 'POST', pattern: /^\/org-entities$/, schema: orgEntitySchema },
+    { method: 'PUT', pattern: /^\/org-entities\/[^/]+$/, schema: orgEntitySchema },
+    { method: 'POST', pattern: /^\/users\/bulk$/, schema: z.object({ users: z.array(z.object({ id: idField, username: idField }).passthrough()).max(5000).optional() }).passthrough() },
+  ];
+
+  function validateRequestBody(method: string, apiPath: string, body: any): string | null {
+    const entry = bodySchemas.find((e) => e.method === method && e.pattern.test(apiPath));
+    if (!entry) return null;
+    const result = entry.schema.safeParse(body);
+    if (result.success) return null;
+    const issue = result.error.issues[0];
+    return `${issue.path.join('.') || 'الطلب'} — ${issue.message}`;
+  }
+
+  const PUBLIC_API_PATHS = new Set(['/health', '/health/', '/server-time', '/auth/login', '/auth/verify-session']);
+  const ADMIN_ONLY_PREFIXES = ['/users', '/system', '/branding', '/reference-data', '/org-entities'];
+
+  app.use('/api', (req, res, next) => {
+    if (
+      PUBLIC_API_PATHS.has(req.path) ||
+      req.path.startsWith('/download') ||
+      (req.method === 'GET' && req.path === '/branding')
+    ) {
+      return next();
+    }
+    const session = getRequestSession(req);
+    if (!session) {
+      return res.status(401).json({ error: 'غير مصرح: يلزم تسجيل الدخول', code: 'UNAUTHENTICATED' });
+    }
+    (req as any).session = session;
+
+    // حساب بكلمة مرور افتراضية: لا يُسمح له بشيء قبل تغييرها
+    if (session.mustChangePassword && req.path !== '/auth/change-password' && req.path !== '/auth/logout') {
+      return res.status(403).json({
+        error: 'يجب تغيير كلمة المرور الافتراضية قبل استخدام النظام',
+        code: 'PASSWORD_CHANGE_REQUIRED',
+      });
+    }
+
+    if (req.method !== 'GET') {
+      if (!isWriteAllowed(req.method, req.path, roleKind(session.role))) {
+        return res.status(403).json({ error: 'ليست لديك صلاحية تنفيذ هذه العملية', code: 'FORBIDDEN' });
+      }
+      const problem = validateRequestBody(req.method, req.path, req.body);
+      if (problem) {
+        return res.status(400).json({ success: false, error: `بيانات الطلب غير صالحة: ${problem}`, code: 'INVALID_INPUT' });
+      }
+    }
+    return next();
+  });
+
   // Health check endpoint (public, no auth required)
   app.get('/api/health', async (req, res) => {
     let dbStatus = 'disconnected';
@@ -296,6 +499,39 @@ async function startServer() {
     });
   });
 
+  // حالة الخادم لشريط الحالة في الواجهة: الساعة، عنوان العميل، آخر نسخة احتياطية (للمدير فقط)
+  let backupInfoCache: { at: number; value: any } | null = null;
+  function readLastBackup() {
+    if (backupInfoCache && Date.now() - backupInfoCache.at < 30000) return backupInfoCache.value;
+    let last: { at: string; type: string; name: string } | null = null;
+    try {
+      const dir = path.join(process.cwd(), 'backups');
+      for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+        if (!entry.isDirectory()) continue;
+        const infoFile = path.join(dir, entry.name, 'backup-info.json');
+        if (!fs.existsSync(infoFile)) continue;
+        const info = JSON.parse(fs.readFileSync(infoFile, 'utf-8').replace(/^\uFEFF/, ''));
+        if (info && info.at && (!last || new Date(info.at).getTime() > new Date(last.at).getTime())) {
+          last = { at: info.at, type: String(info.type || 'manual'), name: entry.name };
+        }
+      }
+    } catch {}
+    backupInfoCache = { at: Date.now(), value: { last } };
+    return backupInfoCache.value;
+  }
+
+  app.get('/api/status', (req, res) => {
+    const session = (req as any).session as ActiveSession | undefined;
+    const now = new Date();
+    res.setHeader('Cache-Control', 'no-store');
+    res.json({
+      serverTime: now.toISOString(),
+      serverUtcOffset: -now.getTimezoneOffset(),
+      clientIp: (req.ip || '').replace(/^::ffff:/, ''),
+      backup: session && isAdminRole(session.role) ? readLastBackup() : null,
+    });
+  });
+
   // Real-Time SSE Stream Endpoint
   app.get('/api/sync/events', (req, res) => {
     res.setHeader('Content-Type', 'text/event-stream');
@@ -325,7 +561,7 @@ async function startServer() {
       auditLogs: memStore.auditLogs,
       orgEntities: memStore.orgEntities,
       branding: memStore.branding,
-      users: memStore.users,
+      users: memStore.users.map(sanitizeUserObject),
       referenceData: memStore.referenceData,
       syncVersion,
       timestamp: Date.now(),
@@ -345,48 +581,12 @@ async function startServer() {
       forwardedHeader: false,
       trustProxy: false,
     },
-    skip: (req) => req.path === '/health' || req.path === '/health/' || req.path === '/server-time',
+    skip: (req) =>
+      req.path === '/health' || req.path === '/health/' || req.path === '/server-time' || req.path === '/status',
     message: { error: 'عدد الطلبات كبير جداً، الرجاء المحاولة بعد قليل' },
     statusCode: 429,
   });
   app.use('/api', apiLimiter);
-
-  // ==========================================================================
-  // API Authentication Middleware (Protected Routes under /api)
-  // ==========================================================================
-  app.use('/api', (req, res, next) => {
-    if (
-      req.path === '/health' ||
-      req.path === '/health/' ||
-      req.path === '/server-time' ||
-      req.path.startsWith('/sync') ||
-      req.path.startsWith('/download')
-    ) {
-      return next();
-    }
-    const clientKey = req.headers['x-api-key'] as string | undefined;
-    const host = req.headers.host;
-    const referer = req.headers.referer;
-    const origin = req.headers.origin;
-    const isRefererSameHost = Boolean(referer && host && referer.includes(host));
-    const isOriginSameHost = Boolean(origin && host && origin.includes(host));
-    const isSameOrigin =
-      req.headers['sec-fetch-site'] === 'same-origin' ||
-      req.headers['sec-fetch-site'] === 'none' ||
-      isRefererSameHost ||
-      isOriginSameHost;
-    const isKnownKey =
-      Boolean(clientKey) &&
-      (clientKey === API_SECRET_KEY ||
-        clientKey === 'midland_oil_secure_api_key_2026' ||
-        clientKey === 'CHANGE_ME_BEFORE_DEPLOY');
-
-    // Allow requests matching valid keys or same-origin SPA requests
-    if (isKnownKey || isSameOrigin || !API_SECRET_KEY) {
-      return next();
-    }
-    return res.status(401).json({ error: 'Unauthorized: Invalid or missing X-API-Key header' });
-  });
 
   // ==========================================================================
   // 1. Units API Endpoints
@@ -1542,7 +1742,7 @@ async function startServer() {
   // ==========================================================================
   app.post('/api/auth/login', loginRateLimiter, async (req, res) => {
     const { username, password } = req.body || {};
-    const clientIp = (req.headers['x-forwarded-for'] as string || req.ip || 'unknown').split(',')[0].trim();
+    const clientIp = req.ip || 'unknown';
     const rawUser = String(username || '').trim().toLowerCase();
     const plainPass = String(password || '').trim();
 
@@ -1620,7 +1820,7 @@ async function startServer() {
     }
 
     // Validate password
-    const expectedPass = foundUser.password || foundUser.passwordHash || 'admin123';
+    const expectedPass = foundUser.password || foundUser.passwordHash || '';
     const isPasswordValid = verifyPasswordMatch(plainPass, expectedPass);
 
     if (!isPasswordValid) {
@@ -1650,6 +1850,18 @@ async function startServer() {
     // Successful Login: Reset lockout counter
     failedLoginAttempts.delete(lockoutKey);
 
+    // كلمة مرور افتراضية معروفة: يُفرض تغييرها قبل أي استخدام
+    const mustChangePassword = DEFAULT_PASSWORDS.includes(plainPass);
+
+    // ترقية كلمة المرور القديمة (نص صريح أو sha256) إلى scrypt بعد أول دخول ناجح
+    if (!isPasswordHashed(expectedPass)) {
+      const idx = memStore.users.findIndex((u: any) => u.id === foundUser.id);
+      if (idx >= 0) {
+        memStore.users[idx] = { ...memStore.users[idx], password: hashSecurePassword(plainPass) };
+        saveMemStoreToDisk();
+      }
+    }
+
     // Generate random 256-bit cryptographically secure token
     const token = `moc_sec_${crypto.randomBytes(32).toString('hex')}`;
     const session: ActiveSession = {
@@ -1660,8 +1872,10 @@ async function startServer() {
       name: foundUser.name,
       createdAt: now,
       expiresAt: now + 24 * 60 * 60 * 1000,
+      mustChangePassword,
     };
     activeSessions.set(token, session);
+    saveSessions();
 
     // Record forensic audit log
     const successLog = {
@@ -1677,6 +1891,7 @@ async function startServer() {
     return res.json({
       success: true,
       token,
+      mustChangePassword,
       user: sanitizeUserObject(foundUser),
     });
   });
@@ -1693,6 +1908,84 @@ async function startServer() {
       return res.status(401).json({ valid: false, error: 'انتهت صلاحية الجلسة' });
     }
     return res.json({ valid: true, user: { id: session.userId, username: session.username, role: session.role, name: session.name } });
+  });
+
+  app.post('/api/auth/logout', (req, res) => {
+    const session = (req as any).session as ActiveSession | undefined;
+    if (session) {
+      activeSessions.delete(session.token);
+      saveSessions();
+    }
+    return res.json({ success: true });
+  });
+
+  // تفضيلات مظهر الواجهة لكل مستخدم (اللون، الخط، نمط القائمة، الطي). null = العودة لمظهر النظام
+  const uiPrefsSchema = z
+    .object({
+      theme: z.string().max(40).nullable().optional(),
+      font: z.string().max(40).nullable().optional(),
+      sidebar: z.enum(['primary', 'light']).nullable().optional(),
+      collapsed: z.boolean().nullable().optional(),
+    })
+    .strict();
+
+  app.patch('/api/auth/preferences', (req, res) => {
+    const session = (req as any).session as ActiveSession;
+    const parsed = uiPrefsSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ success: false, error: 'تفضيلات غير صالحة', code: 'INVALID_INPUT' });
+    }
+    const idx = memStore.users.findIndex((u: any) => u.id === session.userId);
+    if (idx < 0) return res.status(404).json({ success: false, error: 'الحساب غير موجود' });
+    const next: Record<string, any> = { ...(memStore.users[idx].uiPrefs || {}) };
+    for (const [key, value] of Object.entries(parsed.data)) {
+      if (value === null) delete next[key];
+      else if (value !== undefined) next[key] = value;
+    }
+    memStore.users[idx] = { ...memStore.users[idx], uiPrefs: next };
+    saveMemStoreToDisk();
+    return res.json({ success: true, uiPrefs: next });
+  });
+
+  // تغيير المستخدم لكلمة مروره: التحقق من الكلمة الحالية يجري على الخادم فقط
+  app.post('/api/auth/change-password', async (req, res) => {
+    const session = (req as any).session as ActiveSession;
+    const currentPassword = String(req.body?.currentPassword || '');
+    const newPassword = String(req.body?.newPassword || '').trim();
+    if (newPassword.length < 8) {
+      return res.status(400).json({ success: false, error: 'كلمة المرور الجديدة يجب ألا تقل عن 8 أحرف' });
+    }
+    if (DEFAULT_PASSWORDS.includes(newPassword) || newPassword === currentPassword) {
+      return res.status(400).json({ success: false, error: 'اختر كلمة مرور جديدة مختلفة عن الحالية وعن الكلمات الافتراضية' });
+    }
+    const idx = memStore.users.findIndex((u: any) => u.id === session.userId);
+    if (idx < 0) {
+      return res.status(404).json({ success: false, error: 'الحساب غير موجود' });
+    }
+    if (!verifyPasswordMatch(currentPassword, memStore.users[idx].password || '')) {
+      return res.status(400).json({ success: false, error: 'كلمة المرور الحالية غير صحيحة، يرجى المحاولة ثانية' });
+    }
+    memStore.users[idx] = { ...memStore.users[idx], password: hashSecurePassword(newPassword) };
+    try {
+      if (getDbPool()) {
+        await query(
+          `INSERT INTO system_settings (key, value, updated_at)
+           VALUES ('app_users', $1, CURRENT_TIMESTAMP)
+           ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = CURRENT_TIMESTAMP`,
+          [JSON.stringify(memStore.users)]
+        );
+      }
+    } catch (err) {
+      console.error('DB save failed for change-password:', err);
+    }
+    session.mustChangePassword = false;
+    // إنهاء الجلسات الأخرى لهذا الحساب
+    for (const [token, s] of activeSessions) {
+      if (s.userId === session.userId && token !== session.token) activeSessions.delete(token);
+    }
+    saveSessions();
+    notifySyncChange('users_updated', { action: 'update', id: session.userId });
+    return res.json({ success: true });
   });
 
   // ==========================================================================
@@ -1717,24 +2010,12 @@ async function startServer() {
   });
 
   app.post('/api/users/bulk', async (req, res) => {
-    let users = req.body.users || [];
+    let users = secureUsersForStore(req.body.users || [], memStore.users);
     // Ensure default primary admin USR-101 is always present in users array
     const hasAdmin = users.some((u: any) => u.id === 'USR-101' || u.username === 'admin');
     if (!hasAdmin) {
-      const defaultAdmin = memStore.users.find((u) => u.id === 'USR-101') || {
-        id: 'USR-101',
-        name: 'عمر المياحي',
-        username: 'admin',
-        password: 'admin123',
-        role: 'مدير النظام',
-        email: 'admin@mdoc.gov.iq',
-        phone: '07701784629',
-        governorate: 'واسط',
-        field: 'الأحدب',
-        status: 'active',
-        lastActive: 'الآن',
-      };
-      users = [defaultAdmin, ...users];
+      const existingAdmin = memStore.users.find((u) => u.id === 'USR-101' || u.username === 'admin');
+      if (existingAdmin) users = [existingAdmin, ...users];
     }
     try {
       if (getDbPool()) {
@@ -1764,7 +2045,10 @@ async function startServer() {
   });
 
   app.post('/api/users', async (req, res) => {
-    const user = req.body;
+    const user = secureUsersForStore([req.body], memStore.users)[0];
+    if (!user || !user.id || !user.username) {
+      return res.status(400).json({ success: false, error: 'بيانات الحساب ناقصة' });
+    }
     try {
       const idx = memStore.users.findIndex((u) => u.id === user.id);
       if (idx >= 0) memStore.users[idx] = user;
@@ -1786,16 +2070,16 @@ async function startServer() {
         );
       }
       notifySyncChange('users_updated', { action: 'add', id: user.id });
-      return res.json({ success: true, user });
+      return res.json({ success: true, user: sanitizeUserObject(user) });
     } catch (err) {
       console.error('DB save failed for user:', err);
       notifySyncChange('users_updated', { action: 'add', id: user.id });
-      return res.json({ success: true, user });
+      return res.json({ success: true, user: sanitizeUserObject(user) });
     }
   });
 
   app.put('/api/users/:id', async (req, res) => {
-    const user = req.body;
+    const user = secureUsersForStore([{ ...req.body, id: req.body?.id || req.params.id }], memStore.users)[0];
     // Primary Admin USR-101 structural protection
     if (req.params.id === 'USR-101' || user.id === 'USR-101' || user.username === 'admin') {
       user.id = 'USR-101';
@@ -1817,11 +2101,11 @@ async function startServer() {
         );
       }
       notifySyncChange('users_updated', { action: 'update', id: req.params.id });
-      return res.json({ success: true, user });
+      return res.json({ success: true, user: sanitizeUserObject(user) });
     } catch (err) {
       console.error('DB update failed for user:', err);
       notifySyncChange('users_updated', { action: 'update', id: req.params.id });
-      return res.json({ success: true, user });
+      return res.json({ success: true, user: sanitizeUserObject(user) });
     }
   });
 
@@ -1908,16 +2192,18 @@ async function startServer() {
     try {
       const adminUser = {
         id: 'USR-101',
-        name: 'عمر المياحي',
+        name: 'مدير النظام',
         username: 'admin',
-        phone: '07701784629',
         role: 'مدير النظام',
         department: 'قسم إدارة وتقييم الأصول الهندسية',
         governorate: 'واسط',
         field: 'الأحدب',
         status: 'active',
         lastActive: 'الآن',
-        password: 'admin123',
+        // تبقى كلمة مرور المدير الحالية كما هي بعد ضبط المصنع
+        password:
+          memStore.users.find((u) => u.id === 'USR-101' || u.username === 'admin')?.password ||
+          hashSecurePassword('admin123'),
       };
 
       if (mode === 'full_default') {
@@ -1925,7 +2211,9 @@ async function startServer() {
         memStore.maintenance = INITIAL_MAINTENANCE_REQUESTS;
         memStore.occupancy = INITIAL_OCCUPANCY_RECORDS;
         memStore.inspections = INITIAL_PERIODIC_INSPECTIONS;
-        memStore.users = INITIAL_USERS;
+        memStore.users = secureUsersForStore(INITIAL_USERS as any[], [adminUser]).map((u: any) =>
+          u.id === 'USR-101' ? { ...u, password: adminUser.password } : u
+        );
         memStore.auditLogs = INITIAL_AUDIT_LOGS;
         memStore.orgEntities = INITIAL_ORG_ENTITIES;
       } else {
@@ -1940,13 +2228,13 @@ async function startServer() {
           {
             id: `LOG-RESET-${Date.now()}`,
             userId: 'USR-101',
-            userName: 'عمر المياحي',
+            userName: 'مدير النظام',
             userRole: 'مدير النظام',
             action: 'factory_reset',
             entityType: 'system',
             entityId: 'SYSTEM',
             entityName: 'النظام بالكامل',
-            details: 'تم تنفيذ استعادة ضبط المصنع الشامل للنظام وتفريغ كافة البيانات مع الإبقاء على حساب مدير النظام عمر المياحي',
+            details: 'تم تنفيذ استعادة ضبط المصنع الشامل للنظام وتفريغ كافة البيانات مع الإبقاء على حساب مدير النظام',
             timestamp: new Date().toISOString(),
             ipAddress: '127.0.0.1',
             governorate: 'واسط',
@@ -2015,16 +2303,16 @@ async function startServer() {
           if (actionType === 'clear') {
             const adminUser = memStore.users.find((u) => u.id === 'USR-101' || u.username === 'admin') || {
               id: 'USR-101',
-              name: 'عمر المياحي',
+              name: 'مدير النظام',
               username: 'admin',
-              phone: '07701784629',
-              role: 'مدير النظام',
+                    role: 'مدير النظام',
               status: 'active',
-              password: 'admin123',
+              password: hashSecurePassword('admin123'),
             };
             memStore.users = [adminUser];
           } else {
-            memStore.users = INITIAL_USERS;
+            const currentAdmin = memStore.users.find((u) => u.id === 'USR-101' || u.username === 'admin');
+            memStore.users = secureUsersForStore(INITIAL_USERS as any[], currentAdmin ? [currentAdmin] : []);
           }
           notifySyncChange('users_updated', { action: 'bulk' });
           break;

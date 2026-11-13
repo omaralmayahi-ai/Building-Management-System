@@ -47,7 +47,24 @@ export function sanitizeForStorage<T>(obj: T, parentKey?: string): T {
   return obj;
 }
 
+// كلمات المرور لا تُحفظ في المتصفح أبداً
+function stripPasswords(key: string, data: any): any {
+  if (key === 'app_users' && Array.isArray(data)) {
+    return data.map((u) => {
+      if (!u || typeof u !== 'object') return u;
+      const { password, passwordHash, ...rest } = u;
+      return rest;
+    });
+  }
+  if (key === 'app_current_user' && data && typeof data === 'object') {
+    const { password, passwordHash, ...rest } = data;
+    return rest;
+  }
+  return data;
+}
+
 export function safeSetItem(key: string, data: any): void {
+  data = stripPasswords(key, data);
   try {
     const sanitized = sanitizeForStorage(data);
     const serialized = typeof sanitized === 'string' ? sanitized : JSON.stringify(sanitized);

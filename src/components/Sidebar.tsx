@@ -47,6 +47,8 @@ interface SidebarProps {
   onOpenQrScanner?: () => void;
   onOpenDownloadOptions?: () => void;
   theme?: 'dark' | 'light';
+  /** نمط القائمة: بلون الثيم (الافتراضي) أو فاتحة */
+  sidebarStyle?: 'primary' | 'light';
   currentUserRole?: string;
   isMobileOpen?: boolean;
   onMobileClose?: () => void;
@@ -64,6 +66,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onOpenQrScanner,
   onOpenDownloadOptions,
   theme = 'dark',
+  sidebarStyle = 'primary',
   currentUserRole = 'مدير النظام',
   isMobileOpen = false,
   onMobileClose,
@@ -163,186 +166,119 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   const showQrScannerInSidebar = Boolean(onOpenQrScanner && !isUserRoleForbiddenFromQr);
 
+  // التصميم المعتمد: قائمة يمنى بلون الثيم (أو فاتحة)، قابلة للطي إلى أيقونات
+  const light = sidebarStyle === 'light';
+  const cx = (...c: (string | false | null | undefined)[]) => c.filter(Boolean).join(' ');
+
+  const itemClass = (active: boolean) =>
+    cx(
+      'group relative flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] font-semibold transition-colors cursor-pointer',
+      isCollapsed && 'justify-center px-0',
+      active
+        ? light
+          ? 'bg-brand-100 text-brand-800 font-bold dark:text-white'
+          : 'bg-white/15 text-white font-bold ring-1 ring-white/20'
+        : light
+        ? 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white'
+        : 'text-white/75 hover:bg-white/10 hover:text-white'
+    );
+  const mutedText = light ? 'text-slate-500 dark:text-slate-400' : 'text-white/60';
+  const divider = light ? 'border-slate-200 dark:border-white/10' : 'border-white/10';
+
   return (
     <aside
-      className={`${
-        isCollapsed ? 'w-16' : 'w-64'
-      } ${
-        theme === 'light'
-          ? 'bg-white border-slate-200 text-slate-700 shadow-sm'
-          : 'bg-slate-900 border-slate-800 text-slate-300'
-      } border-l shrink-0 hidden md:flex flex-col justify-between p-2.5 select-none sticky top-[61px] self-start h-[calc(100vh-61px)] overflow-y-auto overflow-x-hidden transition-all duration-300 z-20 [&::-webkit-scrollbar:horizontal]:hidden`}
+      className={cx(
+        isCollapsed ? 'w-[76px]' : 'w-64',
+        'bg-sidebar shrink-0 hidden md:flex flex-col select-none sticky top-[91px] self-start h-[calc(100vh-91px)] overflow-y-auto overflow-x-hidden transition-[width] duration-200 z-20 print:hidden rounded-b-xl',
+        light ? 'border-l border-slate-200 text-slate-700 dark:border-white/10 dark:text-slate-200' : 'text-white'
+      )}
     >
-      {/* Navigation Links */}
-      <div className="space-y-1">
-        {/* Sidebar Header & Toggle Button */}
-        <div
-          className={`flex items-center justify-between px-2 py-1.5 mb-1 border-b pb-2 ${
-            theme === 'light' ? 'border-slate-200' : 'border-slate-800/80'
-          }`}
-        >
-          {!isCollapsed && (
-            <span
-              className={`text-[10px] font-bold uppercase tracking-wider truncate ${
-                theme === 'light' ? 'text-slate-500' : 'text-slate-400'
-              }`}
-            >
-              القائمة الرئيسية
-            </span>
+      {/* رأس القائمة: الشعار واسم النظام وزر الطي */}
+      <div className={cx('flex items-center gap-3 border-b px-3 py-3', divider, isCollapsed && 'flex-col gap-2 px-2')}>
+        <span
+          className={cx(
+            'flex h-10 w-10 shrink-0 items-center justify-center rounded-xl overflow-hidden',
+            light ? 'bg-brand-700 text-on-brand' : 'bg-white/12 text-white ring-1 ring-white/15'
           )}
-          <button
-            onClick={handleToggle}
-            className={`p-1.5 rounded-lg border transition cursor-pointer ${
-              theme === 'light'
-                ? 'bg-slate-100 hover:bg-amber-500/10 hover:text-amber-600 text-slate-600 border-slate-200 hover:border-amber-400/40'
-                : 'bg-slate-800/80 hover:bg-amber-500/20 hover:text-amber-400 text-slate-400 border-slate-700/60'
-            } ${isCollapsed ? 'mx-auto' : ''}`}
-            title={isCollapsed ? 'توسيع القائمة' : 'طي القائمة'}
-          >
-            {isCollapsed ? (
-              <PanelLeftOpen className="w-4 h-4 transform rotate-180" />
-            ) : (
-              <PanelLeftClose className="w-4 h-4" />
-            )}
-          </button>
-        </div>
+        >
+          {branding?.logoUrl ? (
+            <img src={branding.logoUrl} alt="" className="h-7 w-7 object-contain" />
+          ) : (
+            <ShieldCheck className="h-5 w-5" aria-hidden />
+          )}
+        </span>
+        {!isCollapsed && (
+          <div className="min-w-0 flex-1">
+            <div className="truncate text-sm font-bold">{branding?.companyName || 'شركة نفط الوسط'}</div>
+            <div className={cx('truncate text-[11px]', mutedText)}>القائمة الرئيسية</div>
+          </div>
+        )}
+      </div>
 
+      {/* روابط التنقل */}
+      <nav className="flex-1 space-y-1 px-2.5 py-3" aria-label="القائمة الرئيسية">
         {menuItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeTab === item.id;
           return (
             <button
               key={item.id}
+              type="button"
               onClick={() => onTabChange(item.id)}
               title={isCollapsed ? item.label : undefined}
-              className={`w-full flex items-center ${
-                isCollapsed ? 'justify-center px-0 overflow-hidden' : 'justify-between px-3'
-              } py-2.5 rounded-lg text-xs font-semibold transition-all cursor-pointer relative group ${
-                isActive
-                  ? theme === 'light'
-                    ? 'bg-amber-500/15 text-amber-800 border border-amber-500/40 shadow-sm font-bold'
-                    : 'bg-amber-500/15 text-amber-400 border border-amber-500/30 shadow-sm'
-                  : theme === 'light'
-                  ? 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
-              }`}
+              aria-current={isActive ? 'page' : undefined}
+              className={itemClass(isActive)}
             >
-              <div className="flex items-center gap-2.5 min-w-0 max-w-full overflow-hidden">
-                <Icon
-                  className={`w-4 h-4 shrink-0 ${
-                    isActive
-                      ? theme === 'light'
-                        ? 'text-amber-600'
-                        : 'text-amber-400'
-                      : theme === 'light'
-                      ? 'text-slate-500'
-                      : 'text-slate-400'
-                  }`}
-                />
-                {!isCollapsed && <span className="truncate">{item.label}</span>}
-              </div>
-
-              {/* Tooltip on Collapsed Mode */}
-              {isCollapsed && (
-                <div
-                  className={`fixed right-16 mr-2 px-2.5 py-1 text-xs rounded-md border shadow-xl opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 transition-opacity ${
-                    theme === 'light'
-                      ? 'bg-slate-900 text-white border-slate-700'
-                      : 'bg-slate-950 text-white border-slate-700'
-                  }`}
-                >
-                  {item.label}
-                </div>
-              )}
+              <Icon className="h-[18px] w-[18px] shrink-0" aria-hidden />
+              {!isCollapsed && <span className="flex-1 truncate text-start">{item.label}</span>}
             </button>
           );
         })}
 
-        {/* Dedicated "خيارات التنزيل" Button in Main Menu */}
         {onOpenDownloadOptions && (
-          <button
-            type="button"
-            onClick={onOpenDownloadOptions}
-            title={isCollapsed ? 'خيارات التنزيل' : undefined}
-            className={`w-full flex items-center ${
-              isCollapsed ? 'justify-center px-0 overflow-hidden' : 'justify-between px-3'
-            } py-2.5 rounded-lg text-xs font-semibold transition-all cursor-pointer relative group ${
-              theme === 'light'
-                ? 'text-cyan-800 hover:text-cyan-950 hover:bg-cyan-50 border border-cyan-200/80 bg-cyan-50/40'
-                : 'text-cyan-300 hover:text-cyan-100 hover:bg-cyan-950/50 border border-cyan-500/30 bg-cyan-950/20'
-            }`}
-          >
-            <div className="flex items-center gap-2.5 min-w-0 max-w-full overflow-hidden">
-              <Download
-                className={`w-4 h-4 shrink-0 ${
-                  theme === 'light' ? 'text-cyan-600' : 'text-cyan-400'
-                }`}
-              />
-              {!isCollapsed && <span className="truncate font-bold">خيارات التنزيل</span>}
-            </div>
-
-            {/* Tooltip on Collapsed Mode */}
-            {isCollapsed && (
-              <div
-                className={`fixed right-16 mr-2 px-2.5 py-1 text-xs rounded-md border shadow-xl opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 transition-opacity ${
-                  theme === 'light'
-                    ? 'bg-slate-900 text-white border-slate-700'
-                    : 'bg-slate-950 text-white border-slate-700'
-                }`}
-              >
-                خيارات التنزيل
-              </div>
-            )}
-          </button>
+          <>
+            <div className={cx('mx-1 my-2 border-t', divider)} />
+            <button
+              type="button"
+              onClick={onOpenDownloadOptions}
+              title={isCollapsed ? 'خيارات التنزيل' : undefined}
+              className={itemClass(false)}
+            >
+              <Download className="h-[18px] w-[18px] shrink-0" aria-hidden />
+              {!isCollapsed && <span className="flex-1 truncate text-start">خيارات التنزيل</span>}
+            </button>
+          </>
         )}
-      </div>
+      </nav>
 
-      {/* Quick QR Scanner Action Button in Sidebar */}
+      {/* مسح رمز QR */}
       {showQrScannerInSidebar && (
-        <div className="mt-3 px-1">
+        <div className="px-2.5 pb-2">
           <button
             type="button"
             onClick={onOpenQrScanner}
-            className={`w-full flex items-center justify-center gap-2 p-2.5 rounded-xl border font-bold text-xs transition-all shadow-xs cursor-pointer ${
-              theme === 'light'
-                ? 'bg-amber-500/15 hover:bg-amber-500/25 border-amber-400/60 text-amber-950'
-                : 'bg-amber-500/20 hover:bg-amber-500/30 border-amber-500/40 text-amber-300'
-            }`}
             title="مسح رمز الاستجابة السريعة QR للوحدة (الموقع / الكشف / الصيانة)"
+            className={cx(
+              'flex w-full items-center justify-center gap-2 rounded-lg px-3 py-2.5 text-[13px] font-bold transition-colors cursor-pointer',
+              light
+                ? 'bg-brand-700 text-on-brand hover:bg-brand-800'
+                : 'bg-white/12 text-white ring-1 ring-white/20 hover:bg-white/20'
+            )}
           >
-            <QrCode className="w-4 h-4 text-amber-500 shrink-0" />
+            <QrCode className="h-[18px] w-[18px] shrink-0" aria-hidden />
             {!isCollapsed && <span>مسح رمز QR للوحدة</span>}
           </button>
         </div>
       )}
 
-      {/* Footer Info Box (Center-Aligned Copyright) */}
-      <div
-        className={`mt-4 p-2.5 rounded-xl border text-xs transition-all overflow-hidden flex flex-col items-center justify-center text-center ${
-          theme === 'light'
-            ? 'bg-slate-50 border-slate-200 text-slate-600'
-            : 'bg-slate-950/80 border-slate-800 text-slate-400'
-        } ${isCollapsed ? 'p-1.5' : ''}`}
-        title={isCollapsed ? branding?.copyrightText || 'جميع الحقوق محفوظة © 2026' : undefined}
-      >
-        <div className="flex flex-col items-center justify-center text-center gap-1.5 w-full">
-          {branding?.logoUrl ? (
-            <img src={branding.logoUrl} alt="Logo" className="w-4 h-4 object-contain rounded shrink-0 mx-auto" />
-          ) : (
-            <ShieldCheck className={`w-4 h-4 shrink-0 mx-auto ${theme === 'light' ? 'text-amber-600' : 'text-amber-400'}`} />
-          )}
-          {!isCollapsed && (
-            <p
-              className={`text-[11px] leading-relaxed font-semibold text-center w-full ${
-                theme === 'light' ? 'text-slate-600' : 'text-slate-400'
-              }`}
-            >
-              {branding?.copyrightText || 'جميع الحقوق محفوظة © 2026 - شركة نفط الوسط • وزارة النفط العراقية'}
-            </p>
-          )}
+      {/* حقوق الملكية */}
+      {!isCollapsed && (
+        <div className={cx('border-t px-3 py-3', divider)}>
+          <p className={cx('text-center text-[11px] leading-relaxed', mutedText)}>
+            {branding?.copyrightText || 'جميع الحقوق محفوظة © 2026 - شركة نفط الوسط • وزارة النفط العراقية'}
+          </p>
         </div>
-      </div>
+      )}
     </aside>
   );
 };
-

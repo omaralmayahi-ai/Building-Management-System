@@ -89,6 +89,40 @@ import { safeParse, safeSetItem } from './utils/storageUtils';
 import { normalizeUnitRoomsSequence, findMatchingRoom, isRoomVacant } from './utils/unitAndRoomCodeUtils';
 import { syncBrowserBranding } from './utils/brandingDomSync';
 import * as api from './services/apiClient';
+import { applyAppearance, normalizeAppearance } from './lib/theme';
+import { StatusBar } from './components/StatusBar';
+import { AppearanceMenu } from './components/AppearanceMenu';
+
+// ---- التنقل بعناوين الصفحات: كل تبويب له مسار (/dashboard، /units، ...) فيعمل زر الرجوع والروابط المباشرة ----
+const ALL_NAV_TABS: NavTab[] = [
+  'dashboard',
+  'units',
+  'gis_map',
+  'new_unit',
+  'periodic_inspection',
+  'maintenance',
+  'reports',
+  'settings',
+  'field_inspection',
+];
+
+// نفس قواعد القائمة الجانبية: أي تبويب يحق لكل دور
+function isTabAllowedForRole(tab: NavTab, role?: string): boolean {
+  if (role === 'مدير النظام' || role === 'admin') return true;
+  if (role === 'موظف الكشف والصيانة' || role === 'inspector') return tab === 'field_inspection';
+  if (role === 'موظف الصيانة' || role === 'maintenance_employee') return tab === 'maintenance' || tab === 'reports';
+  if (role === 'مشغل النظام' || role === 'operator') return tab !== 'settings' && tab !== 'field_inspection';
+  return tab === 'dashboard' || tab === 'units' || tab === 'gis_map' || tab === 'reports';
+}
+
+function tabFromLocation(): NavTab | null {
+  const segment = window.location.pathname.replace(/^\/+|\/+$/g, '').split('/')[0].replace(/-/g, '_');
+  return (ALL_NAV_TABS as string[]).includes(segment) ? (segment as NavTab) : null;
+}
+
+function pathForTab(tab: NavTab): string {
+  return '/' + tab.replace(/_/g, '-');
+}
 
 // Flag to control initial demo dataset seeding on empty storage
 const SEED_WITH_DEMO_DATA = false;
@@ -103,8 +137,30 @@ export function App() {
     if (savedUser && (savedUser.role === 'موظف الكشف والصيانة' || savedUser.role === 'inspector')) {
       return 'field_inspection';
     }
+    const fromUrl = tabFromLocation();
+    if (fromUrl && isTabAllowedForRole(fromUrl, savedUser?.role)) return fromUrl;
     return 'dashboard';
   });
+
+  // مزامنة التبويب مع عنوان الصفحة (بعد الدخول فقط)
+  useEffect(() => {
+    if (!currentUser) return;
+    const target = pathForTab(activeTab);
+    if (window.location.pathname !== target) {
+      window.history.pushState({ tab: activeTab }, '', target + window.location.search);
+    }
+  }, [activeTab, currentUser]);
+
+  useEffect(() => {
+    const onPopState = () => {
+      const tab = tabFromLocation();
+      const role = safeParse<SystemUser | null>('app_current_user', null)?.role;
+      if (tab && isTabAllowedForRole(tab, role)) setActiveTab(tab);
+    };
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, []);
+
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
     const saved = localStorage.getItem('app_theme');
     return saved === 'light' || saved === 'dark' ? saved : 'light';
@@ -260,6 +316,7 @@ export function App() {
   };
 
   const handleLogout = () => {
+    api.logoutFromServer().catch(() => {});
     setCurrentUser(null);
     setSelectedUnitCode('');
     localStorage.removeItem('app_current_user');
@@ -401,7 +458,7 @@ export function App() {
                 id: 'USR-101',
                 name: u.name === 'م. أحمد كريم الحلي (مدير النظام)' ? 'عمر المياحي' : (u.name || 'عمر المياحي'),
                 username: 'admin',
-                phone: u.phone === '07701234567' ? '07701784629' : (u.phone || '07701784629'),
+                phone: u.phone === '07701234567' ? '' : (u.phone || ''),
                 role: 'مدير النظام' as const,
                 status: 'active' as const,
               };
@@ -503,6 +560,32 @@ export function App() {
     safeParse('app_branding', INITIAL_BRANDING)
   );
 
+  // المظهر الفعلي: تفضيلات المستخدم (إن وُجدت) فوق مظهر النظام الافتراضي من الهوية، والوضع الداكن من زر المستخدم
+  const userUiPrefs = currentUser?.uiPrefs || {};
+  const effectiveAppearance = normalizeAppearance({
+    theme: userUiPrefs.theme ?? branding.themeId,
+    font: userUiPrefs.font ?? branding.fontId,
+    sidebar: userUiPrefs.sidebar ?? branding.sidebarStyle,
+    dark: theme === 'dark',
+  });
+  const hasCustomAppearance = Boolean(userUiPrefs.theme || userUiPrefs.font || userUiPrefs.sidebar);
+
+  const handleUiPrefsChange = (change: { theme?: string; font?: string; sidebar?: 'primary' | 'light' }) => {
+    if (!currentUser) return;
+    setCurrentUser({ ...currentUser, uiPrefs: { ...(currentUser.uiPrefs || {}), ...change } });
+    api.saveUiPreferences(change).catch(() => {});
+  };
+
+  const handleUiPrefsReset = () => {
+    if (!currentUser) return;
+    setCurrentUser({ ...currentUser, uiPrefs: { collapsed: currentUser.uiPrefs?.collapsed } });
+    api.saveUiPreferences({ theme: null, font: null, sidebar: null }).catch(() => {});
+  };
+
+  useEffect(() => {
+    applyAppearance(effectiveAppearance);
+  }, [effectiveAppearance.theme, effectiveAppearance.font, effectiveAppearance.sidebar, effectiveAppearance.dark]);
+
   // Synchronize browser tab title, favicon, meta tags and PWA manifest dynamically
   useEffect(() => {
     syncBrowserBranding(branding);
@@ -524,7 +607,22 @@ export function App() {
   );
 
   // Sidebar Collapsed State
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(() =>
+    Boolean(safeParse<SystemUser | null>('app_current_user', null)?.uiPrefs?.collapsed)
+  );
+
+  // طيّ القائمة يُحفظ في حساب المستخدم
+  const handleToggleSidebar = () => {
+    setIsSidebarCollapsed((prev) => {
+      const next = !prev;
+      api.saveUiPreferences({ collapsed: next }).catch(() => {});
+      return next;
+    });
+  };
+
+  useEffect(() => {
+    if (currentUser) setIsSidebarCollapsed(Boolean(currentUser.uiPrefs?.collapsed));
+  }, [currentUser?.id]);
 
   // Dynamic Reference Data States
   const [unitTypes, setUnitTypes] = useState<ReferenceUnitType[]>(() =>
@@ -1193,36 +1291,19 @@ export function App() {
     }
   };
 
-  const handleChangePassword = (
+  const handleChangePassword = async (
     currentPass: string,
     newPass: string
-  ): { success: boolean; message: string } => {
+  ): Promise<{ success: boolean; message: string }> => {
     if (!currentUser) {
       return { success: false, message: 'لا يوجد حساب مستخدم مسجل حالياً' };
     }
 
-    const existingUser = users.find((u) => u.id === currentUser.id);
-    const expectedPassword = existingUser?.password || currentUser.password || 'admin123';
-
-    if (currentPass !== expectedPassword) {
-      return { success: false, message: 'كلمة المرور الحالية غير صحيحة، يرجى المحاولة ثانية' };
+    // التحقق من الكلمة الحالية وحفظ الجديدة يجريان على الخادم فقط
+    const result = await api.changeOwnPassword(currentPass, newPass);
+    if (!result.success) {
+      return { success: false, message: result.error || 'تعذر تغيير كلمة المرور' };
     }
-
-    const updatedUser: SystemUser = {
-      ...currentUser,
-      password: newPass,
-    };
-
-    setCurrentUser(updatedUser);
-    setUsers((prev) => {
-      const updated = prev.map((u) => (u.id === currentUser.id ? { ...u, password: newPass } : u));
-      safeSetItem('app_users', updated);
-      return updated;
-    });
-
-    api.updateUser(updatedUser).catch((err) => {
-      console.error('API updateUser password error:', err);
-    });
 
     appendAuditLog({
       id: `LOG-${getServerTimestamp()}`,
@@ -1308,7 +1389,7 @@ export function App() {
       id: 'USR-101',
       name: 'عمر المياحي',
       username: 'admin',
-      phone: '07701784629',
+      phone: '',
       role: 'مدير النظام',
       department: 'قسم إدارة وتقييم الأصول الهندسية',
       governorate: 'واسط',
@@ -1399,7 +1480,7 @@ export function App() {
       id: 'USR-101',
       name: 'عمر المياحي',
       username: 'admin',
-      phone: '07701784629',
+      phone: '',
       role: 'مدير النظام',
       maintenanceDepartment: 'قسم إدارة وتقييم الأصول الهندسية',
       governorate: 'واسط',
@@ -2149,6 +2230,9 @@ export function App() {
         theme === 'light' ? 'light bg-slate-100 text-slate-900' : 'dark bg-slate-950 text-slate-100'
       }`}
     >
+      {/* شريط الحالة: الاتصال بالخادم، ساعة الخادم، آخر نسخة احتياطية */}
+      <StatusBar />
+
       {/* Top Navigation Header with embedded mobile sub-header navigation */}
       <Header
         onOpenNewAssetModal={!isRoleUser && !isRoleInspector && !isRoleMaintenance ? () => setActiveTab('new_unit') : undefined}
@@ -2174,6 +2258,16 @@ export function App() {
         activeTab={activeTab}
         onTabChange={setActiveTab}
         onOpenDownloadOptions={() => setShowDownloadOptionsModal(true)}
+        onToggleSidebar={handleToggleSidebar}
+        isSidebarCollapsed={isSidebarCollapsed}
+        appearanceMenu={
+          <AppearanceMenu
+            value={{ theme: effectiveAppearance.theme, font: effectiveAppearance.font, sidebar: effectiveAppearance.sidebar }}
+            customized={hasCustomAppearance}
+            onChange={handleUiPrefsChange}
+            onReset={handleUiPrefsReset}
+          />
+        }
       />
 
       {/* Main Body Layout: Sidebar + Dynamic Main Content */}
@@ -2186,10 +2280,11 @@ export function App() {
           occupancyPercentage={currentOccupancyRate}
           maintenanceCount={maintenanceRequests.length}
           isCollapsed={isSidebarCollapsed}
-          onToggleCollapse={() => setIsSidebarCollapsed((prev) => !prev)}
+          onToggleCollapse={handleToggleSidebar}
           onOpenQrScanner={() => setShowInAppQrScanner(true)}
           onOpenDownloadOptions={() => setShowDownloadOptionsModal(true)}
           theme={theme}
+          sidebarStyle={effectiveAppearance.sidebar}
           currentUserRole={currentUserRole}
         />
 

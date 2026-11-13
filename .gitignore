@@ -6,3 +6,14 @@ coverage/
 *.log
 .env*
 !.env.example
+
+# local runtime / safety
+_safety/
+backups/
+logs/
+.control/
+certs/
+.data/
+node_modules.prev/
+dist.prev/
+updates/

@@ -418,6 +418,10 @@ export interface SystemBranding {
   copyrightText: string;
   logoSubtext?: string;
   logoUrl?: string;
+  // مظهر الواجهة الافتراضي (التصميم المعتمد): اللون الأساسي والخط ونمط القائمة الجانبية
+  themeId?: string;
+  fontId?: string;
+  sidebarStyle?: 'primary' | 'light';
 }
 
 export type UserAccountRole =
@@ -441,6 +445,8 @@ export interface SystemUser {
   field?: string;
   status: 'active' | 'disabled';
   lastActive: string;
+  /** تفضيلات مظهر الواجهة الخاصة بهذا المستخدم (فوق مظهر النظام الافتراضي) */
+  uiPrefs?: { theme?: string; font?: string; sidebar?: 'primary' | 'light'; collapsed?: boolean };
 }
 
 export interface DatabaseBackupCounts {

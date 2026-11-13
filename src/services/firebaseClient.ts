@@ -90,6 +90,12 @@ async function withTimeout<T>(promise: Promise<T>, timeoutMs = 4000, fallback: T
   }
 }
 
+// كلمات المرور لا تُرسل إلى Firestore أبداً
+function withoutPassword<T extends Record<string, any>>(user: T): T {
+  const { password, passwordHash, ...rest } = user as any;
+  return rest as T;
+}
+
 // Helper to remove undefined fields before sending to Firestore
 function sanitizeDoc<T extends Record<string, any>>(obj: T): T {
   if (!obj || typeof obj !== 'object') return obj;
@@ -133,7 +139,7 @@ export async function ensureDatabaseSeeded(): Promise<void> {
       // Seed Users
       for (const user of INITIAL_USERS) {
         const ref = doc(db, 'system_users', user.id);
-        batch.set(ref, sanitizeDoc(user));
+        batch.set(ref, sanitizeDoc(withoutPassword(user)));
       }
 
       // Seed Org Entities
@@ -236,7 +242,7 @@ export async function getUsersFromFirestore(): Promise<SystemUser[]> {
 
 export async function saveUserToFirestore(user: SystemUser): Promise<void> {
   const ref = doc(db, 'system_users', user.id);
-  await setDoc(ref, sanitizeDoc(user), { merge: true });
+  await setDoc(ref, sanitizeDoc(withoutPassword(user)), { merge: true });
 }
 
 export async function deleteUserFromFirestore(id: string): Promise<void> {
@@ -530,7 +536,7 @@ export async function resetFirestoreComprehensive(adminUser: SystemUser): Promis
 
     // Re-seed only the Primary Administrator
     const userRef = doc(db, 'system_users', adminUser.id);
-    await setDoc(userRef, sanitizeDoc(adminUser));
+    await setDoc(userRef, sanitizeDoc(withoutPassword(adminUser)));
 
     // Reset Branding to Default
     const brandingRef = doc(db, 'system_settings', 'branding');

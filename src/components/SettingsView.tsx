@@ -62,6 +62,7 @@ import {
   PeriodicInspectionSchedule,
   DatabaseBackupPayload,
 } from '../types';
+import { THEMES, FONTS } from '../lib/theme';
 import { OrgStructureBuilder } from './OrgStructureBuilder';
 import { DatabaseBackupManager } from './DatabaseBackupManager';
 import { MobileAppDistributionCard } from './MobileAppDistributionCard';
@@ -477,7 +478,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     setUserFormEditingId(usr.id);
     setUserDisplayName(usr.name || '');
     setUserAccountName(usr.username || usr.email?.split('@')[0] || '');
-    setUserPassword(usr.password || '123');
+    setUserPassword('');
     setUserRole(usr.role || 'مشغل النظام');
     setUserPhone(usr.phone || '');
     setUserMaintDept(usr.maintenanceDepartment || maintenanceDepartments[0]?.nameAr || 'الصيانة العامة');
@@ -514,8 +515,13 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       return;
     }
 
-    if (!cleanPassword) {
+    // عند التعديل: ترك الحقل فارغاً يُبقي كلمة المرور الحالية. عند الإنشاء: الكلمة إلزامية
+    if (!userFormEditingId && !cleanPassword) {
       setUserFormError('يرجى تحديد كلمة المرور للحساب');
+      return;
+    }
+    if (cleanPassword && cleanPassword.length < 8) {
+      setUserFormError('كلمة المرور يجب ألا تقل عن 8 أحرف');
       return;
     }
 
@@ -548,7 +554,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         id: userFormEditingId,
         name: cleanDisplayName,
         username: cleanAccountName,
-        password: cleanPassword,
+        password: cleanPassword || undefined,
         role: userFormEditingId === 'USR-101' ? 'مدير النظام' : userRole,
         phone: cleanPhone,
         maintenanceDepartment: userRole === 'موظف الصيانة' ? (userMaintDept || maintenanceDepartments[0]?.nameAr || 'الصيانة العامة') : undefined,
@@ -1360,6 +1366,63 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     </div>
                   </div>
 
+                  {/* مظهر الواجهة (التصميم المعتمد): اللون الأساسي والخط ونمط القائمة الجانبية */}
+                  <div className="rounded-xl border border-slate-800 p-3 space-y-3">
+                    <div className="text-slate-300 font-bold">مظهر الواجهة</div>
+                    <div>
+                      <div className="text-slate-400 mb-1.5">اللون الأساسي:</div>
+                      <div className="flex flex-wrap gap-2">
+                        {THEMES.map((t) => {
+                          const selected = (brandingForm.themeId || 'buildings') === t.id;
+                          return (
+                            <button
+                              key={t.id}
+                              type="button"
+                              onClick={() => setBrandingForm({ ...brandingForm, themeId: t.id })}
+                              title={t.label}
+                              aria-pressed={selected}
+                              className={`flex items-center gap-2 rounded-lg border px-2.5 py-1.5 font-bold transition cursor-pointer ${
+                                selected ? 'border-amber-500 ring-2 ring-amber-500/40' : 'border-slate-700'
+                              }`}
+                            >
+                              <span className="h-4 w-4 rounded-full border border-white/40" style={{ backgroundColor: t.color }} />
+                              <span className="text-slate-300">{t.label}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-slate-400 mb-1">الخط:</label>
+                        <select
+                          value={brandingForm.fontId || 'cairo'}
+                          onChange={(e) => setBrandingForm({ ...brandingForm, fontId: e.target.value })}
+                          className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-slate-100 font-bold"
+                        >
+                          {FONTS.map((f) => (
+                            <option key={f.id} value={f.id}>
+                              {f.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-slate-400 mb-1">القائمة الجانبية:</label>
+                        <select
+                          value={brandingForm.sidebarStyle || 'primary'}
+                          onChange={(e) =>
+                            setBrandingForm({ ...brandingForm, sidebarStyle: e.target.value === 'light' ? 'light' : 'primary' })
+                          }
+                          className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-slate-100 font-bold"
+                        >
+                          <option value="primary">بلون الثيم</option>
+                          <option value="light">فاتحة</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
                   <div>
                     <label className="block text-slate-300 font-bold mb-1 flex items-center gap-1.5">
                       <Copyright className="w-3.5 h-3.5 text-purple-400" />
@@ -1659,7 +1722,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                         <div className="relative">
                           <input
                             type={showFormPassword ? 'text' : 'password'}
-                            required
+                            required={!userFormEditingId}
                             value={userPassword}
                             onChange={(e) => setUserPassword(e.target.value)}
                             placeholder="••••••••"
@@ -2015,7 +2078,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                             <span className={`font-mono font-bold px-1.5 py-0.5 rounded border inline-block text-[11px] ${
                               isLight ? 'bg-amber-100 text-amber-900 border-amber-300' : 'bg-amber-500/10 text-amber-400 border-amber-500/30'
                             }`}>
-                              {usr.password || '123'}
+                              {'••••••'}
                             </span>
                           ) : (
                             <span className="font-mono text-slate-500 font-bold tracking-widest text-[11px]">
@@ -2276,7 +2339,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                                     : 'text-amber-400 bg-amber-500/10 border-amber-500/30'
                                 }`}
                               >
-                                {usr.password || '123'}
+                                {'••••••'}
                               </span>
                             ) : (
                               <span

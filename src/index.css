@@ -1,12 +1,171 @@
 @import "tailwindcss";
+/* الخطوط مضمّنة محلياً (تعمل على الشبكة الداخلية بلا إنترنت): العربية واللاتينية فقط */
+@import "@fontsource/cairo/arabic-400.css";
+@import "@fontsource/cairo/arabic-500.css";
+@import "@fontsource/cairo/arabic-600.css";
+@import "@fontsource/cairo/arabic-700.css";
+@import "@fontsource/cairo/arabic-800.css";
+@import "@fontsource/cairo/latin-400.css";
+@import "@fontsource/cairo/latin-600.css";
+@import "@fontsource/cairo/latin-700.css";
+@import "@fontsource/ibm-plex-sans-arabic/400.css";
+@import "@fontsource/ibm-plex-sans-arabic/500.css";
+@import "@fontsource/ibm-plex-sans-arabic/600.css";
+@import "@fontsource/ibm-plex-sans-arabic/700.css";
+@import "@fontsource/tajawal/arabic-400.css";
+@import "@fontsource/tajawal/arabic-500.css";
+@import "@fontsource/tajawal/arabic-700.css";
+@import "@fontsource/tajawal/latin-400.css";
+@import "@fontsource/tajawal/latin-700.css";
+
+/* الوضع الداكن يتبع اختيار المستخدم داخل النظام (صنف .dark) لا إعداد نظام التشغيل */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * التصميم المعتمد (موحّد مع أنظمة الأرشفة وناظم ومتابعة البريد):
+ * كل ثيم يعرّف --primary فقط، ومنه تُشتق درجات brand. الأسطح رموز: bg-card / bg-page / bg-sidebar.
+ * المكوّنات الجديدة تستخدم هذه الرموز؛ الشاشات القديمة تُحوَّل إليها تباعاً (المرحلة 4-ب).
+ */
+@theme inline {
+  --font-sans: var(--app-font);
+  --color-brand-50: color-mix(in oklab, var(--primary) 9%, var(--surface));
+  --color-brand-100: color-mix(in oklab, var(--primary) 20%, var(--surface));
+  --color-brand-200: color-mix(in oklab, var(--primary) 35%, var(--surface));
+  --color-brand-600: color-mix(in oklab, var(--primary) 82%, white);
+  --color-brand-700: var(--primary);
+  --color-brand-800: color-mix(in oklab, var(--primary) 80%, black);
+  --color-on-brand: var(--on-primary);
+  --color-card: var(--surface);
+  --color-page: var(--page);
+  --color-sidebar: var(--sidebar-bg);
+}
+
+:root {
+  --app-font: "Cairo", "IBM Plex Sans Arabic", system-ui, sans-serif;
+  --primary: #1b6b78;
+  --on-primary: #ffffff;
+  --primary-text: var(--primary);
+  --surface: #ffffff;
+  --page: #f4f6f8;
+  --sidebar-bg: var(--primary);
+}
+
+[data-theme="buildings"] { --primary: #1b6b78; }
+[data-theme="crimson"] { --primary: hsl(344 75% 30%); }
+[data-theme="royal-blue"] { --primary: hsl(222 75% 28%); }
+[data-theme="emerald"] { --primary: hsl(160 84% 24%); }
+[data-theme="deep-purple"] { --primary: hsl(272 65% 32%); }
+[data-theme="charcoal"] { --primary: hsl(215 28% 27%); }
+[data-theme="warm-orange"] { --primary: hsl(24 78% 40%); }
+[data-theme="azure"] { --primary: hsl(201 96% 32%); }
+[data-theme="teal"] { --primary: hsl(178 72% 26%); }
+
+[data-font="cairo"] { --app-font: "Cairo", system-ui, sans-serif; }
+[data-font="ibm-plex"] { --app-font: "IBM Plex Sans Arabic", system-ui, sans-serif; }
+[data-font="tajawal"] { --app-font: "Tajawal", system-ui, sans-serif; }
+
+.dark {
+  --surface: #161c23;
+  --page: #0e1318;
+  --sidebar-bg: color-mix(in oklab, var(--primary) 55%, #0b0f13);
+  --primary-text: color-mix(in oklab, var(--primary) 45%, white);
+}
+/* القائمة الجانبية الفاتحة */
+[data-sidebar="light"] { --sidebar-bg: var(--surface); }
+
+/*
+ * الشاشات المحوَّلة إلى التصميم المعتمد تُحاط بالصنف .ds: داخله ينقلب سلّم slate في الوضع الداكن
+ * فلا تحتاج الشاشة شرط فاتح/داكن في كل عنصر. (لا يُطبَّق عاماً لأن الشاشات القديمة تختار ألوانها بنفسها.)
+ */
+.dark .ds {
+  --color-slate-50: #1b222a;
+  --color-slate-100: #222a33;
+  --color-slate-200: #2c3540;
+  --color-slate-300: #3b4653;
+  --color-slate-400: #6b7886;
+  --color-slate-500: #8c98a6;
+  --color-slate-600: #a9b4c0;
+  --color-slate-700: #c3ccd6;
+  --color-slate-800: #dbe2e9;
+  --color-slate-900: #eef2f6;
+  --color-rose-50: #3a161d;
+  --color-rose-100: #4a1a24;
+  --color-rose-200: #6b2230;
+  --color-rose-700: #fda4af;
+  --color-rose-800: #fecdd3;
+  --color-amber-50: #33270f;
+  --color-amber-100: #453411;
+  --color-amber-200: #6b4f12;
+  --color-amber-700: #fcd34d;
+  --color-amber-800: #fde68a;
+  --color-amber-900: #fef3c7;
+  --color-emerald-50: #0f2e24;
+  --color-emerald-700: #6ee7b7;
+}
+.dark .ds .text-brand-700 {
+  color: var(--primary-text);
+}
+
+:focus-visible {
+  outline: 2px solid color-mix(in oklab, var(--primary) 70%, white);
+  outline-offset: 2px;
+}
+
+/* الجداول الموحدة (ui.tsx Table) على الشاشات الضيقة: كل صف يصير بطاقة وكل خلية تظهر مع عنوان عمودها */
+@container (max-width: 40rem) {
+  table.rtable,
+  table.rtable > tbody,
+  table.rtable > tbody > tr,
+  table.rtable > tbody > tr > td {
+    display: block;
+    width: 100%;
+  }
+  table.rtable > thead {
+    display: none;
+  }
+  table.rtable > tbody > tr {
+    padding: 0.75rem 1rem;
+  }
+  table.rtable > tbody > tr > td {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    padding: 0.2rem 0;
+    min-width: 0;
+    max-width: none;
+    white-space: normal;
+    text-align: start;
+    overflow-wrap: anywhere;
+  }
+  table.rtable > tbody > tr > td[data-label]:not([data-label=""])::before {
+    content: attr(data-label);
+    flex: 0 0 6.5rem;
+    color: var(--color-slate-500);
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+  table.rtable > tbody > tr > td:empty {
+    display: none;
+  }
+}
+
+/* الهاتف: حجم خط الحقول 16px حتى لا يكبّر iPhone الصفحة عند الكتابة */
+@media (max-width: 640px) {
+  input:not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
 
 html, body, #root {
   max-width: 100vw;
   overflow-x: clip;
 }
 
+html,
 body {
-  font-family: 'Cairo', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--app-font);
 }
 
 /* Zero horizontal scroll utilities */
@@ -217,7 +376,7 @@ html.light,
     background: #ffffff !important;
     color: #000000 !important;
     font-size: 10pt !important;
-    font-family: 'Cairo', system-ui, -apple-system, sans-serif !important;
+    font-family: var(--app-font) !important;
     direction: rtl !important;
     width: 100% !important;
     height: auto !important;

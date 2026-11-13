@@ -128,6 +128,38 @@ export const LoginView: React.FC<LoginViewProps> = ({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
+  // حساب دخل بكلمة مرور افتراضية: يُطلب منه تغييرها قبل فتح النظام
+  const [pendingUser, setPendingUser] = useState<SystemUser | null>(null);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+
+  const handleForcedPasswordChange = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMessage(null);
+    const next = newPassword.trim();
+    if (next.length < 8) {
+      setErrorMessage('كلمة المرور الجديدة يجب ألا تقل عن 8 أحرف');
+      return;
+    }
+    if (next !== confirmPassword.trim()) {
+      setErrorMessage('تأكيد كلمة المرور لا يطابق الكلمة الجديدة');
+      return;
+    }
+    setIsLoading(true);
+    const result = await api.changeOwnPassword(password.trim(), next);
+    setIsLoading(false);
+    if (!result.success) {
+      setErrorMessage(result.error || 'تعذر تغيير كلمة المرور');
+      return;
+    }
+    const user = pendingUser;
+    setPendingUser(null);
+    setNewPassword('');
+    setConfirmPassword('');
+    setPassword('');
+    if (user) onLogin(user);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
@@ -150,47 +182,17 @@ export const LoginView: React.FC<LoginViewProps> = ({
 
         if (serverAuthResult.success && serverAuthResult.user) {
           setIsLoading(false);
+          if (serverAuthResult.mustChangePassword) {
+            setPendingUser(serverAuthResult.user);
+            return;
+          }
           onLogin(serverAuthResult.user);
           return;
         }
 
-        if (serverAuthResult.error && !serverAuthResult.error.includes('تعذر الاتصال')) {
-          setErrorMessage(serverAuthResult.error);
-          setIsLoading(false);
-          return;
-        }
-
-        // 2. Offline Fallback for field operations when server connection is unavailable
-        let usersList = allAvailableUsers;
-        let foundUser = usersList.find(
-          (u) =>
-            (u.username && u.username.toLowerCase() === trimmedUser) ||
-            (u.email && u.email.toLowerCase() === trimmedUser) ||
-            (u.name && u.name.toLowerCase() === trimmedUser) ||
-            (u.name && u.name.trim() === rawInput)
-        );
-
-        if (!foundUser) {
-          setErrorMessage(serverAuthResult.error || `اسم المستخدم أو الحساب (${rawInput}) غير مسجل في النظام.`);
-          setIsLoading(false);
-          return;
-        }
-
-        if (foundUser.status === 'disabled') {
-          setErrorMessage('تم إيقاف تنشيط هذا الحساب من قبل إدارة النظام.');
-          setIsLoading(false);
-          return;
-        }
-
-        const expectedPass = foundUser.password || 'admin123';
-        if (trimmedPass !== expectedPass) {
-          setErrorMessage('كلمة المرور المدخلة غير صحيحة، يرجى التأكد والمحاولة مجدداً');
-          setIsLoading(false);
-          return;
-        }
-
+        // لا يوجد دخول بديل داخل المتصفح: المصادقة على الخادم فقط
+        setErrorMessage(serverAuthResult.error || 'تعذر الاتصال بالخادم، يرجى المحاولة لاحقاً');
         setIsLoading(false);
-        onLogin(foundUser);
       } catch {
         setErrorMessage('حدث خطأ أثناء معالجة تسجيل الدخول، يرجى المحاولة ثانية.');
         setIsLoading(false);
@@ -464,6 +466,59 @@ export const LoginView: React.FC<LoginViewProps> = ({
           )}
 
           {/* Login Form */}
+          {pendingUser ? (
+            <form onSubmit={handleForcedPasswordChange} className="space-y-4">
+              <div
+                className={`rounded-xl border px-3 py-2.5 text-xs font-bold leading-relaxed ${
+                  isLight ? 'bg-amber-50 border-amber-300 text-amber-900' : 'bg-amber-500/10 border-amber-500/30 text-amber-300'
+                }`}
+              >
+                حسابك «{pendingUser.name}» ما زال بكلمة المرور الافتراضية. اختر كلمة مرور جديدة (8 أحرف على الأقل) للمتابعة.
+              </div>
+              <div className="space-y-1.5">
+                <label className={`block text-xs font-bold ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                  كلمة المرور الجديدة:
+                </label>
+                <input
+                  type="password"
+                  dir="ltr"
+                  autoFocus
+                  value={newPassword}
+                  onChange={(e) => {
+                    setNewPassword(e.target.value);
+                    if (errorMessage) setErrorMessage(null);
+                  }}
+                  className={`w-full rounded-xl py-2.5 px-3 text-xs font-bold transition focus:outline-none focus:ring-2 focus:ring-amber-500 border ${
+                    isLight ? 'bg-slate-50 border-slate-300 text-slate-900 focus:bg-white' : 'bg-slate-950 border-slate-800 text-slate-100'
+                  }`}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className={`block text-xs font-bold ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                  تأكيد كلمة المرور الجديدة:
+                </label>
+                <input
+                  type="password"
+                  dir="ltr"
+                  value={confirmPassword}
+                  onChange={(e) => {
+                    setConfirmPassword(e.target.value);
+                    if (errorMessage) setErrorMessage(null);
+                  }}
+                  className={`w-full rounded-xl py-2.5 px-3 text-xs font-bold transition focus:outline-none focus:ring-2 focus:ring-amber-500 border ${
+                    isLight ? 'bg-slate-50 border-slate-300 text-slate-900 focus:bg-white' : 'bg-slate-950 border-slate-800 text-slate-100'
+                  }`}
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-full rounded-xl py-2.5 text-sm font-black bg-amber-500 hover:bg-amber-600 text-slate-950 transition disabled:opacity-60"
+              >
+                {isLoading ? 'جارٍ الحفظ...' : 'حفظ كلمة المرور والدخول'}
+              </button>
+            </form>
+          ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Username Input */}
             <div className="space-y-1.5">
@@ -562,6 +617,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
               )}
             </button>
           </form>
+          )}
         </div>
       </main>
 

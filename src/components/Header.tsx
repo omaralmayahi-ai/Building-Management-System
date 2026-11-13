@@ -30,6 +30,8 @@ import {
   Settings,
   ClipboardCheck,
   Download,
+  PanelRightClose,
+  PanelRightOpen,
 } from 'lucide-react';
 
 import { SystemBranding, SystemUser } from '../types';
@@ -56,6 +58,11 @@ interface HeaderProps {
   syncStatus?: 'connected' | 'reconnecting' | 'polling';
   activeTab?: NavTab;
   onTabChange?: (tab: NavTab) => void;
+  /** زر طيّ القائمة الجانبية في بداية الترويسة (التصميم المعتمد) */
+  onToggleSidebar?: () => void;
+  isSidebarCollapsed?: boolean;
+  /** قائمة «مظهري» للمستخدم */
+  appearanceMenu?: React.ReactNode;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -70,6 +77,9 @@ export const Header: React.FC<HeaderProps> = ({
   syncStatus = 'connected',
   activeTab,
   onTabChange,
+  onToggleSidebar,
+  isSidebarCollapsed = false,
+  appearanceMenu,
 }) => {
   const isLight = theme === 'light';
 
@@ -348,20 +358,27 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <>
-      <div className="sticky top-0 z-30 w-full shadow-xs backdrop-blur-md">
+      <div className="sticky top-[30px] z-30 w-full shadow-xs backdrop-blur-md">
         {/* Main Header (Pure, uncluttered, logo & system info fully preserved) */}
         <header
-          className={`border-b px-2 sm:px-4 py-1.5 sm:py-2.5 transition-colors duration-300 ${
-            isLight
-              ? 'bg-white/95 border-slate-200 text-slate-900 shadow-slate-200/50'
-              : 'bg-slate-900/95 border-slate-800 text-white shadow-slate-950/50'
-          }`}
+          className="border-b px-2 sm:px-4 py-1.5 sm:py-2.5 transition-colors duration-300 bg-card/95 border-slate-200 text-slate-900 dark:border-white/10 dark:text-white"
         >
           <div className="w-full flex items-center justify-between gap-1.5 sm:gap-4 min-w-0">
             {/* Company Identity Branding */}
             <div className="flex items-center gap-1.5 sm:gap-3 min-w-0 flex-1 sm:flex-initial overflow-hidden">
+              {onToggleSidebar && (
+                <button
+                  type="button"
+                  onClick={onToggleSidebar}
+                  aria-label={isSidebarCollapsed ? 'توسيع القائمة' : 'طيّ القائمة'}
+                  title={isSidebarCollapsed ? 'توسيع القائمة' : 'طيّ القائمة'}
+                  className="hidden md:inline-flex shrink-0 rounded-lg p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white transition-colors cursor-pointer"
+                >
+                  {isSidebarCollapsed ? <PanelRightOpen className="h-5 w-5" aria-hidden /> : <PanelRightClose className="h-5 w-5" aria-hidden />}
+                </button>
+              )}
               {branding?.logoUrl ? (
-                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-slate-900 border border-amber-500/30 flex items-center justify-center p-1 shadow-inner overflow-hidden shrink-0">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-brand-50 border border-brand-200 flex items-center justify-center p-1 overflow-hidden shrink-0">
                   <img
                     src={branding.logoUrl}
                     alt={branding.companyName || 'Logo'}
@@ -369,21 +386,19 @@ export const Header: React.FC<HeaderProps> = ({
                   />
                 </div>
               ) : (
-                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-500 font-bold shadow-inner shrink-0">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-brand-50 border border-brand-200 flex items-center justify-center text-brand-700 dark:text-white font-bold shrink-0">
                   <ShieldCheck className="w-5 h-5 sm:w-6 sm:h-6" />
                 </div>
               )}
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1 sm:gap-2">
                   <h1
-                    className={`font-bold text-xs xs:text-sm sm:text-base md:text-lg tracking-wide truncate max-w-[130px] xs:max-w-[180px] sm:max-w-none ${
-                      isLight ? 'text-amber-600' : 'text-amber-400'
-                    }`}
+                    className="font-bold text-xs xs:text-sm sm:text-base md:text-lg tracking-wide truncate max-w-[130px] xs:max-w-[180px] sm:max-w-none text-brand-700 dark:text-(--primary-text)"
                   >
                     {branding?.companyName || 'شركة نفط الوسط'}
                   </h1>
                   {branding?.logoSubtext && (
-                    <span className="hidden md:inline-flex text-[10px] bg-amber-500/20 text-amber-600 dark:text-amber-300 px-1.5 py-0.5 rounded border border-amber-500/30 font-semibold shrink-0">
+                    <span className="hidden md:inline-flex text-[10px] bg-brand-100 text-brand-800 dark:text-white px-1.5 py-0.5 rounded border border-brand-200 font-semibold shrink-0">
                       {branding.logoSubtext}
                     </span>
                   )}
@@ -467,6 +482,8 @@ export const Header: React.FC<HeaderProps> = ({
               <span className="opacity-40 text-[10px]">|</span>
               <span className="text-amber-700 dark:text-amber-400 font-bold">{serverTimeStr}</span>
             </div>
+
+            {appearanceMenu}
 
             {/* Browser Fullscreen / Exit Fullscreen Button */}
             <button

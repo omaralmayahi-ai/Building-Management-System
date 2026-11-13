@@ -18,7 +18,6 @@ export { syncQueue, type SyncQueueStatus };
 
 
 const BASE_API_URL = '/api';
-const API_SECRET_KEY = 'midland_oil_secure_api_key_2026';
 
 /**
  * Enterprise Security Session Token Management
@@ -48,24 +47,76 @@ export function setSessionToken(token: string | null): void {
 export async function loginWithServer(
   username: string,
   password: string
-): Promise<{ success: boolean; user?: SystemUser; token?: string; error?: string }> {
+): Promise<{ success: boolean; user?: SystemUser; token?: string; error?: string; mustChangePassword?: boolean }> {
   try {
     const res = await fetch(`${BASE_API_URL}/auth/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-API-Key': API_SECRET_KEY,
       },
       body: JSON.stringify({ username, password }),
     });
     const data = await res.json();
     if (data && data.success && data.token) {
       setSessionToken(data.token);
-      return { success: true, user: data.user, token: data.token };
+      return { success: true, user: data.user, token: data.token, mustChangePassword: Boolean(data.mustChangePassword) };
     }
     return { success: false, error: data?.error || 'فشل تسجيل الدخول' };
   } catch {
     return { success: false, error: 'تعذر الاتصال ببوابة المصادقة الآمنة، يرجى المحاولة لاحقاً.' };
+  }
+}
+
+/** إنهاء الجلسة على الخادم */
+export async function logoutFromServer(): Promise<void> {
+  const token = getSessionToken();
+  if (!token) return;
+  try {
+    await fetch(`${BASE_API_URL}/auth/logout`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    });
+  } catch {}
+}
+
+/** حفظ تفضيلات مظهر الواجهة للمستخدم الحالي (null لأي حقل = العودة لمظهر النظام) */
+export async function saveUiPreferences(
+  change: Partial<Record<'theme' | 'font' | 'sidebar', string | null>> & { collapsed?: boolean | null }
+): Promise<boolean> {
+  const token = getSessionToken();
+  if (!token) return false;
+  try {
+    const res = await fetch(`${BASE_API_URL}/auth/preferences`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify(change),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+/** تغيير كلمة مرور المستخدم الحالي: التحقق يجري على الخادم */
+export async function changeOwnPassword(
+  currentPassword: string,
+  newPassword: string
+): Promise<{ success: boolean; error?: string }> {
+  const token = getSessionToken();
+  try {
+    const res = await fetch(`${BASE_API_URL}/auth/change-password`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({ currentPassword, newPassword }),
+    });
+    const data = await res.json().catch(() => null);
+    if (res.ok && data?.success) return { success: true };
+    return { success: false, error: data?.error || 'تعذر تغيير كلمة المرور' };
+  } catch {
+    return { success: false, error: 'تعذر الاتصال بالخادم، يرجى المحاولة لاحقاً' };
   }
 }
 
@@ -104,7 +155,6 @@ async function fetchJson<T>(
       ...options,
       headers: {
         'Content-Type': 'application/json',
-        'X-API-Key': API_SECRET_KEY,
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...(options?.headers || {}),
       },
@@ -118,6 +168,16 @@ async function fetchJson<T>(
       if (!isNaN(serverTimeMs)) {
         updateServerTimeFromTimestamp(serverTimeMs);
       }
+    }
+
+    // الجلسة انتهت أو أُلغيت على الخادم: خروج نظيف وإعادة عرض شاشة الدخول
+    if (res.status === 401 && token) {
+      setSessionToken(null);
+      try {
+        localStorage.removeItem('app_current_user');
+      } catch {}
+      if (typeof window !== 'undefined') window.location.reload();
+      return null;
     }
 
     if (!res.ok) {
@@ -643,17 +703,8 @@ export async function saveBranding(branding: SystemBranding): Promise<boolean> {
 // 8. System Users (حسابات المستخدمين والصلاحيات)
 // ============================================================================
 
+// الخادم هو المصدر الوحيد لحسابات المستخدمين (لا تُقرأ من Firestore)
 export async function getUsers(): Promise<SystemUser[]> {
-  try {
-    const firestoreUsers = await firestoreClient.getUsersFromFirestore();
-    if (Array.isArray(firestoreUsers) && firestoreUsers.length > 0) {
-      safeSetItem('app_users', firestoreUsers);
-      return firestoreUsers;
-    }
-  } catch (err) {
-    console.warn('Firestore getUsers note:', err);
-  }
-
   const data = await fetchJson<SystemUser[]>(`${BASE_API_URL}/users`);
   if (Array.isArray(data) && data.length > 0) {
     safeSetItem('app_users', data);
@@ -885,15 +936,6 @@ export function subscribeToRealtimeSync(
     });
     unsubs.push(unsubInsp);
 
-    const unsubUsers = firestoreClient.subscribeToFirestoreUsers((users) => {
-      onEvent({
-        type: 'users_updated',
-        syncVersion: Date.now(),
-        timestamp: Date.now(),
-        payload: users,
-      });
-    });
-    unsubs.push(unsubUsers);
   } catch (err) {
     console.warn('Firestore live listener setup note:', err);
   }
@@ -901,7 +943,10 @@ export function subscribeToRealtimeSync(
   // Also hook into SSE if available for server-originated broadcasts
   let sseEventSource: EventSource | null = null;
   try {
-    sseEventSource = new EventSource(`${BASE_API_URL}/sync/events`);
+    const sseToken = getSessionToken();
+    sseEventSource = new EventSource(
+      `${BASE_API_URL}/sync/events${sseToken ? `?token=${encodeURIComponent(sseToken)}` : ''}`
+    );
     sseEventSource.onmessage = (e) => {
       try {
         if (!e.data || e.data.startsWith(':')) return;

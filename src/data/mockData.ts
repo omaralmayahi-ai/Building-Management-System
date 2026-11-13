@@ -113,7 +113,7 @@ export const INITIAL_USERS: SystemUser[] = [
     password: 'admin123',
     role: 'مدير النظام',
     email: 'admin@mdoc.gov.iq',
-    phone: '07701784629',
+    phone: '',
     governorate: 'واسط',
     field: 'الأحدب',
     status: 'active',

@@ -4,6 +4,10 @@ import App from './App.tsx';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import './index.css';
 import { registerSW } from 'virtual:pwa-register';
+import { applyAppearance, cachedAppearance } from './lib/theme';
+
+// تطبيق آخر مظهر مستخدم على هذا المتصفح قبل أول رسم (بلا وميض)
+applyAppearance(cachedAppearance());
 
 // Register Service Worker for PWA offline caching & instant launch
 registerSW({
