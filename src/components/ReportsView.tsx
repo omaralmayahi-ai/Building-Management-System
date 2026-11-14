@@ -1,3 +1,4 @@
+import { getServerIsoDateOnly } from '../services/serverTime';
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import {
   FileText,
@@ -2184,7 +2185,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                             name: i.reportFileName || 'تقرير_الكشف.pdf',
                             type: ext,
                             url: i.reportFileUrl || '#',
-                            uploadedAt: i.lastInspectionDate || new Date().toISOString().split('T')[0],
+                            uploadedAt: i.lastInspectionDate || getServerIsoDateOnly(),
                             size: '1.5 MB',
                           });
                         }}
@@ -3318,7 +3319,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                               name: item.reportFileName || 'تقرير_الكشف.pdf',
                               type: ext,
                               url: item.reportFileUrl || '#',
-                              uploadedAt: item.lastInspectionDate || new Date().toISOString().split('T')[0],
+                              uploadedAt: item.lastInspectionDate || getServerIsoDateOnly(),
                               size: '1.5 MB',
                             });
                           }}
@@ -3405,7 +3406,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                                   name: item.reportFileName || 'تقرير_الكشف.pdf',
                                   type: ext,
                                   url: item.reportFileUrl || '#',
-                                  uploadedAt: item.lastInspectionDate || new Date().toISOString().split('T')[0],
+                                  uploadedAt: item.lastInspectionDate || getServerIsoDateOnly(),
                                   size: '1.5 MB',
                                 });
                               }}

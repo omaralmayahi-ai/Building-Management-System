@@ -1,3 +1,4 @@
+import { getServerIsoDateOnly } from '../services/serverTime';
 import React, { useState, useMemo } from 'react';
 import {
   Wrench,
@@ -208,7 +209,7 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
     setSelectedReq(req);
     setActionModalType('complete');
     setStatus('completed');
-    setCompletedAtDate(req.completedAt?.split(' ')[0] || new Date().toISOString().split('T')[0]);
+    setCompletedAtDate(req.completedAt?.split(' ')[0] || getServerIsoDateOnly());
     setResolutionNotes(req.resolutionNotes || '');
     setRejectionReason('');
     setFormError(null);
@@ -219,7 +220,7 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
     setSelectedReq(req);
     setActionModalType('reject');
     setStatus('rejected');
-    setCompletedAtDate(req.completedAt?.split(' ')[0] || new Date().toISOString().split('T')[0]);
+    setCompletedAtDate(req.completedAt?.split(' ')[0] || getServerIsoDateOnly());
     setRejectionReason(req.rejectionReason || '');
     setResolutionNotes('');
     setFormError(null);
@@ -230,7 +231,7 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
     setSelectedReq(req);
     setActionModalType('edit_status');
     setStatus(req.status || 'in_progress');
-    setCompletedAtDate(req.completedAt?.split(' ')[0] || new Date().toISOString().split('T')[0]);
+    setCompletedAtDate(req.completedAt?.split(' ')[0] || getServerIsoDateOnly());
     setResolutionNotes(req.resolutionNotes || '');
     setRejectionReason(req.rejectionReason || '');
     setFormError(null);
@@ -258,7 +259,7 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
           : resolutionNotes.trim(),
       rejectionReason: status === 'rejected' ? rejectionReason.trim() : undefined,
       completedBy: currentUser?.name || 'موظف الصيانة',
-      completedAt: completedAtDate || new Date().toISOString().split('T')[0],
+      completedAt: completedAtDate || getServerIsoDateOnly(),
       daysOverdue: isDoneOrClosed ? 0 : selectedReq.daysOverdue,
     };
 
@@ -271,7 +272,7 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
   const handleOpenFullEdit = (req: MaintenanceRequest) => {
     if (isMaintenanceEmployee) return; // Prevented for maintenance employee
     setFullEditReq(req);
-    setEditCreatedAt(req.createdAt ? req.createdAt.split(' ')[0] : new Date().toISOString().split('T')[0]);
+    setEditCreatedAt(req.createdAt ? req.createdAt.split(' ')[0] : getServerIsoDateOnly());
     setEditUnitCode(req.unitCode || '');
     setEditIssue(req.issue || '');
     setEditPriority(req.priority || 'normal');

@@ -1,3 +1,4 @@
+import { getServerIsoDateOnly } from '../services/serverTime';
 import { calculateNextDueDate } from '../utils/inspectionSchedule';
 import React, { useState, useMemo, useEffect } from 'react';
 import {
@@ -395,7 +396,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
   // New Schedule Form state
   const [newUnitCode, setNewUnitCode] = useState(units[0]?.code || '');
   const [newTitle, setNewTitle] = useState('');
-  const [newStartDate, setNewStartDate] = useState(new Date().toISOString().split('T')[0]);
+  const [newStartDate, setNewStartDate] = useState(getServerIsoDateOnly());
   const [newFrequency, setNewFrequency] = useState<InspectionFrequency>('quarterly');
   const [newCustomDays, setNewCustomDays] = useState(90);
   const [newNextDate, setNewNextDate] = useState(() => {
@@ -440,7 +441,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
     (effectiveGov && groupedUnits[effectiveGov] ? Object.keys(groupedUnits[effectiveGov])[0] : '');
 
   // Complete Inspection Form state
-  const [completeDate, setCompleteDate] = useState(new Date().toISOString().split('T')[0]);
+  const [completeDate, setCompleteDate] = useState(getServerIsoDateOnly());
   const [completeGrade, setCompleteGrade] = useState<ConditionGrade>('A');
   const [completeFindings, setCompleteFindings] = useState('');
   const [completeRecommendations, setCompleteRecommendations] = useState('');
@@ -547,7 +548,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
       name: reportFileName,
       type: ext,
       url: url,
-      uploadedAt: new Date().toISOString().split('T')[0],
+      uploadedAt: getServerIsoDateOnly(),
       size: reportFile ? `${(reportFile.size / 1024).toFixed(1)} KB` : '1.2 MB',
     });
   };
@@ -590,7 +591,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
       inspectorName: newInspectorName.trim() || defaultPerformer,
       status: 'scheduled',
       notes: newNotes,
-      createdAt: new Date().toISOString().split('T')[0],
+      createdAt: getServerIsoDateOnly(),
     };
 
     onAddSchedule(schedule);
@@ -622,7 +623,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
       maintenanceIssue: maintIssue,
       maintenancePriority: maintPriority,
       maintenanceDepartment: maintDept,
-      maintenanceDate: maintDate || completeDate || new Date().toISOString().split('T')[0],
+      maintenanceDate: maintDate || completeDate || getServerIsoDateOnly(),
     });
 
     setShowCompleteModal(null);
@@ -650,7 +651,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
     setEditStatus(sch.status || 'scheduled');
     setEditFrequency(sch.frequency || 'quarterly');
     setEditCustomDays(sch.customIntervalDays || 90);
-    setEditLastDate(sch.lastInspectionDate || new Date().toISOString().split('T')[0]);
+    setEditLastDate(sch.lastInspectionDate || getServerIsoDateOnly());
     setEditNextDate(sch.nextDueDate || '');
     setEditAssignedTeam(sch.assignedTeam || '');
     setEditInspectorName(sch.inspectorName || '');
@@ -698,7 +699,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
       status: maintNewStatus,
       resolutionNotes: maintResolutionNotes,
       completedBy: 'موظف مدخل البيانات',
-      completedAt: maintCompletedDate || new Date().toISOString().split('T')[0],
+      completedAt: maintCompletedDate || getServerIsoDateOnly(),
       daysOverdue: maintNewStatus === 'completed' || maintNewStatus === 'cancelled' ? 0 : editMaintenanceReq.daysOverdue,
     };
 
@@ -1215,7 +1216,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                                   name: sch.reportFileName || 'تقرير_الكشف.pdf',
                                   type: ext,
                                   url: sch.reportFileUrl || '#',
-                                  uploadedAt: sch.lastInspectionDate || new Date().toISOString().split('T')[0],
+                                  uploadedAt: sch.lastInspectionDate || getServerIsoDateOnly(),
                                   size: '1.5 MB',
                                 });
                               }}
@@ -1233,7 +1234,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                         {sch.status !== 'completed' && (
                           <button
                             onClick={() => {
-                              const todayStr = new Date().toISOString().split('T')[0];
+                              const todayStr = getServerIsoDateOnly();
                               setShowCompleteModal(sch);
                               setCompleteDate(todayStr);
                               setMaintDate(todayStr);
@@ -1454,7 +1455,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                                   name: sch.reportFileName || 'تقرير_الكشف.pdf',
                                   type: ext,
                                   url: sch.reportFileUrl || '#',
-                                  uploadedAt: sch.lastInspectionDate || new Date().toISOString().split('T')[0],
+                                  uploadedAt: sch.lastInspectionDate || getServerIsoDateOnly(),
                                   size: '1.5 MB',
                                 });
                               }}
@@ -1478,7 +1479,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                             {sch.status !== 'completed' && (
                               <button
                                 onClick={() => {
-                                  const todayStr = new Date().toISOString().split('T')[0];
+                                  const todayStr = getServerIsoDateOnly();
                                   setShowCompleteModal(sch);
                                   setCompleteDate(todayStr);
                                   setMaintDate(todayStr);
@@ -2934,7 +2935,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                                             name: sch.reportFileName || 'تقرير_الكشف.pdf',
                                             type: ext,
                                             url: sch.reportFileUrl || '#',
-                                            uploadedAt: sch.lastInspectionDate || new Date().toISOString().split('T')[0],
+                                            uploadedAt: sch.lastInspectionDate || getServerIsoDateOnly(),
                                             size: '1.5 MB',
                                           });
                                         }}
@@ -2954,8 +2955,8 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                                         onClick={() => {
                                           const matchedUnit = units.find((u) => u.code === sch.unitCode);
                                           setShowCompleteModal(sch);
-                                          setCompleteDate(sch.lastInspectionDate || new Date().toISOString().split('T')[0]);
-                                          setMaintDate(sch.lastInspectionDate || new Date().toISOString().split('T')[0]);
+                                          setCompleteDate(sch.lastInspectionDate || getServerIsoDateOnly());
+                                          setMaintDate(sch.lastInspectionDate || getServerIsoDateOnly());
                                           setCompletePerformedByName(sch.performedByName || '');
                                           if (matchedUnit) {
                                             setCompleteGrade(sch.conditionGradeGiven || matchedUnit.conditionGrade);
@@ -3073,7 +3074,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                                             name: sch.reportFileName || 'تقرير_الكشف.pdf',
                                             type: ext,
                                             url: sch.reportFileUrl || '#',
-                                            uploadedAt: sch.lastInspectionDate || new Date().toISOString().split('T')[0],
+                                            uploadedAt: sch.lastInspectionDate || getServerIsoDateOnly(),
                                             size: '1.5 MB',
                                           });
                                         }}
@@ -3093,8 +3094,8 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                                         onClick={() => {
                                           const matchedUnit = units.find((u) => u.code === sch.unitCode);
                                           setShowCompleteModal(sch);
-                                          setCompleteDate(sch.lastInspectionDate || new Date().toISOString().split('T')[0]);
-                                          setMaintDate(sch.lastInspectionDate || new Date().toISOString().split('T')[0]);
+                                          setCompleteDate(sch.lastInspectionDate || getServerIsoDateOnly());
+                                          setMaintDate(sch.lastInspectionDate || getServerIsoDateOnly());
                                           setCompletePerformedByName(sch.performedByName || '');
                                           if (matchedUnit) {
                                             setCompleteGrade(sch.conditionGradeGiven || matchedUnit.conditionGrade);
@@ -3256,7 +3257,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                                     setEditMaintenanceReq(req);
                                     setMaintNewStatus(req.status === 'cancelled' ? 'cancelled' : 'completed');
                                     setMaintResolutionNotes(req.resolutionNotes || '');
-                                    setMaintCompletedDate(req.completedAt?.split(' ')[0] || new Date().toISOString().split('T')[0]);
+                                    setMaintCompletedDate(req.completedAt?.split(' ')[0] || getServerIsoDateOnly());
                                   }}
                                   className={`px-3 py-1.5 rounded-lg text-xs font-bold cursor-pointer transition whitespace-nowrap border flex items-center gap-1 min-h-[34px] bg-brand-100 hover:bg-brand-100 text-brand-800 border-brand-200`}
                                 >
@@ -3375,7 +3376,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                                         setEditMaintenanceReq(req);
                                         setMaintNewStatus(req.status === 'cancelled' ? 'cancelled' : 'completed');
                                         setMaintResolutionNotes(req.resolutionNotes || '');
-                                        setMaintCompletedDate(req.completedAt?.split(' ')[0] || new Date().toISOString().split('T')[0]);
+                                        setMaintCompletedDate(req.completedAt?.split(' ')[0] || getServerIsoDateOnly());
                                       }}
                                       className={`px-2.5 py-1 rounded-lg text-[10px] font-bold cursor-pointer transition whitespace-nowrap border bg-brand-100 hover:bg-brand-100 text-brand-800 border-brand-200`}
                                     >

@@ -7,6 +7,7 @@ import assert from 'node:assert/strict';
 
 const codes = await import('../src/utils/unitAndRoomCodeUtils.ts');
 const sched = await import('../src/utils/inspectionSchedule.ts');
+const dates = await import('../src/utils/dateFormat.ts');
 
 describe('رمز الوحدة', () => {
   test('أربعة مقاطع: المحافظة-الحقل-النوع-أربعة حروف', () => {
@@ -174,5 +175,49 @@ describe('مواعيد الكشف الدوري', () => {
     assert.equal(out[0], a);
     assert.equal(out[1].status, 'overdue');
     assert.equal(b.status, 'scheduled', 'الأصل لا يُعدَّل');
+  });
+});
+
+describe('توحيد صيغة التواريخ', () => {
+  const norm = (v) => dates.normalizeDateValue(v, '2026-11-14');
+
+  test('الصيغة الموحدة تُقبل كما هي', () => {
+    assert.deepEqual(norm('2026-11-14'), { ok: true, value: '2026-11-14' });
+    assert.deepEqual(norm('2026-11-14T08:30:00.000Z'), { ok: true, value: '2026-11-14T08:30:00.000Z' });
+    assert.deepEqual(norm(''), { ok: true, value: '' });
+    assert.deepEqual(norm(undefined), { ok: true, value: undefined });
+    assert.deepEqual(norm(null), { ok: true, value: null });
+  });
+
+  test('الصيغ القديمة تُحوَّل', () => {
+    assert.equal(norm('2026/11/4').value, '2026-11-04');
+    assert.equal(norm('14-11-2026').value, '2026-11-14');
+    assert.equal(norm('4/1/2026').value, '2026-01-04', 'يوم/شهر/سنة');
+    assert.equal(norm('١٤-١١-٢٠٢٦').value, '2026-11-14');
+    assert.equal(norm(' 2026-11-14 ').value, '2026-11-14');
+    assert.equal(norm('الآن').value, '2026-11-14');
+    assert.equal(norm('الآن (تحديث شامل)').value, '2026-11-14');
+  });
+
+  test('ما ليس تاريخاً يُرفض', () => {
+    for (const bad of ['2026-02-31', '2026-13-01', '31/02/2026', 'غداً', '14 تشرين الثاني', '20261114', '1800-01-01', 20261114, {}]) {
+      assert.equal(norm(bad).ok, false, String(bad));
+    }
+  });
+
+  test('السجل: الحقل المرفوض يُسمّى، والقوائم الداخلية تُوحَّد دون رفض', () => {
+    const bad = dates.normalizeRecordDates('inspections', { id: 'I', nextDueDate: 'قريباً' });
+    assert.match(bad.error, /موعد الكشف القادم/);
+    const unit = { code: 'U', lastUpdated: 'الآن', attachments: [{ id: 'a', uploadDate: '14/11/2026' }, { id: 'b', uploadDate: 'أمس' }], equipment: [{ id: 'e' }] };
+    const res = dates.normalizeRecordDates('units', unit, { today: '2026-11-14' });
+    assert.equal(res.error, null);
+    assert.equal(res.record.lastUpdated, '2026-11-14');
+    assert.equal(res.record.attachments[0].uploadDate, '2026-11-14');
+    assert.equal(res.record.attachments[1].uploadDate, 'أمس', 'غير المفهوم داخل القوائم يبقى');
+    assert.equal(unit.lastUpdated, 'الآن', 'الأصل لا يُعدَّل');
+    const same = { id: 'M', createdAt: '2026-11-14' };
+    assert.equal(dates.normalizeRecordDates('maintenance', same).record, same, 'سجل سليم يعود هو نفسه');
+    assert.equal(dates.normalizeRecordDates('maintenance', { id: 'M', createdAt: 'x' }, { lenient: true }).error, null);
+    assert.equal(dates.normalizeRecordDates('orgEntities', { id: 'o', createdAt: 'x' }).error, null, 'مجموعة بلا حقول تاريخ');
   });
 });

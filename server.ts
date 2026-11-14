@@ -10,6 +10,7 @@ import { configuredDatabaseUrl } from './src/db/dbClient';
 import { createStorage, type StorageOp } from './src/db/storage';
 import { createFirestoreMirror } from './src/db/firestoreMirror';
 import { createFileStore } from './src/db/fileStore';
+import { normalizeRecordDates } from './src/utils/dateFormat';
 import {
   INITIAL_UNITS,
   INITIAL_MAINTENANCE_REQUESTS,
@@ -422,6 +423,10 @@ async function startServer() {
 
   // المرفقات المضمّنة في سجلات قديمة تُخرج إلى ملفات مرة واحدة، ثم تُزال الملفات اليتيمة
   for (const key of FILE_COLLECTIONS) COLLECTIONS[key].set(fileStore.externalize(COLLECTIONS[key].get()));
+  // توحيد صيغ التواريخ في السجلات المخزنة سابقاً (ما لا يُفهم يبقى كما هو)
+  for (const key of FILE_COLLECTIONS) {
+    COLLECTIONS[key].set(COLLECTIONS[key].get().map((r) => normalizeRecordDates(key, r, { lenient: true }).record));
+  }
 
   // أول كتابة: تثبيت الحالة الحالية (البذور وترقية كلمات المرور، أو الاستيراد الأول من الملف)
   try {
@@ -891,6 +896,10 @@ async function startServer() {
     return null;
   }
 
+  function rejectInvalidDate(res: express.Response, message: string) {
+    return res.status(400).json({ success: false, code: 'INVALID_DATE', error: message });
+  }
+
   function rejectDuplicateCodes(res: express.Response, message: string) {
     return res.status(400).json({ success: false, code: 'DUPLICATE_CODE', error: message });
   }
@@ -928,7 +937,9 @@ async function startServer() {
         const dup = findDuplicateCodeError(req.body, existing);
         if (dup) return rejectDuplicateCodes(res, dup);
       }
-      const rec = stampRecord(req.body, existing, req);
+      const dated = normalizeRecordDates(o.key, req.body);
+      if (dated.error) return rejectInvalidDate(res, dated.error);
+      const rec = stampRecord(dated.record, existing, req);
       put(rec);
       try {
         await commit([o.key], [id]);
@@ -950,7 +961,9 @@ async function startServer() {
           const dup = findDuplicateCodeError(req.body, existing);
           if (dup) return rejectDuplicateCodes(res, dup);
         }
-        const rec = stampRecord(req.body, existing, req);
+        const dated = normalizeRecordDates(o.key, req.body);
+        if (dated.error) return rejectInvalidDate(res, dated.error);
+        const rec = stampRecord(dated.record, existing, req);
         put(rec, paramId);
         try {
           await commit([o.key], [paramId, def.idOf(rec)]);
@@ -977,7 +990,12 @@ async function startServer() {
     // دفعة عمليات على سجلات محددة: إمّا تُطبَّق كلها أو لا يُطبَّق شيء
     app.post(`/api/${o.route}/batch`, async (req, res) => {
       const kind = roleKind(((req as any).session as ActiveSession).role);
-      const upserts: any[] = Array.isArray(req.body?.upserts) ? req.body.upserts : [];
+      const upserts: any[] = Array.isArray(req.body?.upserts) ? [...req.body.upserts] : [];
+      for (let i = 0; i < upserts.length; i++) {
+        const dated = normalizeRecordDates(o.key, upserts[i]);
+        if (dated.error) return rejectInvalidDate(res, dated.error);
+        upserts[i] = dated.record;
+      }
       const deletes: string[] = o.appendOnly ? [] : Array.isArray(req.body?.deletes) ? req.body.deletes.map(String) : [];
       const conflicts: any[] = [];
       for (const rec of upserts) {
@@ -1034,7 +1052,12 @@ async function startServer() {
 
     // استيراد جماعي (للمدير): يضيف ويحدّث فقط، ولا يحذف ما ليس في القائمة
     app.post(`/api/${o.route}/bulk`, async (req, res) => {
-      const items: any[] = (Object.values(req.body || {}).find((v) => Array.isArray(v)) as any[]) || [];
+      const items: any[] = [...((Object.values(req.body || {}).find((v) => Array.isArray(v)) as any[]) || [])];
+      for (let i = 0; i < items.length; i++) {
+        const dated = normalizeRecordDates(o.key, items[i]);
+        if (dated.error) return rejectInvalidDate(res, dated.error);
+        items[i] = dated.record;
+      }
       if (o.key === 'units') {
         for (const rec of items) {
           const dup = findDuplicateCodeError(rec, find(def.idOf(rec)));

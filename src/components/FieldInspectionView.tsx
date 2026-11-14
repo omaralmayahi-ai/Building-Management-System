@@ -1,3 +1,5 @@
+import { calculateNextDueDate } from '../utils/inspectionSchedule';
+import { getServerIsoDateOnly } from '../services/serverTime';
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import {
   ClipboardCheck,
@@ -173,7 +175,7 @@ export const FieldInspectionView: React.FC<FieldInspectionViewProps> = ({
     setSubmitError(null);
     setIsSubmitting(true);
 
-    const nowIso = new Date().toISOString().split('T')[0];
+    const nowIso = getServerIsoDateOnly();
     const newId = `INS-${new Date().getFullYear()}-${String(Math.floor(1000 + Math.random() * 9000))}`;
 
     const newInspection: PeriodicInspectionSchedule = {
@@ -186,7 +188,7 @@ export const FieldInspectionView: React.FC<FieldInspectionViewProps> = ({
       title: inspectionTitle.trim() || `كشف ميداني - ${currentUnit.name}`,
       frequency: 'custom',
       lastInspectionDate: nowIso,
-      nextDueDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      nextDueDate: calculateNextDueDate(getServerIsoDateOnly(), 'quarterly'),
       assignedTeam: 'شعبة الفحص الهندسي الميداني',
       inspectorName: currentUser?.name || 'مفتش ميداني معتمد',
       performedByName: currentUser?.name || 'مفتش ميداني معتمد',

@@ -485,4 +485,22 @@ describe('وضع الملف المحلي (للتجربة)', () => {
     const bulk = await call('POST', '/api/units/bulk', { token, body: { units: [unit('D-5', { rooms: [room('q', 'DDDD-F1-OFF-101')] })] } });
     assert.equal(bulk.status, 400, 'الاستيراد الجماعي يخضع للفحص نفسه');
   });
+
+  test('التواريخ تُوحَّد عند الحفظ وغير الصالح يُرفض', async () => {
+    const ok = await call('POST', '/api/inspections', { token, body: { id: 'I-D1', unitCode: 'F-1', lastInspectionDate: '14/11/2026', nextDueDate: '2026/12/14', createdAt: '2026-11-14' } });
+    assert.equal(ok.status, 200, ok.text);
+    assert.equal(ok.json.inspection.lastInspectionDate, '2026-11-14');
+    assert.equal(ok.json.inspection.nextDueDate, '2026-12-14');
+    const bad = await call('POST', '/api/inspections', { token, body: { id: 'I-D2', unitCode: 'F-1', nextDueDate: '2026-02-31' } });
+    assert.equal(bad.status, 400);
+    assert.equal(bad.json.code, 'INVALID_DATE');
+    assert.match(bad.json.error, /موعد الكشف القادم/);
+    const put = await call('PUT', '/api/inspections/I-D1', { token, body: { ...ok.json.inspection, completionDate: 'بكرة' } });
+    assert.equal(put.status, 400);
+    const batch = await call('POST', '/api/maintenance/batch', { token, body: { upserts: [{ id: 'M-D1', unitCode: 'F-1', createdAt: '2026-11-14' }, { id: 'M-D2', unitCode: 'F-1', createdAt: '99/99/2026' }] } });
+    assert.equal(batch.status, 400);
+    assert.equal((await call('GET', '/api/maintenance', { token })).json.some((m) => m.id === 'M-D1'), false, 'الدفعة كلها تُرفض');
+    const unitRes = await call('POST', '/api/units', { token, body: unit('F-DATE', { lastUpdated: 'الآن' }) });
+    assert.match(unitRes.json.unit.lastUpdated, /^\d{4}-\d{2}-\d{2}$/);
+  });
 });

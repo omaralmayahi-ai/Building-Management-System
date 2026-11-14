@@ -387,7 +387,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
       category: newAttCategory,
       type: newAttType,
       sizeMB: newAttSizeMB,
-      uploadDate: new Date().toISOString().split('T')[0],
+      uploadDate: getServerIsoDateOnly(),
       notes: newAttNotes.trim() || 'وثيقة رسمية مؤرشفة بملف المنشأة',
       fileUrl: newAttFileUrl || undefined,
       url: newAttFileUrl || undefined,
@@ -683,7 +683,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
       attachments,
       attachmentsCount: attachments.length,
       designFinishing: updatedFinishing,
-      lastUpdated: 'الآن (تحديث شامل)',
+      lastUpdated: getServerIsoDateOnly(),
     };
 
     onSave(updated);

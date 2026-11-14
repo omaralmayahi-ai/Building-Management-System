@@ -1,3 +1,4 @@
+import { getServerIsoDateOnly } from '../services/serverTime';
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import {
   Wrench,
@@ -295,7 +296,7 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
   const [activeGovHoriz, setActiveGovHoriz] = useState<string>('');
   const [activeFieldHoriz, setActiveFieldHoriz] = useState<string>('');
 
-  const [requestDate, setRequestDate] = useState(new Date().toISOString().split('T')[0]);
+  const [requestDate, setRequestDate] = useState(getServerIsoDateOnly());
   const [issue, setIssue] = useState('');
   const [priority, setPriority] = useState<MaintenancePriority>('normal');
   const [maintenanceDepartment, setMaintenanceDepartment] = useState<string>(() => {
@@ -417,7 +418,7 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
       slaDeadline: new Date(Date.now() + 86400000 * 2).toISOString(),
       maintenanceDepartment: maintenanceDepartment || 'الصيانة الكهربائية',
       status: 'open',
-      createdAt: requestDate || new Date().toISOString().split('T')[0],
+      createdAt: requestDate || getServerIsoDateOnly(),
       reportedBy: currentUser?.name || 'غير معروف',
       attachmentName: attachments[0]?.name || undefined,
       attachmentUrl: attachments[0]?.url || undefined,

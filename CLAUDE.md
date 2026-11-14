@@ -66,10 +66,14 @@
 - `src/utils/inspectionSchedule.ts` هو المكان الوحيد لحساب موعد الكشف القادم والتأخير (`calculateNextDueDate`، `daysOverdue`، `effectiveInspectionStatus`)؛ الحساب على التاريخ فقط دون توقيت. لا تكتب `new Date(...).toISOString().split('T')[0]` لتاريخ اليوم (يرجع يوماً قبل الثالثة فجراً في بغداد)؛ استخدم `todayDateString()`.
 - حالة «متأخر» مشتقة للعرض في App.tsx (`periodicInspections` من `storedInspections` عبر `withEffectiveStatuses`)، ولا تُكتب في القاعدة إلا إن حُفظ السجل لسبب آخر.
 
+## التواريخ (3-د)
+- الصيغة الموحدة في السجلات `YYYY-MM-DD` (أو ISO كامل). `src/utils/dateFormat.ts`: `normalizeRecordDates` يستدعيه الخادم في POST و PUT و `/batch` و `/bulk` وعند الإقلاع (متساهلاً). حقول التاريخ لكل مجموعة في `DATE_FIELDS`؛ الصيغ القديمة (يوم/شهر/سنة، أرقام عربية، «الآن») تُحوَّل، وغير المفهوم يُرفض 400 `INVALID_DATE` مع اسم الحقل. حقول القوائم الداخلية (`attachments[].uploadDate`، `equipment[].lastServiceDate`) تُوحَّد ولا تُرفض. حقل تاريخ جديد يُضاف إلى `DATE_FIELDS`.
+- تاريخ اليوم في الواجهة: `getServerIsoDateOnly()` من `services/serverTime` (محلي ومصحَّح بساعة الخادم). لا تكتب `new Date().toISOString().split('T')[0]`.
+
 ## معروف وغير محلول (تفاصيله في تقرير المراجعة)
 - بيانات الوحدة مستند JSON واحد (الغرف والمعدات والمرفقات داخله، والتواريخ نصوص): المرحلة 3.
 - App.tsx ما زال يكتب نسخ العرض في localStorage ويحدّث الحالة قبل رد الخادم (تُصحَّح بإعادة القراءة عند الفشل).
 - `memStore` يحمّل كل البيانات في ذاكرة الخادم؛ مناسب لحجم الشعبة الحالي لا لعشرات آلاف الوحدات بمرفقاتها.
 - قواعد Firestore المنشورة ترفض القراءة المجهولة (403)، خلافاً لملف firestore.rules المحلي.
 - docker-compose.yml يشير إلى database/init.sql القديم: المرحلة 5.
-- `daysOverdue` لطلبات الصيانة لا يحسبه أي كود (يبقى كما أُدخل). ومواضع أخرى ما زالت تستخدم `toISOString().split('T')[0]` لتاريخ اليوم.
+- `daysOverdue` لطلبات الصيانة لا يحسبه أي كود (يبقى كما أُدخل).

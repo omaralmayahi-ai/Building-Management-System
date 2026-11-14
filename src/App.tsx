@@ -1186,7 +1186,7 @@ export function App() {
     setUnits((prev) => {
       const updated = prev.map((u) => {
         if (u.code === code) {
-          updatedUnitObj = { ...u, conditionGrade: newGrade, lastUpdated: 'الآن' };
+          updatedUnitObj = { ...u, conditionGrade: newGrade, lastUpdated: getServerIsoDateOnly() };
           return updatedUnitObj;
         }
         return u;
@@ -1865,7 +1865,7 @@ export function App() {
             status: 'decommissioned' as const,
             decommissionedAt: timestampStr,
             decommissionReason: reason || 'تم الشطب والتجميد بناءً على توصيات السلامة والتقييم الإنشائي',
-            lastUpdated: 'الآن',
+            lastUpdated: getServerIsoDateOnly(),
           };
           return targetUnitObj;
         }
@@ -1907,7 +1907,7 @@ export function App() {
             status: 'active' as const,
             decommissionedAt: undefined,
             decommissionReason: undefined,
-            lastUpdated: 'الآن',
+            lastUpdated: getServerIsoDateOnly(),
           };
           return targetUnitObj;
         }
@@ -2129,7 +2129,7 @@ export function App() {
       let matchedUnit: UnitAsset | null = null;
       const updatedUnits = prev.map((u) => {
         if (u.code === existing.unitCode) {
-          matchedUnit = { ...u, conditionGrade: outcome.grade, lastUpdated: 'الآن' };
+          matchedUnit = { ...u, conditionGrade: outcome.grade, lastUpdated: getServerIsoDateOnly() };
           return matchedUnit;
         }
         return u;
