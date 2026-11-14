@@ -1,3 +1,5 @@
+import AuditTrailPanel from './AuditTrailPanel';
+import { Tabs } from './ui';
 import React, { useState, useRef, useEffect } from 'react';
 import {
   Settings,
@@ -262,6 +264,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   theme = 'dark',
 }) => {
   const isLight = theme === 'light';
+  // تبويب السجلات: سجل النشاطات الوصفي أو سجل تدقيق الخادم
+  const [auditMode, setAuditMode] = useState<'activity' | 'trail'>('activity');
   const [activeTab, setActiveTab] = useState<
     | 'branding'
     | 'org'
@@ -3251,6 +3255,17 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
           {/* TAB 8: Audit Activity Logs */}
           {activeTab === 'audit' && (
+            <Tabs
+              tabs={[
+                { key: 'activity', label: 'سجل النشاطات', icon: Activity },
+                { key: 'trail', label: 'سجل تدقيق الخادم', icon: ShieldCheck },
+              ]}
+              value={auditMode}
+              onChange={setAuditMode}
+            />
+          )}
+          {activeTab === 'audit' && auditMode === 'trail' && <AuditTrailPanel />}
+          {activeTab === 'audit' && auditMode === 'activity' && (
             <div className="space-y-4">
               <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200`}>
                 <div>
