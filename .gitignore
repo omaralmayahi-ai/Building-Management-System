@@ -17,3 +17,7 @@ certs/
 node_modules.prev/
 dist.prev/
 updates/
+
+# مفاتيح حساب خدمة Firebase لا تُرفع أبداً
+*service-account*.json
+*firebase-adminsdk*.json

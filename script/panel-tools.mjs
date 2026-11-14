@@ -3,9 +3,13 @@
 //   node script/panel-tools.mjs check <ملف البيانات>
 //   node script/panel-tools.mjs stats <مجلد النظام>
 //   node script/panel-tools.mjs reset-admin        (ECP_ADMIN_USERNAME / ECP_ADMIN_PASSWORD)
+//   node script/panel-tools.mjs restore <ملف نسخة>  (يستبدل بيانات النظام بمحتوى النسخة؛ يعمل مع PostgreSQL والملف)
+//   node script/panel-tools.mjs storage <مجلد النظام> (مكان التخزين المعتمد واختبار الاتصال)
+// البيانات تُقرأ وتُكتب عبر store-io.mjs: PostgreSQL عند ضبط DATABASE_URL وإلا ملف .data/store.json
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
+import { loadStore, saveStore, putRecord, readStoreFile, databaseUrl, testConnection } from './store-io.mjs';
 
 // نفس صيغة الخادم: scrypt$<salt>$<hash>
 function hashPassword(password) {
@@ -28,14 +32,7 @@ function matchesPassword(plain, stored) {
 const out = (k, v) => console.log(`${k}=${String(v ?? '').replace(/[\r\n]+/g, ' ')}`);
 const len = (v) => (Array.isArray(v) ? v.length : 0);
 
-function readStore(file) {
-  const raw = fs.readFileSync(file, 'utf8').replace(/^\uFEFF/, '');
-  const data = JSON.parse(raw);
-  if (!data || typeof data !== 'object' || Array.isArray(data)) throw new Error('الملف ليس ملف بيانات النظام');
-  const known = ['units', 'maintenance', 'occupancy', 'inspections', 'users', 'orgEntities'];
-  if (!known.some((k) => Array.isArray(data[k]))) throw new Error('الملف لا يحتوي جداول النظام');
-  return data;
-}
+const readStore = readStoreFile;
 
 function isHashed(p) {
   return typeof p === 'string' && (/^\$2[aby]\$/.test(p) || p.startsWith('scrypt$'));
@@ -65,9 +62,9 @@ function check(file) {
   }
 }
 
-function stats(appDir) {
+async function stats(appDir) {
   try {
-    const d = readStore(path.join(appDir, '.data', 'store.json'));
+    const { store: d } = await loadStore(appDir);
     const users = Array.isArray(d.users) ? d.users : [];
     const admin = users.find((u) => String(u?.username || '').toLowerCase() === 'admin');
     const isDefault = admin && (!admin.password || ['admin123', '123'].some((w) => matchesPassword(w, admin.password)));
@@ -80,16 +77,16 @@ function stats(appDir) {
   }
 }
 
-function resetAdmin() {
+async function resetAdmin() {
   const username = String(process.env.ECP_ADMIN_USERNAME || '').trim();
   const password = String(process.env.ECP_ADMIN_PASSWORD || '');
   if (!username || password.length < 8) {
     out('ERROR', 'اسم المستخدم مطلوب وكلمة المرور 8 أحرف على الأقل');
     return 1;
   }
-  const file = path.join(process.cwd(), '.data', 'store.json');
+  const appDir = process.cwd();
   try {
-    const d = readStore(file);
+    const { store: d } = await loadStore(appDir);
     const users = Array.isArray(d.users) ? d.users : [];
     const u = users.find((x) => String(x?.username || '').toLowerCase() === username.toLowerCase());
     if (!u) {
@@ -98,9 +95,7 @@ function resetAdmin() {
     }
     u.password = hashPassword(password);
     u.status = 'active';
-    const tmp = file + '.tmp';
-    fs.writeFileSync(tmp, JSON.stringify(d, null, 2), 'utf8');
-    fs.renameSync(tmp, file);
+    await putRecord(appDir, 'users', u);
     out('OK', 1);
     return 0;
   } catch (e) {
@@ -109,10 +104,43 @@ function resetAdmin() {
   }
 }
 
+// استعادة نسخة: تستبدل بيانات النظام كلها بمحتوى ملف النسخة
+async function restore(file) {
+  try {
+    const d = readStore(file);
+    const mode = await saveStore(process.cwd(), d);
+    out('OK', 1);
+    out('MODE', mode);
+    return 0;
+  } catch (e) {
+    out('ERROR', e.message);
+    return 1;
+  }
+}
+
+async function storage(appDir) {
+  if (!databaseUrl(appDir)) {
+    out('MODE', 'file');
+    return 0;
+  }
+  out('MODE', 'postgres');
+  try {
+    await testConnection(appDir);
+    out('CONNECTION', 'ok');
+    return 0;
+  } catch (e) {
+    out('CONNECTION', 'failed');
+    out('ERROR', e.message);
+    return 1;
+  }
+}
+
 const [cmd, arg] = process.argv.slice(2);
 let code = 1;
 if (cmd === 'check' && arg) code = check(arg);
-else if (cmd === 'stats' && arg) code = stats(arg);
-else if (cmd === 'reset-admin') code = resetAdmin();
+else if (cmd === 'stats' && arg) code = await stats(arg);
+else if (cmd === 'reset-admin') code = await resetAdmin();
+else if (cmd === 'restore' && arg) code = await restore(arg);
+else if (cmd === 'storage' && arg) code = await storage(arg);
 else out('ERROR', 'أمر غير معروف');
 process.exit(code);

@@ -425,7 +425,9 @@ export function App() {
   };
 
   // Initial Load from Central API / Database on Component Mount
+  // تُقرأ البيانات من الخادم بعد الدخول (وعند تبدّل المستخدم)، فالخادم هو المصدر المعتمد
   useEffect(() => {
+    if (!currentUser) return;
     let isMounted = true;
     async function loadDataFromApi() {
       try {
@@ -440,11 +442,11 @@ export function App() {
           api.getUsers(),
         ]);
         if (!isMounted) return;
-        if (apiUnits && apiUnits.length > 0) setUnits(apiUnits);
-        if (apiMaint && apiMaint.length > 0) setMaintenanceRequests(apiMaint);
-        if (apiOcc && apiOcc.length > 0) setOccupancyRecords(apiOcc);
-        if (apiInsp && apiInsp.length > 0) setPeriodicInspections(apiInsp);
-        if (apiLogs && apiLogs.length > 0) setAuditLogs(apiLogs);
+        if (Array.isArray(apiUnits)) setUnits(apiUnits);
+        if (Array.isArray(apiMaint)) setMaintenanceRequests(apiMaint);
+        if (Array.isArray(apiOcc)) setOccupancyRecords(apiOcc);
+        if (Array.isArray(apiInsp)) setPeriodicInspections(apiInsp);
+        if (Array.isArray(apiLogs)) setAuditLogs(apiLogs);
         if (apiEntities && apiEntities.length > 0) {
           const sorted = [...apiEntities].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
           setOrgEntities(sorted);
@@ -478,13 +480,29 @@ export function App() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [currentUser?.id]);
 
   // Real-Time Synchronization State & Listener (المزامنة الفورية اللحظية عند إضافة/تعديل/حذف)
   const [syncStatus, setSyncStatus] = useState<'connected' | 'reconnecting' | 'polling'>('connected');
+
+  // فشل الحفظ على الخادم يُعرض للمستخدم بسببه الحقيقي
+  const [saveError, setSaveError] = useState<string | null>(null);
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const off = api.onApiError((message) => {
+      setSaveError(message);
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => setSaveError(null), 12000);
+    });
+    return () => {
+      off();
+      if (timer) clearTimeout(timer);
+    };
+  }, []);
   const lastOrgEntitySaveTimeRef = useRef<number>(0);
 
   useEffect(() => {
+    if (!currentUser) return;
     const unsubscribe = api.subscribeToRealtimeSync(
       async (event) => {
         try {
@@ -553,7 +571,7 @@ export function App() {
     return () => {
       unsubscribe();
     };
-  }, []);
+  }, [currentUser?.id]);
 
   // System Branding State
   const [branding, setBranding] = useState<SystemBranding>(() =>
@@ -2232,6 +2250,26 @@ export function App() {
     >
       {/* شريط الحالة: الاتصال بالخادم، ساعة الخادم، آخر نسخة احتياطية */}
       <StatusBar />
+      {saveError && (
+        <div
+          role="alert"
+          className="fixed bottom-4 inset-x-0 z-[200] mx-auto w-[min(92vw,34rem)] rounded-xl border border-rose-200 bg-rose-50 text-rose-900 shadow-lg px-4 py-3 flex items-start gap-3"
+        >
+          <AlertTriangle className="w-5 h-5 shrink-0 text-rose-600 mt-0.5" />
+          <div className="flex-1 text-sm font-bold leading-6">
+            <div>لم يُحفظ التعديل</div>
+            <div className="font-normal">{saveError}</div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setSaveError(null)}
+            className="shrink-0 rounded-lg p-1 hover:bg-rose-100 cursor-pointer"
+            title="إغلاق"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
 
       {/* Top Navigation Header with embedded mobile sub-header navigation */}
       <Header

@@ -10,36 +10,23 @@ import {
 } from '../types';
 import { safeSetItem, safeParse } from '../utils/storageUtils';
 import { sanitizeAndCompressAttachments } from '../utils/imageCompressor';
-import * as firestoreClient from './firebaseClient';
+import {
+  BASE_API_URL,
+  getSessionToken,
+  setSessionToken,
+  apiRequest,
+  reportApiError,
+  requestResync,
+  onResyncRequested,
+  onApiError,
+  NETWORK_ERROR_MESSAGE,
+  type ApiResult,
+} from './http';
 import { syncQueue, SyncQueueStatus } from './syncQueue';
-import { INITIAL_ORG_ENTITIES } from '../data/mockData';
 
 export { syncQueue, type SyncQueueStatus };
+export { getSessionToken, setSessionToken, onApiError };
 
-
-const BASE_API_URL = '/api';
-
-/**
- * Enterprise Security Session Token Management
- */
-export function getSessionToken(): string | null {
-  try {
-    return localStorage.getItem('app_session_token') || sessionStorage.getItem('app_session_token');
-  } catch {
-    return null;
-  }
-}
-
-export function setSessionToken(token: string | null): void {
-  try {
-    if (token) {
-      localStorage.setItem('app_session_token', token);
-    } else {
-      localStorage.removeItem('app_session_token');
-      sessionStorage.removeItem('app_session_token');
-    }
-  } catch {}
-}
 
 /**
  * Secure Server-side Authentication with Brute-Force & Lockout Defense
@@ -199,660 +186,343 @@ async function fetchJson<T>(
 }
 
 // ============================================================================
-// 1. Units & Fixed Assets (الأصول والوحدات الثابتة)
+// طبقة البيانات (المرحلة 2): خادم النظام هو المصدر المعتمد الوحيد.
+//  - القراءة من الخادم؛ النسخة المحلية في المتصفح للعرض عند انقطاع الاتصال فقط.
+//  - الحفظ عمليات على سجلات محددة مع رقم النسخة (_v)، لا استبدال للقائمة كلها.
+//  - فشل الحفظ يُبلَّغ للمستخدم بسببه الحقيقي ثم تُعاد قراءة البيانات من الخادم.
 // ============================================================================
 
-export async function getUnits(): Promise<UnitAsset[]> {
-  try {
-    const firestoreUnits = await firestoreClient.getUnitsFromFirestore();
-    if (Array.isArray(firestoreUnits) && firestoreUnits.length > 0) {
-      safeSetItem('app_units', firestoreUnits);
-      return firestoreUnits;
+interface CollectionConfig<T> {
+  route: string;
+  cacheKey: string;
+  idOf: (record: T) => string;
+}
+
+class ServerCollection<T extends object> {
+  /** آخر ما عُرف عن الخادم: المعرّف → نص السجل */
+  private known = new Map<string, string>();
+  /** آخر نسخة أعادها الخادم بعد كتابة من هذه الجلسة: المعرّف → {من، إلى} */
+  private ownWrites = new Map<string, { from: number; to: number }>();
+  private loaded = false;
+
+  constructor(private cfg: CollectionConfig<T>) {}
+
+  private remember(records: T[]) {
+    this.known = new Map(records.map((r) => [this.cfg.idOf(r), JSON.stringify(r)]));
+    this.loaded = true;
+  }
+
+  private noteWrite(saved: any) {
+    const id = this.cfg.idOf(saved);
+    const to = Number(saved?._v) || 0;
+    this.ownWrites.set(id, { from: to - 1, to });
+    this.known.set(id, JSON.stringify(saved));
+  }
+
+  /** إن كان السجل مبنياً على النسخة التي سبقت آخر كتابة لنا مباشرة، فهو تعديل متتابع لا تعارض */
+  private withCurrentVersion(record: T): T {
+    const own = this.ownWrites.get(this.cfg.idOf(record));
+    const v = (record as any)._v;
+    if (own && (v === undefined || Number(v) === own.from)) return { ...record, _v: own.to };
+    return record;
+  }
+
+  async list(): Promise<T[]> {
+    const result = await apiRequest<T[]>('GET', `/${this.cfg.route}`);
+    if (result.ok && Array.isArray(result.data)) {
+      this.remember(result.data);
+      safeSetItem(this.cfg.cacheKey, result.data);
+      return result.data;
     }
-  } catch (err) {
-    console.warn('Firestore getUnits note:', err);
+    // انقطاع الاتصال: آخر نسخة معروضة، للقراءة فقط
+    return safeParse<T[]>(this.cfg.cacheKey, []);
   }
 
-  // Fallback to Express backend or LocalStorage
-  const data = await fetchJson<UnitAsset[]>(`${BASE_API_URL}/units`);
-  if (Array.isArray(data) && data.length > 0) {
-    safeSetItem('app_units', data);
-    return data;
+  private fail(result: ApiResult): void {
+    reportApiError(result.error || NETWORK_ERROR_MESSAGE);
+    if (result.status !== 0) requestResync();
   }
-  return safeParse('app_units', []);
-}
 
-export async function saveUnits(units: UnitAsset[]): Promise<boolean> {
-  safeSetItem('app_units', units);
-  try {
-    await firestoreClient.bulkSaveUnitsToFirestore(units);
-  } catch (err) {
-    console.warn('Firestore bulkSaveUnits error:', err);
-  }
-  fetchJson<{ success: boolean }>(`${BASE_API_URL}/units/bulk`, {
-    method: 'POST',
-    body: JSON.stringify({ units }),
-  }).catch(() => {});
-  return true;
-}
-
-export async function addUnit(unit: UnitAsset): Promise<UnitAsset> {
-  try {
-    await firestoreClient.saveUnitToFirestore(unit);
-  } catch (err) {
-    console.warn('Firestore saveUnit error:', err);
-  }
-  fetchJson<{ unit: UnitAsset }>(`${BASE_API_URL}/units`, {
-    method: 'POST',
-    body: JSON.stringify(unit),
-  }).catch(() => {});
-  return unit;
-}
-
-export async function updateUnit(unit: UnitAsset): Promise<UnitAsset> {
-  try {
-    await firestoreClient.saveUnitToFirestore(unit);
-  } catch (err) {
-    console.warn('Firestore updateUnit error:', err);
-  }
-  fetchJson<{ unit: UnitAsset }>(`${BASE_API_URL}/units/${encodeURIComponent(unit.code)}`, {
-    method: 'PUT',
-    body: JSON.stringify(unit),
-  }).catch(() => {});
-  return unit;
-}
-
-export async function deleteUnit(code: string): Promise<boolean> {
-  try {
-    await firestoreClient.deleteUnitFromFirestore(code);
-  } catch (err) {
-    console.warn('Firestore deleteUnit error:', err);
-  }
-  fetchJson<{ success: boolean }>(`${BASE_API_URL}/units/${encodeURIComponent(code)}`, {
-    method: 'DELETE',
-  }).catch(() => {});
-  return true;
-}
-
-// ============================================================================
-// 2. Maintenance Requests (أوامر وطلبات الصيانة)
-// ============================================================================
-
-export async function getMaintenanceRequests(): Promise<MaintenanceRequest[]> {
-  try {
-    const firestoreMaint = await firestoreClient.getMaintenanceFromFirestore();
-    if (Array.isArray(firestoreMaint) && firestoreMaint.length > 0) {
-      safeSetItem('app_maintenance_requests', firestoreMaint);
-      return firestoreMaint;
+  async upsert(record: T): Promise<T> {
+    const body = this.withCurrentVersion(record);
+    const result = await apiRequest<any>('POST', `/${this.cfg.route}`, body, 60000);
+    if (!result.ok) {
+      this.fail(result);
+      return record;
     }
-  } catch (err) {
-    console.warn('Firestore getMaintenance note:', err);
+    const saved = result.data && Object.values(result.data).find((v) => v && typeof v === 'object' && !Array.isArray(v));
+    if (saved) this.noteWrite(saved);
+    return (saved as T) || record;
   }
 
-  const data = await fetchJson<MaintenanceRequest[]>(`${BASE_API_URL}/maintenance`);
-  if (Array.isArray(data) && data.length > 0) {
-    safeSetItem('app_maintenance_requests', data);
-    return data;
+  async remove(id: string): Promise<boolean> {
+    const result = await apiRequest('DELETE', `/${this.cfg.route}/${encodeURIComponent(id)}`);
+    if (!result.ok) {
+      this.fail(result);
+      return false;
+    }
+    this.known.delete(id);
+    this.ownWrites.delete(id);
+    return true;
   }
-  return safeParse('app_maintenance_requests', []);
-}
 
-export async function saveMaintenanceRequests(requests: MaintenanceRequest[]): Promise<boolean> {
-  safeSetItem('app_maintenance_requests', requests);
-  try {
-    // Compress attachments in bulk if any
-    const compressedRequests = await Promise.all(
-      requests.map((r) => sanitizeAndCompressAttachments(r))
+  /**
+   * يحفظ قائمة كاملة بإرسال الفرق فقط: السجلات التي تغيّرت، والسجلات التي أُزيلت من القائمة.
+   * الفرق يُحسب فور الاستدعاء حتى لا يتأثر بتحديث يصل أثناء الانتظار.
+   */
+  async saveList(records: T[], prepare?: (r: T) => Promise<T>): Promise<boolean> {
+    const upserts: T[] = [];
+    const seen = new Set<string>();
+    for (const r of records) {
+      const id = this.cfg.idOf(r);
+      seen.add(id);
+      if (this.known.get(id) !== JSON.stringify(r)) upserts.push(this.withCurrentVersion(r));
+    }
+    // الحذف يقتصر على ما سبق أن قرأناه من الخادم؛ سجل أضافه مستخدم آخر ولم نره لا يُحذف
+    const deletes = this.loaded ? Array.from(this.known.keys()).filter((id) => !seen.has(id)) : [];
+    if (upserts.length === 0 && deletes.length === 0) return true;
+
+    const prepared = prepare ? await Promise.all(upserts.map(prepare)) : upserts;
+    const result = await apiRequest<{ records: T[] }>(
+      'POST',
+      `/${this.cfg.route}/batch`,
+      { upserts: prepared, deletes },
+      120000
     );
-    await firestoreClient.bulkSaveMaintenanceToFirestore(compressedRequests);
-  } catch (err) {
-    console.warn('Firestore bulkSaveMaintenance error:', err);
+    if (!result.ok) {
+      this.fail(result);
+      return false;
+    }
+    for (const saved of result.data?.records || []) this.noteWrite(saved);
+    for (const id of deletes) {
+      this.known.delete(id);
+      this.ownWrites.delete(id);
+    }
+    return true;
   }
-  fetchJson<{ success: boolean }>(`${BASE_API_URL}/maintenance/bulk`, {
-    method: 'POST',
-    body: JSON.stringify({ requests }),
-  }).catch(() => {});
-  return true;
 }
+
+const unitsStore = new ServerCollection<UnitAsset>({ route: 'units', cacheKey: 'app_units', idOf: (u) => u.code });
+const maintenanceStore = new ServerCollection<MaintenanceRequest>({
+  route: 'maintenance',
+  cacheKey: 'app_maintenance_requests',
+  idOf: (r) => r.id,
+});
+const occupancyStore = new ServerCollection<OccupancyRecord>({
+  route: 'occupancy',
+  cacheKey: 'app_occupancy_records',
+  idOf: (r) => r.id,
+});
+const inspectionsStore = new ServerCollection<PeriodicInspectionSchedule>({
+  route: 'inspections',
+  cacheKey: 'app_periodic_inspections',
+  idOf: (r) => r.id,
+});
+const orgEntitiesStore = new ServerCollection<OrgEntity>({
+  route: 'org-entities',
+  cacheKey: 'app_ref_org_entities',
+  idOf: (e) => e.id,
+});
+
+// ---- 1. الوحدات ----
+export const getUnits = (): Promise<UnitAsset[]> => unitsStore.list();
+export const saveUnits = (units: UnitAsset[]): Promise<boolean> => unitsStore.saveList(units);
+export const addUnit = (unit: UnitAsset): Promise<UnitAsset> => unitsStore.upsert(unit);
+export const updateUnit = (unit: UnitAsset): Promise<UnitAsset> => unitsStore.upsert(unit);
+export const deleteUnit = (code: string): Promise<boolean> => unitsStore.remove(code);
+
+// ---- 2. طلبات الصيانة (الإضافة والتعديل والحذف عبر قائمة الانتظار لتعمل دون اتصال) ----
+export const getMaintenanceRequests = (): Promise<MaintenanceRequest[]> => maintenanceStore.list();
+export const saveMaintenanceRequests = (requests: MaintenanceRequest[]): Promise<boolean> =>
+  maintenanceStore.saveList(requests, (r) => sanitizeAndCompressAttachments(r));
 
 export async function addMaintenanceRequest(req: MaintenanceRequest): Promise<MaintenanceRequest> {
-  // 1. Ensure any attached photo is safely compressed
   const compressed = await sanitizeAndCompressAttachments(req);
-
-  // 2. Enqueue in Offline Sync & Retry Queue (persisted locally and auto-pushed)
-  syncQueue.enqueue('create_maintenance', compressed.id, compressed).catch((err) => {
-    console.warn('Sync queue error on addMaintenanceRequest:', err);
-  });
-
+  syncQueue.enqueue('create_maintenance', compressed.id, compressed).catch(() => {});
   return compressed;
 }
 
 export async function updateMaintenanceRequest(req: MaintenanceRequest): Promise<MaintenanceRequest> {
-  // 1. Ensure any attached photo is safely compressed
   const compressed = await sanitizeAndCompressAttachments(req);
-
-  // 2. Enqueue in Offline Sync & Retry Queue
-  syncQueue.enqueue('update_maintenance', compressed.id, compressed).catch((err) => {
-    console.warn('Sync queue error on updateMaintenanceRequest:', err);
-  });
-
+  syncQueue.enqueue('update_maintenance', compressed.id, compressed).catch(() => {});
   return compressed;
 }
 
 export async function deleteMaintenanceRequest(id: string): Promise<boolean> {
-  syncQueue.enqueue('delete_maintenance', id, null).catch((err) => {
-    console.warn('Sync queue error on deleteMaintenanceRequest:', err);
-  });
+  syncQueue.enqueue('delete_maintenance', id, null).catch(() => {});
   return true;
 }
 
-// ============================================================================
-// 3. Occupancy Records (سجلات الإشغال والتسكين)
-// ============================================================================
+// ---- 3. سجلات الإشغال ----
+export const getOccupancyRecords = (): Promise<OccupancyRecord[]> => occupancyStore.list();
+export const saveOccupancyRecords = (records: OccupancyRecord[]): Promise<boolean> => occupancyStore.saveList(records);
+export const addOccupancyRecord = (record: OccupancyRecord): Promise<OccupancyRecord> => occupancyStore.upsert(record);
+export const updateOccupancyRecord = (record: OccupancyRecord): Promise<OccupancyRecord> =>
+  occupancyStore.upsert(record);
+export const deleteOccupancyRecord = (id: string): Promise<boolean> => occupancyStore.remove(id);
 
-export async function getOccupancyRecords(): Promise<OccupancyRecord[]> {
-  try {
-    const firestoreOcc = await firestoreClient.getOccupancyFromFirestore();
-    if (Array.isArray(firestoreOcc) && firestoreOcc.length > 0) {
-      safeSetItem('app_occupancy_records', firestoreOcc);
-      return firestoreOcc;
-    }
-  } catch (err) {
-    console.warn('Firestore getOccupancy note:', err);
-  }
-
-  const data = await fetchJson<OccupancyRecord[]>(`${BASE_API_URL}/occupancy`);
-  if (Array.isArray(data) && data.length > 0) {
-    safeSetItem('app_occupancy_records', data);
-    return data;
-  }
-  return safeParse('app_occupancy_records', []);
-}
-
-export async function saveOccupancyRecords(records: OccupancyRecord[]): Promise<boolean> {
-  safeSetItem('app_occupancy_records', records);
-  try {
-    await firestoreClient.bulkSaveOccupancyToFirestore(records);
-  } catch (err) {
-    console.warn('Firestore bulkSaveOccupancy error:', err);
-  }
-  fetchJson<{ success: boolean }>(`${BASE_API_URL}/occupancy/bulk`, {
-    method: 'POST',
-    body: JSON.stringify({ records }),
-  }).catch(() => {});
-  return true;
-}
-
-export async function addOccupancyRecord(record: OccupancyRecord): Promise<OccupancyRecord> {
-  try {
-    await firestoreClient.saveOccupancyToFirestore(record);
-  } catch (err) {
-    console.warn('Firestore saveOccupancy error:', err);
-  }
-  fetchJson<{ record: OccupancyRecord }>(`${BASE_API_URL}/occupancy`, {
-    method: 'POST',
-    body: JSON.stringify(record),
-  }).catch(() => {});
-  return record;
-}
-
-export async function updateOccupancyRecord(record: OccupancyRecord): Promise<OccupancyRecord> {
-  try {
-    await firestoreClient.saveOccupancyToFirestore(record);
-  } catch (err) {
-    console.warn('Firestore updateOccupancy error:', err);
-  }
-  fetchJson<{ record: OccupancyRecord }>(`${BASE_API_URL}/occupancy/${encodeURIComponent(record.id)}`, {
-    method: 'PUT',
-    body: JSON.stringify(record),
-  }).catch(() => {});
-  return record;
-}
-
-export async function deleteOccupancyRecord(id: string): Promise<boolean> {
-  try {
-    await firestoreClient.deleteOccupancyFromFirestore(id);
-  } catch (err) {
-    console.warn('Firestore deleteOccupancy error:', err);
-  }
-  fetchJson<{ success: boolean }>(`${BASE_API_URL}/occupancy/${encodeURIComponent(id)}`, {
-    method: 'DELETE',
-  }).catch(() => {});
-  return true;
-}
-
-// ============================================================================
-// 4. Periodic Safety & Technical Inspections (الكشوفات الدورية)
-// ============================================================================
-
-export async function getPeriodicInspections(): Promise<PeriodicInspectionSchedule[]> {
-  try {
-    const firestoreInsp = await firestoreClient.getInspectionsFromFirestore();
-    if (Array.isArray(firestoreInsp) && firestoreInsp.length > 0) {
-      safeSetItem('app_periodic_inspections', firestoreInsp);
-      return firestoreInsp;
-    }
-  } catch (err) {
-    console.warn('Firestore getInspections note:', err);
-  }
-
-  const data = await fetchJson<PeriodicInspectionSchedule[]>(`${BASE_API_URL}/inspections`);
-  if (Array.isArray(data) && data.length > 0) {
-    safeSetItem('app_periodic_inspections', data);
-    return data;
-  }
-  return safeParse('app_periodic_inspections', []);
-}
-
-export async function savePeriodicInspections(inspections: PeriodicInspectionSchedule[]): Promise<boolean> {
-  safeSetItem('app_periodic_inspections', inspections);
-  try {
-    const compressedInspections = await Promise.all(
-      inspections.map((i) => sanitizeAndCompressAttachments(i))
-    );
-    await firestoreClient.bulkSaveInspectionsToFirestore(compressedInspections);
-  } catch (err) {
-    console.warn('Firestore bulkSaveInspections error:', err);
-  }
-  fetchJson<{ success: boolean }>(`${BASE_API_URL}/inspections/bulk`, {
-    method: 'POST',
-    body: JSON.stringify({ inspections }),
-  }).catch(() => {});
-  return true;
-}
+// ---- 4. الكشوفات الدورية (عبر قائمة الانتظار لتعمل دون اتصال) ----
+export const getPeriodicInspections = (): Promise<PeriodicInspectionSchedule[]> => inspectionsStore.list();
+export const savePeriodicInspections = (inspections: PeriodicInspectionSchedule[]): Promise<boolean> =>
+  inspectionsStore.saveList(inspections, (r) => sanitizeAndCompressAttachments(r as any) as any);
 
 export async function addPeriodicInspection(item: PeriodicInspectionSchedule): Promise<PeriodicInspectionSchedule> {
-  // 1. Ensure any attached report/images are compressed
-  const compressed = await sanitizeAndCompressAttachments(item);
-
-  // 2. Enqueue in Offline Sync & Retry Queue
-  syncQueue.enqueue('create_inspection', compressed.id, compressed).catch((err) => {
-    console.warn('Sync queue error on addPeriodicInspection:', err);
-  });
-
+  const compressed = (await sanitizeAndCompressAttachments(item as any)) as PeriodicInspectionSchedule;
+  syncQueue.enqueue('create_inspection', compressed.id, compressed).catch(() => {});
   return compressed;
 }
 
 export async function updatePeriodicInspection(item: PeriodicInspectionSchedule): Promise<PeriodicInspectionSchedule> {
-  // 1. Ensure any attached report/images are compressed
-  const compressed = await sanitizeAndCompressAttachments(item);
-
-  // 2. Enqueue in Offline Sync & Retry Queue
-  syncQueue.enqueue('update_inspection', compressed.id, compressed).catch((err) => {
-    console.warn('Sync queue error on updatePeriodicInspection:', err);
-  });
-
+  const compressed = (await sanitizeAndCompressAttachments(item as any)) as PeriodicInspectionSchedule;
+  syncQueue.enqueue('update_inspection', compressed.id, compressed).catch(() => {});
   return compressed;
 }
 
 export async function deletePeriodicInspection(id: string): Promise<boolean> {
-  syncQueue.enqueue('delete_inspection', id, null).catch((err) => {
-    console.warn('Sync queue error on deletePeriodicInspection:', err);
-  });
+  syncQueue.enqueue('delete_inspection', id, null).catch(() => {});
   return true;
 }
 
-// ============================================================================
-// 5. Audit Logs (سجل التدقيق والعمليات)
-// ============================================================================
-
+// ---- 5. سجل النشاطات (إضافة فقط؛ الخادم لا يقبل تعديله ولا حذفه) ----
 export async function getAuditLogs(): Promise<AuditLogItem[]> {
-  try {
-    const firestoreLogs = await firestoreClient.getAuditLogsFromFirestore();
-    if (Array.isArray(firestoreLogs) && firestoreLogs.length > 0) {
-      safeSetItem('app_audit_logs', firestoreLogs);
-      return firestoreLogs;
-    }
-  } catch (err) {
-    console.warn('Firestore getAuditLogs note:', err);
-  }
-
-  const data = await fetchJson<AuditLogItem[]>(`${BASE_API_URL}/audit-logs`);
-  if (Array.isArray(data) && data.length > 0) {
-    safeSetItem('app_audit_logs', data);
-    return data;
+  const result = await apiRequest<AuditLogItem[]>('GET', '/audit-logs');
+  if (result.ok && Array.isArray(result.data)) {
+    safeSetItem('app_audit_logs', result.data);
+    return result.data;
   }
   return safeParse('app_audit_logs', []);
 }
 
 export async function addAuditLog(log: AuditLogItem): Promise<AuditLogItem> {
-  try {
-    await firestoreClient.addAuditLogToFirestore(log);
-  } catch (err) {
-    console.warn('Firestore addAuditLog error:', err);
-  }
-  fetchJson<{ log: AuditLogItem }>(`${BASE_API_URL}/audit-logs`, {
-    method: 'POST',
-    body: JSON.stringify(log),
-  }).catch(() => {});
+  // سجل وصفي ثانوي: فشله لا يقاطع المستخدم (سجل التدقيق الأساسي يكتبه الخادم نفسه)
+  await apiRequest('POST', '/audit-logs', log);
   return log;
 }
 
-// ============================================================================
-// 6. Organizational Entities (الهيكل التنظيمي والتشكيلات)
-// ============================================================================
+// ---- 6. الهيكل التنظيمي ----
+const byOrder = (a: OrgEntity, b: OrgEntity) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0);
+const withOrder = (entities: OrgEntity[]) =>
+  entities.map((e, idx) => ({ ...e, sortOrder: e.sortOrder !== undefined ? e.sortOrder : idx }));
 
 export async function getOrgEntities(): Promise<OrgEntity[]> {
-  try {
-    const firestoreEntities = await firestoreClient.getOrgEntitiesFromFirestore();
-    if (Array.isArray(firestoreEntities) && firestoreEntities.length > 0) {
-      const sorted = [...firestoreEntities].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
-      safeSetItem('app_ref_org_entities', sorted);
-      return sorted;
-    }
-  } catch (err) {
-    console.warn('Firestore getOrgEntities note:', err);
-  }
-
-  const data = await fetchJson<OrgEntity[]>(`${BASE_API_URL}/org-entities`);
-  if (Array.isArray(data) && data.length > 0) {
-    const sorted = [...data].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
-    safeSetItem('app_ref_org_entities', sorted);
-    return sorted;
-  }
-  const cached = safeParse('app_ref_org_entities', INITIAL_ORG_ENTITIES);
-  if (Array.isArray(cached) && cached.length > 0) {
-    return [...cached].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
-  }
-  return INITIAL_ORG_ENTITIES.map((e, idx) => ({ ...e, sortOrder: e.sortOrder ?? idx }));
+  return [...(await orgEntitiesStore.list())].sort(byOrder);
 }
 
-export async function saveOrgEntities(entities: OrgEntity[]): Promise<boolean> {
-  const ordered = entities.map((e, idx) => ({
-    ...e,
-    sortOrder: e.sortOrder !== undefined ? e.sortOrder : idx,
-  }));
-  safeSetItem('app_ref_org_entities', ordered);
-  try {
-    await firestoreClient.saveOrgEntitiesToFirestore(ordered);
-  } catch (err) {
-    console.warn('Firestore saveOrgEntities error:', err);
-  }
-  fetchJson<{ success: boolean }>(`${BASE_API_URL}/org-entities/bulk`, {
-    method: 'POST',
-    body: JSON.stringify({ entities: ordered }),
-  }).catch(() => {});
-  return true;
-}
-
-export async function addOrgEntity(entity: OrgEntity): Promise<OrgEntity> {
-  const current = safeParse<OrgEntity[]>('app_ref_org_entities', []);
-  const updated = [entity, ...current.filter((e) => e.id !== entity.id)];
-  safeSetItem('app_ref_org_entities', updated);
-  try {
-    await firestoreClient.saveOrgEntitiesToFirestore(updated);
-  } catch (err) {
-    console.warn('Firestore addOrgEntity error:', err);
-  }
-  fetchJson<{ entity: OrgEntity }>(`${BASE_API_URL}/org-entities`, {
-    method: 'POST',
-    body: JSON.stringify(entity),
-  }).catch(() => {});
-  return entity;
-}
-
-export async function updateOrgEntity(entity: OrgEntity): Promise<OrgEntity> {
-  const current = safeParse<OrgEntity[]>('app_ref_org_entities', []);
-  const updated = current.map((e) => (e.id === entity.id ? entity : e));
-  safeSetItem('app_ref_org_entities', updated);
-  try {
-    await firestoreClient.saveOrgEntitiesToFirestore(updated);
-  } catch (err) {
-    console.warn('Firestore updateOrgEntity error:', err);
-  }
-  fetchJson<{ entity: OrgEntity }>(`${BASE_API_URL}/org-entities/${encodeURIComponent(entity.id)}`, {
-    method: 'PUT',
-    body: JSON.stringify(entity),
-  }).catch(() => {});
-  return entity;
-}
-
-export async function deleteOrgEntity(id: string): Promise<boolean> {
-  const current = safeParse<OrgEntity[]>('app_ref_org_entities', []);
-  const updated = current.filter((e) => e.id !== id);
-  safeSetItem('app_ref_org_entities', updated);
-  try {
-    await firestoreClient.deleteOrgEntityFromFirestore(id);
-  } catch (err) {
-    console.warn('Firestore deleteOrgEntity error:', err);
-  }
-  fetchJson<{ success: boolean }>(`${BASE_API_URL}/org-entities/${encodeURIComponent(id)}`, {
-    method: 'DELETE',
-  }).catch(() => {});
-  return true;
-}
+export const saveOrgEntities = (entities: OrgEntity[]): Promise<boolean> =>
+  orgEntitiesStore.saveList(withOrder(entities));
+export const addOrgEntity = (entity: OrgEntity): Promise<OrgEntity> => orgEntitiesStore.upsert(entity);
+export const updateOrgEntity = (entity: OrgEntity): Promise<OrgEntity> => orgEntitiesStore.upsert(entity);
+export const deleteOrgEntity = (id: string): Promise<boolean> => orgEntitiesStore.remove(id);
 
 export async function deleteOrgEntitiesBatch(ids: string[]): Promise<boolean> {
-  const current = safeParse<OrgEntity[]>('app_ref_org_entities', []);
-  const idSet = new Set(ids);
-  const updated = current.filter((e) => !idSet.has(e.id));
-  safeSetItem('app_ref_org_entities', updated);
-  try {
-    await firestoreClient.deleteOrgEntitiesBatchFromFirestore(ids);
-  } catch (err) {
-    console.warn('Firestore deleteOrgEntitiesBatch error:', err);
+  const result = await apiRequest('POST', '/org-entities/batch', { upserts: [], deletes: ids });
+  if (!result.ok) {
+    reportApiError(result.error || NETWORK_ERROR_MESSAGE);
+    if (result.status !== 0) requestResync();
   }
-  for (const id of ids) {
-    fetchJson<{ success: boolean }>(`${BASE_API_URL}/org-entities/${encodeURIComponent(id)}`, {
-      method: 'DELETE',
-    }).catch(() => {});
-  }
-  return true;
+  return result.ok;
 }
 
-export async function clearOrgEntities(): Promise<boolean> {
-  safeSetItem('app_ref_org_entities', []);
-  try {
-    await firestoreClient.clearOrgEntitiesFromFirestore();
-  } catch (err) {
-    console.warn('Firestore clearOrgEntities error:', err);
-  }
-  triggerServerResetModule('org_entities', 'clear').catch(() => {});
-  return true;
-}
+export const clearOrgEntities = (): Promise<boolean> => triggerServerResetModule('org_entities', 'clear');
+export const resetOrgEntitiesToDefault = (): Promise<boolean> => triggerServerResetModule('org_entities', 'default');
 
-export async function resetOrgEntitiesToDefault(): Promise<boolean> {
-  safeSetItem('app_ref_org_entities', INITIAL_ORG_ENTITIES);
-  try {
-    await firestoreClient.saveOrgEntitiesToFirestore(INITIAL_ORG_ENTITIES);
-  } catch (err) {
-    console.warn('Firestore resetOrgEntitiesToDefault error:', err);
+// ---- 7. هوية النظام ----
+async function postOrReport(path: string, body: unknown): Promise<boolean> {
+  const result = await apiRequest('POST', path, body, 60000);
+  if (!result.ok) {
+    reportApiError(result.error || NETWORK_ERROR_MESSAGE);
+    if (result.status !== 0) requestResync();
   }
-  triggerServerResetModule('org_entities', 'default').catch(() => {});
-  return true;
+  return result.ok;
 }
-
-// ============================================================================
-// 7. System Branding (الهوية البصرية وإعدادات النظام)
-// ============================================================================
 
 export async function getBranding(): Promise<SystemBranding | null> {
-  try {
-    const firestoreBranding = await firestoreClient.getBrandingFromFirestore();
-    if (firestoreBranding) {
-      safeSetItem('app_branding', firestoreBranding);
-      return firestoreBranding;
-    }
-  } catch (err) {
-    console.warn('Firestore getBranding note:', err);
-  }
-
-  const data = await fetchJson<SystemBranding>(`${BASE_API_URL}/branding`);
-  if (data && typeof data === 'object' && data.systemName) {
-    safeSetItem('app_branding', data);
-    return data;
+  const result = await apiRequest<SystemBranding>('GET', '/branding');
+  if (result.ok && result.data && typeof result.data === 'object' && result.data.systemName) {
+    safeSetItem('app_branding', result.data);
+    return result.data;
   }
   return safeParse('app_branding', null);
 }
 
-export async function saveBranding(branding: SystemBranding): Promise<boolean> {
-  safeSetItem('app_branding', branding);
-  try {
-    await firestoreClient.saveBrandingToFirestore(branding);
-  } catch (err) {
-    console.warn('Firestore saveBranding error:', err);
-  }
-  fetchJson<{ success: boolean }>(`${BASE_API_URL}/branding`, {
-    method: 'POST',
-    body: JSON.stringify(branding),
-  }).catch(() => {});
-  return true;
-}
+export const saveBranding = (branding: SystemBranding): Promise<boolean> => postOrReport('/branding', branding);
 
-// ============================================================================
-// 8. System Users (حسابات المستخدمين والصلاحيات)
-// ============================================================================
+// ---- 8. المستخدمون ----
+let knownUserIds: Set<string> | null = null;
 
-// الخادم هو المصدر الوحيد لحسابات المستخدمين (لا تُقرأ من Firestore)
 export async function getUsers(): Promise<SystemUser[]> {
-  const data = await fetchJson<SystemUser[]>(`${BASE_API_URL}/users`);
-  if (Array.isArray(data) && data.length > 0) {
-    safeSetItem('app_users', data);
-    return data;
+  const result = await apiRequest<SystemUser[]>('GET', '/users');
+  if (result.ok && Array.isArray(result.data)) {
+    knownUserIds = new Set(result.data.map((u) => u.id));
+    safeSetItem('app_users', result.data);
+    return result.data;
   }
   return safeParse('app_users', []);
 }
 
 export async function saveUsers(users: SystemUser[]): Promise<boolean> {
-  safeSetItem('app_users', users);
-  try {
-    for (const u of users) {
-      await firestoreClient.saveUserToFirestore(u);
-    }
-  } catch (err) {
-    console.warn('Firestore saveUsers error:', err);
+  const ok = await postOrReport('/users/bulk', { users });
+  if (!ok) return false;
+  // الحسابات التي أُزيلت من القائمة تُحذف واحداً واحداً (الاستيراد الجماعي لا يحذف)
+  const keep = new Set(users.map((u) => u.id));
+  for (const id of knownUserIds || []) {
+    if (!keep.has(id)) await deleteUser(id);
   }
-  fetchJson<{ success: boolean }>(`${BASE_API_URL}/users/bulk`, {
-    method: 'POST',
-    body: JSON.stringify({ users }),
-  }).catch(() => {});
+  knownUserIds = keep;
   return true;
 }
 
 export async function addUser(user: SystemUser): Promise<SystemUser> {
-  try {
-    await firestoreClient.saveUserToFirestore(user);
-  } catch (err) {
-    console.warn('Firestore addUser error:', err);
-  }
-  fetchJson<{ user: SystemUser }>(`${BASE_API_URL}/users`, {
-    method: 'POST',
-    body: JSON.stringify(user),
-  }).catch(() => {});
+  await postOrReport('/users', user);
+  knownUserIds?.add(user.id);
   return user;
 }
 
 export async function updateUser(user: SystemUser): Promise<SystemUser> {
-  try {
-    await firestoreClient.saveUserToFirestore(user);
-  } catch (err) {
-    console.warn('Firestore updateUser error:', err);
+  const result = await apiRequest('PUT', `/users/${encodeURIComponent(user.id)}`, user);
+  if (!result.ok) {
+    reportApiError(result.error || NETWORK_ERROR_MESSAGE);
+    if (result.status !== 0) requestResync();
   }
-  fetchJson<{ user: SystemUser }>(`${BASE_API_URL}/users/${encodeURIComponent(user.id)}`, {
-    method: 'PUT',
-    body: JSON.stringify(user),
-  }).catch(() => {});
   return user;
 }
 
 export async function deleteUser(id: string): Promise<boolean> {
-  try {
-    await firestoreClient.deleteUserFromFirestore(id);
-  } catch (err) {
-    console.warn('Firestore deleteUser error:', err);
+  const result = await apiRequest('DELETE', `/users/${encodeURIComponent(id)}`);
+  if (!result.ok) {
+    reportApiError(result.error || NETWORK_ERROR_MESSAGE);
+    if (result.status !== 0) requestResync();
+    return false;
   }
-  fetchJson<{ success: boolean }>(`${BASE_API_URL}/users/${encodeURIComponent(id)}`, {
-    method: 'DELETE',
-  }).catch(() => {});
+  knownUserIds?.delete(id);
   return true;
 }
 
-// ============================================================================
-// 9. Reference Data (البيانات المرجعية - المحافظات، الحقول، المواقع، الأنواع)
-// ============================================================================
-
+// ---- 9. البيانات المرجعية ----
 export async function getReferenceData(): Promise<any | null> {
-  try {
-    const firestoreRef = await firestoreClient.getReferenceDataFromFirestore();
-    if (firestoreRef) return firestoreRef;
-  } catch (err) {
-    console.warn('Firestore getReferenceData note:', err);
-  }
-  const data = await fetchJson<any>(`${BASE_API_URL}/reference-data`);
-  return data;
+  const result = await apiRequest<any>('GET', '/reference-data');
+  return result.ok ? result.data : null;
 }
 
-export async function saveReferenceData(refData: any): Promise<boolean> {
-  try {
-    await firestoreClient.saveReferenceDataToFirestore(refData);
-  } catch (err) {
-    console.warn('Firestore saveReferenceData error:', err);
-  }
-  fetchJson<{ success: boolean }>(`${BASE_API_URL}/reference-data`, {
-    method: 'POST',
-    body: JSON.stringify(refData),
-  }).catch(() => {});
-  return true;
-}
+export const saveReferenceData = (refData: any): Promise<boolean> => postOrReport('/reference-data', refData);
 
-// ============================================================================
-// 10. System Factory Reset & Granular Reset API Actions
-// ============================================================================
-
+// ---- 10. ضبط المصنع وإعادة ضبط الأقسام ----
 export async function triggerServerFactoryReset(
   mode: 'wipe_all_except_admin' | 'full_default' = 'wipe_all_except_admin',
-  adminUser?: SystemUser
+  _adminUser?: SystemUser
 ): Promise<boolean> {
-  try {
-    if (adminUser) {
-      await firestoreClient.resetFirestoreComprehensive(adminUser);
-    }
-  } catch (err) {
-    console.warn('Firestore factory reset note:', err);
-  }
-
-  const res = await fetchJson<{ success: boolean }>(`${BASE_API_URL}/system/factory-reset`, {
-    method: 'POST',
-    body: JSON.stringify({ mode }),
-  });
-  return !!res?.success;
+  return postOrReport('/system/factory-reset', { mode });
 }
 
 export async function triggerServerResetModule(
   moduleName: 'units' | 'maintenance' | 'inspections' | 'occupancy' | 'users' | 'audit_logs' | 'org_entities',
   actionType: 'clear' | 'default'
 ): Promise<boolean> {
-  try {
-    if (actionType === 'clear') {
-      const colMap: Record<string, string> = {
-        units: 'units',
-        maintenance: 'maintenance_requests',
-        inspections: 'periodic_inspections',
-        occupancy: 'occupancy_records',
-        audit_logs: 'audit_logs',
-        org_entities: 'org_entities',
-      };
-      if (colMap[moduleName]) {
-        await firestoreClient.clearFirestoreCollection(colMap[moduleName]);
-      }
-    } else if (actionType === 'default') {
-      if (moduleName === 'org_entities') {
-        await firestoreClient.saveOrgEntitiesToFirestore(INITIAL_ORG_ENTITIES);
-      }
-    }
-  } catch (err) {
-    console.warn('Firestore reset module note:', err);
-  }
-
-  const res = await fetchJson<{ success: boolean }>(`${BASE_API_URL}/system/reset-module`, {
-    method: 'POST',
-    body: JSON.stringify({ moduleName, actionType }),
-  });
-  return !!res?.success;
+  return postOrReport('/system/reset-module', { moduleName, actionType });
 }
 
 // ============================================================================
-// 11. Real-Time Synchronization Listener (المزامنة الفورية اللحظية للبيانات)
+// 11. المزامنة اللحظية: أحداث الخادم (SSE) فقط
 // ============================================================================
 
 export interface RealtimeSyncEvent {
@@ -873,104 +543,46 @@ export interface RealtimeSyncEvent {
 }
 
 export async function getSyncVersion(): Promise<number> {
-  const data = await fetchJson<{ syncVersion: number }>(`${BASE_API_URL}/sync/version`);
-  return data?.syncVersion || 0;
+  const result = await apiRequest<{ syncVersion: number }>('GET', '/sync/version');
+  return result.data?.syncVersion || 0;
 }
 
 export async function getSyncAll(): Promise<any | null> {
-  const data = await fetchJson<any>(`${BASE_API_URL}/sync/all`);
-  return data;
+  const result = await apiRequest<any>('GET', '/sync/all');
+  return result.ok ? result.data : null;
 }
 
-/**
- * Subscribes to real-time synchronization events via Firestore real-time listeners
- * and fallback Server-Sent Events (SSE).
- */
 export function subscribeToRealtimeSync(
   onEvent: (event: RealtimeSyncEvent) => void,
   onStatusChange?: (status: 'connected' | 'reconnecting' | 'polling') => void
 ): () => void {
   onStatusChange?.('connected');
 
-  // Firestore real-time listeners
-  const unsubs: Array<() => void> = [];
+  // حفظ مرفوض أو تعارض نسخة: تُعاد قراءة كل شيء من الخادم
+  const offResync = onResyncRequested(() => {
+    onEvent({ type: 'all_updated', syncVersion: Date.now(), timestamp: Date.now() });
+  });
 
+  let source: EventSource | null = null;
   try {
-    const unsubUnits = firestoreClient.subscribeToFirestoreUnits((units) => {
-      onEvent({
-        type: 'units_updated',
-        syncVersion: Date.now(),
-        timestamp: Date.now(),
-        payload: units,
-      });
-    });
-    unsubs.push(unsubUnits);
-
-    const unsubMaint = firestoreClient.subscribeToFirestoreMaintenance((reqs) => {
-      onEvent({
-        type: 'maintenance_updated',
-        syncVersion: Date.now(),
-        timestamp: Date.now(),
-        payload: reqs,
-      });
-    });
-    unsubs.push(unsubMaint);
-
-    const unsubOcc = firestoreClient.subscribeToFirestoreOccupancy((records) => {
-      onEvent({
-        type: 'occupancy_updated',
-        syncVersion: Date.now(),
-        timestamp: Date.now(),
-        payload: records,
-      });
-    });
-    unsubs.push(unsubOcc);
-
-    const unsubInsp = firestoreClient.subscribeToFirestoreInspections((schedules) => {
-      onEvent({
-        type: 'inspections_updated',
-        syncVersion: Date.now(),
-        timestamp: Date.now(),
-        payload: schedules,
-      });
-    });
-    unsubs.push(unsubInsp);
-
-  } catch (err) {
-    console.warn('Firestore live listener setup note:', err);
-  }
-
-  // Also hook into SSE if available for server-originated broadcasts
-  let sseEventSource: EventSource | null = null;
-  try {
-    const sseToken = getSessionToken();
-    sseEventSource = new EventSource(
-      `${BASE_API_URL}/sync/events${sseToken ? `?token=${encodeURIComponent(sseToken)}` : ''}`
-    );
-    sseEventSource.onmessage = (e) => {
+    const token = getSessionToken();
+    source = new EventSource(`${BASE_API_URL}/sync/events${token ? `?token=${encodeURIComponent(token)}` : ''}`);
+    source.onopen = () => onStatusChange?.('connected');
+    source.onerror = () => onStatusChange?.('reconnecting');
+    source.onmessage = (e) => {
       try {
         if (!e.data || e.data.startsWith(':')) return;
         const parsed: RealtimeSyncEvent = JSON.parse(e.data);
-        if (parsed && parsed.timestamp) {
-          updateServerTimeFromTimestamp(parsed.timestamp);
-        }
-        if (parsed && parsed.type) {
-          onEvent(parsed);
-        }
+        if (parsed && parsed.timestamp) updateServerTimeFromTimestamp(parsed.timestamp);
+        if (parsed && parsed.type) onEvent(parsed);
       } catch {}
     };
   } catch {}
 
   return () => {
-    unsubs.forEach((unsub) => {
-      try {
-        unsub();
-      } catch {}
-    });
-    if (sseEventSource) {
-      try {
-        sseEventSource.close();
-      } catch {}
-    }
+    offResync();
+    try {
+      source?.close();
+    } catch {}
   };
 }

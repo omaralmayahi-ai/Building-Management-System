@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Clock, DatabaseBackup, Monitor, Wifi, WifiOff } from 'lucide-react';
+import { Clock, CloudUpload, Database, DatabaseBackup, Monitor, Wifi, WifiOff } from 'lucide-react';
 import { getSessionToken } from '../services/apiClient';
 
 // شريط الحالة (التصميم المعتمد): يقيس الاتصال بالخادم كل 5 ثوانٍ ويعرض ساعة الخادم وآخر نسخة احتياطية.
@@ -9,6 +9,10 @@ interface StatusResponse {
   clientIp: string;
   // null عندما لا يملك الحساب صلاحية عرض حالة النسخ الاحتياطي
   backup: { last: { at: string; type: string; name: string } | null } | null;
+  // مصدر البيانات المعتمد وحالته
+  storage?: { mode: 'postgres' | 'file'; healthy: boolean };
+  // مزامنة Firestore (للمدير فقط)
+  mirror?: { enabled: boolean; pending: number; lastSyncAt: string | null; lastError: string | null; skipped: number } | null;
 }
 
 type Quality = 'good' | 'weak' | 'offline' | 'checking';
@@ -153,6 +157,44 @@ export const StatusBar: React.FC = () => {
           <span className="font-semibold" dir="ltr">
             {data.clientIp}
           </span>
+        </span>
+      )}
+
+      {data?.storage && (
+        <span
+          className={cx(
+            'hidden items-center gap-1.5 sm:flex',
+            data.storage.mode === 'postgres' && !data.storage.healthy && 'font-semibold text-rose-700 dark:text-rose-300',
+            data.storage.mode === 'file' && 'font-semibold text-amber-700 dark:text-amber-300'
+          )}
+          title={
+            data.storage.mode === 'file'
+              ? 'البيانات تُحفظ في ملف محلي على الخادم. هذا الوضع للتجربة فقط؛ فعّل PostgreSQL من لوحة التحكم للتشغيل الفعلي'
+              : 'قاعدة البيانات المعتمدة للنظام'
+          }
+        >
+          <Database className="h-3.5 w-3.5" aria-hidden />
+          <span>
+            {data.storage.mode === 'file'
+              ? 'تخزين تجريبي (ملف محلي)'
+              : data.storage.healthy
+                ? 'PostgreSQL'
+                : 'قاعدة البيانات متوقفة'}
+          </span>
+        </span>
+      )}
+
+      {data?.mirror?.enabled && (
+        <span
+          className={cx('hidden items-center gap-1.5 lg:flex', data.mirror.lastError && 'text-amber-700 dark:text-amber-300')}
+          title={
+            data.mirror.lastError
+              ? `مزامنة Firestore متوقفة مؤقتاً: ${data.mirror.lastError}. العمل مستمر وتُرسل التغييرات عند عودة الاتصال`
+              : 'نسخة مزامنة تُرسل إلى Firestore عند توفر الإنترنت'
+          }
+        >
+          <CloudUpload className="h-3.5 w-3.5" aria-hidden />
+          <span>{data.mirror.pending > 0 ? `Firestore: بانتظار ${data.mirror.pending}` : 'Firestore: مُزامَن'}</span>
         </span>
       )}
 

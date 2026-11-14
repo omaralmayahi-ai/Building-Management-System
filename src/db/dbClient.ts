@@ -8,10 +8,16 @@ const { Pool } = pg;
 // Connection Pool Configuration
 let pool: pg.Pool | null = null;
 
+/** عنوان القاعدة من DATABASE_URL؛ القيمة النموذجية (CHANGE_ME) تُعدّ غير مضبوطة */
+export function configuredDatabaseUrl(): string {
+  const url = (process.env.DATABASE_URL || '').trim();
+  return url && !/CHANGE_ME/.test(url) ? url : '';
+}
+
 export function getDbPool(): pg.Pool | null {
   if (pool) return pool;
 
-  const connectionString = process.env.DATABASE_URL;
+  const connectionString = configuredDatabaseUrl();
   if (!connectionString) {
     return null;
   }
@@ -19,9 +25,11 @@ export function getDbPool(): pg.Pool | null {
   try {
     pool = new Pool({
       connectionString,
-      ssl: process.env.NODE_ENV === 'production' && !connectionString.includes('localhost') && !connectionString.includes('db:')
-        ? { rejectUnauthorized: false }
-        : false,
+      // التشفير يُفعَّل صراحةً فقط (قاعدة سحابية): DATABASE_SSL=true أو sslmode=require في العنوان
+      ssl:
+        process.env.DATABASE_SSL === 'true' || /sslmode=require/.test(connectionString)
+          ? { rejectUnauthorized: false }
+          : false,
       max: 20,
       idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 5000,

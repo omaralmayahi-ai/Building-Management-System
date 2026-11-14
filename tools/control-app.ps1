@@ -365,7 +365,150 @@ function Get-AppUrl {
     return "http://localhost:$(Get-AppPort)"
 }
 
+# ---------------------------------------------------------------------
+# PostgreSQL: قاعدة البيانات المعتمدة للنظام (قرار 14-11-2026)
+#  بدون DATABASE_URL في .env يحفظ الخادم في ملف محلي (.data\store.json) وهو وضع للتجربة فقط.
+# ---------------------------------------------------------------------
+function Test-PostgresMode {
+    $url = (Read-EnvFile)['DATABASE_URL']
+    if (-not $url) { return $false }
+    return ($url -notmatch 'CHANGE_ME')
+}
+
+function Get-PostgresBin {
+    $roots = @()
+    if ($env:ProgramFiles) { $roots += (Join-Path $env:ProgramFiles 'PostgreSQL') }
+    if (${env:ProgramFiles(x86)}) { $roots += (Join-Path ${env:ProgramFiles(x86)} 'PostgreSQL') }
+    foreach ($root in $roots) {
+        if (-not (Test-Path $root)) { continue }
+        foreach ($dir in (Get-ChildItem -LiteralPath $root -Directory | Sort-Object Name -Descending)) {
+            $bin = Join-Path $dir.FullName 'bin'
+            if (Test-Path (Join-Path $bin 'psql.exe')) { return $bin }
+        }
+    }
+    $cmd = Get-Command 'psql.exe' -ErrorAction SilentlyContinue
+    if ($cmd) { return (Split-Path -Parent $cmd.Source) }
+    return $null
+}
+
+function Show-PostgresDialog {
+    $f = New-DialogForm 'إعداد PostgreSQL' 480 300
+    $lbl = New-Object System.Windows.Forms.Label
+    $lbl.Text = 'بيانات مدير PostgreSQL (التي اخترتها عند تنصيبه). تُستخدم مرة واحدة لإنشاء قاعدة النظام ولا تُحفظ.'
+    $lbl.Location = New-Object System.Drawing.Point(20, 12)
+    $lbl.Size = New-Object System.Drawing.Size(440, 44)
+    $f.Controls.Add($lbl)
+    $fields = @(
+        @{ Key = 'Server';   Label = 'عنوان الخادم';         Value = '127.0.0.1'; Secret = $false },
+        @{ Key = 'Port';     Label = 'المنفذ';               Value = '5432';      Secret = $false },
+        @{ Key = 'Admin';    Label = 'اسم مدير PostgreSQL';  Value = 'postgres';  Secret = $false },
+        @{ Key = 'Password'; Label = 'كلمة مرور المدير';     Value = '';          Secret = $true }
+    )
+    $boxes = @{}
+    $y = 66
+    foreach ($fd in $fields) {
+        $l = New-Object System.Windows.Forms.Label
+        $l.Text = $fd.Label
+        $l.Location = New-Object System.Drawing.Point(20, ($y + 4))
+        $l.Size = New-Object System.Drawing.Size(170, 24)
+        $t = New-Object System.Windows.Forms.TextBox
+        $t.Location = New-Object System.Drawing.Point(200, $y)
+        $t.Size = New-Object System.Drawing.Size(250, 26)
+        $t.RightToLeft = 'No'
+        $t.Text = $fd.Value
+        if ($fd.Secret) { $t.UseSystemPasswordChar = $true }
+        $f.Controls.Add($l); $f.Controls.Add($t)
+        $boxes[$fd.Key] = $t
+        $y += 42
+    }
+    Add-DialogButtons $f ($y + 10)
+    while ($true) {
+        if ($f.ShowDialog($script:MainForm) -ne 'OK') { return $null }
+        $server = $boxes['Server'].Text.Trim()
+        $port = $boxes['Port'].Text.Trim()
+        $admin = $boxes['Admin'].Text.Trim()
+        if ($server -notmatch '^[A-Za-z0-9.\-]+$') { Show-Error 'عنوان الخادم غير صالح.'; continue }
+        if ($port -notmatch '^[0-9]{2,5}$') { Show-Error 'رقم المنفذ غير صالح.'; continue }
+        if ($admin -notmatch '^[A-Za-z0-9_]+$') { Show-Error 'اسم المدير غير صالح.'; continue }
+        if ($boxes['Password'].Text.Length -lt 1) { Show-Error 'اكتب كلمة مرور مدير PostgreSQL.'; continue }
+        return @{ Server = $server; Port = $port; Admin = $admin; Password = $boxes['Password'].Text }
+    }
+}
+
+function Invoke-SetupPostgres {
+    if (-not (Test-Path (Join-Path $script:AppDir 'node_modules'))) { throw 'المكتبات غير منصّبة. اضغط «تنصيب المكتبات» أولاً.' }
+    if (Test-PostgresMode) {
+        $code = Invoke-PanelTool ('storage "' + $script:AppDir + '"') 'اختبار الاتصال بقاعدة PostgreSQL...'
+        if ($code -eq 0) {
+            Write-Log '✔ PostgreSQL مُعدّ ويعمل، وهو المخزن المعتمد للنظام.'
+            Show-Info 'PostgreSQL مُعدّ ويعمل، وهو المخزن المعتمد للنظام.'
+            return
+        }
+        $err = Get-ToolValue 'ERROR'
+        if (-not (Confirm-Action "PostgreSQL مُعدّ في ملف الإعدادات لكن الاتصال به فشل:`n$err`n`nهل تريد إعادة إعداده الآن؟" 'إعداد PostgreSQL')) { return }
+    }
+    $bin = Get-PostgresBin
+    if (-not $bin) {
+        Show-Info "PostgreSQL غير منصّب على هذه الحاسبة.`n`nنصّبه أولاً (ملف التنصيب من postgresql.org ويعمل دون إنترنت بعد تنزيله)، واحفظ كلمة مرور المدير التي تختارها، ثم اضغط هذا الزر من جديد."
+        return
+    }
+    $d = Show-PostgresDialog
+    if (-not $d) { return }
+
+    Write-Log '════ إعداد PostgreSQL ════'
+    $pw = New-Secret
+    if ($pw.Length -gt 32) { $pw = $pw.Substring(0, 32) }
+    $sql = @'
+DO $do$
+BEGIN
+  IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'bms_user') THEN
+    CREATE ROLE bms_user LOGIN PASSWORD '__PW__';
+  ELSE
+    ALTER ROLE bms_user LOGIN PASSWORD '__PW__';
+  END IF;
+END
+$do$;
+SELECT 'CREATE DATABASE bms_db OWNER bms_user ENCODING ''UTF8'' TEMPLATE template0' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'bms_db')\gexec
+'@
+    $sql = $sql.Replace('__PW__', $pw)
+    $tmp = Join-Path ([IO.Path]::GetTempPath()) ('bms-pg-' + [Guid]::NewGuid().ToString('N') + '.sql')
+    [IO.File]::WriteAllText($tmp, $sql, $script:Utf8NoBom)
+    $psqlArgs = '-h "' + $d.Server + '" -p ' + $d.Port + ' -U "' + $d.Admin + '" -d postgres -v ON_ERROR_STOP=1 -f "' + $tmp + '"'
+    $env:PGPASSWORD = $d.Password
+    $script:QuietLog = $true
+    try {
+        $code = Invoke-Logged (Join-Path $bin 'psql.exe') $psqlArgs 'إنشاء مستخدم وقاعدة بيانات النظام...' $script:AppDir
+    } finally {
+        $script:QuietLog = $false
+        Remove-Item Env:PGPASSWORD -ErrorAction SilentlyContinue
+        Remove-Item -LiteralPath $tmp -Force -ErrorAction SilentlyContinue
+    }
+    if ($code -ne 0) {
+        $detail = ''
+        if ($script:LastOutput -and $script:LastOutput.Count -gt 0) { $detail = $script:LastOutput[$script:LastOutput.Count - 1] }
+        throw "تعذّر إعداد PostgreSQL. تحقق من كلمة مرور المدير ومن أن خدمة PostgreSQL تعمل.`n$detail"
+    }
+
+    $wasRunning = Test-AppUp
+    if ($wasRunning) { Stop-App }
+    $previous = (Read-EnvFile)['DATABASE_URL']
+    Set-EnvValues @{ DATABASE_URL = ('postgres://bms_user:' + $pw + '@' + $d.Server + ':' + $d.Port + '/bms_db') }
+    $code = Invoke-PanelTool ('storage "' + $script:AppDir + '"') 'اختبار الاتصال بقاعدة النظام...'
+    if ($code -ne 0) {
+        $err = Get-ToolValue 'ERROR'
+        if (-not $previous) { $previous = '' }
+        Set-EnvValues @{ DATABASE_URL = $previous }
+        Restart-AppIfWasRunning $wasRunning
+        throw "أُنشئت القاعدة لكن الاتصال بها فشل، فأُعيد الإعداد السابق: $err"
+    }
+    Write-Log '✔ PostgreSQL صار المخزن المعتمد للنظام (العنوان محفوظ في .env).'
+    Write-Log '  عند أول تشغيل تُنقل البيانات الحالية من الملف المحلي إلى PostgreSQL تلقائياً مرة واحدة.'
+    Restart-AppIfWasRunning $wasRunning
+    if (-not $wasRunning) { Show-Info 'تم إعداد PostgreSQL. اضغط «تشغيل» لبدء النظام عليه.' }
+}
+
 function Get-DbSizeText {
+    if (Test-PostgresMode) { return 'PostgreSQL' }
     if (Test-Path $script:DbFile) { return (Format-Size (Get-Item $script:DbFile).Length) }
     return '—'
 }
@@ -737,7 +880,7 @@ function Invoke-ApplyUpdate([string]$root, [string]$label) {
     $wasRunning = Test-AppUp
     if ($wasRunning) { Stop-App }
     try {
-        if (Test-Path $script:DbFile) { [void](New-Backup 'pre-update') }
+        if ((Test-PostgresMode) -or (Test-Path $script:DbFile)) { [void](New-Backup 'pre-update') }
 
         # نسخة الملفات التي ستُستبدل + قائمة الملفات الجديدة (للتراجع)
         $stamp = (Get-Date).ToString('yyyy-MM-dd_HHmmss')
@@ -825,7 +968,7 @@ function Invoke-UpdateFromGitHub {
     $wasRunning = Test-AppUp
     if ($wasRunning) { Stop-App }
     try {
-        if (Test-Path $script:DbFile) { [void](New-Backup 'pre-update') }
+        if ((Test-PostgresMode) -or (Test-Path $script:DbFile)) { [void](New-Backup 'pre-update') }
         Assert-Step (Invoke-Logged $git ($g + 'reset --hard origin/main') 'تطبيق التحديث...') 'فشل تطبيق التحديث.'
         $null = Invoke-Logged $git ($g + 'branch --set-upstream-to=origin/main main') ''
         Ensure-EnvFile
@@ -931,7 +1074,7 @@ function Save-UploadsMirror {
 function New-Backup([string]$Type = 'manual') {
     $node = Get-NodeExe
     if (-not $node) { throw 'Node.js غير موجود.' }
-    if (-not (Test-Path $script:DbFile)) { throw 'قاعدة البيانات غير موجودة (.data\store.json).' }
+    if (-not (Test-PostgresMode) -and -not (Test-Path $script:DbFile)) { throw 'قاعدة البيانات غير موجودة (.data\store.json).' }
     if (-not (Test-Path (Join-Path $script:AppDir 'script\backup-db.mjs'))) { throw 'الملف script\backup-db.mjs غير موجود.' }
     $name = (Get-Date).ToString('yyyy-MM-dd_HHmm')
     if ($Type -eq 'pre-restore') { $name = (Get-Date).ToString('yyyy-MM-dd_HHmmss') + '_before-restore' }
@@ -1246,7 +1389,7 @@ function Restore-Backup {
     Assert-PanelCurrent
     $file = Show-BackupPicker
     if (-not $file) { return }
-    if ((Resolve-Path -LiteralPath $file).Path -eq $script:DbFile) { throw 'اخترت قاعدة البيانات الحالية نفسها.' }
+    if ((Test-Path $script:DbFile) -and (Resolve-Path -LiteralPath $file).Path -eq $script:DbFile) { throw 'اخترت قاعدة البيانات الحالية نفسها.' }
 
     # فحص النسخة قبل أي تغيير: يجب أن تكون قاعدة سليمة
     $code = Invoke-PanelTool ('check "' + $file + '"') 'فحص النسخة المختارة...'
@@ -1264,11 +1407,21 @@ function Restore-Backup {
     Stop-App
     Write-Log '── نسخة أمان من البيانات الحالية قبل الاستعادة...'
     $safety = New-Backup 'pre-restore'
-    foreach ($suffix in @('', '-wal', '-shm', '-journal')) {
-        Remove-Item -LiteralPath ($script:DbFile + $suffix) -Force -ErrorAction SilentlyContinue
+    if (Test-PostgresMode) {
+        # المخزن المعتمد PostgreSQL: تُكتب محتويات النسخة في القاعدة نفسها
+        $code = Invoke-PanelTool ('restore "' + $file + '"') 'كتابة النسخة في قاعدة PostgreSQL...'
+        if ($code -ne 0) {
+            $err = Get-ToolValue 'ERROR'
+            Restart-AppIfWasRunning $wasRunning
+            throw "فشلت الاستعادة إلى PostgreSQL: $err`nالبيانات كما كانت قبلها محفوظة في: $safety"
+        }
+    } else {
+        foreach ($suffix in @('', '-wal', '-shm', '-journal')) {
+            Remove-Item -LiteralPath ($script:DbFile + $suffix) -Force -ErrorAction SilentlyContinue
+        }
+        Copy-Item -LiteralPath $file -Destination $script:DbFile -Force
+        if (Test-Path ($file + '-wal')) { Copy-Item -LiteralPath ($file + '-wal') -Destination ($script:DbFile + '-wal') -Force }
     }
-    Copy-Item -LiteralPath $file -Destination $script:DbFile -Force
-    if (Test-Path ($file + '-wal')) { Copy-Item -LiteralPath ($file + '-wal') -Destination ($script:DbFile + '-wal') -Force }
     # المرفقات لا تُحذف أبداً: نُعيد فقط ما هو مفقود من المخزن (لا نستبدل أي ملف موجود)
     $store = Join-Path $script:BackupDir '_uploads'
     if (Test-Path $store) {
@@ -1325,7 +1478,7 @@ function Show-AdminDialog([string]$hint) {
 
 function Invoke-ResetAdmin {
     if (-not (Test-Path (Join-Path $script:AppDir 'node_modules'))) { throw 'المكتبات غير منصّبة.' }
-    if (-not (Test-Path $script:DbFile)) { throw 'قاعدة البيانات غير موجودة.' }
+    if (-not (Test-PostgresMode) -and -not (Test-Path $script:DbFile)) { throw 'قاعدة البيانات غير موجودة.' }
     $a = Show-AdminDialog 'تعيين كلمة مرور جديدة لحساب موجود (مثلاً مدير النظام) إذا نُسيت. الحساب يُفعَّل إن كان معطّلاً.'
     if (-not $a) { return }
     # ملف البيانات يُحمَّل في ذاكرة الخادم: يجب إيقافه قبل التعديل وإلا كتب فوقه
@@ -1774,6 +1927,7 @@ Add-Group 'النسخ الاحتياطي' @(
 Add-Group 'الإعدادات والأمان' @(
     @('تغيير المنفذ',          { Invoke-ChangePort }),
     @('كلمة مرور المدير',     { Invoke-ResetAdmin }),
+    @('إعداد PostgreSQL',      { Invoke-SetupPostgres }),
     @('ملف الإعدادات .env',   { Open-EnvInNotepad }),
     @('حماية المجلدات',        { Invoke-ProtectFolders }),
     @('إلغاء الحماية',         { Invoke-UnprotectFolders })

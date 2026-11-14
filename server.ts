@@ -6,17 +6,9 @@ import crypto from 'crypto';
 import rateLimit from 'express-rate-limit';
 import { z } from 'zod';
 import { createServer as createViteServer } from 'vite';
-import { getDbPool, query } from './src/db/dbClient';
-import {
-  mapUnitRowToModel,
-  mapModelToUnitRow,
-  DbUnitRow,
-  DbMaintenanceRequestRow,
-  DbOccupancyRecordRow,
-  DbPeriodicInspectionRow,
-  DbAuditLogRow,
-  DbOrgEntityRow,
-} from './src/db/schema';
+import { configuredDatabaseUrl } from './src/db/dbClient';
+import { createStorage, type StorageOp } from './src/db/storage';
+import { createFirestoreMirror } from './src/db/firestoreMirror';
 import {
   INITIAL_UNITS,
   INITIAL_MAINTENANCE_REQUESTS,
@@ -199,7 +191,8 @@ async function startServer() {
   const LEGACY_PERSISTENCE_FILE_PATH = path.join(process.cwd(), 'data_store_backup.json');
   try {
     fs.mkdirSync(DATA_DIR, { recursive: true });
-    if (!fs.existsSync(PERSISTENCE_FILE_PATH) && fs.existsSync(LEGACY_PERSISTENCE_FILE_PATH)) {
+    // الملف القديم يُنسخ في وضع الملف فقط؛ مع PostgreSQL لا يُنشأ ملف بيانات محلي
+    if (!configuredDatabaseUrl() && !fs.existsSync(PERSISTENCE_FILE_PATH) && fs.existsSync(LEGACY_PERSISTENCE_FILE_PATH)) {
       fs.copyFileSync(LEGACY_PERSISTENCE_FILE_PATH, PERSISTENCE_FILE_PATH);
       fs.chmodSync(PERSISTENCE_FILE_PATH, 0o644);
     }
@@ -247,26 +240,159 @@ async function startServer() {
     console.warn('Note: Could not load persistence file on startup:', err);
   }
 
+  // ==========================================================================
+  // طبقة التخزين الدائم (المرحلة 2): PostgreSQL هو المصدر المعتمد عند ضبط DATABASE_URL
+  // ==========================================================================
+  class StorageUnavailableError extends Error {}
+  const storage = createStorage({ dataDir: DATA_DIR, dump: () => JSON.stringify(memStore, null, 2) });
+  type CollectionDef = { get: () => any[]; set: (rows: any[]) => void; idOf: (r: any) => string };
+  const COLLECTIONS: Record<string, CollectionDef> = {
+    units: { get: () => memStore.units, set: (r) => { memStore.units = r; }, idOf: (r) => String(r?.code) },
+    maintenance: { get: () => memStore.maintenance, set: (r) => { memStore.maintenance = r; }, idOf: (r) => String(r?.id) },
+    occupancy: { get: () => memStore.occupancy, set: (r) => { memStore.occupancy = r; }, idOf: (r) => String(r?.id) },
+    inspections: { get: () => memStore.inspections, set: (r) => { memStore.inspections = r; }, idOf: (r) => String(r?.id) },
+    auditLogs: { get: () => memStore.auditLogs, set: (r) => { memStore.auditLogs = r; }, idOf: (r) => String(r?.id) },
+    orgEntities: { get: () => memStore.orgEntities, set: (r) => { memStore.orgEntities = r; }, idOf: (r) => String(r?.id) },
+    users: { get: () => memStore.users, set: (r) => { memStore.users = r; }, idOf: (r) => String(r?.id) },
+    settings: {
+      get: () => [
+        { id: 'branding', value: memStore.branding },
+        { id: 'referenceData', value: memStore.referenceData ?? null },
+      ],
+      set: (rows) => {
+        for (const r of rows) {
+          if (r.id === 'branding' && r.value) memStore.branding = r.value;
+          if (r.id === 'referenceData') memStore.referenceData = r.value;
+        }
+      },
+      idOf: (r) => String(r?.id),
+    },
+    sessions: {
+      get: () => Array.from(activeSessions.values()),
+      set: (rows) => {
+        activeSessions.clear();
+        for (const s of rows) if (s && s.token && s.expiresAt > Date.now()) activeSessions.set(s.token, s);
+      },
+      idOf: (r) => String(r?.token),
+    },
+  };
+
+  const mirror = createFirestoreMirror({
+    dataDir: DATA_DIR,
+    getRecord: (collection, id) => {
+      const def = COLLECTIONS[collection];
+      return def ? def.get().find((r) => def.idOf(r) === id) ?? null : null;
+    },
+  });
+
+  // آخر ما كُتب فعلاً في المخزن الدائم: collection → id → JSON
+  const persisted = new Map<string, Map<string, string>>();
+  let dbHealthy = true;
+  let commitChain: Promise<void> = Promise.resolve();
+
+  /**
+   * يكتب الفرق بين الذاكرة والمخزن الدائم. عند الفشل تُعاد الذاكرة إلى آخر حالة محفوظة ويُرمى خطأ،
+   * فلا يرى المستخدم تعديلاً لم يُحفظ. ids اختيارية لتقليل المقارنة إلى سجلات بعينها.
+   */
+  function commit(keys?: string[], ids?: string[]): Promise<void> {
+    const run = async () => {
+      const targets = keys || Object.keys(COLLECTIONS);
+      const only = ids && targets.length === 1 ? new Set(ids) : null;
+      const ops: StorageOp[] = [];
+      const staged: Array<() => void> = [];
+      for (const key of targets) {
+        const def = COLLECTIONS[key];
+        let prev = persisted.get(key);
+        if (!prev) {
+          prev = new Map();
+          persisted.set(key, prev);
+        }
+        const prevMap = prev;
+        const seen = new Set<string>();
+        for (const row of def.get()) {
+          const id = def.idOf(row);
+          seen.add(id);
+          if (only && !only.has(id)) continue;
+          const json = JSON.stringify(row);
+          if (prevMap.get(id) !== json) {
+            ops.push({ t: 'put', c: key, id, data: row });
+            staged.push(() => prevMap.set(id, json));
+          }
+        }
+        for (const id of only ? Array.from(only) : Array.from(prevMap.keys())) {
+          if (!seen.has(id) && prevMap.has(id)) {
+            ops.push({ t: 'del', c: key, id });
+            staged.push(() => prevMap.delete(id));
+          }
+        }
+      }
+      if (ops.length === 0) return;
+      try {
+        await storage.apply(ops);
+      } catch (err) {
+        for (const key of targets) {
+          const prevMap = persisted.get(key)!;
+          COLLECTIONS[key].set(Array.from(prevMap.values()).map((j) => JSON.parse(j)));
+        }
+        if (storage.mode === 'postgres') dbHealthy = await storage.ping();
+        console.error('[storage] فشل الحفظ في المخزن الدائم:', (err as any)?.message || err);
+        throw new StorageUnavailableError('storage write failed');
+      }
+      for (const fn of staged) fn();
+      mirror.enqueue(ops);
+    };
+    const p = commitChain.then(run, run);
+    commitChain = p.catch(() => {});
+    return p;
+  }
+
+  async function loadFromStorage(): Promise<boolean> {
+    const snapshot = await storage.loadAll();
+    const hasData = Object.values(snapshot).some((rows) => rows.length > 0);
+    if (!hasData) return false;
+    for (const [key, def] of Object.entries(COLLECTIONS)) {
+      const rows = (snapshot[key] || []).map((r) => r.data);
+      if (key === 'orgEntities') rows.sort((a: any, b: any) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+      def.set(rows);
+      const map = new Map<string, string>();
+      for (const row of rows) map.set(def.idOf(row), JSON.stringify(row));
+      persisted.set(key, map);
+    }
+    return true;
+  }
+
+  let importedFromFile = false;
+  if (storage.mode === 'postgres') {
+    try {
+      await storage.init();
+      const loaded = await loadFromStorage();
+      // أول تشغيل على قاعدة فارغة: تُنقل إليها محتويات store.json الحالية (إن وُجدت) مرة واحدة
+      importedFromFile = !loaded && fs.existsSync(PERSISTENCE_FILE_PATH);
+      console.log(`[storage] PostgreSQL هو المصدر المعتمد${loaded ? '' : ' (قاعدة فارغة، ستُهيَّأ الآن)'}`);
+    } catch (err: any) {
+      console.error(`[storage] تعذّر الاتصال بقاعدة البيانات PostgreSQL المحددة في DATABASE_URL: ${err?.message || err}`);
+      console.error('[storage] لن يعمل الخادم دون قاعدته المعتمدة. تحقق من تشغيل خدمة PostgreSQL ومن DATABASE_URL في .env');
+      process.exit(1);
+    }
+  } else {
+    await storage.init();
+    console.warn('[storage] DATABASE_URL غير مضبوط: التخزين في ملف محلي (.data/store.json) — للتجربة فقط، غير معتمد للتشغيل الفعلي');
+  }
+
   // Seed default official Midland Oil Company organizational entities if empty
   if (!memStore.orgEntities || memStore.orgEntities.length === 0) {
-    memStore.orgEntities = INITIAL_ORG_ENTITIES;
-    try {
-      fs.writeFileSync(PERSISTENCE_FILE_PATH, JSON.stringify(memStore, null, 2), 'utf-8');
-    } catch (e) {}
+    memStore.orgEntities = [...INITIAL_ORG_ENTITIES];
   }
 
   // ترقية كلمات المرور المخزنة كنص صريح إلى scrypt عند الإقلاع
   if (memStore.users.some((u: any) => u && u.password && !isPasswordHashed(u.password))) {
     memStore.users = secureUsersForStore(memStore.users, memStore.users);
-    try {
-      fs.writeFileSync(PERSISTENCE_FILE_PATH, JSON.stringify(memStore, null, 2), 'utf-8');
-    } catch (e) {}
   }
 
   // الجلسات تُحفظ على القرص حتى لا يُسجَّل خروج المستخدمين عند إعادة تشغيل الخادم
   const SESSIONS_FILE_PATH = path.join(DATA_DIR, 'sessions.json');
   try {
-    if (fs.existsSync(SESSIONS_FILE_PATH)) {
+    if (storage.mode === 'file' && fs.existsSync(SESSIONS_FILE_PATH)) {
       const saved = JSON.parse(fs.readFileSync(SESSIONS_FILE_PATH, 'utf-8'));
       if (Array.isArray(saved)) {
         for (const s of saved) {
@@ -279,11 +405,44 @@ async function startServer() {
   }
 
   function saveSessions() {
+    if (storage.mode === 'postgres') {
+      void commit(['sessions']).catch(() => {});
+      return;
+    }
     try {
       fs.writeFileSync(SESSIONS_FILE_PATH, JSON.stringify(Array.from(activeSessions.values())), 'utf-8');
     } catch (err) {
       console.warn('Note: Could not write sessions file:', err);
     }
+  }
+
+  // أول كتابة: تثبيت الحالة الحالية (البذور وترقية كلمات المرور، أو الاستيراد الأول من الملف)
+  try {
+    await commit();
+    if (importedFromFile) {
+      fs.renameSync(PERSISTENCE_FILE_PATH, path.join(DATA_DIR, `store.imported-${Date.now()}.json`));
+      console.log('[storage] نُقلت بيانات store.json إلى PostgreSQL، وأُعيدت تسمية الملف');
+    }
+  } catch (err) {
+    console.error('[storage] تعذّرت الكتابة الأولى في المخزن الدائم');
+    if (storage.mode === 'postgres') process.exit(1);
+  }
+
+  // مراقبة قاعدة البيانات: عند انقطاعها تُرفض الطلبات بخطأ واضح، وعند عودتها تُعاد قراءة البيانات منها
+  if (storage.mode === 'postgres') {
+    const healthTimer = setInterval(async () => {
+      const ok = await storage.ping();
+      if (ok && !dbHealthy) {
+        try {
+          await loadFromStorage();
+          dbHealthy = true;
+          notifySyncChange('all_updated', { reason: 'db-recovered' });
+        } catch {}
+      } else {
+        dbHealthy = ok;
+      }
+    }, Math.max(1000, Number(process.env.BMS_DB_HEALTH_INTERVAL_MS) || 15000));
+    healthTimer.unref?.();
   }
 
   function getRequestSession(req: express.Request): ActiveSession | null {
@@ -302,13 +461,6 @@ async function startServer() {
     return session;
   }
 
-  function saveMemStoreToDisk() {
-    try {
-      fs.writeFileSync(PERSISTENCE_FILE_PATH, JSON.stringify(memStore, null, 2), 'utf-8');
-    } catch (err) {
-      console.warn('Note: Could not write persistence file:', err);
-    }
-  }
 
   // ==========================================================================
   // Real-Time Synchronization Bus (SSE & Event Push)
@@ -318,7 +470,6 @@ async function startServer() {
 
   function notifySyncChange(eventType: string, payload?: any) {
     syncVersion = Date.now();
-    saveMemStoreToDisk();
     const eventData = JSON.stringify({
       type: eventType,
       syncVersion,
@@ -370,6 +521,11 @@ async function startServer() {
     // الإعدادات والمستخدمون والهيكل التنظيمي وكل عمليات الاستبدال الجماعي: مدير النظام فقط
     if (ADMIN_ONLY_PREFIXES.some((p) => apiPath === p || apiPath.startsWith(p + '/'))) return false;
     if (apiPath.endsWith('/bulk')) return false;
+    // الدفعة: يكفي أن يملك الدور إحدى عمليات القسم؛ كل سجل يُفحص داخل المسار نفسه
+    if (apiPath.endsWith('/batch')) {
+      const base = apiPath.slice(0, -'/batch'.length);
+      return isWriteAllowed('POST', base, kind) || isWriteAllowed('PUT', `${base}/x`, kind);
+    }
     const section = apiPath.split('/')[1] || '';
     if (method === 'DELETE') return kind === 'operator' && ['units', 'maintenance', 'occupancy', 'inspections'].includes(section);
     switch (section) {
@@ -403,6 +559,14 @@ async function startServer() {
     { method: 'POST', pattern: /^\/units\/bulk$/, schema: z.object({ units: z.array(unitSchema).max(50000).optional() }).passthrough() },
     { method: 'POST', pattern: /^\/(maintenance|occupancy|inspections)$/, schema: linkedRecordSchema },
     { method: 'PUT', pattern: /^\/(maintenance|occupancy|inspections)\/[^/]+$/, schema: linkedRecordSchema },
+    {
+      method: 'POST',
+      pattern: /^\/[a-z-]+\/batch$/,
+      schema: z.object({
+        upserts: z.array(z.object({}).passthrough()).max(50000).optional(),
+        deletes: z.array(idField).max(50000).optional(),
+      }),
+    },
     { method: 'POST', pattern: /^\/org-entities$/, schema: orgEntitySchema },
     { method: 'PUT', pattern: /^\/org-entities\/[^/]+$/, schema: orgEntitySchema },
     { method: 'POST', pattern: /^\/users\/bulk$/, schema: z.object({ users: z.array(z.object({ id: idField, username: idField }).passthrough()).max(5000).optional() }).passthrough() },
@@ -416,6 +580,39 @@ async function startServer() {
     const issue = result.error.issues[0];
     return `${issue.path.join('.') || 'الطلب'} — ${issue.message}`;
   }
+
+  // سجل تدقيق يكتبه الخادم مع كل عملية كتابة (ناجحة أو مرفوضة)، بلا محتوى الطلب
+  app.use('/api', (req, res, next) => {
+    if (req.method !== 'GET' && req.method !== 'HEAD' && req.method !== 'OPTIONS') {
+      const apiPath = req.path;
+      if (apiPath !== '/audit-logs' && apiPath !== '/auth/verify-session') {
+        res.on('finish', () => {
+          const session = (req as any).session as ActiveSession | undefined;
+          storage
+            .appendAudit({
+              at: new Date().toISOString(),
+              userId: session?.userId || '',
+              userName: session?.username || (apiPath === '/auth/login' ? String(req.body?.username || '').slice(0, 100) : ''),
+              role: session?.role || '',
+              method: req.method,
+              path: apiPath.slice(0, 300),
+              status: res.statusCode,
+              ip: (req.ip || '').replace(/^::ffff:/, ''),
+            })
+            .catch(() => {});
+        });
+      }
+    }
+    // قاعدة البيانات المعتمدة متوقفة: خطأ واضح بدل بيانات قديمة
+    if (!dbHealthy && !['/health', '/health/', '/server-time', '/status'].includes(req.path) && !req.path.startsWith('/download')) {
+      return res.status(503).json({
+        success: false,
+        error: 'قاعدة البيانات غير متاحة حالياً. أعد المحاولة بعد قليل أو أبلغ مسؤول النظام.',
+        code: 'DB_UNAVAILABLE',
+      });
+    }
+    next();
+  });
 
   const PUBLIC_API_PATHS = new Set(['/health', '/health/', '/server-time', '/auth/login', '/auth/verify-session']);
   const ADMIN_ONLY_PREFIXES = ['/users', '/system', '/branding', '/reference-data', '/org-entities'];
@@ -456,26 +653,13 @@ async function startServer() {
 
   // Health check endpoint (public, no auth required)
   app.get('/api/health', async (req, res) => {
-    let dbStatus = 'disconnected';
-    const pool = getDbPool();
-    if (pool) {
-      try {
-        await query('SELECT 1');
-        dbStatus = 'connected';
-      } catch (err: any) {
-        dbStatus = `error: ${err.message}`;
-      }
-    }
-    const now = new Date();
-    const d = String(now.getDate()).padStart(2, '0');
-    const m = String(now.getMonth() + 1).padStart(2, '0');
-    const y = now.getFullYear();
+    // مسار عام: لا يعيد أي بيانات تشغيلية
     res.json({
       status: 'ok',
-      database: dbStatus,
-      timestamp: now.toISOString(),
-      serverTimeMs: now.getTime(),
-      serverDateFormatted: `${d}-${m}-${y}`,
+      storage: storage.mode,
+      database: storage.mode === 'postgres' ? (dbHealthy ? 'connected' : 'unavailable') : 'not-configured',
+      syncVersion,
+      timestamp: Date.now(),
     });
   });
 
@@ -529,6 +713,8 @@ async function startServer() {
       serverUtcOffset: -now.getTimezoneOffset(),
       clientIp: (req.ip || '').replace(/^::ffff:/, ''),
       backup: session && isAdminRole(session.role) ? readLastBackup() : null,
+      storage: { mode: storage.mode, healthy: dbHealthy },
+      mirror: session && isAdminRole(session.role) ? mirror.status() : null,
     });
   });
 
@@ -589,1152 +775,205 @@ async function startServer() {
   app.use('/api', apiLimiter);
 
   // ==========================================================================
-  // 1. Units API Endpoints
+  // 1. مجموعات البيانات — عمليات على السجل الواحد مع رقم نسخة (المرحلة 2)
   // ==========================================================================
-  app.get('/api/units', async (req, res) => {
-    try {
-      if (getDbPool()) {
-        const result = await query<DbUnitRow>('SELECT * FROM units ORDER BY last_updated DESC');
-        const units = result.rows.map(mapUnitRowToModel);
-        return res.json(units);
-      }
-    } catch (err) {
-      console.warn('DB query failed for /api/units, falling back to memory store:', err);
-    }
-    res.json(memStore.units);
-  });
+  function stampRecord(rec: any, existing: any, req: express.Request) {
+    const session = (req as any).session as ActiveSession | undefined;
+    return {
+      ...rec,
+      _v: (Number(existing?._v) || 0) + 1,
+      _updatedAt: new Date().toISOString(),
+      _updatedBy: session?.username || '',
+    };
+  }
 
-  app.post('/api/units', async (req, res) => {
-    const unit = req.body;
-    try {
-      if (getDbPool()) {
-        const row = mapModelToUnitRow(unit);
-        await query(
-          `INSERT INTO units (
-            id, code, fixed_asset_code, name, type, site_id, site_name, field, governorate,
-            condition_grade, construction_year, department, departments,
-            lat, lng, sector_address, total_area_sq_m, length_m, width_m, height_m,
-            building_shape, floors_count, rooms, equipment, attachments, attachments_count,
-            design_finishing, status, decommissioned_at, decommission_reason, last_updated
-          ) VALUES (
-            $1, $2, $3, $4, $5, $6, $7, $8, $9,
-            $10, $11, $12, $13,
-            $14, $15, $16, $17, $18, $19, $20,
-            $21, $22, $23, $24, $25, $26,
-            $27, $28, $29, $30, $31
-          ) ON CONFLICT (code) DO UPDATE SET
-            fixed_asset_code = EXCLUDED.fixed_asset_code,
-            name = EXCLUDED.name,
-            type = EXCLUDED.type,
-            site_id = EXCLUDED.site_id,
-            site_name = EXCLUDED.site_name,
-            field = EXCLUDED.field,
-            governorate = EXCLUDED.governorate,
-            condition_grade = EXCLUDED.condition_grade,
-            construction_year = EXCLUDED.construction_year,
-            department = EXCLUDED.department,
-            departments = EXCLUDED.departments,
-            lat = EXCLUDED.lat,
-            lng = EXCLUDED.lng,
-            sector_address = EXCLUDED.sector_address,
-            total_area_sq_m = EXCLUDED.total_area_sq_m,
-            length_m = EXCLUDED.length_m,
-            width_m = EXCLUDED.width_m,
-            height_m = EXCLUDED.height_m,
-            building_shape = EXCLUDED.building_shape,
-            floors_count = EXCLUDED.floors_count,
-            rooms = EXCLUDED.rooms,
-            equipment = EXCLUDED.equipment,
-            attachments = EXCLUDED.attachments,
-            attachments_count = EXCLUDED.attachments_count,
-            design_finishing = EXCLUDED.design_finishing,
-            status = EXCLUDED.status,
-            decommissioned_at = EXCLUDED.decommissioned_at,
-            decommission_reason = EXCLUDED.decommission_reason,
-            last_updated = EXCLUDED.last_updated`,
-          [
-            row.id, row.code, row.fixed_asset_code || null, row.name, row.type, row.site_id, row.site_name, row.field, row.governorate,
-            row.condition_grade, row.construction_year, row.department, JSON.stringify(row.departments),
-            row.lat, row.lng, row.sector_address, row.total_area_sq_m, row.length_m || null, row.width_m || null, row.height_m || null,
-            row.building_shape || 'rectangular', row.floors_count, JSON.stringify(row.rooms), JSON.stringify(row.equipment),
-            JSON.stringify(row.attachments), row.attachments_count, JSON.stringify(row.design_finishing),
-            row.status, row.decommissioned_at || null, row.decommission_reason || null, new Date().toISOString()
-          ]
-        );
-      }
-      const idx = memStore.units.findIndex((u) => u.code === unit.code);
-      if (idx >= 0) memStore.units[idx] = unit;
-      else memStore.units.unshift(unit);
-      notifySyncChange('units_updated', { action: 'add', code: unit.code });
-      return res.json({ success: true, unit });
-    } catch (err) {
-      console.error('DB insert failed for unit:', err);
-      return res.status(500).json({
+  function isVersionConflict(incoming: any, existing: any): boolean {
+    if (!existing || incoming?._v === undefined || incoming?._v === null) return false;
+    return Number(incoming._v) !== (Number(existing._v) || 0);
+  }
+
+  function storageFailure(res: express.Response, err: any) {
+    if (err instanceof StorageUnavailableError) {
+      return res.status(503).json({
         success: false,
-        error: 'فشل حفظ البيانات بقاعدة البيانات المركزية',
-        details: (err as any)?.message || String(err),
+        error: 'تعذّر الحفظ: قاعدة البيانات غير متاحة حالياً. لم يُحفظ التعديل.',
+        code: 'DB_UNAVAILABLE',
       });
     }
-  });
+    console.error('Request failed:', err);
+    return res.status(500).json({ success: false, error: 'فشل تنفيذ العملية على الخادم', code: 'SERVER_ERROR' });
+  }
 
-  app.put('/api/units/:code', async (req, res) => {
-    const unit = req.body;
-    try {
-      if (getDbPool()) {
-        const row = mapModelToUnitRow(unit);
-        await query(
-          `UPDATE units SET
-            fixed_asset_code = $1, name = $2, type = $3, site_id = $4, site_name = $5, field = $6, governorate = $7,
-            condition_grade = $8, construction_year = $9, department = $10, departments = $11,
-            lat = $12, lng = $13, sector_address = $14, total_area_sq_m = $15, length_m = $16,
-            width_m = $17, height_m = $18, building_shape = $19, floors_count = $20,
-            rooms = $21, equipment = $22, attachments = $23, attachments_count = $24,
-            design_finishing = $25, status = $26, decommissioned_at = $27,
-            decommission_reason = $28, last_updated = $29
-          WHERE code = $30`,
-          [
-            row.fixed_asset_code || null, row.name, row.type, row.site_id, row.site_name, row.field, row.governorate,
-            row.condition_grade, row.construction_year, row.department, JSON.stringify(row.departments),
-            row.lat, row.lng, row.sector_address, row.total_area_sq_m, row.length_m || null,
-            row.width_m || null, row.height_m || null, row.building_shape || 'rectangular', row.floors_count,
-            JSON.stringify(row.rooms), JSON.stringify(row.equipment), JSON.stringify(row.attachments),
-            row.attachments_count, JSON.stringify(row.design_finishing), row.status, row.decommissioned_at || null,
-            row.decommission_reason || null, new Date().toISOString(), req.params.code
-          ]
-        );
+  const CONFLICT_MESSAGE = 'عُدّل هذا السجل من مستخدم آخر بعد فتحه. حُدّثت البيانات على شاشتك، أعد التعديل إن لزم.';
+
+  function registerCollection(o: {
+    route: string;
+    key: 'units' | 'maintenance' | 'occupancy' | 'inspections' | 'auditLogs' | 'orgEntities';
+    event: string;
+    single: string;
+    appendOnly?: boolean;
+  }) {
+    const def = COLLECTIONS[o.key];
+    const list = () => def.get();
+    const find = (id: string) => list().find((r) => def.idOf(r) === id);
+    const put = (rec: any, replaceId?: string) => {
+      const rows = list();
+      const idx = rows.findIndex((r) => def.idOf(r) === (replaceId ?? def.idOf(rec)));
+      if (idx >= 0) rows[idx] = rec;
+      else rows.unshift(rec);
+    };
+    const remove = (id: string) => def.set(list().filter((r) => def.idOf(r) !== id));
+
+    app.get(`/api/${o.route}`, (req, res) => res.json(list()));
+
+    app.post(`/api/${o.route}`, async (req, res) => {
+      const id = def.idOf(req.body);
+      const existing = find(id);
+      if (o.appendOnly && existing) return res.json({ success: true, [o.single]: existing });
+      if (isVersionConflict(req.body, existing)) {
+        return res.status(409).json({ success: false, code: 'VERSION_CONFLICT', error: CONFLICT_MESSAGE, current: existing });
       }
-      const idx = memStore.units.findIndex((u) => u.code === req.params.code);
-      if (idx >= 0) memStore.units[idx] = unit;
-      else memStore.units.push(unit);
-      notifySyncChange('units_updated', { action: 'update', code: req.params.code });
-      return res.json({ success: true, unit });
-    } catch (err) {
-      console.error('DB update failed for unit:', err);
-      return res.status(500).json({
-        success: false,
-        error: 'فشل حفظ البيانات بقاعدة البيانات المركزية',
-        details: (err as any)?.message || String(err),
-      });
-    }
-  });
-
-  app.delete('/api/units/:code', async (req, res) => {
-    try {
-      if (getDbPool()) {
-        await query('DELETE FROM units WHERE code = $1', [req.params.code]);
+      const rec = stampRecord(req.body, existing, req);
+      put(rec);
+      try {
+        await commit([o.key], [id]);
+      } catch (err) {
+        return storageFailure(res, err);
       }
-      memStore.units = memStore.units.filter((u) => u.code !== req.params.code);
-      notifySyncChange('units_updated', { action: 'delete', code: req.params.code });
-      return res.json({ success: true });
-    } catch (err) {
-      console.error('DB delete failed for unit:', err);
-      return res.status(500).json({
-        success: false,
-        error: 'فشل حفظ البيانات بقاعدة البيانات المركزية',
-        details: (err as any)?.message || String(err),
-      });
-    }
-  });
+      notifySyncChange(o.event, { action: existing ? 'update' : 'add', id });
+      return res.json({ success: true, [o.single]: rec });
+    });
 
-  app.post('/api/units/bulk', async (req, res) => {
-    const { units } = req.body;
-    const unitList = units || [];
-    try {
-      const pool = getDbPool();
-      if (pool) {
-        const client = await pool.connect();
+    if (!o.appendOnly) {
+      app.put(`/api/${o.route}/:id`, async (req, res) => {
+        const paramId = req.params.id;
+        const existing = find(paramId);
+        if (isVersionConflict(req.body, existing)) {
+          return res.status(409).json({ success: false, code: 'VERSION_CONFLICT', error: CONFLICT_MESSAGE, current: existing });
+        }
+        const rec = stampRecord(req.body, existing, req);
+        put(rec, paramId);
         try {
-          await client.query('BEGIN');
-          if (unitList.length === 0) {
-            await client.query('DELETE FROM units');
-          } else {
-            const codes = unitList.map((u: any) => u.code);
-            await client.query('DELETE FROM units WHERE code != ALL($1::text[])', [codes]);
-            for (const u of unitList) {
-              const row = mapModelToUnitRow(u);
-              await client.query(
-                `INSERT INTO units (
-                  id, code, fixed_asset_code, name, type, site_id, site_name, field, governorate,
-                  condition_grade, construction_year, department, departments,
-                  lat, lng, sector_address, total_area_sq_m, length_m, width_m, height_m,
-                  building_shape, floors_count, rooms, equipment, attachments, attachments_count,
-                  design_finishing, status, decommissioned_at, decommission_reason, last_updated
-                ) VALUES (
-                  $1, $2, $3, $4, $5, $6, $7, $8, $9,
-                  $10, $11, $12, $13,
-                  $14, $15, $16, $17, $18, $19, $20,
-                  $21, $22, $23, $24, $25, $26,
-                  $27, $28, $29, $30, $31
-                ) ON CONFLICT (code) DO UPDATE SET
-                  fixed_asset_code = EXCLUDED.fixed_asset_code,
-                  name = EXCLUDED.name,
-                  type = EXCLUDED.type,
-                  site_id = EXCLUDED.site_id,
-                  site_name = EXCLUDED.site_name,
-                  field = EXCLUDED.field,
-                  governorate = EXCLUDED.governorate,
-                  condition_grade = EXCLUDED.condition_grade,
-                  construction_year = EXCLUDED.construction_year,
-                  department = EXCLUDED.department,
-                  departments = EXCLUDED.departments,
-                  lat = EXCLUDED.lat,
-                  lng = EXCLUDED.lng,
-                  sector_address = EXCLUDED.sector_address,
-                  total_area_sq_m = EXCLUDED.total_area_sq_m,
-                  length_m = EXCLUDED.length_m,
-                  width_m = EXCLUDED.width_m,
-                  height_m = EXCLUDED.height_m,
-                  building_shape = EXCLUDED.building_shape,
-                  floors_count = EXCLUDED.floors_count,
-                  rooms = EXCLUDED.rooms,
-                  equipment = EXCLUDED.equipment,
-                  attachments = EXCLUDED.attachments,
-                  attachments_count = EXCLUDED.attachments_count,
-                  design_finishing = EXCLUDED.design_finishing,
-                  status = EXCLUDED.status,
-                  decommissioned_at = EXCLUDED.decommissioned_at,
-                  decommission_reason = EXCLUDED.decommission_reason,
-                  last_updated = EXCLUDED.last_updated`,
-                [
-                  row.id, row.code, row.fixed_asset_code || null, row.name, row.type, row.site_id, row.site_name, row.field, row.governorate,
-                  row.condition_grade, row.construction_year, row.department, JSON.stringify(row.departments),
-                  row.lat, row.lng, row.sector_address, row.total_area_sq_m, row.length_m || null, row.width_m || null, row.height_m || null,
-                  row.building_shape || 'rectangular', row.floors_count, JSON.stringify(row.rooms), JSON.stringify(row.equipment),
-                  JSON.stringify(row.attachments), row.attachments_count, JSON.stringify(row.design_finishing),
-                  row.status, row.decommissioned_at || null, row.decommission_reason || null, new Date().toISOString()
-                ]
-              );
-            }
-          }
-          await client.query('COMMIT');
+          await commit([o.key], [paramId, def.idOf(rec)]);
         } catch (err) {
-          await client.query('ROLLBACK');
-          throw err;
-        } finally {
-          client.release();
+          return storageFailure(res, err);
         }
-      }
-      memStore.units = unitList;
-      notifySyncChange('units_updated', { action: 'bulk' });
-      return res.json({ success: true });
-    } catch (err) {
-      console.error('DB bulk save failed for units:', err);
-      return res.status(500).json({
-        success: false,
-        error: 'فشل حفظ البيانات بقاعدة البيانات المركزية',
-        details: (err as any)?.message || String(err),
+        notifySyncChange(o.event, { action: 'update', id: paramId });
+        return res.json({ success: true, [o.single]: rec });
       });
-    }
-  });
 
-  // ==========================================================================
-  // 2. Maintenance Requests API Endpoints
-  // ==========================================================================
-  app.get('/api/maintenance', async (req, res) => {
-    try {
-      if (getDbPool()) {
-        const result = await query<DbMaintenanceRequestRow>('SELECT * FROM maintenance_requests ORDER BY created_at DESC');
-        return res.json(result.rows.map((r) => ({
-          id: r.id,
-          unitCode: r.unit_code,
-          unitName: r.unit_name,
-          field: r.field,
-          issue: r.issue,
-          priority: r.priority as any,
-          slaDeadline: r.sla_deadline,
-          daysOverdue: r.days_overdue,
-          assignedTo: r.assigned_to,
-          status: r.status as any,
-          reportedBy: r.reported_by,
-          details: r.details,
-          resolutionNotes: r.resolution_notes,
-          completedBy: r.completed_by,
-          completedAt: r.completed_at,
-          sourceInspectionId: r.source_inspection_id,
-          attachmentName: r.attachment_name,
-          attachmentUrl: r.attachment_url,
-          attachments: r.attachments || [],
-        })));
-      }
-    } catch (err) {
-      console.warn('DB query failed for /api/maintenance:', err);
-    }
-    res.json(memStore.maintenance);
-  });
-
-  app.post('/api/maintenance', async (req, res) => {
-    const r = req.body;
-    try {
-      if (getDbPool()) {
-        await query(
-          `INSERT INTO maintenance_requests (
-            id, unit_code, unit_name, field, issue, priority, sla_deadline,
-            assigned_to, status, reported_by, details, source_inspection_id,
-            attachment_name, attachment_url, attachments
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
-          ON CONFLICT (id) DO UPDATE SET
-            status = EXCLUDED.status,
-            assigned_to = EXCLUDED.assigned_to,
-            issue = EXCLUDED.issue,
-            priority = EXCLUDED.priority,
-            resolution_notes = EXCLUDED.resolution_notes,
-            attachment_name = EXCLUDED.attachment_name,
-            attachment_url = EXCLUDED.attachment_url,
-            attachments = EXCLUDED.attachments`,
-          [
-            r.id, r.unitCode, r.unitName || null, r.field, r.issue, r.priority || 'normal',
-            r.slaDeadline || null, r.assignedTo, r.status || 'open', r.reportedBy,
-            r.details || null, r.sourceInspectionId || null,
-            r.attachmentName || null, r.attachmentUrl || null, JSON.stringify(r.attachments || [])
-          ]
-        );
-      }
-      const idx = memStore.maintenance.findIndex((m) => m.id === r.id);
-      if (idx >= 0) memStore.maintenance[idx] = r;
-      else memStore.maintenance.unshift(r);
-      notifySyncChange('maintenance_updated', { action: 'add', id: r.id });
-      return res.json({ success: true, request: r });
-    } catch (err) {
-      console.error('DB insert failed for maintenance request:', err);
-      return res.status(500).json({
-        success: false,
-        error: 'فشل حفظ البيانات بقاعدة البيانات المركزية',
-        details: (err as any)?.message || String(err),
-      });
-    }
-  });
-
-  app.put('/api/maintenance/:id', async (req, res) => {
-    const r = req.body;
-    try {
-      if (getDbPool()) {
-        await query(
-          `UPDATE maintenance_requests SET
-            status = $1, assigned_to = $2, issue = $3, priority = $4,
-            resolution_notes = $5, completed_by = $6, completed_at = $7,
-            attachment_name = $8, attachment_url = $9, attachments = $10
-          WHERE id = $11`,
-          [
-            r.status, r.assignedTo, r.issue, r.priority,
-            r.resolutionNotes || null, r.completedBy || null, r.completedAt || null,
-            r.attachmentName || null, r.attachmentUrl || null, JSON.stringify(r.attachments || []),
-            req.params.id
-          ]
-        );
-      }
-      const idx = memStore.maintenance.findIndex((m) => m.id === req.params.id);
-      if (idx >= 0) memStore.maintenance[idx] = r;
-      else memStore.maintenance.push(r);
-      notifySyncChange('maintenance_updated', { action: 'update', id: req.params.id });
-      return res.json({ success: true, request: r });
-    } catch (err) {
-      console.error('DB update failed for maintenance request:', err);
-      return res.status(500).json({
-        success: false,
-        error: 'فشل حفظ البيانات بقاعدة البيانات المركزية',
-        details: (err as any)?.message || String(err),
-      });
-    }
-  });
-
-  app.delete('/api/maintenance/:id', async (req, res) => {
-    try {
-      if (getDbPool()) {
-        await query('DELETE FROM maintenance_requests WHERE id = $1', [req.params.id]);
-      }
-      memStore.maintenance = memStore.maintenance.filter((m) => m.id !== req.params.id);
-      notifySyncChange('maintenance_updated', { action: 'delete', id: req.params.id });
-      return res.json({ success: true });
-    } catch (err) {
-      console.error('DB delete failed for maintenance request:', err);
-      return res.status(500).json({
-        success: false,
-        error: 'فشل حفظ البيانات بقاعدة البيانات المركزية',
-        details: (err as any)?.message || String(err),
-      });
-    }
-  });
-
-  app.post('/api/maintenance/bulk', async (req, res) => {
-    const requests = req.body.requests || [];
-    try {
-      const pool = getDbPool();
-      if (pool) {
-        const client = await pool.connect();
+      app.delete(`/api/${o.route}/:id`, async (req, res) => {
+        remove(req.params.id);
         try {
-          await client.query('BEGIN');
-          if (requests.length === 0) {
-            await client.query('DELETE FROM maintenance_requests');
-          } else {
-            const ids = requests.map((r: any) => r.id);
-            await client.query('DELETE FROM maintenance_requests WHERE id != ALL($1::text[])', [ids]);
-            for (const r of requests) {
-              await client.query(
-                `INSERT INTO maintenance_requests (
-                  id, unit_code, unit_name, field, issue, priority, sla_deadline,
-                  assigned_to, status, reported_by, details, source_inspection_id,
-                  resolution_notes, completed_by, completed_at,
-                  attachment_name, attachment_url, attachments
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
-                ON CONFLICT (id) DO UPDATE SET
-                  unit_code = EXCLUDED.unit_code,
-                  unit_name = EXCLUDED.unit_name,
-                  field = EXCLUDED.field,
-                  issue = EXCLUDED.issue,
-                  priority = EXCLUDED.priority,
-                  sla_deadline = EXCLUDED.sla_deadline,
-                  assigned_to = EXCLUDED.assigned_to,
-                  status = EXCLUDED.status,
-                  reported_by = EXCLUDED.reported_by,
-                  details = EXCLUDED.details,
-                  source_inspection_id = EXCLUDED.source_inspection_id,
-                  resolution_notes = EXCLUDED.resolution_notes,
-                  completed_by = EXCLUDED.completed_by,
-                  completed_at = EXCLUDED.completed_at,
-                  attachment_name = EXCLUDED.attachment_name,
-                  attachment_url = EXCLUDED.attachment_url,
-                  attachments = EXCLUDED.attachments`,
-                [
-                  r.id, r.unitCode, r.unitName || null, r.field, r.issue, r.priority || 'normal',
-                  r.slaDeadline || null, r.assignedTo, r.status || 'open', r.reportedBy,
-                  r.details || null, r.sourceInspectionId || null,
-                  r.resolutionNotes || null, r.completedBy || null, r.completedAt || null,
-                  r.attachmentName || null, r.attachmentUrl || null, JSON.stringify(r.attachments || [])
-                ]
-              );
-            }
-          }
-          await client.query('COMMIT');
+          await commit([o.key], [req.params.id]);
         } catch (err) {
-          await client.query('ROLLBACK');
-          throw err;
-        } finally {
-          client.release();
+          return storageFailure(res, err);
         }
-      }
-      memStore.maintenance = requests;
-      notifySyncChange('maintenance_updated', { action: 'bulk' });
-      return res.json({ success: true });
-    } catch (err) {
-      console.error('DB bulk save failed for maintenance:', err);
-      return res.status(500).json({
-        success: false,
-        error: 'فشل حفظ البيانات بقاعدة البيانات المركزية',
-        details: (err as any)?.message || String(err),
+        notifySyncChange(o.event, { action: 'delete', id: req.params.id });
+        return res.json({ success: true });
       });
     }
-  });
 
-  // ==========================================================================
-  // 3. Occupancy API Endpoints
-  // ==========================================================================
-  app.get('/api/occupancy', async (req, res) => {
-    try {
-      if (getDbPool()) {
-        const result = await query<DbOccupancyRecordRow>('SELECT * FROM occupancy_records ORDER BY created_at DESC');
-        return res.json(result.rows.map((r) => ({
-          id: r.id,
-          unitCode: r.unit_code,
-          roomId: r.room_id,
-          department: r.department,
-          useType: r.use_type,
-          allocationOrderNo: r.allocation_order_no,
-          startDate: r.start_date,
-          status: r.status as any,
-          capacityText: r.capacity_text,
-        })));
-      }
-    } catch (err) {
-      console.warn('DB query failed for /api/occupancy:', err);
-    }
-    res.json(memStore.occupancy);
-  });
-
-  app.post('/api/occupancy', async (req, res) => {
-    const o = req.body;
-    try {
-      if (getDbPool()) {
-        await query(
-          `INSERT INTO occupancy_records (
-            id, unit_code, room_id, department, use_type, allocation_order_no, start_date, status, capacity_text
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-          ON CONFLICT (id) DO UPDATE SET
-            department = EXCLUDED.department,
-            use_type = EXCLUDED.use_type,
-            status = EXCLUDED.status,
-            capacity_text = EXCLUDED.capacity_text`,
-          [o.id, o.unitCode, o.roomId, o.department, o.useType, o.allocationOrderNo, o.startDate, o.status, o.capacityText || null]
-        );
-      }
-      const idx = memStore.occupancy.findIndex((item) => item.id === o.id);
-      if (idx >= 0) memStore.occupancy[idx] = o;
-      else memStore.occupancy.unshift(o);
-      notifySyncChange('occupancy_updated', { action: 'add', id: o.id });
-      return res.json({ success: true, record: o });
-    } catch (err) {
-      console.error('DB insert failed for occupancy record:', err);
-      return res.status(500).json({
-        success: false,
-        error: 'فشل حفظ البيانات بقاعدة البيانات المركزية',
-        details: (err as any)?.message || String(err),
-      });
-    }
-  });
-
-  app.put('/api/occupancy/:id', async (req, res) => {
-    const o = req.body;
-    try {
-      if (getDbPool()) {
-        await query(
-          `UPDATE occupancy_records SET
-            department = $1, use_type = $2, status = $3, capacity_text = $4
-          WHERE id = $5`,
-          [o.department, o.useType, o.status, o.capacityText || null, req.params.id]
-        );
-      }
-      const idx = memStore.occupancy.findIndex((item) => item.id === req.params.id);
-      if (idx >= 0) memStore.occupancy[idx] = o;
-      else memStore.occupancy.push(o);
-      notifySyncChange('occupancy_updated', { action: 'update', id: req.params.id });
-      return res.json({ success: true, record: o });
-    } catch (err) {
-      console.error('DB update failed for occupancy record:', err);
-      return res.status(500).json({
-        success: false,
-        error: 'فشل حفظ البيانات بقاعدة البيانات المركزية',
-        details: (err as any)?.message || String(err),
-      });
-    }
-  });
-
-  app.delete('/api/occupancy/:id', async (req, res) => {
-    try {
-      if (getDbPool()) {
-        await query('DELETE FROM occupancy_records WHERE id = $1', [req.params.id]);
-      }
-      memStore.occupancy = memStore.occupancy.filter((o) => o.id !== req.params.id);
-      notifySyncChange('occupancy_updated', { action: 'delete', id: req.params.id });
-      return res.json({ success: true });
-    } catch (err) {
-      console.error('DB delete failed for occupancy record:', err);
-      return res.status(500).json({
-        success: false,
-        error: 'فشل حفظ البيانات بقاعدة البيانات المركزية',
-        details: (err as any)?.message || String(err),
-      });
-    }
-  });
-
-  app.post('/api/occupancy/bulk', async (req, res) => {
-    const records = req.body.records || [];
-    try {
-      const pool = getDbPool();
-      if (pool) {
-        const client = await pool.connect();
-        try {
-          await client.query('BEGIN');
-          if (records.length === 0) {
-            await client.query('DELETE FROM occupancy_records');
-          } else {
-            const ids = records.map((o: any) => o.id);
-            await client.query('DELETE FROM occupancy_records WHERE id != ALL($1::text[])', [ids]);
-            for (const o of records) {
-              await client.query(
-                `INSERT INTO occupancy_records (
-                  id, unit_code, room_id, department, use_type, allocation_order_no, start_date, status, capacity_text
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-                ON CONFLICT (id) DO UPDATE SET
-                  unit_code = EXCLUDED.unit_code,
-                  room_id = EXCLUDED.room_id,
-                  department = EXCLUDED.department,
-                  use_type = EXCLUDED.use_type,
-                  allocation_order_no = EXCLUDED.allocation_order_no,
-                  start_date = EXCLUDED.start_date,
-                  status = EXCLUDED.status,
-                  capacity_text = EXCLUDED.capacity_text`,
-                [o.id, o.unitCode, o.roomId, o.department, o.useType, o.allocationOrderNo, o.startDate, o.status, o.capacityText || null]
-              );
-            }
-          }
-          await client.query('COMMIT');
-        } catch (err) {
-          await client.query('ROLLBACK');
-          throw err;
-        } finally {
-          client.release();
+    // دفعة عمليات على سجلات محددة: إمّا تُطبَّق كلها أو لا يُطبَّق شيء
+    app.post(`/api/${o.route}/batch`, async (req, res) => {
+      const kind = roleKind(((req as any).session as ActiveSession).role);
+      const upserts: any[] = Array.isArray(req.body?.upserts) ? req.body.upserts : [];
+      const deletes: string[] = o.appendOnly ? [] : Array.isArray(req.body?.deletes) ? req.body.deletes.map(String) : [];
+      const conflicts: any[] = [];
+      for (const rec of upserts) {
+        const id = def.idOf(rec);
+        if (!id || id === 'undefined') {
+          return res.status(400).json({ success: false, error: 'بيانات الطلب غير صالحة: سجل بلا معرّف', code: 'INVALID_INPUT' });
         }
+        const existing = find(id);
+        const allowed = existing
+          ? isWriteAllowed('PUT', `/${o.route}/${id}`, kind)
+          : isWriteAllowed('POST', `/${o.route}`, kind);
+        if (!allowed) return res.status(403).json({ error: 'ليست لديك صلاحية تنفيذ هذه العملية', code: 'FORBIDDEN' });
+        if (isVersionConflict(rec, existing)) conflicts.push({ id, current: existing });
       }
-      memStore.occupancy = records;
-      notifySyncChange('occupancy_updated', { action: 'bulk' });
-      return res.json({ success: true });
+      if (deletes.length > 0 && !isWriteAllowed('DELETE', `/${o.route}/x`, kind)) {
+        return res.status(403).json({ error: 'ليست لديك صلاحية تنفيذ هذه العملية', code: 'FORBIDDEN' });
+      }
+      if (conflicts.length > 0) {
+        return res.status(409).json({ success: false, code: 'VERSION_CONFLICT', error: CONFLICT_MESSAGE, conflicts });
+      }
+      const records: any[] = [];
+      for (const rec of upserts) {
+        const existing = find(def.idOf(rec));
+        if (o.appendOnly && existing) continue;
+        const stamped = stampRecord(rec, existing, req);
+        put(stamped);
+        records.push(stamped);
+      }
+      for (const id of deletes) remove(id);
+      try {
+        await commit([o.key], [...records.map((r) => def.idOf(r)), ...deletes]);
+      } catch (err) {
+        return storageFailure(res, err);
+      }
+      if (records.length > 0 || deletes.length > 0) notifySyncChange(o.event, { action: 'batch' });
+      return res.json({ success: true, records });
+    });
+
+    // استيراد جماعي (للمدير): يضيف ويحدّث فقط، ولا يحذف ما ليس في القائمة
+    app.post(`/api/${o.route}/bulk`, async (req, res) => {
+      const items: any[] = (Object.values(req.body || {}).find((v) => Array.isArray(v)) as any[]) || [];
+      const ids: string[] = [];
+      for (const rec of items) {
+        const id = def.idOf(rec);
+        if (!id || id === 'undefined') continue;
+        const existing = find(id);
+        if (o.appendOnly && existing) continue;
+        put(stampRecord(rec, existing, req));
+        ids.push(id);
+      }
+      try {
+        await commit([o.key], ids);
+      } catch (err) {
+        return storageFailure(res, err);
+      }
+      if (ids.length > 0) notifySyncChange(o.event, { action: 'bulk' });
+      return res.json({ success: true, count: ids.length });
+    });
+  }
+
+  registerCollection({ route: 'units', key: 'units', event: 'units_updated', single: 'unit' });
+  registerCollection({ route: 'maintenance', key: 'maintenance', event: 'maintenance_updated', single: 'request' });
+  registerCollection({ route: 'occupancy', key: 'occupancy', event: 'occupancy_updated', single: 'record' });
+  registerCollection({ route: 'inspections', key: 'inspections', event: 'inspections_updated', single: 'inspection' });
+  registerCollection({ route: 'org-entities', key: 'orgEntities', event: 'org_entities_updated', single: 'entity' });
+  // سجل النشاطات: إضافة فقط — لا تعديل ولا حذف من أي مسار
+  registerCollection({ route: 'audit-logs', key: 'auditLogs', event: 'audit_logs_updated', single: 'log', appendOnly: true });
+
+  // سجل التدقيق الذي يكتبه الخادم نفسه مع كل عملية كتابة (للمدير، قراءة فقط)
+  app.get('/api/audit-trail', async (req, res) => {
+    const session = (req as any).session as ActiveSession;
+    if (!isAdminRole(session.role)) {
+      return res.status(403).json({ error: 'ليست لديك صلاحية تنفيذ هذه العملية', code: 'FORBIDDEN' });
+    }
+    const limit = Math.min(Math.max(Number(req.query.limit) || 200, 1), 2000);
+    try {
+      return res.json({ entries: await storage.readAudit(limit) });
     } catch (err) {
-      console.error('DB bulk save failed for occupancy:', err);
-      return res.status(500).json({
-        success: false,
-        error: 'فشل حفظ البيانات بقاعدة البيانات المركزية',
-        details: (err as any)?.message || String(err),
-      });
+      return storageFailure(res, new StorageUnavailableError());
     }
   });
 
   // ==========================================================================
-  // 4. Periodic Inspections API Endpoints
+  // 7. هوية النظام
   // ==========================================================================
-  app.get('/api/inspections', async (req, res) => {
-    try {
-      if (getDbPool()) {
-        const result = await query<DbPeriodicInspectionRow>('SELECT * FROM periodic_inspections ORDER BY next_due_date ASC');
-        return res.json(result.rows.map((r) => ({
-          id: r.id,
-          unitCode: r.unit_code,
-          unitName: r.unit_name,
-          field: r.field,
-          governorate: r.governorate,
-          inspectionType: r.inspection_type as any,
-          title: r.title,
-          frequency: r.frequency as any,
-          customIntervalDays: r.custom_interval_days,
-          lastInspectionDate: r.last_inspection_date,
-          nextDueDate: r.next_due_date,
-          assignedTeam: r.assigned_team,
-          inspectorName: r.inspector_name,
-          performedByName: r.performed_by_name,
-          status: r.status as any,
-          notes: r.notes,
-          conditionGradeGiven: r.condition_grade_given as any,
-          completionDate: r.completion_date,
-          findings: r.findings,
-          recommendations: r.recommendations,
-          reportFileName: r.report_file_name,
-          reportFileUrl: r.report_file_url,
-          attachments: r.attachments || [],
-          createdMaintenanceRequestId: r.created_maintenance_request_id,
-        })));
-      }
-    } catch (err) {
-      console.warn('DB query failed for /api/inspections:', err);
-    }
-    res.json(memStore.inspections);
-  });
-
-  app.post('/api/inspections', async (req, res) => {
-    const s = req.body;
-    try {
-      if (getDbPool()) {
-        await query(
-          `INSERT INTO periodic_inspections (
-            id, unit_code, unit_name, field, governorate, inspection_type, title,
-            frequency, custom_interval_days, last_inspection_date, next_due_date,
-            assigned_team, inspector_name, performed_by_name, status, notes, condition_grade_given,
-            completion_date, findings, recommendations, report_file_name, report_file_url,
-            attachments, created_maintenance_request_id
-          ) VALUES (
-            $1, $2, $3, $4, $5, $6, $7,
-            $8, $9, $10, $11,
-            $12, $13, $14, $15, $16, $17,
-            $18, $19, $20, $21, $22,
-            $23, $24
-          ) ON CONFLICT (id) DO UPDATE SET
-            status = EXCLUDED.status,
-            performed_by_name = EXCLUDED.performed_by_name,
-            completion_date = EXCLUDED.completion_date,
-            condition_grade_given = EXCLUDED.condition_grade_given,
-            findings = EXCLUDED.findings,
-            recommendations = EXCLUDED.recommendations,
-            next_due_date = EXCLUDED.next_due_date,
-            report_file_name = EXCLUDED.report_file_name,
-            report_file_url = EXCLUDED.report_file_url,
-            attachments = EXCLUDED.attachments`,
-          [
-            s.id, s.unitCode, s.unitName || null, s.field, s.governorate, s.inspectionType, s.title,
-            s.frequency || 'quarterly', s.customIntervalDays || null, s.lastInspectionDate, s.nextDueDate,
-            s.assignedTeam, s.inspectorName, s.performedByName || null, s.status || 'scheduled', s.notes || null, s.conditionGradeGiven || null,
-            s.completionDate || null, s.findings || null, s.recommendations || null, s.reportFileName || null, s.reportFileUrl || null,
-            JSON.stringify(s.attachments || []), s.createdMaintenanceRequestId || null
-          ]
-        );
-      }
-      const idx = memStore.inspections.findIndex((i) => i.id === s.id);
-      if (idx >= 0) memStore.inspections[idx] = s;
-      else memStore.inspections.unshift(s);
-      notifySyncChange('inspections_updated', { action: 'add', id: s.id });
-      return res.json({ success: true, inspection: s });
-    } catch (err) {
-      console.error('DB insert failed for inspection:', err);
-      return res.status(500).json({
-        success: false,
-        error: 'فشل حفظ البيانات بقاعدة البيانات المركزية',
-        details: (err as any)?.message || String(err),
-      });
-    }
-  });
-
-  app.put('/api/inspections/:id', async (req, res) => {
-    const s = req.body;
-    try {
-      if (getDbPool()) {
-        await query(
-          `UPDATE periodic_inspections SET
-            status = $1, completion_date = $2, condition_grade_given = $3,
-            findings = $4, recommendations = $5, next_due_date = $6,
-            performed_by_name = $7, notes = $8, inspector_name = $9,
-            assigned_team = $10, title = $11, frequency = $12,
-            custom_interval_days = $13, last_inspection_date = $14,
-            report_file_name = $15, report_file_url = $16,
-            attachments = $17, created_maintenance_request_id = $18
-          WHERE id = $19`,
-          [
-            s.status, s.completionDate || null, s.conditionGradeGiven || null,
-            s.findings || null, s.recommendations || null, s.nextDueDate,
-            s.performedByName || null, s.notes || null, s.inspectorName || 'مهندس الموقع',
-            s.assignedTeam || 'فريق الفحص', s.title || 'كشف دوري', s.frequency || 'quarterly',
-            s.customIntervalDays || null, s.lastInspectionDate,
-            s.reportFileName || null, s.reportFileUrl || null,
-            JSON.stringify(s.attachments || []), s.createdMaintenanceRequestId || null,
-            req.params.id
-          ]
-        );
-      }
-      const idx = memStore.inspections.findIndex((i) => i.id === req.params.id);
-      if (idx >= 0) memStore.inspections[idx] = s;
-      else memStore.inspections.push(s);
-      notifySyncChange('inspections_updated', { action: 'update', id: req.params.id });
-      return res.json({ success: true, inspection: s });
-    } catch (err) {
-      console.error('DB update failed for inspection:', err);
-      return res.status(500).json({
-        success: false,
-        error: 'فشل حفظ البيانات بقاعدة البيانات المركزية',
-        details: (err as any)?.message || String(err),
-      });
-    }
-  });
-
-  app.delete('/api/inspections/:id', async (req, res) => {
-    try {
-      if (getDbPool()) {
-        await query('DELETE FROM periodic_inspections WHERE id = $1', [req.params.id]);
-      }
-      memStore.inspections = memStore.inspections.filter((i) => i.id !== req.params.id);
-      notifySyncChange('inspections_updated', { action: 'delete', id: req.params.id });
-      return res.json({ success: true });
-    } catch (err) {
-      console.error('DB delete failed for inspection:', err);
-      return res.status(500).json({
-        success: false,
-        error: 'فشل حفظ البيانات بقاعدة البيانات المركزية',
-        details: (err as any)?.message || String(err),
-      });
-    }
-  });
-
-  app.post('/api/inspections/bulk', async (req, res) => {
-    const inspections = req.body.inspections || [];
-    try {
-      const pool = getDbPool();
-      if (pool) {
-        const client = await pool.connect();
-        try {
-          await client.query('BEGIN');
-          if (inspections.length === 0) {
-            await client.query('DELETE FROM periodic_inspections');
-          } else {
-            const ids = inspections.map((s: any) => s.id);
-            await client.query('DELETE FROM periodic_inspections WHERE id != ALL($1::text[])', [ids]);
-            for (const s of inspections) {
-              await client.query(
-                `INSERT INTO periodic_inspections (
-                  id, unit_code, unit_name, field, governorate, inspection_type, title,
-                  frequency, custom_interval_days, last_inspection_date, next_due_date,
-                  assigned_team, inspector_name, performed_by_name, status, notes, condition_grade_given,
-                  completion_date, findings, recommendations, report_file_name, report_file_url,
-                  attachments, created_maintenance_request_id
-                ) VALUES (
-                  $1, $2, $3, $4, $5, $6, $7,
-                  $8, $9, $10, $11,
-                  $12, $13, $14, $15, $16, $17,
-                  $18, $19, $20, $21, $22,
-                  $23, $24
-                ) ON CONFLICT (id) DO UPDATE SET
-                  unit_code = EXCLUDED.unit_code,
-                  unit_name = EXCLUDED.unit_name,
-                  field = EXCLUDED.field,
-                  governorate = EXCLUDED.governorate,
-                  inspection_type = EXCLUDED.inspection_type,
-                  title = EXCLUDED.title,
-                  frequency = EXCLUDED.frequency,
-                  custom_interval_days = EXCLUDED.custom_interval_days,
-                  last_inspection_date = EXCLUDED.last_inspection_date,
-                  next_due_date = EXCLUDED.next_due_date,
-                  assigned_team = EXCLUDED.assigned_team,
-                  inspector_name = EXCLUDED.inspector_name,
-                  performed_by_name = EXCLUDED.performed_by_name,
-                  status = EXCLUDED.status,
-                  notes = EXCLUDED.notes,
-                  condition_grade_given = EXCLUDED.condition_grade_given,
-                  completion_date = EXCLUDED.completion_date,
-                  findings = EXCLUDED.findings,
-                  recommendations = EXCLUDED.recommendations,
-                  report_file_name = EXCLUDED.report_file_name,
-                  report_file_url = EXCLUDED.report_file_url,
-                  attachments = EXCLUDED.attachments,
-                  created_maintenance_request_id = EXCLUDED.created_maintenance_request_id`,
-                [
-                  s.id, s.unitCode, s.unitName || null, s.field, s.governorate, s.inspectionType, s.title,
-                  s.frequency || 'quarterly', s.customIntervalDays || null, s.lastInspectionDate, s.nextDueDate,
-                  s.assignedTeam, s.inspectorName, s.performedByName || null, s.status || 'scheduled', s.notes || null, s.conditionGradeGiven || null,
-                  s.completionDate || null, s.findings || null, s.recommendations || null, s.reportFileName || null, s.reportFileUrl || null,
-                  JSON.stringify(s.attachments || []), s.createdMaintenanceRequestId || null
-                ]
-              );
-            }
-          }
-          await client.query('COMMIT');
-        } catch (err) {
-          await client.query('ROLLBACK');
-          throw err;
-        } finally {
-          client.release();
-        }
-      }
-      memStore.inspections = inspections;
-      notifySyncChange('inspections_updated', { action: 'bulk' });
-      return res.json({ success: true });
-    } catch (err) {
-      console.error('DB bulk save failed for inspections:', err);
-      return res.status(500).json({
-        success: false,
-        error: 'فشل حفظ البيانات بقاعدة البيانات المركزية',
-        details: (err as any)?.message || String(err),
-      });
-    }
-  });
-
-  // ==========================================================================
-  // 5. Audit Logs API Endpoints
-  // ==========================================================================
-  app.get('/api/audit-logs', async (req, res) => {
-    try {
-      if (getDbPool()) {
-        const result = await query<DbAuditLogRow>('SELECT * FROM audit_logs ORDER BY timestamp DESC LIMIT 200');
-        return res.json(result.rows.map((r) => ({
-          id: r.id,
-          unitCode: r.unit_code,
-          timestamp: r.timestamp,
-          action: r.action,
-          user: r.user_name,
-          userInitials: r.user_initials,
-          affectedField: r.affected_field,
-          previousValue: r.previous_value,
-          newValue: r.new_value,
-        })));
-      }
-    } catch (err) {
-      console.warn('DB query failed for /api/audit-logs:', err);
-    }
-    res.json(memStore.auditLogs);
-  });
-
-  app.post('/api/audit-logs', async (req, res) => {
-    const l = req.body;
-    try {
-      if (getDbPool()) {
-        await query(
-          `INSERT INTO audit_logs (id, unit_code, action, user_name, user_initials, affected_field, previous_value, new_value)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-          [l.id, l.unitCode || 'GLOBAL', l.action, l.user, l.userInitials || '—', l.affectedField, l.previousValue || null, l.newValue || null]
-        );
-      }
-      memStore.auditLogs.unshift(l);
-      if (memStore.auditLogs.length > 500) memStore.auditLogs.pop();
-      notifySyncChange('audit_logs_updated', { action: 'add' });
-      return res.json({ success: true, log: l });
-    } catch (err) {
-      console.error('DB insert failed for audit log:', err);
-      return res.status(500).json({
-        success: false,
-        error: 'فشل حفظ البيانات بقاعدة البيانات المركزية',
-        details: (err as any)?.message || String(err),
-      });
-    }
-  });
-
-  app.post('/api/audit-logs/bulk', async (req, res) => {
-    const logs = req.body.logs || [];
-    try {
-      const pool = getDbPool();
-      if (pool) {
-        const client = await pool.connect();
-        try {
-          await client.query('BEGIN');
-          if (logs.length === 0) {
-            await client.query('DELETE FROM audit_logs');
-          } else {
-            const ids = logs.map((l: any) => l.id);
-            await client.query('DELETE FROM audit_logs WHERE id != ALL($1::text[])', [ids]);
-            for (const l of logs) {
-              await client.query(
-                `INSERT INTO audit_logs (id, unit_code, action, user_name, user_initials, affected_field, previous_value, new_value)
-                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-                 ON CONFLICT (id) DO UPDATE SET
-                   unit_code = EXCLUDED.unit_code,
-                   action = EXCLUDED.action,
-                   user_name = EXCLUDED.user_name,
-                   user_initials = EXCLUDED.user_initials,
-                   affected_field = EXCLUDED.affected_field,
-                   previous_value = EXCLUDED.previous_value,
-                   new_value = EXCLUDED.new_value`,
-                [l.id, l.unitCode || 'GLOBAL', l.action, l.user, l.userInitials || '—', l.affectedField, l.previousValue || null, l.newValue || null]
-              );
-            }
-          }
-          await client.query('COMMIT');
-        } catch (err) {
-          await client.query('ROLLBACK');
-          throw err;
-        } finally {
-          client.release();
-        }
-      }
-      memStore.auditLogs = logs;
-      notifySyncChange('audit_logs_updated', { action: 'bulk' });
-      return res.json({ success: true });
-    } catch (err) {
-      console.error('DB bulk save failed for audit logs:', err);
-      return res.status(500).json({
-        success: false,
-        error: 'فشل حفظ البيانات بقاعدة البيانات المركزية',
-        details: (err as any)?.message || String(err),
-      });
-    }
-  });
-
-  // ==========================================================================
-  // 6. Organization Entities API Endpoints
-  // ==========================================================================
-  app.get('/api/org-entities', async (req, res) => {
-    try {
-      if (getDbPool()) {
-        const result = await query<DbOrgEntityRow>('SELECT * FROM org_entities');
-        if (result.rows && result.rows.length > 0) {
-          const list = result.rows.map((r: any) => ({
-            id: r.id,
-            code: r.code,
-            nameAr: r.name_ar,
-            nameEn: r.name_en,
-            parentId: r.parent_id,
-            level: r.level as any,
-            employeeCount: r.employee_count,
-            status: r.status,
-            sortOrder: r.sort_order !== undefined && r.sort_order !== null ? Number(r.sort_order) : 0,
-          }));
-          list.sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
-          return res.json(list);
-        }
-      }
-    } catch (err) {
-      console.warn('DB query failed for /api/org-entities:', err);
-    }
-    const memList = [...(memStore.orgEntities || [])];
-    memList.sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
-    res.json(memList);
-  });
-
-  app.post('/api/org-entities', async (req, res) => {
-    const e = req.body;
-    try {
-      if (getDbPool()) {
-        await query(
-          `INSERT INTO org_entities (id, code, name_ar, name_en, parent_id, level, employee_count, status)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-           ON CONFLICT (id) DO UPDATE SET
-             name_ar = EXCLUDED.name_ar,
-             name_en = EXCLUDED.name_en,
-             parent_id = EXCLUDED.parent_id,
-             level = EXCLUDED.level,
-             employee_count = EXCLUDED.employee_count,
-             status = EXCLUDED.status`,
-          [e.id, e.code, e.nameAr, e.nameEn || null, e.parentId || null, e.level, e.employeeCount || 0, e.status || 'active']
-        );
-      }
-      const idx = memStore.orgEntities.findIndex((item) => item.id === e.id);
-      if (idx >= 0) memStore.orgEntities[idx] = e;
-      else memStore.orgEntities.unshift(e);
-      notifySyncChange('org_entities_updated', { action: 'add', id: e.id });
-      return res.json({ success: true, entity: e });
-    } catch (err) {
-      console.error('DB insert failed for org entity:', err);
-      return res.status(500).json({
-        success: false,
-        error: 'فشل حفظ البيانات بقاعدة البيانات المركزية',
-        details: (err as any)?.message || String(err),
-      });
-    }
-  });
-
-  app.put('/api/org-entities/:id', async (req, res) => {
-    const e = req.body;
-    try {
-      if (getDbPool()) {
-        await query(
-          `UPDATE org_entities SET
-            name_ar = $1, name_en = $2, parent_id = $3, level = $4, employee_count = $5, status = $6
-          WHERE id = $7`,
-          [e.nameAr, e.nameEn || null, e.parentId || null, e.level, e.employeeCount || 0, e.status || 'active', req.params.id]
-        );
-      }
-      const idx = memStore.orgEntities.findIndex((item) => item.id === req.params.id);
-      if (idx >= 0) memStore.orgEntities[idx] = e;
-      else memStore.orgEntities.push(e);
-      notifySyncChange('org_entities_updated', { action: 'update', id: req.params.id });
-      return res.json({ success: true, entity: e });
-    } catch (err) {
-      console.error('DB update failed for org entity:', err);
-      return res.status(500).json({
-        success: false,
-        error: 'فشل حفظ البيانات بقاعدة البيانات المركزية',
-        details: (err as any)?.message || String(err),
-      });
-    }
-  });
-
-  app.delete('/api/org-entities/:id', async (req, res) => {
-    try {
-      if (getDbPool()) {
-        await query('DELETE FROM org_entities WHERE id = $1', [req.params.id]);
-      }
-      memStore.orgEntities = memStore.orgEntities.filter((e) => e.id !== req.params.id);
-      notifySyncChange('org_entities_updated', { action: 'delete', id: req.params.id });
-      return res.json({ success: true });
-    } catch (err) {
-      console.error('DB delete failed for org entity:', err);
-      return res.status(500).json({
-        success: false,
-        error: 'فشل حفظ البيانات بقاعدة البيانات المركزية',
-        details: (err as any)?.message || String(err),
-      });
-    }
-  });
-
-  app.post('/api/org-entities/bulk', async (req, res) => {
-    const rawEntities = req.body.entities || [];
-    const entities = rawEntities.map((e: any, idx: number) => ({
-      ...e,
-      sortOrder: e.sortOrder !== undefined && e.sortOrder !== null ? e.sortOrder : idx,
-    }));
-    try {
-      const pool = getDbPool();
-      if (pool) {
-        const client = await pool.connect();
-        try {
-          await client.query('BEGIN');
-          await client.query('ALTER TABLE org_entities ADD COLUMN IF NOT EXISTS sort_order INTEGER DEFAULT 0').catch(() => {});
-          if (entities.length === 0) {
-            await client.query('DELETE FROM org_entities');
-          } else {
-            const ids = entities.map((e: any) => e.id);
-            await client.query('DELETE FROM org_entities WHERE id != ALL($1::text[])', [ids]);
-            for (let i = 0; i < entities.length; i++) {
-              const e = entities[i];
-              try {
-                await client.query(
-                  `INSERT INTO org_entities (id, code, name_ar, name_en, parent_id, level, employee_count, status, sort_order)
-                   VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-                   ON CONFLICT (id) DO UPDATE SET
-                     code = EXCLUDED.code,
-                     name_ar = EXCLUDED.name_ar,
-                     name_en = EXCLUDED.name_en,
-                     parent_id = EXCLUDED.parent_id,
-                     level = EXCLUDED.level,
-                     employee_count = EXCLUDED.employee_count,
-                     status = EXCLUDED.status,
-                     sort_order = EXCLUDED.sort_order`,
-                  [e.id, e.code, e.nameAr, e.nameEn || null, e.parentId || null, e.level, e.employeeCount || 0, e.status || 'active', e.sortOrder ?? i]
-                );
-              } catch {
-                await client.query(
-                  `INSERT INTO org_entities (id, code, name_ar, name_en, parent_id, level, employee_count, status)
-                   VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-                   ON CONFLICT (id) DO UPDATE SET
-                     code = EXCLUDED.code,
-                     name_ar = EXCLUDED.name_ar,
-                     name_en = EXCLUDED.name_en,
-                     parent_id = EXCLUDED.parent_id,
-                     level = EXCLUDED.level,
-                     employee_count = EXCLUDED.employee_count,
-                     status = EXCLUDED.status`,
-                  [e.id, e.code, e.nameAr, e.nameEn || null, e.parentId || null, e.level, e.employeeCount || 0, e.status || 'active']
-                );
-              }
-            }
-          }
-          await client.query('COMMIT');
-        } catch (err) {
-          await client.query('ROLLBACK');
-          throw err;
-        } finally {
-          client.release();
-        }
-      }
-      memStore.orgEntities = entities;
-      notifySyncChange('org_entities_updated', { action: 'bulk' });
-      return res.json({ success: true });
-    } catch (err) {
-      console.error('DB bulk save failed for org entities:', err);
-      return res.status(500).json({
-        success: false,
-        error: 'فشل حفظ البيانات بقاعدة البيانات المركزية',
-        details: (err as any)?.message || String(err),
-      });
-    }
-  });
-
-  // ==========================================================================
-  // 7. System Branding API Endpoints
-  // ==========================================================================
-  app.get('/api/branding', async (req, res) => {
-    try {
-      if (getDbPool()) {
-        const result = await query<{ key: string; value: any }>(
-          "SELECT value FROM system_settings WHERE key = 'app_branding'"
-        );
-        if (result.rows.length > 0 && result.rows[0].value) {
-          return res.json(result.rows[0].value);
-        }
-      }
-    } catch (err) {
-      console.warn('DB query failed for /api/branding:', err);
-    }
-    return res.json(memStore.branding);
-  });
+  app.get('/api/branding', (req, res) => res.json(memStore.branding));
 
   app.post('/api/branding', async (req, res) => {
-    const branding = req.body;
+    memStore.branding = req.body;
     try {
-      if (getDbPool()) {
-        await query(
-          `CREATE TABLE IF NOT EXISTS system_settings (
-            key VARCHAR(100) PRIMARY KEY,
-            value JSONB NOT NULL,
-            updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-          )`
-        );
-        await query(
-          `INSERT INTO system_settings (key, value, updated_at)
-           VALUES ('app_branding', $1, CURRENT_TIMESTAMP)
-           ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = CURRENT_TIMESTAMP`,
-          [JSON.stringify(branding)]
-        );
-      }
-      memStore.branding = branding;
-      notifySyncChange('branding_updated', { branding });
-      return res.json({ success: true, branding });
+      await commit(['settings']);
     } catch (err) {
-      console.error('DB save failed for branding:', err);
-      memStore.branding = branding;
-      notifySyncChange('branding_updated', { branding });
-      return res.json({ success: true, branding });
+      return storageFailure(res, err);
     }
+    notifySyncChange('branding_updated', { branding: memStore.branding });
+    return res.json({ success: true, branding: memStore.branding });
   });
 
   // ==========================================================================
@@ -1767,19 +1006,7 @@ async function startServer() {
     }
 
     // Retrieve active users list
-    let usersList = memStore.users;
-    try {
-      if (getDbPool()) {
-        const result = await query<{ key: string; value: any }>(
-          "SELECT value FROM system_settings WHERE key = 'app_users'"
-        );
-        if (result.rows.length > 0 && Array.isArray(result.rows[0].value) && result.rows[0].value.length > 0) {
-          usersList = result.rows[0].value;
-        }
-      }
-    } catch (e) {
-      console.warn('DB check during auth:', e);
-    }
+    const usersList = memStore.users;
 
     const foundUser = usersList.find(
       (u: any) =>
@@ -1858,7 +1085,7 @@ async function startServer() {
       const idx = memStore.users.findIndex((u: any) => u.id === foundUser.id);
       if (idx >= 0) {
         memStore.users[idx] = { ...memStore.users[idx], password: hashSecurePassword(plainPass) };
-        saveMemStoreToDisk();
+        await commit(['users']).catch(() => {});
       }
     }
 
@@ -1929,7 +1156,7 @@ async function startServer() {
     })
     .strict();
 
-  app.patch('/api/auth/preferences', (req, res) => {
+  app.patch('/api/auth/preferences', async (req, res) => {
     const session = (req as any).session as ActiveSession;
     const parsed = uiPrefsSchema.safeParse(req.body);
     if (!parsed.success) {
@@ -1943,7 +1170,11 @@ async function startServer() {
       else if (value !== undefined) next[key] = value;
     }
     memStore.users[idx] = { ...memStore.users[idx], uiPrefs: next };
-    saveMemStoreToDisk();
+    try {
+      await commit(['users']);
+    } catch (err) {
+      return storageFailure(res, err);
+    }
     return res.json({ success: true, uiPrefs: next });
   });
 
@@ -1967,16 +1198,9 @@ async function startServer() {
     }
     memStore.users[idx] = { ...memStore.users[idx], password: hashSecurePassword(newPassword) };
     try {
-      if (getDbPool()) {
-        await query(
-          `INSERT INTO system_settings (key, value, updated_at)
-           VALUES ('app_users', $1, CURRENT_TIMESTAMP)
-           ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = CURRENT_TIMESTAMP`,
-          [JSON.stringify(memStore.users)]
-        );
-      }
+      await commit(['users']);
     } catch (err) {
-      console.error('DB save failed for change-password:', err);
+      return storageFailure(res, err);
     }
     session.mustChangePassword = false;
     // إنهاء الجلسات الأخرى لهذا الحساب
@@ -1989,59 +1213,40 @@ async function startServer() {
   });
 
   // ==========================================================================
-  // 8. System Users API Endpoints (محمية ومطهرة من كلمات المرور)
+  // 8. المستخدمون (كلمات المرور لا تُرسل في أي استجابة)
   // ==========================================================================
-  app.get('/api/users', async (req, res) => {
-    try {
-      if (getDbPool()) {
-        const result = await query<{ key: string; value: any }>(
-          "SELECT value FROM system_settings WHERE key = 'app_users'"
-        );
-        if (result.rows.length > 0 && Array.isArray(result.rows[0].value) && result.rows[0].value.length > 0) {
-          const sanitized = result.rows[0].value.map(sanitizeUserObject);
-          return res.json(sanitized);
-        }
-      }
-    } catch (err) {
-      console.warn('DB query failed for /api/users:', err);
-    }
-    const sanitized = memStore.users.map(sanitizeUserObject);
-    return res.json(sanitized);
-  });
+  app.get('/api/users', (req, res) => res.json(memStore.users.map(sanitizeUserObject)));
 
-  app.post('/api/users/bulk', async (req, res) => {
-    let users = secureUsersForStore(req.body.users || [], memStore.users);
-    // Ensure default primary admin USR-101 is always present in users array
-    const hasAdmin = users.some((u: any) => u.id === 'USR-101' || u.username === 'admin');
-    if (!hasAdmin) {
-      const existingAdmin = memStore.users.find((u) => u.id === 'USR-101' || u.username === 'admin');
-      if (existingAdmin) users = [existingAdmin, ...users];
-    }
+  async function persistUsers(res: express.Response, payload: any, body: any) {
     try {
-      if (getDbPool()) {
-        await query(
-          `CREATE TABLE IF NOT EXISTS system_settings (
-            key VARCHAR(100) PRIMARY KEY,
-            value JSONB NOT NULL,
-            updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-          )`
-        );
-        await query(
-          `INSERT INTO system_settings (key, value, updated_at)
-           VALUES ('app_users', $1, CURRENT_TIMESTAMP)
-           ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = CURRENT_TIMESTAMP`,
-          [JSON.stringify(users)]
-        );
-      }
-      memStore.users = users;
-      notifySyncChange('users_updated', { action: 'bulk' });
-      return res.json({ success: true });
+      await commit(['users']);
     } catch (err) {
-      console.error('DB bulk save failed for users:', err);
-      memStore.users = users;
-      notifySyncChange('users_updated', { action: 'bulk' });
-      return res.json({ success: true });
+      return storageFailure(res, err);
     }
+    notifySyncChange('users_updated', payload);
+    return res.json(body);
+  }
+
+  function protectPrimaryAdmin(user: any) {
+    if (user.id === 'USR-101' || user.username === 'admin') {
+      user.id = 'USR-101';
+      user.username = 'admin';
+      user.role = 'مدير النظام';
+      user.status = 'active';
+    }
+    return user;
+  }
+
+  // استيراد جماعي: يضيف ويحدّث فقط، ولا يحذف حسابات غير واردة في القائمة
+  app.post('/api/users/bulk', async (req, res) => {
+    const incoming = secureUsersForStore(req.body.users || [], memStore.users).map(protectPrimaryAdmin);
+    for (const user of incoming) {
+      if (!user || !user.id || !user.username) continue;
+      const idx = memStore.users.findIndex((u: any) => u.id === user.id);
+      if (idx >= 0) memStore.users[idx] = user;
+      else memStore.users.push(user);
+    }
+    return persistUsers(res, { action: 'bulk' }, { success: true });
   });
 
   app.post('/api/users', async (req, res) => {
@@ -2049,305 +1254,172 @@ async function startServer() {
     if (!user || !user.id || !user.username) {
       return res.status(400).json({ success: false, error: 'بيانات الحساب ناقصة' });
     }
-    try {
-      const idx = memStore.users.findIndex((u) => u.id === user.id);
-      if (idx >= 0) memStore.users[idx] = user;
-      else memStore.users.unshift(user);
-
-      if (getDbPool()) {
-        await query(
-          `CREATE TABLE IF NOT EXISTS system_settings (
-            key VARCHAR(100) PRIMARY KEY,
-            value JSONB NOT NULL,
-            updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-          )`
-        );
-        await query(
-          `INSERT INTO system_settings (key, value, updated_at)
-           VALUES ('app_users', $1, CURRENT_TIMESTAMP)
-           ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = CURRENT_TIMESTAMP`,
-          [JSON.stringify(memStore.users)]
-        );
-      }
-      notifySyncChange('users_updated', { action: 'add', id: user.id });
-      return res.json({ success: true, user: sanitizeUserObject(user) });
-    } catch (err) {
-      console.error('DB save failed for user:', err);
-      notifySyncChange('users_updated', { action: 'add', id: user.id });
-      return res.json({ success: true, user: sanitizeUserObject(user) });
-    }
+    protectPrimaryAdmin(user);
+    const idx = memStore.users.findIndex((u: any) => u.id === user.id);
+    if (idx >= 0) memStore.users[idx] = user;
+    else memStore.users.unshift(user);
+    return persistUsers(res, { action: 'add', id: user.id }, { success: true, user: sanitizeUserObject(user) });
   });
 
   app.put('/api/users/:id', async (req, res) => {
     const user = secureUsersForStore([{ ...req.body, id: req.body?.id || req.params.id }], memStore.users)[0];
-    // Primary Admin USR-101 structural protection
-    if (req.params.id === 'USR-101' || user.id === 'USR-101' || user.username === 'admin') {
-      user.id = 'USR-101';
-      user.username = 'admin';
-      user.role = 'مدير النظام';
-      user.status = 'active';
-    }
-    try {
-      const idx = memStore.users.findIndex((u) => u.id === req.params.id);
-      if (idx >= 0) memStore.users[idx] = user;
-      else memStore.users.push(user);
-
-      if (getDbPool()) {
-        await query(
-          `INSERT INTO system_settings (key, value, updated_at)
-           VALUES ('app_users', $1, CURRENT_TIMESTAMP)
-           ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = CURRENT_TIMESTAMP`,
-          [JSON.stringify(memStore.users)]
-        );
-      }
-      notifySyncChange('users_updated', { action: 'update', id: req.params.id });
-      return res.json({ success: true, user: sanitizeUserObject(user) });
-    } catch (err) {
-      console.error('DB update failed for user:', err);
-      notifySyncChange('users_updated', { action: 'update', id: req.params.id });
-      return res.json({ success: true, user: sanitizeUserObject(user) });
-    }
+    if (req.params.id === 'USR-101') user.id = 'USR-101';
+    protectPrimaryAdmin(user);
+    const idx = memStore.users.findIndex((u: any) => u.id === req.params.id);
+    if (idx >= 0) memStore.users[idx] = user;
+    else memStore.users.push(user);
+    return persistUsers(res, { action: 'update', id: req.params.id }, { success: true, user: sanitizeUserObject(user) });
   });
 
   app.delete('/api/users/:id', async (req, res) => {
-    // Primary Admin USR-101 cannot be deleted
     if (req.params.id === 'USR-101' || req.params.id === 'admin') {
-      return res.status(403).json({
-        success: false,
-        error: 'لا يمكن حذف حساب مدير النظام الأساسي (admin) أبداً',
-      });
+      return res.status(403).json({ success: false, error: 'لا يمكن حذف حساب مدير النظام الأساسي (admin) أبداً' });
     }
-    try {
-      memStore.users = memStore.users.filter((u) => u.id !== req.params.id);
-      if (getDbPool()) {
-        await query(
-          `INSERT INTO system_settings (key, value, updated_at)
-           VALUES ('app_users', $1, CURRENT_TIMESTAMP)
-           ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = CURRENT_TIMESTAMP`,
-          [JSON.stringify(memStore.users)]
-        );
-      }
-      notifySyncChange('users_updated', { action: 'delete', id: req.params.id });
-      return res.json({ success: true });
-    } catch (err) {
-      console.error('DB delete failed for user:', err);
-      notifySyncChange('users_updated', { action: 'delete', id: req.params.id });
-      return res.json({ success: true });
-    }
+    memStore.users = memStore.users.filter((u: any) => u.id !== req.params.id);
+    // إنهاء جلسات الحساب المحذوف
+    for (const [token, s] of activeSessions) if (s.userId === req.params.id) activeSessions.delete(token);
+    saveSessions();
+    return persistUsers(res, { action: 'delete', id: req.params.id }, { success: true });
   });
 
   // ==========================================================================
-  // 9. Reference Data API Endpoints
+  // 9. البيانات المرجعية
   // ==========================================================================
-  app.get('/api/reference-data', async (req, res) => {
-    try {
-      if (getDbPool()) {
-        const result = await query<{ key: string; value: any }>(
-          "SELECT value FROM system_settings WHERE key = 'app_reference_data'"
-        );
-        if (result.rows.length > 0 && result.rows[0].value) {
-          return res.json(result.rows[0].value);
-        }
-      }
-    } catch (err) {
-      console.warn('DB query failed for /api/reference-data:', err);
-    }
-    return res.json(memStore.referenceData || null);
-  });
+  app.get('/api/reference-data', (req, res) => res.json(memStore.referenceData || null));
 
   app.post('/api/reference-data', async (req, res) => {
-    const refData = req.body;
+    memStore.referenceData = req.body;
     try {
-      if (getDbPool()) {
-        await query(
-          `CREATE TABLE IF NOT EXISTS system_settings (
-            key VARCHAR(100) PRIMARY KEY,
-            value JSONB NOT NULL,
-            updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-          )`
-        );
-        await query(
-          `INSERT INTO system_settings (key, value, updated_at)
-           VALUES ('app_reference_data', $1, CURRENT_TIMESTAMP)
-           ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = CURRENT_TIMESTAMP`,
-          [JSON.stringify(refData)]
-        );
-      }
-      memStore.referenceData = refData;
-      notifySyncChange('reference_data_updated', { refData });
-      return res.json({ success: true });
+      await commit(['settings']);
     } catch (err) {
-      console.error('DB save failed for reference-data:', err);
-      memStore.referenceData = refData;
-      notifySyncChange('reference_data_updated', { refData });
-      return res.json({ success: true });
+      return storageFailure(res, err);
     }
+    notifySyncChange('reference_data_updated', {});
+    return res.json({ success: true });
   });
 
   // ==========================================================================
-  // 10. System Factory Reset & Module Reset Endpoints
+  // 10. ضبط المصنع وإعادة ضبط الأقسام (سجل النشاطات لا يُحذف)
   // ==========================================================================
+  function resetLogEntry(req: express.Request, details: string) {
+    const session = (req as any).session as ActiveSession;
+    return {
+      id: `LOG-RESET-${Date.now()}`,
+      timestamp: new Date().toISOString(),
+      action: 'إعادة ضبط',
+      user: session.name || session.username,
+      userInitials: (session.name || session.username || '').slice(0, 2),
+      affectedField: 'النظام',
+      previousValue: '',
+      newValue: details,
+    };
+  }
+
   app.post('/api/system/factory-reset', async (req, res) => {
     const { mode } = req.body;
-    try {
-      const adminUser = {
-        id: 'USR-101',
-        name: 'مدير النظام',
-        username: 'admin',
-        role: 'مدير النظام',
-        department: 'قسم إدارة وتقييم الأصول الهندسية',
-        governorate: 'واسط',
-        field: 'الأحدب',
-        status: 'active',
-        lastActive: 'الآن',
-        // تبقى كلمة مرور المدير الحالية كما هي بعد ضبط المصنع
-        password:
-          memStore.users.find((u) => u.id === 'USR-101' || u.username === 'admin')?.password ||
-          hashSecurePassword('admin123'),
-      };
-
-      if (mode === 'full_default') {
-        memStore.units = INITIAL_UNITS;
-        memStore.maintenance = INITIAL_MAINTENANCE_REQUESTS;
-        memStore.occupancy = INITIAL_OCCUPANCY_RECORDS;
-        memStore.inspections = INITIAL_PERIODIC_INSPECTIONS;
-        memStore.users = secureUsersForStore(INITIAL_USERS as any[], [adminUser]).map((u: any) =>
-          u.id === 'USR-101' ? { ...u, password: adminUser.password } : u
-        );
-        memStore.auditLogs = INITIAL_AUDIT_LOGS;
-        memStore.orgEntities = INITIAL_ORG_ENTITIES;
-      } else {
-        // 'wipe_all_except_admin' (Default requested by user)
-        memStore.units = [];
-        memStore.maintenance = [];
-        memStore.occupancy = [];
-        memStore.inspections = [];
-        memStore.orgEntities = [];
-        memStore.users = [adminUser];
-        memStore.auditLogs = [
-          {
-            id: `LOG-RESET-${Date.now()}`,
-            userId: 'USR-101',
-            userName: 'مدير النظام',
-            userRole: 'مدير النظام',
-            action: 'factory_reset',
-            entityType: 'system',
-            entityId: 'SYSTEM',
-            entityName: 'النظام بالكامل',
-            details: 'تم تنفيذ استعادة ضبط المصنع الشامل للنظام وتفريغ كافة البيانات مع الإبقاء على حساب مدير النظام',
-            timestamp: new Date().toISOString(),
-            ipAddress: '127.0.0.1',
-            governorate: 'واسط',
-            field: 'الأحدب',
-            status: 'success',
-          },
-        ];
-      }
-
-      saveMemStoreToDisk();
-
-      if (getDbPool()) {
-        try {
-          if (mode !== 'full_default') {
-            await query('DELETE FROM units');
-            await query('DELETE FROM maintenance_requests');
-            await query('DELETE FROM occupancy_records');
-            await query('DELETE FROM periodic_inspections');
-            await query('DELETE FROM audit_logs');
-            await query('DELETE FROM org_entities');
-            await query(
-              `INSERT INTO system_settings (key, value, updated_at)
-               VALUES ('app_users', $1, CURRENT_TIMESTAMP)
-               ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = CURRENT_TIMESTAMP`,
-              [JSON.stringify(memStore.users)]
-            );
-          }
-        } catch (dbErr) {
-          console.warn('DB wipe on factory reset note:', dbErr);
-        }
-      }
-
-      notifySyncChange('all_updated', { mode });
-      return res.json({ success: true, message: 'تمت استعادة ضبط المصنع الشامل بنجاح' });
-    } catch (err) {
-      console.error('Factory reset error:', err);
-      return res.status(500).json({ success: false, error: 'فشل تنفيذ استعادة ضبط المصنع' });
+    const currentAdmin = memStore.users.find((u: any) => u.id === 'USR-101' || u.username === 'admin');
+    const adminUser = {
+      id: 'USR-101',
+      name: 'مدير النظام',
+      username: 'admin',
+      role: 'مدير النظام',
+      department: 'قسم إدارة وتقييم الأصول الهندسية',
+      governorate: 'واسط',
+      field: 'الأحدب',
+      status: 'active',
+      lastActive: 'الآن',
+      // تبقى كلمة مرور المدير الحالية كما هي بعد ضبط المصنع
+      password: currentAdmin?.password || hashSecurePassword('admin123'),
+    };
+    if (mode === 'full_default') {
+      memStore.units = [...INITIAL_UNITS];
+      memStore.maintenance = [...INITIAL_MAINTENANCE_REQUESTS];
+      memStore.occupancy = [...INITIAL_OCCUPANCY_RECORDS];
+      memStore.inspections = [...INITIAL_PERIODIC_INSPECTIONS];
+      memStore.users = secureUsersForStore(INITIAL_USERS as any[], [adminUser]).map((u: any) =>
+        u.id === 'USR-101' ? { ...u, password: adminUser.password } : u
+      );
+      memStore.orgEntities = [...INITIAL_ORG_ENTITIES];
+    } else {
+      memStore.units = [];
+      memStore.maintenance = [];
+      memStore.occupancy = [];
+      memStore.inspections = [];
+      memStore.orgEntities = [];
+      memStore.users = [adminUser];
     }
+    memStore.auditLogs.unshift(resetLogEntry(req, 'ضبط المصنع الشامل للنظام'));
+    try {
+      await commit();
+    } catch (err) {
+      return storageFailure(res, err);
+    }
+    notifySyncChange('all_updated', { mode });
+    return res.json({ success: true, message: 'تمت استعادة ضبط المصنع الشامل بنجاح' });
   });
 
   app.post('/api/system/reset-module', async (req, res) => {
     const { moduleName, actionType } = req.body;
-    try {
-      switch (moduleName) {
-        case 'units':
-          memStore.units = actionType === 'clear' ? [] : INITIAL_UNITS;
-          if (getDbPool() && actionType === 'clear') await query('DELETE FROM units').catch(() => {});
-          notifySyncChange('units_updated', { action: 'bulk' });
-          break;
-        case 'maintenance':
-          memStore.maintenance = actionType === 'clear' ? [] : INITIAL_MAINTENANCE_REQUESTS;
-          if (getDbPool() && actionType === 'clear') await query('DELETE FROM maintenance_requests').catch(() => {});
-          notifySyncChange('maintenance_updated', { action: 'bulk' });
-          break;
-        case 'inspections':
-          memStore.inspections = actionType === 'clear' ? [] : INITIAL_PERIODIC_INSPECTIONS;
-          if (getDbPool() && actionType === 'clear') await query('DELETE FROM periodic_inspections').catch(() => {});
-          notifySyncChange('inspections_updated', { action: 'bulk' });
-          break;
-        case 'occupancy':
-          memStore.occupancy = actionType === 'clear' ? [] : INITIAL_OCCUPANCY_RECORDS;
-          if (getDbPool() && actionType === 'clear') await query('DELETE FROM occupancy_records').catch(() => {});
-          notifySyncChange('occupancy_updated', { action: 'bulk' });
-          break;
-        case 'users':
-          if (actionType === 'clear') {
-            const adminUser = memStore.users.find((u) => u.id === 'USR-101' || u.username === 'admin') || {
+    const clear = actionType === 'clear';
+    let event = '';
+    switch (moduleName) {
+      case 'units':
+        memStore.units = clear ? [] : [...INITIAL_UNITS];
+        event = 'units_updated';
+        break;
+      case 'maintenance':
+        memStore.maintenance = clear ? [] : [...INITIAL_MAINTENANCE_REQUESTS];
+        event = 'maintenance_updated';
+        break;
+      case 'inspections':
+        memStore.inspections = clear ? [] : [...INITIAL_PERIODIC_INSPECTIONS];
+        event = 'inspections_updated';
+        break;
+      case 'occupancy':
+        memStore.occupancy = clear ? [] : [...INITIAL_OCCUPANCY_RECORDS];
+        event = 'occupancy_updated';
+        break;
+      case 'users': {
+        const currentAdmin = memStore.users.find((u: any) => u.id === 'USR-101' || u.username === 'admin');
+        if (clear) {
+          memStore.users = [
+            currentAdmin || {
               id: 'USR-101',
               name: 'مدير النظام',
               username: 'admin',
-                    role: 'مدير النظام',
+              role: 'مدير النظام',
               status: 'active',
               password: hashSecurePassword('admin123'),
-            };
-            memStore.users = [adminUser];
-          } else {
-            const currentAdmin = memStore.users.find((u) => u.id === 'USR-101' || u.username === 'admin');
-            memStore.users = secureUsersForStore(INITIAL_USERS as any[], currentAdmin ? [currentAdmin] : []);
-          }
-          notifySyncChange('users_updated', { action: 'bulk' });
-          break;
-        case 'audit_logs':
-          memStore.auditLogs = actionType === 'clear' ? [] : INITIAL_AUDIT_LOGS;
-          if (getDbPool() && actionType === 'clear') await query('DELETE FROM audit_logs').catch(() => {});
-          notifySyncChange('audit_logs_updated', { action: 'bulk' });
-          break;
-        case 'org_entities':
-          if (actionType === 'clear') {
-            memStore.orgEntities = [];
-            if (getDbPool()) await query('DELETE FROM org_entities').catch(() => {});
-          } else {
-            memStore.orgEntities = INITIAL_ORG_ENTITIES;
-            if (getDbPool()) {
-              await query('DELETE FROM org_entities').catch(() => {});
-              for (const e of INITIAL_ORG_ENTITIES) {
-                await query(
-                  `INSERT INTO org_entities (id, code, name_ar, name_en, parent_id, level, employee_count, status)
-                   VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-                   ON CONFLICT (id) DO NOTHING`,
-                  [e.id, e.code, e.nameAr, e.nameEn || null, e.parentId || null, e.level, e.employeeCount || 0, e.status || 'active']
-                ).catch(() => {});
-              }
-            }
-          }
-          notifySyncChange('org_entities_updated', { action: 'bulk' });
-          break;
+            },
+          ];
+        } else {
+          memStore.users = secureUsersForStore(INITIAL_USERS as any[], currentAdmin ? [currentAdmin] : []);
+        }
+        event = 'users_updated';
+        break;
       }
-      saveMemStoreToDisk();
-      return res.json({ success: true });
-    } catch (err) {
-      console.error('Reset module failed:', err);
-      return res.status(500).json({ success: false, error: 'فشل إعادة ضبط القسم' });
+      case 'org_entities':
+        memStore.orgEntities = clear ? [] : [...INITIAL_ORG_ENTITIES];
+        event = 'org_entities_updated';
+        break;
+      case 'audit_logs':
+        return res.status(403).json({
+          success: false,
+          error: 'سجل النشاطات لا يُحذف ولا يُعاد ضبطه',
+          code: 'AUDIT_LOG_PROTECTED',
+        });
+      default:
+        return res.status(400).json({ success: false, error: 'قسم غير معروف', code: 'INVALID_INPUT' });
     }
+    memStore.auditLogs.unshift(resetLogEntry(req, `إعادة ضبط قسم ${moduleName} (${clear ? 'تفريغ' : 'القيم الافتراضية'})`));
+    try {
+      await commit();
+    } catch (err) {
+      return storageFailure(res, err);
+    }
+    notifySyncChange(event, { action: 'bulk' });
+    notifySyncChange('audit_logs_updated', { action: 'add' });
+    return res.json({ success: true });
   });
 
   // ==========================================================================

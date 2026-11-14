@@ -8,7 +8,7 @@
 - نقطة البداية الأصلية موسومة `baseline-original`. نسخة مضغوطة منها في `_safety/` (خارج Git).
 
 ## التقنيات الحالية
-- React 19 + TypeScript + Vite 6 + Tailwind 4 (src/)، Express 4 (server.ts)، PostgreSQL عبر pg (src/db/)، Firebase Firestore (**باقٍ بقرار المالك 13-11-2026: أُوقفت إزالته**؛ لا تُحذف شيفرته ولا تُنقل بياناته دون طلب صريح).
+- React 19 + TypeScript + Vite 6 + Tailwind 4 (src/)، Express 4 (server.ts)، PostgreSQL عبر pg (src/db/) وهو المصدر المعتمد، Firestore نسخة مزامنة يرسلها الخادم فقط (لا مكتبة Firebase في المتصفح؛ الحزمة `firebase` ما زالت في package.json وتُحذف في المرحلة 5).
 - الهدف: Windows 10/11 أو Windows Server على شبكة داخلية بلا إنترنت. الخطوط والأصول تُضمَّن محلياً (لا CDN).
 - المنفذ يُقرأ من PORT في .env (الافتراضي 3000).
 - **GitHub (قرار 13-11-2026):** كل تعديل يُرفع إلى `main` في https://github.com/omaralmayahi-ai/Building-Management-System ، والفرع main هو دائماً آخر إصدار. المالك يحدّث حاسبته من زر «تحديث من GitHub» في لوحة التحكم (fetch ثم reset --hard origin/main ثم تنصيب وبناء). لا تُرفع الأسرار ولا البيانات: `.env` و `.data/` و `backups/` و `logs/` و `_safety/` خارج المستودع.
@@ -25,16 +25,24 @@
 - جدول الصلاحيات في server.ts (`roleKind` / `isWriteAllowed`): الإعدادات والمستخدمون والهيكل التنظيمي وكل مسارات `*/bulk` للمدير فقط؛ إنشاء الوحدات وحذفها والإشغال للمشغل؛ تعديل الوحدة للمشغل وموظفي الكشف والصيانة؛ الكشوفات للمشغل وموظف الكشف؛ رفع طلب صيانة لأي مستخدم وتعديله لغير دور «مستخدم». أي مسار كتابة جديد يجب إضافته للجدول وإلا رُفض.
 - التحقق من المدخلات بـ zod في server.ts (`bodySchemas` / `validateRequestBody`). حد جسم الطلب 25MB.
 - كلمات المرور `scrypt$<salt>$<hash>` (`hashSecurePassword` / `secureUsersForStore`، ونفس الصيغة في script/panel-tools.mjs). القديمة تُرقّى عند الإقلاع وعند الدخول. الدخول بكلمة افتراضية (`DEFAULT_PASSWORDS`) يفرض تغييرها (`mustChangePassword`) قبل أي طلب آخر.
-- الجلسات في `.data/sessions.json`. لا تُرسل كلمة المرور في أي استجابة ولا تُحفظ في localStorage ولا في Firestore.
+- الجلسات في PostgreSQL (مجموعة `sessions`)، وفي `.data/sessions.json` في وضع الملف فقط. لا تُرسل كلمة المرور في أي استجابة ولا تُحفظ في localStorage ولا في Firestore.
 - تغيير كلمة المرور الشخصية: `POST /api/auth/change-password`. لا يوجد دخول بديل داخل المتصفح.
-- الاختبارات: `npm test` (node:test، tests/security.test.mjs) تشغّل dist/server.cjs بمنفذ مؤقت و`BMS_DATA_DIR` مؤقت. يجب أن تمر قبل كل commit يمس الخادم.
-- إزالة Firestore أُلغيت بقرار المالك (13-11-2026).
-
-## قرارات تخزين البيانات (14-11-2026) — نطاق المرحلة 2
-- **خادم النظام هو المصدر المعتمد الوحيد**، وقاعدته **PostgreSQL**. الواجهة تقرأ وتكتب عبر `/api` فقط.
-- **Firestore نسخة مزامنة فقط**: يستقبل نسخة من الخادم عند توفر الإنترنت، ولا تُقرأ منه بيانات التشغيل ولا يُكتب إليه من المتصفح مباشرة. النظام يجب أن يعمل كاملاً بلا إنترنت.
-- **لا توجد بيانات حقيقية مهمة للاستعادة** (قرار المالك): ما أُدخل سابقاً تجريبي ونبدأ من قاعدة نظيفة. أُغلق بند تصدير البيانات؛ لا تُذكِّر به.
-- مسار GitHub Pages (`.github/workflows/deploy.yml`) حُذف: لا نشر تلقائي للواجهة.
+- الاختبارات: `npm test` (node:test) تشغّل dist/server.cjs بمنفذ مؤقت و`BMS_DATA_DIR` مؤقت: `tests/security.test.mjs` (وضع الملف) و`tests/storage.test.mjs` (PostgreSQL مؤقت عبر initdb، أو `BMS_TEST_DATABASE_URL`؛ تُتخطى إن لم يتوفر PostgreSQL). يجب أن تمر قبل كل commit يمس الخادم.
+## تخزين البيانات (المرحلة 2 منجزة 14-11-2026)
+- **القرارات:** خادم النظام هو المصدر المعتمد الوحيد وقاعدته PostgreSQL؛ Firestore نسخة مزامنة فقط؛ لا بيانات حقيقية للاستعادة (لا تُذكِّر بتصديرها)؛ مسار GitHub Pages حُذف.
+- `src/db/storage.ts`: وضعان. `postgres` عند ضبط `DATABASE_URL` (جدول `bms_records(collection,id,data JSONB,version)` + `bms_audit` + `schema_migrations`؛ الترحيلات في مصفوفة `MIGRATIONS`). `file` بدونه (`.data/store.json`، للتجربة والاختبارات فقط، ويظهر تحذير في شريط الحالة). القيمة النموذجية `CHANGE_ME` تُعدّ غير مضبوطة. التشفير فقط مع `DATABASE_SSL=true` أو `sslmode=require`.
+- server.ts يحتفظ بنسخة عاملة في الذاكرة (`memStore`) ويكتب كل تغيير عبر `commit(keys, ids?)` **قبل الرد**؛ عند فشل الكتابة تُعاد الذاكرة لآخر حالة محفوظة ويُرد 503 `DB_UNAVAILABLE`. أي مسار كتابة جديد يجب أن ينتظر `commit`. لا يُكتب ملف بيانات محلي في وضع postgres.
+- أول تشغيل على قاعدة فارغة ينقل `store.json` إليها ثم يعيد تسميته `store.imported-*.json`. فشل الاتصال بالقاعدة عند الإقلاع يوقف الخادم برسالة واضحة.
+- مراقبة القاعدة كل 15 ثانية (`BMS_DB_HEALTH_INTERVAL_MS`): أثناء توقفها كل `/api` يرد 503 عدا health/server-time/status/download؛ عند عودتها تُعاد القراءة منها.
+- المجموعات عبر `registerCollection` (units، maintenance، occupancy، inspections، org-entities، audit-logs): GET، POST (إضافة أو تحديث)، PUT `/:id`، DELETE `/:id`، `POST /batch {upserts, deletes}` (ذرّية، صلاحية كل سجل تُفحص)، `POST /bulk` (للمدير؛ يضيف ويحدّث **ولا يحذف**). كل سجل يحمل `_v` و`_updatedAt` و`_updatedBy`؛ إرسال `_v` قديم يرد 409 `VERSION_CONFLICT` مع السجل الحالي.
+- سجل النشاطات `audit-logs` إضافة فقط (لا PUT ولا DELETE ولا تفريغ؛ `reset-module audit_logs` يرد 403، وضبط المصنع يبقيه). سجل التدقيق الذي يكتبه الخادم لكل طلب كتابة (ناجح أو مرفوض، بلا محتوى الطلب): `GET /api/audit-trail` للمدير. **لا توجد له شاشة في الواجهة بعد.**
+- `GET /api/health` عام ولا يعيد بيانات تشغيلية. `GET /api/status` يعيد `storage{mode,healthy}` و`mirror` (للمدير).
+- `src/db/firestoreMirror.ts`: يُفعَّل بـ `FIREBASE_SERVICE_ACCOUNT_PATH` (ملف مفتاح حساب خدمة؛ لا يُرفع). يرسل عبر REST كل 30 ثانية، قائمة الانتظار في `.data/mirror-queue.json`، كلمات المرور والجلسات لا تُرسل، المستند الأكبر من ~900KB يُتخطى. فشله لا يعطّل العمل. **اختُبر بخادم وهمي فقط، لا على Firestore حقيقي.**
+- الواجهة: `src/services/http.ts` (`apiRequest` بنتيجة صريحة، `onApiError`، `requestResync`)؛ `apiClient.ts` يعتمد الخادم فقط عبر `ServerCollection` (حفظ القوائم يرسل الفرق إلى `/batch`؛ `_v` يُحدَّث بعد كتابتنا). فشل الحفظ يظهر في تنبيه أحمر أسفل الشاشة (App.tsx `saveError`) ثم تُعاد قراءة البيانات. localStorage يبقى نسخة للعرض عند انقطاع الاتصال (App.tsx ما زال يكتبها)، لا مصدراً.
+- قائمة الانتظار دون اتصال (`syncQueue.ts`) لطلبات الصيانة والكشوفات: ترسل للخادم برمز الجلسة؛ تعيد المحاولة عند انقطاع الخادم (0/401/429/5xx) وتُسقط العملية مع تنبيه عند الرفض النهائي.
+- تحميل البيانات والاشتراك في أحداث الخادم يعتمدان على `currentUser?.id` (يعملان بعد الدخول دون إعادة تحميل الصفحة).
+- لوحة التحكم: زر «إعداد PostgreSQL» (`Invoke-SetupPostgres`: ينشئ `bms_user`/`bms_db` عبر psql ويكتب `DATABASE_URL` في .env). أدوات اللوحة تقرأ وتكتب عبر `script/store-io.mjs` في الوضعين (النسخ الاحتياطي يصدّر store.json + database.dump، الاستعادة `panel-tools.mjs restore`، كلمة مرور المدير). **كود PowerShell للزر لم يُشغَّل على ويندوز بعد؛ أوامر SQL وأدوات Node اختُبرت على PostgreSQL 16.**
+- لم يُستخدم Drizzle: التخزين مستندات JSONB. الجداول العلائقية (غرف، معدات، تواريخ، مرفقات كملفات) هي المرحلة 3 وتُضاف كترحيلات في `MIGRATIONS`.
 
 ## التصميم المعتمد (4-أ منجزة؛ 4-ب: التحويل الآلي لكل الشاشات والنوافذ منجز، بقي اعتماد مكوّنات ui.tsx وتقسيم المكوّنات الكبيرة)
 - الرموز في `src/index.css` (منقولة من نظام الأرشفة): `--primary` لكل ثيم (`[data-theme]`)، `brand-*` مشتقة منه، `bg-card` / `bg-page` / `bg-sidebar` / `text-on-brand`. الخطوط محلية (@fontsource). `dark:` يتبع الصنف `.dark` على `<html>` لا نظام التشغيل.
@@ -51,7 +59,8 @@
 - أشرطة أدوات المجسّم تتبع `darkChrome` (الوضع الليلي للمجسّم أو الوضع الداكن للنظام) في `ThreeBuildingCanvas.tsx`.
 
 ## معروف وغير محلول (تفاصيله في تقرير المراجعة)
-- أربعة مخازن بيانات (Firestore، PostgreSQL، ذاكرة + .data/store.json، localStorage).
-- مسارات bulk تحذف ما ليس في القائمة المرسلة.
-- أعمدة لا تُكتب في units: unit_type_code، land_area_sq_m، roof_type، structure_type.
-- قواعد Firestore المنشورة فعلياً ترفض القراءة المجهولة (403)، خلافاً لملف firestore.rules المحلي.
+- بيانات الوحدة مستند JSON واحد (الغرف والمعدات والمرفقات داخله، والتواريخ نصوص): المرحلة 3.
+- App.tsx ما زال يكتب نسخ العرض في localStorage ويحدّث الحالة قبل رد الخادم (تُصحَّح بإعادة القراءة عند الفشل).
+- `memStore` يحمّل كل البيانات في ذاكرة الخادم؛ مناسب لحجم الشعبة الحالي لا لعشرات آلاف الوحدات بمرفقاتها.
+- قواعد Firestore المنشورة ترفض القراءة المجهولة (403)، خلافاً لملف firestore.rules المحلي.
+- docker-compose.yml يشير إلى database/init.sql القديم: المرحلة 5.

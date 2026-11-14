@@ -5,14 +5,14 @@
  * When field inspectors or engineers submit maintenance requests or periodic inspections:
  * 1. The operation is immediately recorded in local memory state (Zero-latency optimistic UI).
  * 2. It is saved to the persistent local Offline Sync Queue.
- * 3. The engine automatically attempts to push to Firestore & backend server.
+ * 3. The engine automatically attempts to push to the system server (the single source of truth).
  * 4. In case of poor cell connectivity, timeouts, or rapid consecutive submissions:
  *    - The queue retains the item with retry metadata.
  *    - Automatically resumes when connectivity recovers (online event, visibility change, or background 15s pulse).
  *    - Compresses all image payloads before transmission to prevent 1MB Firestore doc limit / payload drops.
  */
 
-import * as firestoreClient from './firebaseClient';
+import { apiRequest, reportApiError, requestResync } from './http';
 import { sanitizeAndCompressAttachments } from '../utils/imageCompressor';
 import { safeParse, safeSetItem } from '../utils/storageUtils';
 import { MaintenanceRequest, PeriodicInspectionSchedule, UnitAsset } from '../types';
@@ -49,7 +49,6 @@ export interface SyncQueueStatus {
 }
 
 const QUEUE_STORAGE_KEY = 'app_offline_sync_queue';
-const BASE_API_URL = '/api';
 
 class OfflineSyncEngine {
   private queue: QueueItem[] = [];
@@ -264,129 +263,43 @@ class OfflineSyncEngine {
   }
 
   /**
-   * Execute a single queue mutation against Firestore & Express API
+   * ينفّذ عملية واحدة من القائمة على خادم النظام (المصدر المعتمد).
+   * - نجاح: تُزال من القائمة.
+   * - تعذّر الوصول إلى الخادم أو توقف قاعدته: تبقى للمحاولة لاحقاً.
+   * - رفض نهائي من الخادم (صلاحية، تعارض نسخة، بيانات غير صالحة): تُزال ويُبلَّغ المستخدم بالسبب.
    */
   private async executeItem(item: QueueItem): Promise<boolean> {
-    try {
-      switch (item.actionType) {
-        case 'create_maintenance':
-        case 'update_maintenance': {
-          const req = item.payload as MaintenanceRequest;
-          // 1. Push to Firestore
-          try {
-            await firestoreClient.saveMaintenanceToFirestore(req);
-          } catch (fsErr) {
-            console.warn(`Firestore sync note for maintenance [${req.id}]:`, fsErr);
-          }
-          // 2. Push to Express server
-          try {
-            await fetch(`${BASE_API_URL}/maintenance`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(req),
-            });
-          } catch (apiErr) {
-            console.warn(`Express API sync note for maintenance [${req.id}]:`, apiErr);
-          }
-          return true;
-        }
+    const routes: Record<string, { path: string; method: 'POST' | 'DELETE' }> = {
+      create_maintenance: { path: '/maintenance', method: 'POST' },
+      update_maintenance: { path: '/maintenance', method: 'POST' },
+      delete_maintenance: { path: '/maintenance', method: 'DELETE' },
+      create_inspection: { path: '/inspections', method: 'POST' },
+      update_inspection: { path: '/inspections', method: 'POST' },
+      delete_inspection: { path: '/inspections', method: 'DELETE' },
+      create_unit: { path: '/units', method: 'POST' },
+      update_unit: { path: '/units', method: 'POST' },
+      delete_unit: { path: '/units', method: 'DELETE' },
+    };
+    const route = routes[item.actionType];
+    if (!route) return true;
 
-        case 'delete_maintenance': {
-          try {
-            await firestoreClient.deleteMaintenanceFromFirestore(item.entityId);
-          } catch (fsErr) {
-            console.warn(`Firestore delete note for maintenance [${item.entityId}]:`, fsErr);
-          }
-          try {
-            await fetch(`${BASE_API_URL}/maintenance/${encodeURIComponent(item.entityId)}`, {
-              method: 'DELETE',
-            });
-          } catch (apiErr) {
-            console.warn(`Express API delete note for maintenance [${item.entityId}]:`, apiErr);
-          }
-          return true;
-        }
+    const result =
+      route.method === 'DELETE'
+        ? await apiRequest('DELETE', `${route.path}/${encodeURIComponent(item.entityId)}`)
+        : await apiRequest('POST', route.path, item.payload, 60000);
 
-        case 'create_inspection':
-        case 'update_inspection': {
-          const schedule = item.payload as PeriodicInspectionSchedule;
-          try {
-            await firestoreClient.saveInspectionToFirestore(schedule);
-          } catch (fsErr) {
-            console.warn(`Firestore sync note for inspection [${schedule.id}]:`, fsErr);
-          }
-          try {
-            await fetch(`${BASE_API_URL}/inspections`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(schedule),
-            });
-          } catch (apiErr) {
-            console.warn(`Express API sync note for inspection [${schedule.id}]:`, apiErr);
-          }
-          return true;
-        }
+    if (result.ok) return true;
 
-        case 'delete_inspection': {
-          try {
-            await firestoreClient.deleteInspectionFromFirestore(item.entityId);
-          } catch (fsErr) {
-            console.warn(`Firestore delete note for inspection [${item.entityId}]:`, fsErr);
-          }
-          try {
-            await fetch(`${BASE_API_URL}/inspections/${encodeURIComponent(item.entityId)}`, {
-              method: 'DELETE',
-            });
-          } catch (apiErr) {
-            console.warn(`Express API delete note for inspection [${item.entityId}]:`, apiErr);
-          }
-          return true;
-        }
-
-        case 'create_unit':
-        case 'update_unit': {
-          const unit = item.payload as UnitAsset;
-          try {
-            await firestoreClient.saveUnitToFirestore(unit);
-          } catch (fsErr) {
-            console.warn(`Firestore sync note for unit [${unit.code}]:`, fsErr);
-          }
-          try {
-            await fetch(`${BASE_API_URL}/units`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(unit),
-            });
-          } catch (apiErr) {
-            console.warn(`Express API sync note for unit [${unit.code}]:`, apiErr);
-          }
-          return true;
-        }
-
-        case 'delete_unit': {
-          try {
-            await firestoreClient.deleteUnitFromFirestore(item.entityId);
-          } catch (fsErr) {
-            console.warn(`Firestore delete note for unit [${item.entityId}]:`, fsErr);
-          }
-          try {
-            await fetch(`${BASE_API_URL}/units/${encodeURIComponent(item.entityId)}`, {
-              method: 'DELETE',
-            });
-          } catch (apiErr) {
-            console.warn(`Express API delete note for unit [${item.entityId}]:`, apiErr);
-          }
-          return true;
-        }
-
-        default:
-          return true;
-      }
-    } catch (err: any) {
-      item.lastError = err?.message || String(err);
-      console.warn(`Failed to process queue item [${item.id}]:`, err);
+    const retryLater = result.status === 0 || result.status === 401 || result.status === 429 || result.status >= 500;
+    if (retryLater) {
+      item.lastError = result.error || '';
       return false;
     }
+
+    // رفض نهائي: لا فائدة من إعادة المحاولة
+    reportApiError(result.error || 'رفض الخادم حفظ العملية');
+    requestResync();
+    return true;
   }
 
   /**
