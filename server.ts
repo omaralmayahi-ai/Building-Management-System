@@ -896,6 +896,39 @@ async function startServer() {
     return null;
   }
 
+  // نوع الوحدة: الرمز المرجعي (BLD، CRV...)؛ السجلات القديمة تحمل الاسم الإنجليزي في type
+  const LEGACY_UNIT_TYPE_CODES: Record<string, string> = {
+    building: 'BLD',
+    caravan: 'CRV',
+    warehouse: 'WHS',
+    equipment: 'EQP',
+    safety_system: 'SFT',
+    storage_tank: 'TNK',
+  };
+
+  function unitTypeCodeOf(unit: any): string {
+    const explicit = normCode(unit?.unitTypeCode);
+    if (explicit) return explicit;
+    const type = String(unit?.type ?? '').trim();
+    return LEGACY_UNIT_TYPE_CODES[type] || normCode(type);
+  }
+
+  function knownUnitTypeCodes(): Set<string> {
+    const list = memStore.referenceData?.unitTypes;
+    return new Set<string>((Array.isArray(list) ? list : []).map((ut: any) => normCode(ut?.code)).filter(Boolean));
+  }
+
+  // نوع الوحدة يجب أن يكون من قائمة الأنواع المرجعية (إن كانت القائمة محفوظة على الخادم)
+  // (وحدة قديمة بنوع خارج القائمة تبقى قابلة للتعديل ما دام نوعها لم يتغير)
+  function findUnitTypeError(unit: any, existing: any): string | null {
+    const known = knownUnitTypeCodes();
+    if (known.size === 0) return null;
+    const code = unitTypeCodeOf(unit);
+    if (!code || known.has(code)) return null;
+    if (existing && unitTypeCodeOf(existing) === code) return null;
+    return `نوع الوحدة «${code}» غير موجود في قائمة أنواع الوحدات. أضفه من الإعدادات ← أنواع المباني أولاً.`;
+  }
+
   function rejectInvalidDate(res: express.Response, message: string) {
     return res.status(400).json({ success: false, code: 'INVALID_DATE', error: message });
   }
@@ -936,6 +969,8 @@ async function startServer() {
       if (o.key === 'units') {
         const dup = findDuplicateCodeError(req.body, existing);
         if (dup) return rejectDuplicateCodes(res, dup);
+        const badType = findUnitTypeError(req.body, existing);
+        if (badType) return res.status(400).json({ success: false, code: 'INVALID_UNIT_TYPE', error: badType });
       }
       const dated = normalizeRecordDates(o.key, req.body);
       if (dated.error) return rejectInvalidDate(res, dated.error);
@@ -960,6 +995,8 @@ async function startServer() {
         if (o.key === 'units') {
           const dup = findDuplicateCodeError(req.body, existing);
           if (dup) return rejectDuplicateCodes(res, dup);
+          const badType = findUnitTypeError(req.body, existing);
+          if (badType) return res.status(400).json({ success: false, code: 'INVALID_UNIT_TYPE', error: badType });
         }
         const dated = normalizeRecordDates(o.key, req.body);
         if (dated.error) return rejectInvalidDate(res, dated.error);
@@ -1022,6 +1059,8 @@ async function startServer() {
         for (const rec of upserts) {
           const dup = findDuplicateCodeError(rec, find(def.idOf(rec)));
           if (dup) return rejectDuplicateCodes(res, dup);
+          const badType = findUnitTypeError(rec, find(def.idOf(rec)));
+          if (badType) return res.status(400).json({ success: false, code: 'INVALID_UNIT_TYPE', error: badType });
           // تكرار بين وحدتين في الدفعة نفسها
           for (const room of Array.isArray(rec?.rooms) ? rec.rooms : []) {
             const code = normCode(room?.code);
@@ -1447,8 +1486,46 @@ async function startServer() {
   // ==========================================================================
   app.get('/api/reference-data', (req, res) => res.json(memStore.referenceData || null));
 
+  // البيانات المرجعية مصدرها الخادم (3-هـ): أنواع الوحدات والمحافظات والحقول وأنواع الغرف والمعدات وأقسام الصيانة
+  const REFERENCE_LISTS = ['unitTypes', 'governorates', 'oilfields', 'roomTypes', 'equipmentTypes', 'maintenanceDepartments'];
+
   app.post('/api/reference-data', async (req, res) => {
-    memStore.referenceData = req.body;
+    const body = req.body;
+    if (!body || typeof body !== 'object' || Array.isArray(body)) {
+      return res.status(400).json({ success: false, code: 'INVALID_INPUT', error: 'بيانات الطلب غير صالحة' });
+    }
+    for (const key of REFERENCE_LISTS) {
+      if (key in body && !Array.isArray(body[key])) {
+        return res.status(400).json({ success: false, code: 'INVALID_INPUT', error: `القائمة ${key} غير صالحة` });
+      }
+    }
+    if (Array.isArray(body.unitTypes)) {
+      const codes = new Set<string>();
+      for (const ut of body.unitTypes) {
+        const code = normCode(ut?.code);
+        if (!code) return res.status(400).json({ success: false, code: 'INVALID_INPUT', error: 'نوع وحدة بلا رمز' });
+        if (codes.has(code)) {
+          return res.status(400).json({ success: false, code: 'DUPLICATE_CODE', error: `رمز نوع الوحدة مكرر: ${code}` });
+        }
+        codes.add(code);
+      }
+      // نوع مستخدم في وحدات قائمة لا يُحذف من القائمة: يُعطَّل بدل ذلك
+      const usage = new Map<string, number>();
+      for (const unit of memStore.units) {
+        const code = unitTypeCodeOf(unit);
+        if (code) usage.set(code, (usage.get(code) || 0) + 1);
+      }
+      for (const [code, count] of usage) {
+        if (!codes.has(code) && knownUnitTypeCodes().has(code)) {
+          return res.status(409).json({
+            success: false,
+            code: 'REFERENCE_IN_USE',
+            error: `نوع الوحدة ${code} مستخدم في ${count} وحدة فلا يُحذف. عطّله بدل حذفه، أو غيّر نوع تلك الوحدات أولاً.`,
+          });
+        }
+      }
+    }
+    memStore.referenceData = body;
     try {
       await commit(['settings']);
     } catch (err) {

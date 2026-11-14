@@ -503,4 +503,36 @@ describe('وضع الملف المحلي (للتجربة)', () => {
     const unitRes = await call('POST', '/api/units', { token, body: unit('F-DATE', { lastUpdated: 'الآن' }) });
     assert.match(unitRes.json.unit.lastUpdated, /^\d{4}-\d{2}-\d{2}$/);
   });
+
+  test('أنواع الوحدات من البيانات المرجعية على الخادم', async () => {
+    const types = (codes) => codes.map((code) => ({ code, nameAr: `نوع ${code}`, multiStory: false, defaultRoof: '', status: 'active' }));
+    const save = (body) => call('POST', '/api/reference-data', { token, body });
+
+    assert.equal((await save({ unitTypes: 'x' })).status, 400);
+    assert.equal((await save({ unitTypes: types(['BLD', 'bld']) })).json.code, 'DUPLICATE_CODE');
+    // الوحدات الموجودة في هذا الخادم من نوع building (BLD) ووحدة كرفان
+    await call('POST', '/api/units', { token, body: unit('F-CRV', { type: 'caravan' }) });
+    assert.equal((await save({ unitTypes: types(['BLD', 'CRV', 'LAB']), governorates: [{ id: 'g1', code: 'WAS', nameAr: 'واسط', status: 'active' }] })).status, 200);
+    const got = await call('GET', '/api/reference-data', { token });
+    assert.deepEqual(got.json.unitTypes.map((t) => t.code), ['BLD', 'CRV', 'LAB']);
+
+    const unknown = await call('POST', '/api/units', { token, body: unit('F-T1', { unitTypeCode: 'XYZ' }) });
+    assert.equal(unknown.status, 400);
+    assert.equal(unknown.json.code, 'INVALID_UNIT_TYPE');
+    assert.equal((await call('POST', '/api/units', { token, body: unit('F-T2', { type: 'LAB', unitTypeCode: 'lab' }) })).status, 200);
+    assert.equal((await call('POST', '/api/units', { token, body: unit('F-T3', { type: 'caravan' }) })).status, 200, 'الاسم القديم يقابل CRV');
+    assert.equal((await call('POST', '/api/units/batch', { token, body: { upserts: [unit('F-T4', { unitTypeCode: 'NOPE' })] } })).status, 400);
+
+    const removeUsed = await save({ unitTypes: types(['BLD', 'CRV']) });
+    assert.equal(removeUsed.status, 409, 'LAB مستخدم في F-T2');
+    assert.equal(removeUsed.json.code, 'REFERENCE_IN_USE');
+    assert.match(removeUsed.json.error, /LAB/);
+    assert.equal((await save({ unitTypes: types(['BLD', 'CRV', 'LAB', 'TNK']) })).status, 200);
+    assert.equal((await save({ unitTypes: types(['BLD', 'CRV', 'LAB']) })).status, 200, 'حذف نوع غير مستخدم مسموح');
+    // وحدة قديمة بنوع خارج القائمة: تعديلها مقبول ما دام نوعها لم يتغير
+    const legacy = (await call('GET', '/api/units', { token })).json.find((u) => u.code === 'F-HTML');
+    await save({ unitTypes: types(['CRV', 'LAB']) }).then((r) => assert.equal(r.status, 409, 'BLD مستخدم'));
+    const old = await call('POST', '/api/units', { token, body: { ...legacy, name: 'تعديل اسم فقط' } });
+    assert.equal(old.status, 200, old.text);
+  });
 });

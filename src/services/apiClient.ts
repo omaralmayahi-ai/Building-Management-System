@@ -506,6 +506,28 @@ export async function getReferenceData(): Promise<any | null> {
 
 export const saveReferenceData = (refData: any): Promise<boolean> => postOrReport('/reference-data', refData);
 
+/** يقرأ البيانات المرجعية من الخادم. ok=false عند تعذّر الاتصال؛ data=null إن لم تُحفظ على الخادم بعد */
+export async function fetchReferenceData(): Promise<{ ok: boolean; data: any | null }> {
+  const result = await apiRequest<any>('GET', '/reference-data');
+  return { ok: result.ok, data: result.ok ? result.data : null };
+}
+
+const referenceDataListeners = new Set<() => void>();
+
+/** يُستدعى عند تغيّر البيانات المرجعية على الخادم (من مستخدم آخر أو بعد حفظ مرفوض) */
+export function onReferenceDataUpdated(listener: () => void): () => void {
+  referenceDataListeners.add(listener);
+  return () => referenceDataListeners.delete(listener);
+}
+
+function notifyReferenceDataListeners(): void {
+  for (const l of referenceDataListeners) {
+    try {
+      l();
+    } catch {}
+  }
+}
+
 // ---- 10. ضبط المصنع وإعادة ضبط الأقسام ----
 export async function triggerServerFactoryReset(
   mode: 'wipe_all_except_admin' | 'full_default' = 'wipe_all_except_admin',
@@ -535,6 +557,7 @@ export interface RealtimeSyncEvent {
     | 'audit_logs_updated'
     | 'org_entities_updated'
     | 'branding_updated'
+    | 'reference_data_updated'
     | 'users_updated'
     | 'all_updated';
   syncVersion: number;
@@ -560,6 +583,7 @@ export function subscribeToRealtimeSync(
 
   // حفظ مرفوض أو تعارض نسخة: تُعاد قراءة كل شيء من الخادم
   const offResync = onResyncRequested(() => {
+    notifyReferenceDataListeners();
     onEvent({ type: 'all_updated', syncVersion: Date.now(), timestamp: Date.now() });
   });
 
@@ -574,6 +598,7 @@ export function subscribeToRealtimeSync(
         if (!e.data || e.data.startsWith(':')) return;
         const parsed: RealtimeSyncEvent = JSON.parse(e.data);
         if (parsed && parsed.timestamp) updateServerTimeFromTimestamp(parsed.timestamp);
+        if (parsed && (parsed.type === 'reference_data_updated' || parsed.type === 'all_updated')) notifyReferenceDataListeners();
         if (parsed && parsed.type) onEvent(parsed);
       } catch {}
     };

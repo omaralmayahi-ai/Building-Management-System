@@ -730,6 +730,58 @@ export function App() {
     safeSetItem('app_ref_org_entities', orgEntities);
   }, [unitTypes, governorates, oilfields, roomTypes, equipmentTypes, maintenanceDepartments, orgEntities]);
 
+  // البيانات المرجعية مصدرها الخادم (3-هـ): تُقرأ منه بعد الدخول وعند تغيّرها، وتعديلات المدير تُحفظ فيه.
+  // آخر ما عُرف عن الخادم (نصاً)؛ null قبل أول قراءة ناجحة فلا يُرسل شيء قبلها.
+  const referenceServerSnapshot = useRef<string | null>(null);
+  // يتغير بعد كل قراءة من الخادم ليعيد تشغيل أثر الحفظ (المرجع وحده لا يعيد التصيير)
+  const [referenceLoadTick, setReferenceLoadTick] = useState(0);
+  const isSystemAdmin = currentUser?.role === 'مدير النظام' || currentUser?.username === 'admin';
+
+  const loadReferenceDataFromServer = async () => {
+    const { ok, data } = await api.fetchReferenceData();
+    if (!ok) return;
+    if (data && typeof data === 'object' && Array.isArray(data.unitTypes)) {
+      referenceServerSnapshot.current = JSON.stringify({
+        unitTypes: data.unitTypes,
+        governorates: data.governorates ?? [],
+        oilfields: data.oilfields ?? [],
+        roomTypes: data.roomTypes ?? [],
+        equipmentTypes: data.equipmentTypes ?? [],
+        maintenanceDepartments: data.maintenanceDepartments ?? [],
+      });
+      setUnitTypes(data.unitTypes);
+      if (Array.isArray(data.governorates)) setGovernorates(data.governorates);
+      if (Array.isArray(data.oilfields)) setOilfields(data.oilfields);
+      if (Array.isArray(data.roomTypes)) setRoomTypes(data.roomTypes);
+      if (Array.isArray(data.equipmentTypes)) setEquipmentTypes(data.equipmentTypes);
+      if (Array.isArray(data.maintenanceDepartments)) setMaintenanceDepartments(data.maintenanceDepartments);
+    } else {
+      // لم تُحفظ على الخادم بعد: أول مدير يدخل يرفع القوائم الحالية (علامة فارغة تجعل أثر الحفظ يرسلها)
+      referenceServerSnapshot.current = '';
+    }
+    setReferenceLoadTick((t) => t + 1);
+  };
+
+  useEffect(() => {
+    if (!currentUser) return;
+    referenceServerSnapshot.current = null;
+    void loadReferenceDataFromServer();
+    return api.onReferenceDataUpdated(() => void loadReferenceDataFromServer());
+  }, [currentUser?.id]);
+
+  useEffect(() => {
+    if (!currentUser || !isSystemAdmin || referenceServerSnapshot.current === null) return;
+    const payload = { unitTypes, governorates, oilfields, roomTypes, equipmentTypes, maintenanceDepartments };
+    const current = JSON.stringify(payload);
+    if (current === referenceServerSnapshot.current) return;
+    const timer = setTimeout(async () => {
+      const saved = await api.saveReferenceData(payload);
+      if (saved) referenceServerSnapshot.current = current;
+      else void loadReferenceDataFromServer();
+    }, 600);
+    return () => clearTimeout(timer);
+  }, [unitTypes, governorates, oilfields, roomTypes, equipmentTypes, maintenanceDepartments, currentUser?.id, isSystemAdmin, referenceLoadTick]);
+
   // Background Automated Backup Scheduler (الجدولة التلقائية للنسخ الاحتياطي في الخلفية)
   useEffect(() => {
     const checkAndRunAutoBackup = () => {
