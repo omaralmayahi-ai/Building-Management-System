@@ -435,7 +435,7 @@ function Show-PostgresDialog {
     }
 }
 
-function Invoke-SetupPostgres {
+function Invoke-SetupPostgres([hashtable]$Preset) {
     if (-not (Test-Path (Join-Path $script:AppDir 'node_modules'))) { throw 'المكتبات غير منصّبة. اضغط «تنصيب المكتبات» أولاً.' }
     if (Test-PostgresMode) {
         $code = Invoke-PanelTool ('storage "' + $script:AppDir + '"') 'اختبار الاتصال بقاعدة PostgreSQL...'
@@ -452,7 +452,9 @@ function Invoke-SetupPostgres {
         Show-Info "PostgreSQL غير منصّب على هذه الحاسبة.`n`nنصّبه أولاً (ملف التنصيب من postgresql.org ويعمل دون إنترنت بعد تنزيله)، واحفظ كلمة مرور المدير التي تختارها، ثم اضغط هذا الزر من جديد."
         return
     }
-    $d = Show-PostgresDialog
+    # بعد «استعادة كلمة مرور PostgreSQL» تُستخدم البيانات نفسها دون سؤال ثانٍ
+    $d = $Preset
+    if (-not $d) { $d = Show-PostgresDialog }
     if (-not $d) { return }
 
     Write-Log '════ إعداد PostgreSQL ════'
@@ -505,6 +507,120 @@ SELECT 'CREATE DATABASE bms_db OWNER bms_user ENCODING ''UTF8'' TEMPLATE templat
     Write-Log '  عند أول تشغيل تُنقل البيانات الحالية من الملف المحلي إلى PostgreSQL تلقائياً مرة واحدة.'
     Restart-AppIfWasRunning $wasRunning
     if (-not $wasRunning) { Show-Info 'تم إعداد PostgreSQL. اضغط «تشغيل» لبدء النظام عليه.' }
+}
+
+# خدمة PostgreSQL المنصّبة على هذه الحاسبة ومجلد بياناتها ومنفذها
+function Get-PostgresServiceInfo {
+    $svc = Get-CimInstance Win32_Service | Where-Object { $_.Name -like 'postgresql*' } | Sort-Object Name -Descending | Select-Object -First 1
+    if (-not $svc) { return $null }
+    $dataDir = $null
+    if ($svc.PathName -match '-D\s+"([^"]+)"') { $dataDir = $matches[1] }
+    elseif ($svc.PathName -match '-D\s+(\S+)') { $dataDir = $matches[1] }
+    $port = '5432'
+    if ($dataDir) {
+        $conf = Join-Path $dataDir 'postgresql.conf'
+        if (Test-Path -LiteralPath $conf) {
+            foreach ($line in [IO.File]::ReadAllLines($conf)) {
+                if ($line -match '^\s*port\s*=\s*([0-9]+)') { $port = $matches[1] }
+            }
+        }
+    }
+    return @{ Name = $svc.Name; DataDir = $dataDir; Port = $port }
+}
+
+function Show-PostgresNewPasswordDialog {
+    $f = New-DialogForm 'كلمة مرور جديدة لمدير PostgreSQL' 480 220
+    $lbl = New-Object System.Windows.Forms.Label
+    $lbl.Text = 'اختر كلمة مرور جديدة للمستخدم postgres واحفظها عندك (8 أحرف على الأقل، حروف إنجليزية وأرقام ورموز).'
+    $lbl.Location = New-Object System.Drawing.Point(20, 12)
+    $lbl.Size = New-Object System.Drawing.Size(440, 44)
+    $f.Controls.Add($lbl)
+    $boxes = @{}
+    $y = 66
+    foreach ($fd in @(@{ Key = 'Password'; Label = 'كلمة المرور الجديدة' }, @{ Key = 'Confirm'; Label = 'تأكيد كلمة المرور' })) {
+        $l = New-Object System.Windows.Forms.Label
+        $l.Text = $fd.Label
+        $l.Location = New-Object System.Drawing.Point(20, ($y + 4))
+        $l.Size = New-Object System.Drawing.Size(170, 24)
+        $t = New-Object System.Windows.Forms.TextBox
+        $t.Location = New-Object System.Drawing.Point(200, $y)
+        $t.Size = New-Object System.Drawing.Size(250, 26)
+        $t.RightToLeft = 'No'
+        $t.UseSystemPasswordChar = $true
+        $f.Controls.Add($l); $f.Controls.Add($t)
+        $boxes[$fd.Key] = $t
+        $y += 42
+    }
+    Add-DialogButtons $f ($y + 10)
+    while ($true) {
+        if ($f.ShowDialog($script:MainForm) -ne 'OK') { return $null }
+        $pass = $boxes['Password'].Text
+        if ($pass -ne $boxes['Confirm'].Text) { Show-Error 'كلمتا المرور غير متطابقتين.'; continue }
+        if ($pass -notmatch '^[\x21-\x7E]{8,}$') { Show-Error 'كلمة المرور 8 أحرف على الأقل، بحروف إنجليزية وأرقام ورموز فقط ودون فراغات.'; continue }
+        return $pass
+    }
+}
+
+# يُعيد قراءة إعدادات PostgreSQL (دون قطع اتصالات الأنظمة الأخرى)، وإن تعذّر يعيد تشغيل الخدمة
+function Update-PostgresConfig([string]$bin, $info) {
+    $pgCtl = Join-Path $bin 'pg_ctl.exe'
+    $code = 1
+    if (Test-Path -LiteralPath $pgCtl) {
+        $script:QuietLog = $true
+        try { $code = Invoke-Logged $pgCtl ('reload -D "' + $info.DataDir + '"') '' $script:AppDir }
+        finally { $script:QuietLog = $false }
+    }
+    if ($code -ne 0) { Restart-Service -Name $info.Name -Force }
+    Start-Sleep -Seconds 2
+}
+
+# استعادة كلمة مرور مدير PostgreSQL المنسية:
+#  يُسمح مؤقتاً (ثوانٍ) بالدخول من هذه الحاسبة نفسها دون كلمة مرور، تُعيَّن الكلمة الجديدة، ثم يُعاد ملف الإعداد الأصلي كما كان.
+function Invoke-ResetPostgresPassword {
+    $bin = Get-PostgresBin
+    if (-not $bin) { Show-Info 'PostgreSQL غير منصّب على هذه الحاسبة.'; return }
+    $info = Get-PostgresServiceInfo
+    if (-not $info -or -not $info.DataDir) { throw 'لم أجد خدمة PostgreSQL أو مجلد بياناتها على هذه الحاسبة.' }
+    $hba = Join-Path $info.DataDir 'pg_hba.conf'
+    if (-not (Test-Path -LiteralPath $hba)) { throw "ملف إعداد الدخول غير موجود: $hba" }
+    $msg = "ستُعيَّن كلمة مرور جديدة لمدير PostgreSQL (المستخدم postgres) على هذه الحاسبة.`n`nأي نظام آخر يتصل بالمستخدم postgres نفسه سيحتاج الكلمة الجديدة. الأنظمة التي لها مستخدم خاص بها لا تتأثر.`n`nهل تريد المتابعة؟"
+    if (-not (Confirm-Action $msg 'استعادة كلمة مرور PostgreSQL')) { return }
+    $newPw = Show-PostgresNewPasswordDialog
+    if (-not $newPw) { return }
+
+    Write-Log '════ استعادة كلمة مرور PostgreSQL ════'
+    $original = [IO.File]::ReadAllBytes($hba)
+    [IO.File]::WriteAllBytes(($hba + '.bms-backup'), $original)
+    $tmp = Join-Path ([IO.Path]::GetTempPath()) ('bms-pg-' + [Guid]::NewGuid().ToString('N') + '.sql')
+    [IO.File]::WriteAllText($tmp, ("ALTER USER postgres WITH PASSWORD '" + $newPw.Replace("'", "''") + "';"), $script:Utf8NoBom)
+    $psql = Join-Path $bin 'psql.exe'
+    $code = 1
+    try {
+        $trust = [Text.Encoding]::ASCII.GetBytes("# BMS temporary rule (removed automatically)`r`nhost all all 127.0.0.1/32 trust`r`n")
+        $temp = New-Object byte[] ($trust.Length + $original.Length)
+        [Array]::Copy($trust, 0, $temp, 0, $trust.Length)
+        [Array]::Copy($original, 0, $temp, $trust.Length, $original.Length)
+        [IO.File]::WriteAllBytes($hba, $temp)
+        Update-PostgresConfig $bin $info
+        $script:QuietLog = $true
+        try {
+            $code = Invoke-Logged $psql ('-h 127.0.0.1 -p ' + $info.Port + ' -U postgres -d postgres -w -v ON_ERROR_STOP=1 -f "' + $tmp + '"') 'تعيين كلمة المرور الجديدة...' $script:AppDir
+        } finally { $script:QuietLog = $false }
+    } finally {
+        # يُعاد ملف الإعداد الأصلي دائماً، نجحت العملية أم فشلت
+        [IO.File]::WriteAllBytes($hba, $original)
+        Remove-Item -LiteralPath $tmp -Force -ErrorAction SilentlyContinue
+        Update-PostgresConfig $bin $info
+    }
+    if ($code -ne 0) {
+        $detail = ''
+        if ($script:LastOutput -and $script:LastOutput.Count -gt 0) { $detail = $script:LastOutput[$script:LastOutput.Count - 1] }
+        throw "تعذّر تعيين كلمة المرور. أُعيد ملف الإعداد كما كان ولم يتغير شيء.`n$detail"
+    }
+    Write-Log '✔ عُيّنت كلمة مرور جديدة لمدير PostgreSQL وأُعيد ملف الإعداد كما كان.'
+    if (Confirm-Action "تم تعيين كلمة المرور الجديدة.`n`nهل تريد إكمال إعداد قاعدة بيانات النظام على PostgreSQL الآن؟" 'إعداد PostgreSQL') {
+        Invoke-SetupPostgres @{ Server = '127.0.0.1'; Port = $info.Port; Admin = 'postgres'; Password = $newPw }
+    }
 }
 
 function Get-DbSizeText {
@@ -1928,6 +2044,7 @@ Add-Group 'الإعدادات والأمان' @(
     @('تغيير المنفذ',          { Invoke-ChangePort }),
     @('كلمة مرور المدير',     { Invoke-ResetAdmin }),
     @('إعداد PostgreSQL',      { Invoke-SetupPostgres }),
+    @('كلمة مرور PostgreSQL',  { Invoke-ResetPostgresPassword }),
     @('ملف الإعدادات .env',   { Open-EnvInNotepad }),
     @('حماية المجلدات',        { Invoke-ProtectFolders }),
     @('إلغاء الحماية',         { Invoke-UnprotectFolders })
