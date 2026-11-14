@@ -453,4 +453,36 @@ describe('وضع الملف المحلي (للتجربة)', () => {
     assert.equal(codes.includes('F-HIST'), true);
     assert.equal(codes.includes('F-EMPTY'), false);
   });
+
+  test('رموز الغرف والمعدات المكررة تُرفض', async () => {
+    const room = (id, code) => ({ id, code, name: id, type: 'مكتب', areaSqM: 10, floor: 'الطابق 1' });
+    const post = (body) => call('POST', '/api/units', { token, body });
+
+    const inside = await post(unit('D-1', { rooms: [room('r1', 'DDDD-F1-OFF-101'), room('r2', 'dddd-f1-off-101 ')] }));
+    assert.equal(inside.status, 400);
+    assert.equal(inside.json.code, 'DUPLICATE_CODE');
+    assert.match(inside.json.error, /DDDD-F1-OFF-101/);
+    assert.equal((await post(unit('D-1', { rooms: [room('r1', 'A'), room('r1', 'B')] }))).status, 400, 'معرّف غرفة مكرر');
+    assert.equal((await post(unit('D-1', { equipment: [{ id: 'e1', name: 'مولد' }, { id: 'e1', name: 'مضخة' }] }))).status, 400);
+    assert.equal((await call('GET', '/api/units', { token })).json.some((u) => u.code === 'D-1'), false, 'لم يُحفظ شيء');
+
+    assert.equal((await post(unit('D-1', { rooms: [room('r1', 'DDDD-F1-OFF-101'), room('r2', 'DDDD-F1-OFF-102'), room('r3', '')], equipment: [{ id: 'e1' }, { id: 'e2' }] }))).status, 200);
+    const cross = await post(unit('D-2', { rooms: [room('x1', 'DDDD-F1-OFF-102')] }));
+    assert.equal(cross.status, 400);
+    assert.match(cross.json.error, /D-1/);
+
+    // الدفعة: تكرار بين وحدتين جديدتين يرفضها كلها
+    const batch = await call('POST', '/api/units/batch', {
+      token,
+      body: { upserts: [unit('D-3', { rooms: [room('a', 'ZZZZ-F1-OFF-101')] }), unit('D-4', { rooms: [room('b', 'ZZZZ-F1-OFF-101')] })] },
+    });
+    assert.equal(batch.status, 400);
+    assert.equal((await call('GET', '/api/units', { token })).json.some((u) => u.code === 'D-3'), false);
+
+    // تعديل الوحدة نفسها برموزها الحالية مقبول، وتبديل رمز غرفة إلى رمز حر مقبول
+    const current = (await call('GET', '/api/units', { token })).json.find((u) => u.code === 'D-1');
+    assert.equal((await call('PUT', '/api/units/D-1', { token, body: { ...current, name: 'معدّلة' } })).status, 200);
+    const bulk = await call('POST', '/api/units/bulk', { token, body: { units: [unit('D-5', { rooms: [room('q', 'DDDD-F1-OFF-101')] })] } });
+    assert.equal(bulk.status, 400, 'الاستيراد الجماعي يخضع للفحص نفسه');
+  });
 });

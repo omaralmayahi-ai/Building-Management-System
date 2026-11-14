@@ -849,6 +849,52 @@ async function startServer() {
     error: 'لا يمكن حذف وحدة لها طلبات صيانة أو كشوفات أو سجلات إشغال. استخدم «شطب الوحدة» لإخراجها من الخدمة مع بقاء سجلها.',
   };
 
+  // رموز الغرف والمعدات فريدة: داخل الوحدة دائماً، ورمز الغرفة الجديد أو المعدَّل لا يكرر رمز غرفة في وحدة أخرى.
+  // (رمز قديم مكرر بين وحدتين لا يمنع تعديلات أخرى على أي منهما؛ يُرفض فقط إدخال تكرار جديد.)
+  const normCode = (v: any) => String(v ?? '').trim().toUpperCase();
+
+  function findDuplicateCodeError(unit: any, existing: any): string | null {
+    const rooms: any[] = Array.isArray(unit?.rooms) ? unit.rooms : [];
+    const seenCodes = new Set<string>();
+    const seenIds = new Set<string>();
+    for (const room of rooms) {
+      const code = normCode(room?.code);
+      if (code) {
+        if (seenCodes.has(code)) return `رمز الغرفة مكرر داخل الوحدة: ${code}`;
+        seenCodes.add(code);
+      }
+      const id = String(room?.id ?? '').trim();
+      if (id) {
+        if (seenIds.has(id)) return `معرّف الغرفة مكرر داخل الوحدة: ${id}`;
+        seenIds.add(id);
+      }
+    }
+    const equipmentIds = new Set<string>();
+    for (const item of Array.isArray(unit?.equipment) ? unit.equipment : []) {
+      const id = String(item?.id ?? '').trim();
+      if (!id) continue;
+      if (equipmentIds.has(id)) return `معرّف المعدة مكرر داخل الوحدة: ${id}`;
+      equipmentIds.add(id);
+    }
+    const before = new Set<string>((Array.isArray(existing?.rooms) ? existing.rooms : []).map((r: any) => normCode(r?.code)));
+    const fresh = Array.from(seenCodes).filter((code) => !before.has(code));
+    if (fresh.length > 0) {
+      const unitCode = String(unit?.code);
+      for (const other of memStore.units) {
+        if (String(other?.code) === unitCode || String(other?.code) === String(existing?.code)) continue;
+        for (const room of Array.isArray(other?.rooms) ? other.rooms : []) {
+          const code = normCode(room?.code);
+          if (code && fresh.includes(code)) return `رمز الغرفة ${code} مستخدم في وحدة أخرى (${other.code})`;
+        }
+      }
+    }
+    return null;
+  }
+
+  function rejectDuplicateCodes(res: express.Response, message: string) {
+    return res.status(400).json({ success: false, code: 'DUPLICATE_CODE', error: message });
+  }
+
   const CONFLICT_MESSAGE = 'عُدّل هذا السجل من مستخدم آخر بعد فتحه. حُدّثت البيانات على شاشتك، أعد التعديل إن لزم.';
 
   function registerCollection(o: {
@@ -878,6 +924,10 @@ async function startServer() {
       if (isVersionConflict(req.body, existing)) {
         return res.status(409).json({ success: false, code: 'VERSION_CONFLICT', error: CONFLICT_MESSAGE, current: existing });
       }
+      if (o.key === 'units') {
+        const dup = findDuplicateCodeError(req.body, existing);
+        if (dup) return rejectDuplicateCodes(res, dup);
+      }
       const rec = stampRecord(req.body, existing, req);
       put(rec);
       try {
@@ -895,6 +945,10 @@ async function startServer() {
         const existing = find(paramId);
         if (isVersionConflict(req.body, existing)) {
           return res.status(409).json({ success: false, code: 'VERSION_CONFLICT', error: CONFLICT_MESSAGE, current: existing });
+        }
+        if (o.key === 'units') {
+          const dup = findDuplicateCodeError(req.body, existing);
+          if (dup) return rejectDuplicateCodes(res, dup);
         }
         const rec = stampRecord(req.body, existing, req);
         put(rec, paramId);
@@ -945,6 +999,21 @@ async function startServer() {
         return res.status(409).json({ success: false, code: 'VERSION_CONFLICT', error: CONFLICT_MESSAGE, conflicts });
       }
       if (o.key === 'units' && deletes.some((id) => unitHasHistory(id))) return res.status(409).json(UNIT_HISTORY_ERROR);
+      if (o.key === 'units') {
+        const batchCodes = new Map<string, string>();
+        for (const rec of upserts) {
+          const dup = findDuplicateCodeError(rec, find(def.idOf(rec)));
+          if (dup) return rejectDuplicateCodes(res, dup);
+          // تكرار بين وحدتين في الدفعة نفسها
+          for (const room of Array.isArray(rec?.rooms) ? rec.rooms : []) {
+            const code = normCode(room?.code);
+            if (!code) continue;
+            const owner = batchCodes.get(code);
+            if (owner && owner !== String(rec.code)) return rejectDuplicateCodes(res, `رمز الغرفة ${code} مكرر بين الوحدتين ${owner} و${rec.code}`);
+            batchCodes.set(code, String(rec.code));
+          }
+        }
+      }
       const records: any[] = [];
       for (const rec of upserts) {
         const existing = find(def.idOf(rec));
@@ -966,6 +1035,12 @@ async function startServer() {
     // استيراد جماعي (للمدير): يضيف ويحدّث فقط، ولا يحذف ما ليس في القائمة
     app.post(`/api/${o.route}/bulk`, async (req, res) => {
       const items: any[] = (Object.values(req.body || {}).find((v) => Array.isArray(v)) as any[]) || [];
+      if (o.key === 'units') {
+        for (const rec of items) {
+          const dup = findDuplicateCodeError(rec, find(def.idOf(rec)));
+          if (dup) return rejectDuplicateCodes(res, `${dup} — الوحدة ${rec?.code}`);
+        }
+      }
       const ids: string[] = [];
       for (const rec of items) {
         const id = def.idOf(rec);
