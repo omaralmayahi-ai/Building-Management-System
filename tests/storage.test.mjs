@@ -383,4 +383,74 @@ describe('وضع الملف المحلي (للتجربة)', () => {
     assert.equal(h.json.storage, 'file');
     assert.equal((await call('GET', '/api/status', { token })).json.mirror.enabled, false);
   });
+
+  test('لا يضيع أي حقل من حقول الوحدة بين الحفظ والقراءة', async () => {
+    const full = unit('F-FIELDS', {
+      unitTypeCode: 'ADM',
+      landAreaSqM: 1250.5,
+      roofType: 'سقف خرساني',
+      structureType: 'هيكل خرساني مسلح',
+      rooms: [{ id: 'r1', code: 'F-FIELDS-F1-OFF-101', name: 'مكتب', areaSqM: 20 }],
+      nested: { deep: [1, 'نص', { ok: true }] },
+    });
+    assert.equal((await call('POST', '/api/units', { token, body: full })).status, 200);
+    const back = (await call('GET', '/api/units', { token })).json.find((u) => u.code === 'F-FIELDS');
+    for (const [k, v] of Object.entries(full)) assert.deepEqual(back[k], v, k);
+  });
+
+  test('المرفق يُحفظ ملفاً ويُقرأ بجلسة صالحة فقط', async () => {
+    const bytes = Buffer.alloc(2000, 7);
+    const dataUrl = 'data:image/png;base64,' + bytes.toString('base64');
+    const r = await call('POST', '/api/units', {
+      token,
+      body: unit('F-ATT', { attachments: [{ id: 'a1', name: 'مخطط.png', url: dataUrl }], icon: 'data:image/png;base64,AAAA' }),
+    });
+    assert.equal(r.status, 200, r.text);
+    const url = r.json.unit.attachments[0].url;
+    assert.match(url, /^\/api\/files\/[a-f0-9]{64}\.png$/);
+    assert.equal(r.json.unit.icon, 'data:image/png;base64,AAAA', 'الصغير جداً يبقى مضمّناً');
+    assert.equal(fs.existsSync(path.join(dataDir, 'files', url.split('/').pop())), true);
+    assert.equal(fs.readFileSync(path.join(dataDir, 'store.json'), 'utf-8').includes(bytes.toString('base64').slice(0, 200)), false);
+
+    const base = `http://127.0.0.1:${port}`;
+    assert.equal((await fetch(base + url)).status, 401, 'دون جلسة');
+    const withBearer = await fetch(base + url, { headers: { Authorization: `Bearer ${token}` } });
+    assert.equal(withBearer.status, 200);
+    assert.equal(withBearer.headers.get('content-type'), 'image/png');
+    assert.equal(withBearer.headers.get('x-content-type-options'), 'nosniff');
+    assert.deepEqual(Buffer.from(await withBearer.arrayBuffer()), bytes);
+
+    // المتصفح يطلب الصور بكعكة الملفات التي يضعها الخادم مع أي طلب موثَّق
+    const any = await fetch(base + '/api/units', { headers: { Authorization: `Bearer ${token}` } });
+    const cookie = (any.headers.get('set-cookie') || '').split(';')[0];
+    assert.match(cookie, /^bms_files=/);
+    assert.match(any.headers.get('set-cookie'), /Path=\/api\/files; HttpOnly; SameSite=Strict/);
+    assert.equal((await fetch(base + url, { headers: { Cookie: cookie } })).status, 200);
+    assert.equal((await fetch(base + '/api/units', { headers: { Cookie: cookie } })).status, 401, 'الكعكة لا تفتح غير الملفات');
+
+    assert.equal((await fetch(base + '/api/files/..%2Fstore.json', { headers: { Authorization: `Bearer ${token}` } })).status, 404);
+    const html = await call('POST', '/api/units', {
+      token,
+      body: unit('F-HTML', { attachments: [{ id: 'h', url: 'data:text/html;base64,' + Buffer.alloc(900, 60).toString('base64') }] }),
+    });
+    const htmlRes = await fetch(base + html.json.unit.attachments[0].url, { headers: { Authorization: `Bearer ${token}` } });
+    assert.equal(htmlRes.headers.get('content-type'), 'application/octet-stream');
+    assert.match(htmlRes.headers.get('content-disposition'), /^attachment/);
+  });
+
+  test('وحدة لها سجل لا تُحذف، ووحدة بلا سجل تُحذف', async () => {
+    await call('POST', '/api/units', { token, body: unit('F-HIST') });
+    await call('POST', '/api/units', { token, body: unit('F-EMPTY') });
+    const m = await call('POST', '/api/maintenance', { token, body: { id: 'M-1', unitCode: 'F-HIST', title: 'تسرب' } });
+    assert.equal(m.status, 200, m.text);
+    const blocked = await call('DELETE', '/api/units/F-HIST', { token });
+    assert.equal(blocked.status, 409);
+    assert.equal(blocked.json.code, 'UNIT_HAS_HISTORY');
+    const batch = await call('POST', '/api/units/batch', { token, body: { upserts: [], deletes: ['F-EMPTY', 'F-HIST'] } });
+    assert.equal(batch.status, 409, 'الدفعة كلها تُرفض');
+    assert.equal((await call('DELETE', '/api/units/F-EMPTY', { token })).status, 200);
+    const codes = (await call('GET', '/api/units', { token })).json.map((u) => u.code);
+    assert.equal(codes.includes('F-HIST'), true);
+    assert.equal(codes.includes('F-EMPTY'), false);
+  });
 });

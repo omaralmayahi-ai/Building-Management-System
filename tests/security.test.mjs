@@ -169,7 +169,10 @@ test('جدول الصلاحيات حسب الدور', async () => {
   await expectStatus('operator', 'POST', '/api/system/factory-reset', {}, 403);
   await expectStatus('operator', 'POST', '/api/branding', { systemName: 'x' }, 403);
   await expectStatus('inspector', 'DELETE', '/api/units/T-001', undefined, 403);
-  await expectStatus('operator', 'DELETE', '/api/units/T-001', undefined, 200);
+  // للوحدة T-001 طلب صيانة: الصلاحية موجودة لكن الحذف ممنوع حفاظاً على السجل (تُشطب بدل الحذف)
+  await expectStatus('operator', 'DELETE', '/api/units/T-001', undefined, 409);
+  await expectStatus('operator', 'POST', '/api/units', { ...unit, id: 'U-2', code: 'T-002' }, 200);
+  await expectStatus('operator', 'DELETE', '/api/units/T-002', undefined, 200);
 });
 
 test('المدخلات الناقصة تُرفض', async () => {

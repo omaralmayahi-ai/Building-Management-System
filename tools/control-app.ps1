@@ -1538,6 +1538,14 @@ function Restore-Backup {
         Copy-Item -LiteralPath $file -Destination $script:DbFile -Force
         if (Test-Path ($file + '-wal')) { Copy-Item -LiteralPath ($file + '-wal') -Destination ($script:DbFile + '-wal') -Force }
     }
+    # المرفقات المحفوظة مع النسخة (مجلد files بجانب ملف البيانات) تُعاد إلى مجلد البيانات؛ لا يُحذف ما هو موجود
+    $backupFiles = Join-Path (Split-Path -Parent $file) 'files'
+    if (Test-Path -LiteralPath $backupFiles) {
+        $targetFiles = Join-Path (Split-Path -Parent $script:DbFile) 'files'
+        if (-not (Test-Path -LiteralPath $targetFiles)) { New-Item -ItemType Directory -Path $targetFiles -Force | Out-Null }
+        Copy-Item -Path (Join-Path $backupFiles '*') -Destination $targetFiles -Force -ErrorAction SilentlyContinue
+        Write-Log '   أُعيدت المرفقات المحفوظة مع النسخة.'
+    }
     # المرفقات لا تُحذف أبداً: نُعيد فقط ما هو مفقود من المخزن (لا نستبدل أي ملف موجود)
     $store = Join-Path $script:BackupDir '_uploads'
     if (Test-Path $store) {

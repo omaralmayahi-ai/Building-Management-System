@@ -47,6 +47,13 @@ fs.mkdirSync(destDir, { recursive: true });
 fs.writeFileSync(path.join(destDir, 'store.json'), raw, 'utf8');
 console.log('تم نسخ ملف البيانات (' + Math.round(Buffer.byteLength(raw) / 1024) + ' KB)');
 
+// 1-ب) المرفقات: ملفات على القرص خارج قاعدة البيانات، تُنسخ مع كل نسخة احتياطية
+const filesDir = path.join(appDir, '.data', 'files');
+if (fs.existsSync(filesDir)) {
+  fs.cpSync(filesDir, path.join(destDir, 'files'), { recursive: true });
+  console.log('تم نسخ المرفقات (' + fs.readdirSync(filesDir).length + ' ملف)');
+}
+
 // 2) نسخة PostgreSQL الكاملة (إن كان مُعدّاً)
 function findPgDump() {
   const exe = process.platform === 'win32' ? 'pg_dump.exe' : 'pg_dump';

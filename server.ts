@@ -9,6 +9,7 @@ import { createServer as createViteServer } from 'vite';
 import { configuredDatabaseUrl } from './src/db/dbClient';
 import { createStorage, type StorageOp } from './src/db/storage';
 import { createFirestoreMirror } from './src/db/firestoreMirror';
+import { createFileStore } from './src/db/fileStore';
 import {
   INITIAL_UNITS,
   INITIAL_MAINTENANCE_REQUESTS,
@@ -245,6 +246,9 @@ async function startServer() {
   // ==========================================================================
   class StorageUnavailableError extends Error {}
   const storage = createStorage({ dataDir: DATA_DIR, dump: () => JSON.stringify(memStore, null, 2) });
+  // المرفقات ملفات على القرص؛ السجلات تحمل روابطها فقط
+  const fileStore = createFileStore(DATA_DIR);
+  const FILE_COLLECTIONS = ['units', 'maintenance', 'occupancy', 'inspections'];
   type CollectionDef = { get: () => any[]; set: (rows: any[]) => void; idOf: (r: any) => string };
   const COLLECTIONS: Record<string, CollectionDef> = {
     units: { get: () => memStore.units, set: (r) => { memStore.units = r; }, idOf: (r) => String(r?.code) },
@@ -416,9 +420,15 @@ async function startServer() {
     }
   }
 
+  // المرفقات المضمّنة في سجلات قديمة تُخرج إلى ملفات مرة واحدة، ثم تُزال الملفات اليتيمة
+  for (const key of FILE_COLLECTIONS) COLLECTIONS[key].set(fileStore.externalize(COLLECTIONS[key].get()));
+
   // أول كتابة: تثبيت الحالة الحالية (البذور وترقية كلمات المرور، أو الاستيراد الأول من الملف)
   try {
     await commit();
+    try {
+      fileStore.sweep(FILE_COLLECTIONS.map((key) => JSON.stringify(COLLECTIONS[key].get())));
+    } catch {}
     if (importedFromFile) {
       fs.renameSync(PERSISTENCE_FILE_PATH, path.join(DATA_DIR, `store.imported-${Date.now()}.json`));
       console.log('[storage] نُقلت بيانات store.json إلى PostgreSQL، وأُعيدت تسمية الملف');
@@ -445,11 +455,30 @@ async function startServer() {
     healthTimer.unref?.();
   }
 
+  const FILES_COOKIE = 'bms_files';
+
+  function readFilesCookie(req: express.Request): string {
+    for (const part of String(req.headers.cookie || '').split(';')) {
+      const idx = part.indexOf('=');
+      if (idx > 0 && part.slice(0, idx).trim() === FILES_COOKIE) return decodeURIComponent(part.slice(idx + 1).trim());
+    }
+    return '';
+  }
+
+  function setFilesCookie(req: express.Request, res: express.Response, token: string | null) {
+    const attrs = ['Path=/api/files', 'HttpOnly', 'SameSite=Strict'];
+    if (req.secure) attrs.push('Secure');
+    attrs.push(token ? 'Max-Age=86400' : 'Max-Age=0');
+    res.append('Set-Cookie', `${FILES_COOKIE}=${token ? encodeURIComponent(token) : ''}; ${attrs.join('; ')}`);
+  }
+
   function getRequestSession(req: express.Request): ActiveSession | null {
     const header = String(req.headers.authorization || '');
     let token = header.replace(/^Bearer\s+/i, '').trim();
     // EventSource لا يرسل ترويسات: يُقبل الرمز في عنوان الطلب لمسار الأحداث فقط
     if (!token && req.path === '/sync/events' && typeof req.query.token === 'string') token = req.query.token;
+    // الصور والملفات يطلبها المتصفح دون ترويسات: يُقبل رمز الجلسة من كعكة محصورة بمسار الملفات فقط
+    if (!token && req.path.startsWith('/files/')) token = readFilesCookie(req);
     if (!token) return null;
     const session = activeSessions.get(token);
     if (!session) return null;
@@ -630,6 +659,8 @@ async function startServer() {
       return res.status(401).json({ error: 'غير مصرح: يلزم تسجيل الدخول', code: 'UNAUTHENTICATED' });
     }
     (req as any).session = session;
+    // كعكة الملفات تُجدَّد مع أي طلب موثَّق (تغطي الجلسات المفتوحة قبل إضافتها)
+    if (!req.path.startsWith('/files/') && readFilesCookie(req) !== session.token) setFilesCookie(req, res, session.token);
 
     // حساب بكلمة مرور افتراضية: لا يُسمح له بشيء قبل تغييرها
     if (session.mustChangePassword && req.path !== '/auth/change-password' && req.path !== '/auth/logout') {
@@ -780,7 +811,7 @@ async function startServer() {
   function stampRecord(rec: any, existing: any, req: express.Request) {
     const session = (req as any).session as ActiveSession | undefined;
     return {
-      ...rec,
+      ...fileStore.externalize(rec),
       _v: (Number(existing?._v) || 0) + 1,
       _updatedAt: new Date().toISOString(),
       _updatedBy: session?.username || '',
@@ -803,6 +834,20 @@ async function startServer() {
     console.error('Request failed:', err);
     return res.status(500).json({ success: false, error: 'فشل تنفيذ العملية على الخادم', code: 'SERVER_ERROR' });
   }
+
+  // وحدة لها تاريخ (صيانة أو كشوفات أو إشغال) لا تُحذف: تُشطب فتخرج من الخدمة ويبقى سجلها
+  function unitHasHistory(code: string): boolean {
+    return (
+      memStore.maintenance.some((r: any) => r?.unitCode === code) ||
+      memStore.inspections.some((r: any) => r?.unitCode === code) ||
+      memStore.occupancy.some((r: any) => r?.unitCode === code)
+    );
+  }
+  const UNIT_HISTORY_ERROR = {
+    success: false,
+    code: 'UNIT_HAS_HISTORY',
+    error: 'لا يمكن حذف وحدة لها طلبات صيانة أو كشوفات أو سجلات إشغال. استخدم «شطب الوحدة» لإخراجها من الخدمة مع بقاء سجلها.',
+  };
 
   const CONFLICT_MESSAGE = 'عُدّل هذا السجل من مستخدم آخر بعد فتحه. حُدّثت البيانات على شاشتك، أعد التعديل إن لزم.';
 
@@ -863,6 +908,7 @@ async function startServer() {
       });
 
       app.delete(`/api/${o.route}/:id`, async (req, res) => {
+        if (o.key === 'units' && unitHasHistory(req.params.id)) return res.status(409).json(UNIT_HISTORY_ERROR);
         remove(req.params.id);
         try {
           await commit([o.key], [req.params.id]);
@@ -898,6 +944,7 @@ async function startServer() {
       if (conflicts.length > 0) {
         return res.status(409).json({ success: false, code: 'VERSION_CONFLICT', error: CONFLICT_MESSAGE, conflicts });
       }
+      if (o.key === 'units' && deletes.some((id) => unitHasHistory(id))) return res.status(409).json(UNIT_HISTORY_ERROR);
       const records: any[] = [];
       for (const rec of upserts) {
         const existing = find(def.idOf(rec));
@@ -945,6 +992,18 @@ async function startServer() {
   registerCollection({ route: 'org-entities', key: 'orgEntities', event: 'org_entities_updated', single: 'entity' });
   // سجل النشاطات: إضافة فقط — لا تعديل ولا حذف من أي مسار
   registerCollection({ route: 'audit-logs', key: 'auditLogs', event: 'audit_logs_updated', single: 'log', appendOnly: true });
+
+  // المرفقات: تُقرأ بجلسة صالحة فقط (ترويسة أو كعكة الملفات)
+  app.get('/api/files/:name', (req, res) => {
+    const found = fileStore.resolve(req.params.name);
+    if (!found) return res.status(404).json({ error: 'الملف غير موجود', code: 'NOT_FOUND' });
+    res.setHeader('Content-Type', found.contentType);
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('Content-Security-Policy', "default-src 'none'; sandbox");
+    res.setHeader('Cache-Control', 'private, max-age=31536000, immutable');
+    res.setHeader('Content-Disposition', found.inline ? 'inline' : `attachment; filename="${req.params.name}"`);
+    return res.sendFile(found.file);
+  });
 
   // سجل التدقيق الذي يكتبه الخادم نفسه مع كل عملية كتابة (للمدير، قراءة فقط)
   app.get('/api/audit-trail', async (req, res) => {
@@ -1103,6 +1162,7 @@ async function startServer() {
     };
     activeSessions.set(token, session);
     saveSessions();
+    setFilesCookie(req, res, token);
 
     // Record forensic audit log
     const successLog = {
@@ -1114,6 +1174,7 @@ async function startServer() {
       timestamp: new Date().toISOString(),
     };
     memStore.auditLogs.unshift(successLog);
+    void commit(['auditLogs'], [successLog.id]).catch(() => {});
 
     return res.json({
       success: true,
@@ -1143,6 +1204,7 @@ async function startServer() {
       activeSessions.delete(session.token);
       saveSessions();
     }
+    setFilesCookie(req, res, null);
     return res.json({ success: true });
   });
 
