@@ -28,7 +28,7 @@
 - كلمات المرور `scrypt$<salt>$<hash>` (`hashSecurePassword` / `secureUsersForStore`، ونفس الصيغة في script/panel-tools.mjs). القديمة تُرقّى عند الإقلاع وعند الدخول. الدخول بكلمة افتراضية (`DEFAULT_PASSWORDS`) يفرض تغييرها (`mustChangePassword`) قبل أي طلب آخر.
 - الجلسات في PostgreSQL (مجموعة `sessions`)، وفي `.data/sessions.json` في وضع الملف فقط. لا تُرسل كلمة المرور في أي استجابة ولا تُحفظ في localStorage ولا في Firestore.
 - تغيير كلمة المرور الشخصية: `POST /api/auth/change-password`. لا يوجد دخول بديل داخل المتصفح.
-- الاختبارات: `npm test` (node:test) تشغّل dist/server.cjs بمنفذ مؤقت و`BMS_DATA_DIR` مؤقت: `tests/security.test.mjs` (وضع الملف) و`tests/storage.test.mjs` (PostgreSQL مؤقت عبر initdb، أو `BMS_TEST_DATABASE_URL`؛ تُتخطى إن لم يتوفر PostgreSQL). يجب أن تمر قبل كل commit يمس الخادم.
+- الاختبارات: `npm test` (node:test عبر `--import tsx`): `tests/logic.test.mjs` لمنطق الترميز ومواعيد الكشف (يستورد ملفات `src/utils` مباشرة)، والبقية تشغّل dist/server.cjs بمنفذ مؤقت و`BMS_DATA_DIR` مؤقت: `tests/security.test.mjs` (وضع الملف) و`tests/storage.test.mjs` (PostgreSQL مؤقت عبر initdb، أو `BMS_TEST_DATABASE_URL`؛ تُتخطى إن لم يتوفر PostgreSQL). يجب أن تمر قبل كل commit يمس الخادم.
 ## تخزين البيانات (المرحلة 2 منجزة 14-11-2026)
 - **القرارات:** خادم النظام هو المصدر المعتمد الوحيد وقاعدته PostgreSQL؛ Firestore نسخة مزامنة فقط؛ لا بيانات حقيقية للاستعادة (لا تُذكِّر بتصديرها)؛ مسار GitHub Pages حُذف.
 - `src/db/storage.ts`: وضعان. `postgres` عند ضبط `DATABASE_URL` (جدول `bms_records(collection,id,data JSONB,version)` + `bms_audit` + `schema_migrations`؛ الترحيلات في مصفوفة `MIGRATIONS`). `file` بدونه (`.data/store.json`، للتجربة والاختبارات فقط، ويظهر تحذير في شريط الحالة). القيمة النموذجية `CHANGE_ME` تُعدّ غير مضبوطة. التشفير فقط مع `DATABASE_SSL=true` أو `sslmode=require`.
@@ -61,9 +61,14 @@
 - الفحص البصري: playwright + google-chrome على نسخة البناء الخارجية بالوضعين وبمقاس الهاتف، مع فحص آلي لتباين النصوص (أقل من 2.6 يُعدّ عيباً). فُحصت بوحدة تجريبية: تفاصيل الوحدة والمجسّم، نافذة التعديل، QR الوحدة، الخريطة، المحرر الهندسي، الشطب، المرفقات. لم تُفحص: بطاقة QR للغرفة، عارض المرفقات بملف فعلي، المخطط التنظيمي، بقية الثيمات الثمانية.
 - أشرطة أدوات المجسّم تتبع `darkChrome` (الوضع الليلي للمجسّم أو الوضع الداكن للنظام) في `ThreeBuildingCanvas.tsx`.
 
+## منطق الكشف الدوري (3-ب)
+- `src/utils/inspectionSchedule.ts` هو المكان الوحيد لحساب موعد الكشف القادم والتأخير (`calculateNextDueDate`، `daysOverdue`، `effectiveInspectionStatus`)؛ الحساب على التاريخ فقط دون توقيت. لا تكتب `new Date(...).toISOString().split('T')[0]` لتاريخ اليوم (يرجع يوماً قبل الثالثة فجراً في بغداد)؛ استخدم `todayDateString()`.
+- حالة «متأخر» مشتقة للعرض في App.tsx (`periodicInspections` من `storedInspections` عبر `withEffectiveStatuses`)، ولا تُكتب في القاعدة إلا إن حُفظ السجل لسبب آخر.
+
 ## معروف وغير محلول (تفاصيله في تقرير المراجعة)
 - بيانات الوحدة مستند JSON واحد (الغرف والمعدات والمرفقات داخله، والتواريخ نصوص): المرحلة 3.
 - App.tsx ما زال يكتب نسخ العرض في localStorage ويحدّث الحالة قبل رد الخادم (تُصحَّح بإعادة القراءة عند الفشل).
 - `memStore` يحمّل كل البيانات في ذاكرة الخادم؛ مناسب لحجم الشعبة الحالي لا لعشرات آلاف الوحدات بمرفقاتها.
 - قواعد Firestore المنشورة ترفض القراءة المجهولة (403)، خلافاً لملف firestore.rules المحلي.
 - docker-compose.yml يشير إلى database/init.sql القديم: المرحلة 5.
+- `daysOverdue` لطلبات الصيانة لا يحسبه أي كود (يبقى كما أُدخل). ومواضع أخرى ما زالت تستخدم `toISOString().split('T')[0]` لتاريخ اليوم.

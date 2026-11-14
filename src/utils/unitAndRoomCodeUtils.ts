@@ -328,7 +328,9 @@ export function formatRoomOccupancyDisplay(room: Room): {
 export function extractFloorNumber(floorStr?: string | number): number {
   if (typeof floorStr === 'number') return Math.max(1, Math.floor(floorStr));
   if (!floorStr) return 1;
-  const cleaned = String(floorStr).replace(/\D/g, '');
+  // الأرقام العربية (٠-٩) والفارسية (۰-۹) تُحوَّل أولاً، وإلا قُرئ «الطابق ٢» طابقاً أول
+  const western = String(floorStr).replace(/[٠-٩۰-۹]/g, (ch) => String(ch.charCodeAt(0) & 0xf));
+  const cleaned = western.replace(/[^0-9]/g, '');
   const parsed = parseInt(cleaned, 10);
   return isNaN(parsed) || parsed < 1 ? 1 : parsed;
 }

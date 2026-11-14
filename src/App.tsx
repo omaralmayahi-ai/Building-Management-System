@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { calculateNextDueDate, todayDateString, withEffectiveStatuses } from './utils/inspectionSchedule';
 import {
   LayoutDashboard,
   Box,
@@ -399,7 +400,7 @@ export function App() {
     safeParse('app_occupancy_records', SEED_WITH_DEMO_DATA ? INITIAL_OCCUPANCY_RECORDS : [])
   );
 
-  const [periodicInspections, setPeriodicInspections] = useState<PeriodicInspectionSchedule[]>(() => {
+  const [storedInspections, setPeriodicInspections] = useState<PeriodicInspectionSchedule[]>(() => {
     const saved = localStorage.getItem('app_periodic_inspections');
     if (!saved) return SEED_WITH_DEMO_DATA ? INITIAL_PERIODIC_INSPECTIONS : [];
     try {
@@ -409,6 +410,12 @@ export function App() {
       return SEED_WITH_DEMO_DATA ? INITIAL_PERIODIC_INSPECTIONS : [];
     }
   });
+  // الحالة المعروضة للكشف مشتقة من تاريخ اليوم: ما تجاوز موعده يظهر متأخراً، وما أُجّل يعود مجدولاً
+  const todayKey = todayDateString();
+  const periodicInspections = useMemo(
+    () => withEffectiveStatuses(storedInspections, todayKey),
+    [storedInspections, todayKey]
+  );
 
   const [auditLogs, setAuditLogs] = useState<AuditLogItem[]>(() =>
     safeParse('app_audit_logs', SEED_WITH_DEMO_DATA ? INITIAL_AUDIT_LOGS : [])
@@ -2140,16 +2147,7 @@ export function App() {
     // Auto schedule next inspection
     let nextSchedules: PeriodicInspectionSchedule[] = [];
     if (outcome.autoScheduleNext) {
-      const d = new Date(outcome.completionDate);
-      let daysToAdd = 90;
-      if (existing.frequency === 'monthly') daysToAdd = 30;
-      else if (existing.frequency === 'quarterly') daysToAdd = 90;
-      else if (existing.frequency === 'semi_annual') daysToAdd = 180;
-      else if (existing.frequency === 'annual') daysToAdd = 365;
-      else if (existing.frequency === 'custom') daysToAdd = existing.customIntervalDays || 90;
-
-      d.setDate(d.getDate() + daysToAdd);
-      const nextDueDateStr = d.toISOString().split('T')[0];
+      const nextDueDateStr = calculateNextDueDate(outcome.completionDate, existing.frequency, existing.customIntervalDays);
 
       const newNextSchedule: PeriodicInspectionSchedule = {
         id: `INS-2026-${Math.floor(1000 + Math.random() * 9000)}`,

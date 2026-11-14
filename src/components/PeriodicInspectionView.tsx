@@ -1,3 +1,4 @@
+import { calculateNextDueDate } from '../utils/inspectionSchedule';
 import React, { useState, useMemo, useEffect } from 'react';
 import {
   CalendarCheck,
@@ -553,16 +554,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
 
   // Helper calculation for Next Due Date when start date or frequency changes
   const updateCalculatedNextDate = (startDateStr: string, freq: InspectionFrequency, customDays: number) => {
-    const d = new Date(startDateStr || new Date());
-    let daysToAdd = 90;
-    if (freq === 'monthly') daysToAdd = 30;
-    else if (freq === 'quarterly') daysToAdd = 90;
-    else if (freq === 'semi_annual') daysToAdd = 180;
-    else if (freq === 'annual') daysToAdd = 365;
-    else if (freq === 'custom') daysToAdd = customDays || 30;
-
-    d.setDate(d.getDate() + daysToAdd);
-    setNewNextDate(d.toISOString().split('T')[0]);
+    setNewNextDate(calculateNextDueDate(startDateStr, freq, customDays));
   };
 
   const handleStartDateChange = (dateStr: string) => {
@@ -647,16 +639,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
 
   // Helper calculation for Next Due Date in Edit mode
   const updateEditCalculatedNextDate = (lastDateStr: string, freq: InspectionFrequency, customDays: number) => {
-    const d = new Date(lastDateStr || new Date());
-    let daysToAdd = 90;
-    if (freq === 'monthly') daysToAdd = 30;
-    else if (freq === 'quarterly') daysToAdd = 90;
-    else if (freq === 'semi_annual') daysToAdd = 180;
-    else if (freq === 'annual') daysToAdd = 365;
-    else if (freq === 'custom') daysToAdd = customDays || 30;
-
-    d.setDate(d.getDate() + daysToAdd);
-    setEditNextDate(d.toISOString().split('T')[0]);
+    setEditNextDate(calculateNextDueDate(lastDateStr, freq, customDays));
   };
 
   // Submit Edit Schedule
