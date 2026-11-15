@@ -35,9 +35,9 @@ import {
 } from 'lucide-react';
 
 import { SystemBranding, SystemUser } from '../types';
-import { getServerDateFormatted, getServerTimeFormatted } from '../services/serverTime';
 import { syncQueue, SyncQueueStatus } from '../services/syncQueue';
 import { NavTab } from './Sidebar';
+import { Button, Field, Input, Modal } from './ui';
 
 interface HeaderProps {
   onOpenNewAssetModal?: () => void;
@@ -163,8 +163,6 @@ export const Header: React.FC<HeaderProps> = ({
   const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null);
   const [isSubmittingPassword, setIsSubmittingPassword] = useState(false);
 
-  const [serverDateStr, setServerDateStr] = useState<string>(() => getServerDateFormatted());
-  const [serverTimeStr, setServerTimeStr] = useState<string>(() => getServerTimeFormatted());
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
   const [queueStatus, setQueueStatus] = useState<SyncQueueStatus>(() => syncQueue.getStatus());
   const [isOnline, setIsOnline] = useState<boolean>(() => typeof navigator !== 'undefined' ? navigator.onLine : true);
@@ -220,17 +218,6 @@ export const Header: React.FC<HeaderProps> = ({
       console.warn('Fullscreen toggle not permitted or failed:', err);
     }
   };
-
-  // Update synchronized server time display every second
-  useEffect(() => {
-    const updateTime = () => {
-      setServerDateStr(getServerDateFormatted());
-      setServerTimeStr(getServerTimeFormatted());
-    };
-    updateTime();
-    const interval = setInterval(updateTime, 1000);
-    return () => clearInterval(interval);
-  }, []);
 
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -313,8 +300,8 @@ export const Header: React.FC<HeaderProps> = ({
       return;
     }
 
-    if (newPasswordInput.length < 3) {
-      setPasswordError('كلمة المرور الجديدة يجب أن تكون من 3 خانات أو أكثر');
+    if (newPasswordInput.length < 8) {
+      setPasswordError('كلمة المرور الجديدة يجب أن تكون من 8 أحرف أو أكثر');
       return;
     }
 
@@ -431,44 +418,20 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
             ) : null}
 
-            {/* Unified Date & Time Badge + Live Sync Indicator Dot */}
+            {/* مؤشر التحديث اللحظي (الساعة والتاريخ في شريط الحالة أعلى الصفحة) */}
             <div
               id="server-time-indicator-badge"
-              className={`hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full border text-[11px] font-mono font-semibold select-none shadow-xs transition-all bg-brand-50 text-brand-800 border-brand-200`}
-              title={`الوقت والتاريخ المعتمد (YYYY-MM-DD) • حالة المزامنة: ${
-                syncStatus === 'connected'
-                  ? 'متصلة ومزامنة فورية نشطة'
-                  : syncStatus === 'reconnecting'
-                  ? 'جاري إعادة الاتصال...'
-                  : 'غير متصل أو مزامنة دورية'
-              }`}
+              className="hidden lg:flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs font-semibold text-slate-700 select-none"
+              title="حالة وصول تعديلات المستخدمين الآخرين إلى هذه الشاشة دون إعادة تحميل"
             >
-              {/* Pulsing Sync Status Dot */}
-              <span className="relative flex h-2.5 w-2.5 shrink-0">
-                <span
-                  className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
-                    syncStatus === 'connected'
-                      ? 'bg-emerald-400'
-                      : syncStatus === 'reconnecting'
-                      ? 'bg-brand-700'
-                      : 'bg-rose-500'
-                  }`}
-                />
-                <span
-                  className={`relative inline-flex rounded-full h-2.5 w-2.5 ${
-                    syncStatus === 'connected'
-                      ? 'bg-emerald-500 shadow-xs shadow-emerald-500/60'
-                      : syncStatus === 'reconnecting'
-                      ? 'bg-brand-700 shadow-xs '
-                      : 'bg-rose-600 shadow-xs shadow-rose-600/60'
-                  }`}
-                />
+              <span
+                className={`h-2 w-2 shrink-0 rounded-full ${
+                  syncStatus === 'connected' ? 'bg-emerald-500' : syncStatus === 'reconnecting' ? 'bg-amber-500 animate-pulse' : 'bg-rose-600'
+                }`}
+              />
+              <span>
+                {syncStatus === 'connected' ? 'تحديث لحظي' : syncStatus === 'reconnecting' ? 'إعادة الاتصال...' : 'تحديث دوري'}
               </span>
-
-              <Clock className="w-3.5 h-3.5 text-brand-700 shrink-0" />
-              <span className="font-bold text-slate-700 ">{serverDateStr}</span>
-              <span className="opacity-40 text-[10px]">|</span>
-              <span className="text-brand-700 font-bold">{serverTimeStr}</span>
             </div>
 
             {appearanceMenu}
@@ -478,10 +441,10 @@ export const Header: React.FC<HeaderProps> = ({
               type="button"
               id="browser-fullscreen-toggle-btn"
               onClick={toggleBrowserFullscreen}
-              className={`hidden sm:flex p-1.5 sm:p-2 rounded-xl border transition-all cursor-pointer select-none active:scale-95 items-center justify-center ${
+              className={`hidden sm:flex h-9 w-9 rounded-lg border transition-colors cursor-pointer select-none items-center justify-center ${
                 isFullscreen
-                  ? 'bg-brand-700 text-on-brand border-brand-600 shadow-md ring-2 ring-brand-600/30'
-                  : 'bg-slate-50/90 hover:bg-brand-50 text-slate-700 hover:text-brand-700 border-slate-200 hover:border-brand-200 shadow-2xs'
+                  ? 'bg-brand-700 text-on-brand border-brand-700'
+                  : 'bg-card hover:bg-slate-100 text-slate-600 hover:text-slate-900 border-slate-200'
               }`}
               title={isFullscreen ? 'العودة إلى وضع المتصفح الطبيعي' : 'تشغيل النظام بوضع ملء الشاشة الكامل'}
               aria-label={isFullscreen ? 'العودة إلى وضع المتصفح' : 'ملء الشاشة'}
@@ -500,10 +463,10 @@ export const Header: React.FC<HeaderProps> = ({
                   type="button"
                   id="user-profile-menu-button"
                   onClick={() => setIsDropdownOpen((prev) => !prev)}
-                  className={`group flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-xl border transition-all cursor-pointer select-none ${
+                  className={`group flex h-9 items-center gap-1.5 sm:gap-2 px-1.5 sm:px-2.5 rounded-lg border transition-colors cursor-pointer select-none ${
                     isDropdownOpen
-                      ? 'bg-brand-50 border-brand-200 ring-2 ring-brand-600/20 shadow-xs'
-                      : 'bg-slate-50/90 hover:bg-slate-100 border-slate-200 hover:border-slate-300 shadow-2xs'
+                      ? 'bg-brand-50 border-brand-200'
+                      : 'bg-card hover:bg-slate-100 border-slate-200'
                   }`}
                   aria-expanded={isDropdownOpen}
                   aria-haspopup="true"
@@ -511,7 +474,7 @@ export const Header: React.FC<HeaderProps> = ({
                 >
                   {/* User Avatar Circle */}
                   <div
-                    className={`w-6 h-6 sm:w-7 sm:h-7 rounded-lg font-black flex items-center justify-center text-[10px] sm:text-xs shadow-xs shrink-0 bg-gradient-to-br from-brand-600 to-brand-800 text-white`}
+                    className={`w-6 h-6 sm:w-7 sm:h-7 rounded-lg font-black flex items-center justify-center text-[10px] sm:text-xs shadow-xs shrink-0 bg-brand-700 text-on-brand`}
                   >
                     {getInitials(currentUser.name)}
                   </div>
@@ -552,14 +515,14 @@ export const Header: React.FC<HeaderProps> = ({
                 {/* Dropdown Menu Container */}
                 {isDropdownOpen && (
                   <div
-                    className={`absolute left-0 top-full mt-2 w-[calc(100vw-1.5rem)] max-w-[300px] sm:w-80 rounded-2xl border shadow-2xl z-50 p-2 space-y-1.5 animate-in fade-in slide-in-from-top-2 duration-150 bg-card border-slate-200 text-slate-800 shadow-slate-400/30 ring-1 ring-slate-900/5`}
+                    className={`absolute left-0 top-full mt-2 w-[calc(100vw-1.5rem)] max-w-[300px] sm:w-80 rounded-xl border shadow-xl z-50 p-2 space-y-1.5 bg-card border-slate-200 text-slate-800`}
                   >
                   {/* Dropdown Header: User Summary */}
                   <div
                     className={`p-3 rounded-xl border flex items-center gap-3 bg-slate-50 border-slate-200`}
                   >
                     <div
-                      className={`w-10 h-10 rounded-xl font-black flex items-center justify-center text-sm shadow-inner shrink-0 bg-gradient-to-br from-brand-600 to-brand-800 text-white`}
+                      className={`w-10 h-10 rounded-xl font-black flex items-center justify-center text-sm shadow-inner shrink-0 bg-brand-700 text-on-brand`}
                     >
                       {getInitials(currentUser.name)}
                     </div>
@@ -601,35 +564,35 @@ export const Header: React.FC<HeaderProps> = ({
                         {isLight ? (
                           <Sun className="w-4 h-4 text-brand-700" />
                         ) : (
-                          <Moon className="w-4 h-4 text-indigo-600" />
+                          <Moon className="w-4 h-4 text-brand-700" />
                         )}
                       </div>
                       <div>
                         <div className="flex items-center gap-1.5">
                           <span>وضع العرض</span>
                           <span
-                            className={`text-[10px] font-bold px-1.5 py-0.2 rounded-full border bg-teal-100 text-teal-900 border-teal-200`}
+                            className={`text-[10px] font-bold px-1.5 py-0.2 rounded-full border bg-brand-100 text-brand-800 border-brand-200`}
                           >
-                            {'الفاتح'}
+                            {isLight ? 'الفاتح' : 'الداكن'}
                           </span>
                         </div>
                         <p
                           className={`text-[10px] font-normal mt-0.5 text-slate-500`}
                         >
-                          {'انقر للتحويل إلى الوضع الداكن'}
+                          {isLight ? 'انقر للتحويل إلى الوضع الداكن' : 'انقر للتحويل إلى الوضع الفاتح'}
                         </p>
                       </div>
                     </div>
 
                     {/* Toggle Switch Visual Indicator */}
                     <div
-                      className={`w-11 h-6 rounded-full p-0.5 transition-colors duration-200 ease-in-out flex items-center bg-brand-700 justify-start`}
+                      className={`w-11 h-6 rounded-full p-0.5 transition-colors duration-200 ease-in-out flex items-center ${isLight ? 'bg-slate-300 justify-start' : 'bg-brand-700 justify-end'}`}
                     >
                       <div className="w-5 h-5 rounded-full bg-card shadow-md flex items-center justify-center text-[10px]">
                         {isLight ? (
                           <Sun className="w-3 h-3 text-brand-700" />
                         ) : (
-                          <Moon className="w-3 h-3 text-indigo-600" />
+                          <Moon className="w-3 h-3 text-brand-700" />
                         )}
                       </div>
                     </div>
@@ -643,7 +606,7 @@ export const Header: React.FC<HeaderProps> = ({
                   >
                     <div className="flex items-center gap-2.5">
                       <div
-                        className={`w-8 h-8 rounded-lg flex items-center justify-center border shrink-0 bg-emerald-100 text-emerald-800 border-emerald-200`}
+                        className={`w-8 h-8 rounded-lg flex items-center justify-center border shrink-0 bg-brand-100 text-brand-800 border-brand-200`}
                       >
                         <KeyRound className="w-4 h-4" />
                       </div>
@@ -701,7 +664,7 @@ export const Header: React.FC<HeaderProps> = ({
           aria-label="شريط أزرار التنقل السريع للهاتف"
           className={`md:hidden border-b px-1 py-1 shadow-xs transition-colors backdrop-blur-md select-none bg-card/95 border-slate-200/90 text-slate-800`}
         >
-          <div className="flex items-center justify-evenly sm:justify-center gap-0.5 xs:gap-1 w-full max-w-full mx-auto overflow-x-auto no-scrollbar py-0.5 px-0.5">
+          <div className="flex items-center justify-evenly sm:justify-center gap-1 w-full max-w-full mx-auto overflow-x-auto no-scrollbar py-0.5 px-0.5">
             {mobileNavItemsForRole.map((item) => {
               const Icon = item.icon;
               const isActive = activeTab === item.id;
@@ -713,15 +676,15 @@ export const Header: React.FC<HeaderProps> = ({
                     onTabChange(item.id);
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                   }}
-                  className={`flex items-center justify-center w-7 h-7 xs:w-7.5 xs:h-7.5 p-1 rounded-lg transition-all duration-150 cursor-pointer select-none shrink-0 relative ${
+                  className={`flex items-center justify-center w-9 h-9 rounded-lg transition-colors cursor-pointer select-none shrink-0 relative ${
                     isActive
-                      ? 'bg-brand-700 text-on-brand shadow-xs ring-1.5 ring-brand-600/60 font-black scale-105'
-                      : 'text-slate-600 hover:text-slate-950 hover:bg-slate-100 active:scale-95'
+                      ? 'bg-brand-700 text-on-brand'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                   }`}
                   title={item.label}
                   aria-label={item.label}
                 >
-                  <Icon className={`w-3.5 h-3.5 xs:w-4 xs:h-4 shrink-0 ${isActive ? 'text-slate-950 stroke-[2.5]' : 'stroke-2'}`} />
+                  <Icon className="w-[18px] h-[18px] shrink-0" aria-hidden />
                 </button>
               );
             })}
@@ -731,11 +694,11 @@ export const Header: React.FC<HeaderProps> = ({
               <button
                 type="button"
                 onClick={onOpenQrScanner}
-                className={`flex items-center justify-center w-7 h-7 xs:w-7.5 xs:h-7.5 p-1 rounded-lg transition-all duration-150 cursor-pointer select-none shrink-0 border bg-brand-50 border-brand-200 text-brand-700 hover:bg-brand-100 active:scale-95`}
+                className={`flex items-center justify-center w-9 h-9 rounded-lg transition-colors cursor-pointer select-none shrink-0 border bg-brand-50 border-brand-200 text-brand-700 hover:bg-brand-100`}
                 title="مسح رمز QR للوحدة أو الغرفة"
                 aria-label="مسح رمز QR للوحدة أو الغرفة"
               >
-                <QrCode className="w-3.5 h-3.5 xs:w-4 xs:h-4 shrink-0 stroke-2 text-brand-700" />
+                <QrCode className="w-[18px] h-[18px] shrink-0" aria-hidden />
               </button>
             )}
 
@@ -744,11 +707,11 @@ export const Header: React.FC<HeaderProps> = ({
               <button
                 type="button"
                 onClick={onOpenDownloadOptions}
-                className={`flex items-center justify-center w-7 h-7 xs:w-7.5 xs:h-7.5 p-1 rounded-lg transition-all duration-150 cursor-pointer select-none shrink-0 border bg-cyan-50 border-cyan-200 text-cyan-700 hover:bg-cyan-100 active:scale-95`}
+                className={`flex items-center justify-center w-9 h-9 rounded-lg transition-colors cursor-pointer select-none shrink-0 border bg-card border-slate-200 text-slate-600 hover:bg-slate-100`}
                 title="خيارات التنزيل"
                 aria-label="خيارات التنزيل"
               >
-                <Download className="w-3.5 h-3.5 xs:w-4 xs:h-4 shrink-0 stroke-2 text-cyan-600" />
+                <Download className="w-[18px] h-[18px] shrink-0" aria-hidden />
               </button>
             )}
           </div>
@@ -756,168 +719,110 @@ export const Header: React.FC<HeaderProps> = ({
       )}
     </div>
 
-      {/* ==================== Change Password Modal ==================== */}
-      {isPasswordModalOpen && (
-        <div className="fixed inset-0 z-50 bg-card/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-          <div
-            className={`rounded-2xl max-w-md w-full p-4 sm:p-5 space-y-4 shadow-2xl border transition-all max-h-[92vh] flex flex-col overflow-y-auto bg-card border-slate-200 text-slate-900 shadow-slate-900/20`}
-          >
-            {/* Modal Header */}
-            <div
-              className={`flex items-center justify-between pb-3 border-b border-slate-200`}
-            >
-              <div className="flex items-center gap-2.5">
-                <div
-                  className={`w-9 h-9 rounded-xl border flex items-center justify-center bg-emerald-100 border-emerald-200 text-emerald-800`}
-                >
-                  <KeyRound className="w-4.5 h-4.5" />
-                </div>
-                <div>
-                  <h3 className={`font-bold text-sm text-slate-900`}>
-                    تغيير كلمة المرور
-                  </h3>
-                  <p className={`text-[11px] text-slate-600`}>
-                    لحساب المستخدم: <span className="font-bold">{currentUser?.name}</span>
-                  </p>
-                </div>
-              </div>
+      {/* نافذة تغيير كلمة المرور بالمكوّنات الموحدة */}
+      <Modal
+        open={isPasswordModalOpen}
+        title="تغيير كلمة المرور"
+        icon={KeyRound}
+        onClose={handleClosePasswordModal}
+        footer={
+          <>
+            <Button type="submit" form="change-password-form" variant="primary" icon={CheckCircle2} loading={isSubmittingPassword}>
+              حفظ كلمة المرور
+            </Button>
+            <Button onClick={handleClosePasswordModal} disabled={isSubmittingPassword}>
+              إلغاء
+            </Button>
+          </>
+        }
+      >
+        <form id="change-password-form" onSubmit={handleSubmitPasswordChange} className="space-y-3.5">
+          <p className="text-xs text-slate-600">
+            الحساب: <span className="font-bold text-slate-900">{currentUser?.name}</span>
+          </p>
+          {passwordError && (
+            <div role="alert" className="flex items-center gap-2 rounded-lg border border-rose-200 bg-rose-50 p-2.5 text-xs text-rose-800">
+              <AlertTriangle className="h-4 w-4 shrink-0" aria-hidden />
+              <span>{passwordError}</span>
+            </div>
+          )}
+          {passwordSuccess && (
+            <div role="status" className="flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 p-2.5 text-xs text-emerald-800">
+              <CheckCircle2 className="h-4 w-4 shrink-0" aria-hidden />
+              <span>{passwordSuccess}</span>
+            </div>
+          )}
+          <Field label="كلمة المرور الحالية" required>
+            <div className="relative">
+              <Input
+                type={showCurrentPass ? 'text' : 'password'}
+                required
+                autoComplete="current-password"
+                value={currentPasswordInput}
+                onChange={(e) => setCurrentPasswordInput(e.target.value)}
+                className="pl-10 font-mono"
+                dir="ltr"
+              />
               <button
                 type="button"
-                onClick={handleClosePasswordModal}
-                className={`p-1.5 rounded-lg transition cursor-pointer text-slate-500 hover:text-slate-900 hover:bg-slate-100`}
-                title="إغلاق"
+                tabIndex={-1}
+                onClick={() => setShowCurrentPass(!showCurrentPass)}
+                className="absolute left-2 top-1/2 -translate-y-1/2 rounded p-1 text-slate-500 hover:text-slate-800"
+                title={showCurrentPass ? 'إخفاء' : 'إظهار'}
+                aria-label={showCurrentPass ? 'إخفاء' : 'إظهار'}
               >
-                <X className="w-4 h-4" />
+                {showCurrentPass ? <EyeOff className="h-4 w-4" aria-hidden /> : <Eye className="h-4 w-4" aria-hidden />}
               </button>
             </div>
-
-            {/* Error / Success Alerts */}
-            {passwordError && (
-              <div
-                className={`p-3 rounded-xl text-xs flex items-center gap-2 border bg-rose-50 border-rose-200 text-rose-800`}
+          </Field>
+          <Field label="كلمة المرور الجديدة" required hint="8 أحرف أو أكثر">
+            <div className="relative">
+              <Input
+                type={showNewPass ? 'text' : 'password'}
+                required
+                autoComplete="new-password"
+                value={newPasswordInput}
+                onChange={(e) => setNewPasswordInput(e.target.value)}
+                className="pl-10 font-mono"
+                dir="ltr"
+              />
+              <button
+                type="button"
+                tabIndex={-1}
+                onClick={() => setShowNewPass(!showNewPass)}
+                className="absolute left-2 top-1/2 -translate-y-1/2 rounded p-1 text-slate-500 hover:text-slate-800"
+                title={showNewPass ? 'إخفاء' : 'إظهار'}
+                aria-label={showNewPass ? 'إخفاء' : 'إظهار'}
               >
-                <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
-                <span>{passwordError}</span>
-              </div>
-            )}
-
-            {passwordSuccess && (
-              <div
-                className={`p-3 rounded-xl text-xs flex items-center gap-2 border bg-emerald-50 border-emerald-200 text-emerald-800`}
+                {showNewPass ? <EyeOff className="h-4 w-4" aria-hidden /> : <Eye className="h-4 w-4" aria-hidden />}
+              </button>
+            </div>
+          </Field>
+          <Field label="تأكيد كلمة المرور الجديدة" required>
+            <div className="relative">
+              <Input
+                type={showConfirmPass ? 'text' : 'password'}
+                required
+                autoComplete="new-password"
+                value={confirmPasswordInput}
+                onChange={(e) => setConfirmPasswordInput(e.target.value)}
+                className="pl-10 font-mono"
+                dir="ltr"
+              />
+              <button
+                type="button"
+                tabIndex={-1}
+                onClick={() => setShowConfirmPass(!showConfirmPass)}
+                className="absolute left-2 top-1/2 -translate-y-1/2 rounded p-1 text-slate-500 hover:text-slate-800"
+                title={showConfirmPass ? 'إخفاء' : 'إظهار'}
+                aria-label={showConfirmPass ? 'إخفاء' : 'إظهار'}
               >
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                <span>{passwordSuccess}</span>
-              </div>
-            )}
-
-            {/* Change Password Form */}
-            <form onSubmit={handleSubmitPasswordChange} className="space-y-3.5 text-xs">
-              {/* Current Password Field */}
-              <div className="space-y-1.5">
-                <label
-                  className={`block text-[11px] font-bold text-slate-700`}
-                >
-                  كلمة المرور الحالية <span className="text-rose-600">*</span>
-                </label>
-                <div className="relative">
-                  <input
-                    type={showCurrentPass ? 'text' : 'password'}
-                    required
-                    value={currentPasswordInput}
-                    onChange={(e) => setCurrentPasswordInput(e.target.value)}
-                    placeholder="أدخل كلمة المرور الحالية"
-                    className={`w-full rounded-xl px-3 py-2 pl-9 text-xs font-mono transition border focus:outline-none bg-card border-slate-300 text-slate-900 placeholder:text-slate-400 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-500`}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowCurrentPass(!showCurrentPass)}
-                    className={`absolute left-2.5 top-1/2 -translate-y-1/2 transition text-slate-400 hover:text-emerald-600`}
-                    title={showCurrentPass ? 'إخفاء' : 'إظهار'}
-                  >
-                    {showCurrentPass ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                  </button>
-                </div>
-              </div>
-
-              {/* New Password Field */}
-              <div className="space-y-1.5">
-                <label
-                  className={`block text-[11px] font-bold text-slate-700`}
-                >
-                  كلمة المرور الجديدة <span className="text-rose-600">*</span>
-                </label>
-                <div className="relative">
-                  <input
-                    type={showNewPass ? 'text' : 'password'}
-                    required
-                    value={newPasswordInput}
-                    onChange={(e) => setNewPasswordInput(e.target.value)}
-                    placeholder="أدخل كلمة المرور الجديدة (3 خانات فأكثر)"
-                    className={`w-full rounded-xl px-3 py-2 pl-9 text-xs font-mono transition border focus:outline-none bg-card border-slate-300 text-slate-900 placeholder:text-slate-400 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-500`}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowNewPass(!showNewPass)}
-                    className={`absolute left-2.5 top-1/2 -translate-y-1/2 transition text-slate-400 hover:text-emerald-600`}
-                    title={showNewPass ? 'إخفاء' : 'إظهار'}
-                  >
-                    {showNewPass ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                  </button>
-                </div>
-              </div>
-
-              {/* Confirm New Password Field */}
-              <div className="space-y-1.5">
-                <label
-                  className={`block text-[11px] font-bold text-slate-700`}
-                >
-                  تأكيد كلمة المرور الجديدة <span className="text-rose-600">*</span>
-                </label>
-                <div className="relative">
-                  <input
-                    type={showConfirmPass ? 'text' : 'password'}
-                    required
-                    value={confirmPasswordInput}
-                    onChange={(e) => setConfirmPasswordInput(e.target.value)}
-                    placeholder="أعد إدخال كلمة المرور الجديدة للتأكيد"
-                    className={`w-full rounded-xl px-3 py-2 pl-9 text-xs font-mono transition border focus:outline-none bg-card border-slate-300 text-slate-900 placeholder:text-slate-400 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-500`}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPass(!showConfirmPass)}
-                    className={`absolute left-2.5 top-1/2 -translate-y-1/2 transition text-slate-400 hover:text-emerald-600`}
-                    title={showConfirmPass ? 'إخفاء' : 'إظهار'}
-                  >
-                    {showConfirmPass ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                  </button>
-                </div>
-              </div>
-
-              {/* Modal Actions */}
-              <div
-                className={`flex items-center justify-end gap-2.5 pt-3 border-t border-slate-200`}
-              >
-                <button
-                  type="button"
-                  onClick={handleClosePasswordModal}
-                  disabled={isSubmittingPassword}
-                  className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer border bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300`}
-                >
-                  إلغاء
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSubmittingPassword}
-                  className={`px-5 py-2 font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-lg transition cursor-pointer bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/30`}
-                >
-                  <CheckCircle2 className="w-4 h-4" />
-                  <span>{isSubmittingPassword ? 'جاري الحفظ...' : 'حفظ كلمة المرور'}</span>
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+                {showConfirmPass ? <EyeOff className="h-4 w-4" aria-hidden /> : <Eye className="h-4 w-4" aria-hidden />}
+              </button>
+            </div>
+          </Field>
+        </form>
+      </Modal>
     </>
   );
 };
