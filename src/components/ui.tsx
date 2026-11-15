@@ -387,6 +387,7 @@ export function Modal({
   footer,
   wide,
   icon,
+  top,
 }: {
   open: boolean;
   title: string;
@@ -395,6 +396,8 @@ export function Modal({
   footer?: ReactNode;
   wide?: boolean;
   icon?: LucideIcon;
+  /** فوق كل النوافذ الأخرى (نوافذ التأكيد) */
+  top?: boolean;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   // onClose في مرجع: الأب يمرر دالة جديدة مع كل رسم، ولا نريد إعادة التركيز لأول حقل أثناء الكتابة
@@ -434,7 +437,7 @@ export function Modal({
   // تُرسم النافذة في body مباشرة: لو كانت داخل عنصر عليه backdrop-blur أو transform (مثل الشريط العلوي)
   // يصبح موضعها نسبةً لذلك العنصر بدل الشاشة كلها
   return createPortal(
-    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/45 p-4 backdrop-blur-[2px] sm:items-center" onMouseDown={onClose}>
+    <div className={cx("ds fixed inset-0 flex items-start justify-center overflow-y-auto bg-black/45 p-4 text-slate-900 backdrop-blur-[2px] sm:items-center", top ? "z-[2000000]" : "z-50")} dir="rtl" onMouseDown={onClose}>
       <div
         ref={ref}
         role="dialog"
@@ -466,6 +469,7 @@ export function ConfirmDialog({
   cancelText = "رفض",
   danger,
   loading,
+  confirmDisabled,
   onConfirm,
   onClose,
 }: {
@@ -476,6 +480,8 @@ export function ConfirmDialog({
   cancelText?: string;
   danger?: boolean;
   loading?: boolean;
+  /** يعطّل «موافق» حتى يكتمل شرط داخل الرسالة (سبب إلزامي، إقرار) */
+  confirmDisabled?: boolean;
   onConfirm: () => void;
   onClose: () => void;
 }) {
@@ -483,14 +489,15 @@ export function ConfirmDialog({
   return (
     <Modal
       open={open}
+      top
       title={title}
       onClose={() => !loading && onClose()}
       footer={
         <>
-          <Button variant={danger ? "danger" : "primary"} icon={Check} loading={loading} onClick={onConfirm} className="min-w-24">
+          <Button variant={danger ? "danger" : "primary"} icon={Check} loading={loading} disabled={confirmDisabled} onClick={onConfirm} className="min-w-24" data-confirm="ok">
             {confirmText}
           </Button>
-          <Button icon={X} disabled={loading} onClick={onClose} className="min-w-24">
+          <Button icon={X} disabled={loading} onClick={onClose} className="min-w-24" data-confirm="cancel">
             {cancelText}
           </Button>
         </>
@@ -500,11 +507,50 @@ export function ConfirmDialog({
         <span className={cx("flex h-11 w-11 shrink-0 items-center justify-center rounded-full", danger ? "bg-rose-100 text-rose-700" : "bg-brand-100 text-brand-700")}>
           <Icon className="h-6 w-6" aria-hidden />
         </span>
-        <div className="pt-1 text-sm leading-relaxed text-slate-700">{message}</div>
+        <div className="min-w-0 flex-1 pt-1 text-sm leading-relaxed text-slate-700">{message}</div>
       </div>
     </Modal>
   );
 }
+
+// نافذة التأكيد الموحدة عند الطلب: const confirm = useConfirm(); if (await confirm({...})) نفّذ
+export type ConfirmOptions = { title: string; message: ReactNode; danger?: boolean; confirmText?: string; cancelText?: string };
+const ConfirmContext = createContext<(options: ConfirmOptions) => Promise<boolean>>(async () => false);
+
+export function ConfirmProvider({ children }: { children: ReactNode }) {
+  const [pending, setPending] = useState<(ConfirmOptions & { resolve: (ok: boolean) => void }) | null>(null);
+  const confirm = useCallback(
+    (options: ConfirmOptions) =>
+      new Promise<boolean>((resolve) => {
+        setPending((current) => {
+          current?.resolve(false); // طلب جديد يلغي السابق
+          return { ...options, resolve };
+        });
+      }),
+    [],
+  );
+  const finish = (ok: boolean) => {
+    pending?.resolve(ok);
+    setPending(null);
+  };
+  return (
+    <ConfirmContext.Provider value={confirm}>
+      {children}
+      <ConfirmDialog
+        open={!!pending}
+        title={pending?.title ?? ""}
+        message={pending?.message}
+        danger={pending?.danger}
+        confirmText={pending?.confirmText}
+        cancelText={pending?.cancelText}
+        onConfirm={() => finish(true)}
+        onClose={() => finish(false)}
+      />
+    </ConfirmContext.Provider>
+  );
+}
+
+export const useConfirm = () => useContext(ConfirmContext);
 
 // ---------------------------------------------------------------------
 // الإشعارات

@@ -1,4 +1,5 @@
 import { getServerIsoDateOnly } from '../services/serverTime';
+import { ConfirmDialog, useConfirm } from './ui';
 import { calculateNextDueDate } from '../utils/inspectionSchedule';
 import React, { useState, useMemo, useEffect } from 'react';
 import {
@@ -483,6 +484,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
 
   // Delete Schedule Confirm state
   const [deleteConfirmSchedule, setDeleteConfirmSchedule] = useState<PeriodicInspectionSchedule | null>(null);
+  const confirm = useConfirm();
 
   const ALLOWED_REPORT_EXTENSIONS = ['png', 'jpg', 'jpeg', 'webp', 'gif', 'pdf', 'doc', 'docx', 'xls', 'xlsx'];
 
@@ -659,7 +661,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
     setEditNotes(sch.notes || '');
   };
 
-  const handleEditSubmit = (e: React.FormEvent) => {
+  const handleEditSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!showEditModal) return;
 
@@ -677,6 +679,12 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
       performedByName: editPerformedByName.trim() || undefined,
       notes: editNotes,
     };
+
+    const approved = await confirm({
+      title: 'تأكيد تعديل جدول الكشف',
+      message: <>هل تريد حفظ التعديلات على جدول الكشف «{showEditModal.title}» للوحدة <strong className="font-mono">{showEditModal.unitCode}</strong>؟</>,
+    });
+    if (!approved) return;
 
     onUpdateSchedule(updated);
     setShowEditModal(null);
@@ -3508,67 +3516,26 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
         </div>
       )}
 
-      {/* MODAL 5: DELETE CONFIRMATION MODAL */}
-      {deleteConfirmSchedule && (
-        <div className={`fixed inset-0 z-50 backdrop-blur-sm flex items-center justify-center p-2.5 sm:p-4 overflow-y-auto bg-slate-900/40`}>
-          <div className={`rounded-2xl sm:rounded-3xl p-4 sm:p-6 w-full max-w-md space-y-4 sm:space-y-5 shadow-2xl relative my-2 sm:my-8 border bg-card border-red-200 text-slate-900`}>
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-red-500/10 border border-red-500/30 text-red-600 flex items-center justify-center shrink-0 font-bold">
-                <AlertTriangle className="w-5 h-5 sm:w-6 sm:h-6" />
-              </div>
-              <div>
-                <h3 className={`font-black text-sm sm:text-base text-red-900`}>
-                  تأكيد حذف جدول الكشف الدوري
-                </h3>
-                <p className={`text-[11px] sm:text-xs text-slate-500`}>
-                  تنبيه: إجراء الحذف نهائي
-                </p>
+      {/* نافذة تأكيد الحذف الموحدة */}
+      <ConfirmDialog
+        open={!!deleteConfirmSchedule}
+        danger
+        title="تأكيد حذف جدول الكشف الدوري"
+        message={
+          deleteConfirmSchedule && (
+            <div className="space-y-2">
+              <p>هل تريد حذف هذا الجدول من قائمة الكشوفات الدورية؟ لا يمكن التراجع عن الحذف.</p>
+              <div className="space-y-1 rounded-lg border border-slate-200 bg-slate-50 p-2.5 text-xs">
+                <div>الوحدة: <strong>{deleteConfirmSchedule.unitCode} - {deleteConfirmSchedule.unitName}</strong></div>
+                <div>عنوان الكشف: <strong>{deleteConfirmSchedule.title}</strong></div>
+                <div>الموعد القادم: <strong className="font-mono">{toArabicDigits(deleteConfirmSchedule.nextDueDate)}</strong></div>
               </div>
             </div>
-
-            <div className={`p-3 sm:p-3.5 rounded-xl sm:rounded-2xl border space-y-2 text-xs bg-slate-50 border-slate-200`}>
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-slate-500 font-bold shrink-0">الوحدة الهندسية:</span>
-                <span className="font-extrabold truncate text-left">{deleteConfirmSchedule.unitCode} - {deleteConfirmSchedule.unitName}</span>
-              </div>
-              <div className="flex items-center justify-between gap-2 border-t border-slate-200 pt-1.5">
-                <span className="text-slate-500 font-bold shrink-0">عنوان الكشف:</span>
-                <span className="font-bold truncate text-left">{deleteConfirmSchedule.title}</span>
-              </div>
-              <div className="flex items-center justify-between gap-2 border-t border-slate-200 pt-1.5">
-                <span className="text-slate-500 font-bold shrink-0">الموقع:</span>
-                <span className="font-bold truncate text-left">محافظة {deleteConfirmSchedule.governorate} | حقل {deleteConfirmSchedule.field}</span>
-              </div>
-              <div className="flex items-center justify-between gap-2 border-t border-slate-200 pt-1.5">
-                <span className="text-slate-500 font-bold shrink-0">الموعد القادم:</span>
-                <span className="font-mono font-bold text-brand-700">{toArabicDigits(deleteConfirmSchedule.nextDueDate)}</span>
-              </div>
-            </div>
-
-            <p className={`text-xs leading-relaxed text-slate-600`}>
-              هل أنت متأكد من رغبتك في حذف هذا الجدول من قائمة المعاينات الدوريّة؟ لن تتمكن من التراجع عن هذا الإجراء.
-            </p>
-
-            <div className={`flex flex-col-reverse sm:flex-row items-center justify-end gap-2.5 sm:gap-3 pt-3 border-t border-slate-200`}>
-              <button
-                type="button"
-                onClick={() => setDeleteConfirmSchedule(null)}
-                className={`w-full sm:w-auto px-4 py-2.5 rounded-xl font-bold text-xs transition cursor-pointer min-h-[40px] flex items-center justify-center bg-slate-100 text-slate-700 hover:bg-slate-200`}
-              >
-                إلغاء
-              </button>
-              <button
-                type="button"
-                onClick={handleDeleteConfirm}
-                className="w-full sm:w-auto px-5 py-2.5 bg-red-600 text-white rounded-xl font-bold text-xs hover:bg-red-700 shadow-md shadow-red-600/20 transition cursor-pointer flex items-center justify-center gap-1.5 min-h-[40px]"
-              >
-                <Trash2 className="w-4 h-4" />
-                <span>تأكيد الحذف النهائي</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+          )
+        }
+        onClose={() => setDeleteConfirmSchedule(null)}
+        onConfirm={handleDeleteConfirm}
+      />
 
       {/* Attachment Viewer Modal */}
       {previewAttachment && (

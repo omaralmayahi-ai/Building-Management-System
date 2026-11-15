@@ -2,6 +2,7 @@ import {StrictMode} from 'react';
 import {createRoot} from 'react-dom/client';
 import App from './App.tsx';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { ConfirmProvider } from './components/ui';
 import './index.css';
 import { registerSW } from 'virtual:pwa-register';
 import { applyAppearance, cachedAppearance } from './lib/theme';
@@ -23,7 +24,9 @@ registerSW({
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ErrorBoundary>
-      <App />
+      <ConfirmProvider>
+        <App />
+      </ConfirmProvider>
     </ErrorBoundary>
   </StrictMode>,
 );

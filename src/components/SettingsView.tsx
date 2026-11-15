@@ -1,5 +1,5 @@
 import AuditTrailPanel from './AuditTrailPanel';
-import { Tabs } from './ui';
+import { ConfirmDialog, Tabs, useConfirm } from './ui';
 import React, { useState, useRef, useEffect } from 'react';
 import {
   Settings,
@@ -366,8 +366,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     reader.readAsDataURL(file);
   };
 
-  const handleSaveBranding = (e: React.FormEvent) => {
+  const handleSaveBranding = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!(await confirm({ title: 'تأكيد تعديل هوية النظام', message: 'هل تريد حفظ التعديلات على هوية النظام ومظهر الواجهة؟ تظهر لكل المستخدمين.' }))) return;
     onUpdateBranding(brandingForm);
     triggerSaveToast('تم تحديث الهوية البصرية وشعار النظام المعتمد بنجاح!');
   };
@@ -393,6 +394,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
   // Reset Confirm Modal State
   const [showResetModal, setShowResetModal] = useState(false);
+  const confirm = useConfirm();
 
   // Manual Audit Log Modal State
   const [showAddLogModal, setShowAddLogModal] = useState(false);
@@ -500,7 +502,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   };
 
   // Save User (Create or Update from Horizontal Form)
-  const handleSaveUserInline = (e: React.FormEvent) => {
+  const handleSaveUserInline = async (e: React.FormEvent) => {
     e.preventDefault();
     setUserFormError(null);
 
@@ -552,6 +554,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     }
 
     if (userFormEditingId) {
+      if (!(await confirm({ title: 'تأكيد تعديل المستخدم', message: <>هل تريد حفظ التعديلات على حساب «{cleanDisplayName}»؟</> }))) return;
       const existing = users.find((u) => u.id === userFormEditingId);
       onUpdateUser({
         ...(existing || { id: userFormEditingId, lastActive: 'الآن' }),
@@ -656,8 +659,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   };
 
   // Handle Form Submit (Create or Update)
-  const handleSubmitForm = (e: React.FormEvent) => {
+  const handleSubmitForm = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (editingItem && !(await confirm({ title: 'تأكيد التعديل', message: 'هل تريد حفظ التعديلات على هذا العنصر؟ يتغير اسمه في كل السجلات التي تحمله.' }))) return;
 
     if (activeTab === 'governorates') {
       if (!govNameAr) return;
@@ -4244,109 +4248,38 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         </div>
       )}
 
-      {/* ==================== MODAL: Confirm Delete ==================== */}
-      {deleteConfirm && (
-        <div className="fixed inset-0 z-50 bg-card/70 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-          <div
-            className={`rounded-2xl max-w-sm w-full p-4 sm:p-6 space-y-4 text-center shadow-2xl border max-h-[90vh] flex flex-col overflow-y-auto bg-card border-red-200 text-slate-900 shadow-slate-900/20`}
-          >
-            <div
-              className={`w-12 h-12 rounded-2xl flex items-center justify-center mx-auto border shrink-0 bg-red-100 text-red-600 border-red-200`}
-            >
-              <Trash2 className="w-6 h-6" />
-            </div>
-            <h3 className={`font-bold text-sm text-slate-900`}>
-              تأكيد حذف العنصر نهائياً
-            </h3>
-            <p className={`text-xs text-slate-600`}>
-              هل أنت متأكد من رغبتك بحذف «<span className="font-bold text-brand-700">{deleteConfirm.name}</span>» من السجل المركزي؟
-            </p>
-            <div className="flex items-center justify-center gap-3 pt-2">
-              <button
-                onClick={() => setDeleteConfirm(null)}
-                className={`px-4 py-2 rounded-xl font-bold cursor-pointer text-xs transition border bg-slate-100 text-slate-700 hover:bg-slate-200 border-slate-300`}
-              >
-                إلغاء
-              </button>
-              <button
-                onClick={handleExecuteDelete}
-                className="px-5 py-2 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl shadow-lg cursor-pointer text-xs transition"
-              >
-                تأكيد الحذف
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ==================== MODAL: Confirm Factory Reset ==================== */}
-      {showResetModal && (
-        <div className="fixed inset-0 z-50 bg-card/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-          <div className="bg-card border border-red-500/50 rounded-3xl max-w-md w-full p-4 sm:p-6 space-y-4 text-center shadow-2xl max-h-[90vh] flex flex-col overflow-y-auto">
-            <div className="w-12 h-12 sm:w-14 sm:h-14 bg-red-500/20 text-red-600 border border-red-500/40 rounded-2xl flex items-center justify-center mx-auto shrink-0">
-              <RotateCcw className="w-7 h-7 sm:w-8 sm:h-8" />
-            </div>
-            <h3 className="font-black text-slate-800 text-base">استعادة ضبط المصنع الشاملة</h3>
-            <p className="text-slate-600 text-xs leading-relaxed">
-              سيتم تفريغ وحذف كافة الأصول والوحدات، طلبات الصيانة، الكشوفات والمعاينات، أوامر التخصيص والإشغال، وسجلات التدقيق، مع حذف جميع حسابات المستخدمين والإبقاء حصرياً على حساب مدير النظام الأستاذ عمر المياحي. هل ترغب بالتنفيذ الفوري؟
-            </p>
-
-            <div className="flex items-center justify-center gap-3 pt-2">
-              <button
-                onClick={() => setShowResetModal(false)}
-                className="px-5 py-2.5 bg-slate-100 text-slate-600 rounded-xl font-bold cursor-pointer hover:bg-slate-100 text-xs"
-              >
-                تراجع
-              </button>
-              <button
-                onClick={() => {
-                  setShowResetModal(false);
-                  onFactoryReset();
-                  triggerSaveToast('تمت استعادة ضبط المصنع بنجاح!');
-                }}
-                className="px-6 py-2.5 bg-red-500 hover:bg-red-400 text-on-brand font-black rounded-xl shadow-xl cursor-pointer text-xs"
-              >
-                نعم، إعادة ضبط المصنع
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ==================== MODAL: Confirm Custom Granular Reset ==================== */}
-      {customResetModal && (
-        <div className="fixed inset-0 z-50 bg-card/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-          <div className="bg-card border border-red-500/50 rounded-3xl max-w-md w-full p-4 sm:p-6 space-y-4 text-center shadow-2xl max-h-[90vh] flex flex-col overflow-y-auto">
-            <div className="w-12 h-12 sm:w-14 sm:h-14 bg-red-500/20 text-red-600 border border-red-500/40 rounded-2xl flex items-center justify-center mx-auto shrink-0">
-              <Trash2 className="w-6 h-6 sm:w-7 sm:h-7" />
-            </div>
-            <h3 className="font-black text-slate-800 text-base">{customResetModal.title}</h3>
-            <p className="text-slate-600 text-xs leading-relaxed">{customResetModal.description}</p>
-
-            <div className="flex items-center justify-center gap-3 pt-2">
-              <button
-                onClick={() => setCustomResetModal(null)}
-                className="px-5 py-2.5 bg-slate-100 text-slate-600 rounded-xl font-bold cursor-pointer hover:bg-slate-100 text-xs"
-              >
-                إلغاء
-              </button>
-              <button
-                onClick={() => {
-                  customResetModal.onConfirm();
-                  setCustomResetModal(null);
-                }}
-                className={`px-6 py-2.5 font-black rounded-xl shadow-xl cursor-pointer text-xs ${
-                  customResetModal.actionType === 'clear'
-                    ? 'bg-red-500 hover:bg-red-400 text-on-brand'
-                    : 'bg-brand-700 hover:bg-brand-800 text-on-brand'
-                }`}
-              >
-                تأكيد التنفيذ
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* نوافذ التأكيد الموحدة: الحذف، ضبط المصنع، إعادة ضبط قسم */}
+      <ConfirmDialog
+        open={!!deleteConfirm}
+        danger
+        title="تأكيد الحذف"
+        message={deleteConfirm && <>هل تريد حذف «<strong>{deleteConfirm.name}</strong>» نهائياً؟ لا يمكن التراجع عن الحذف.</>}
+        onClose={() => setDeleteConfirm(null)}
+        onConfirm={handleExecuteDelete}
+      />
+      <ConfirmDialog
+        open={showResetModal}
+        danger
+        title="استعادة ضبط المصنع"
+        message="تُحذف كل الوحدات وطلبات الصيانة والكشوفات وسجلات الإشغال وكل حسابات المستخدمين عدا حساب مدير النظام. سجل النشاطات يبقى. لا يمكن التراجع. هل تريد التنفيذ؟"
+        onClose={() => setShowResetModal(false)}
+        onConfirm={() => {
+          setShowResetModal(false);
+          onFactoryReset();
+          triggerSaveToast('تمت استعادة ضبط المصنع بنجاح!');
+        }}
+      />
+      <ConfirmDialog
+        open={!!customResetModal}
+        danger={customResetModal?.actionType === 'clear'}
+        title={customResetModal?.title ?? ''}
+        message={customResetModal?.description}
+        onClose={() => setCustomResetModal(null)}
+        onConfirm={() => {
+          customResetModal?.onConfirm();
+          setCustomResetModal(null);
+        }}
+      />
 
       {/* ==================== MODAL: Add Manual Audit Log ==================== */}
       {showAddLogModal && (

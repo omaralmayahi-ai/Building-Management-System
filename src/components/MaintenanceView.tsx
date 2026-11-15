@@ -1,4 +1,5 @@
 import { getServerIsoDateOnly } from '../services/serverTime';
+import { ConfirmDialog, useConfirm } from './ui';
 import React, { useState, useMemo } from 'react';
 import {
   Wrench,
@@ -126,6 +127,7 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
   // Full Edit Request modal state (Admin only)
   const [fullEditReq, setFullEditReq] = useState<MaintenanceRequest | null>(null);
   const [deleteConfirmReq, setDeleteConfirmReq] = useState<MaintenanceRequest | null>(null);
+  const confirm = useConfirm();
   const [editCreatedAt, setEditCreatedAt] = useState('');
   const [editUnitCode, setEditUnitCode] = useState('');
   const [editIssue, setEditIssue] = useState('');
@@ -237,7 +239,7 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
     setFormError(null);
   };
 
-  const handleSaveUpdate = (e: React.FormEvent) => {
+  const handleSaveUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedReq || !onUpdateMaintenanceRequest) return;
 
@@ -263,6 +265,14 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
       daysOverdue: isDoneOrClosed ? 0 : selectedReq.daysOverdue,
     };
 
+    const rejecting = status === 'rejected';
+    const approved = await confirm({
+      title: rejecting ? 'تأكيد رفض طلب الصيانة' : 'تأكيد تحديث طلب الصيانة',
+      message: <>هل تريد حفظ {rejecting ? 'رفض' : 'تحديث'} طلب الصيانة رقم <strong className="font-mono">{selectedReq.id}</strong> للوحدة <strong className="font-mono">{selectedReq.unitCode}</strong>؟</>,
+      danger: rejecting,
+    });
+    if (!approved) return;
+
     onUpdateMaintenanceRequest(updated);
     setSelectedReq(null);
     setActionModalType(null);
@@ -280,7 +290,7 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
     setEditStatus(req.status || 'open');
   };
 
-  const handleSaveFullEdit = (e: React.FormEvent) => {
+  const handleSaveFullEdit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!fullEditReq || !onUpdateMaintenanceRequest) return;
 
@@ -293,6 +303,12 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
       maintenanceDepartment: editMaintenanceDepartment,
       status: editStatus,
     };
+
+    const approved = await confirm({
+      title: 'تأكيد تعديل طلب الصيانة',
+      message: <>هل تريد حفظ التعديلات على طلب الصيانة رقم <strong className="font-mono">{fullEditReq.id}</strong>؟</>,
+    });
+    if (!approved) return;
 
     onUpdateMaintenanceRequest(updated);
     setFullEditReq(null);
@@ -1522,47 +1538,24 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
         </div>
       )}
 
-      {/* Delete Confirmation Modal */}
-      {deleteConfirmReq && (
-        <div className="fixed inset-0 bg-card/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 z-[100] overflow-y-auto">
-          <div className={`max-w-md w-full p-4 sm:p-6 rounded-2xl sm:rounded-3xl border shadow-2xl bg-card border-slate-200 text-slate-900`}>
-            <div className="flex items-center gap-2.5 text-rose-600 mb-3">
-              <div className="p-2 rounded-xl bg-rose-500/10 border border-rose-500/20">
-                <AlertTriangle className="w-5 h-5 sm:w-6 sm:h-6" />
-              </div>
-              <h3 className="font-bold text-base sm:text-lg">تأكيد حذف طلب الصيانة</h3>
-            </div>
-            <p className={`text-xs sm:text-sm mb-5 leading-relaxed text-slate-600`}>
-              هل أنت متأكد من رغبتك بحذف طلب الصيانة رقم <strong className="font-mono text-brand-700">({deleteConfirmReq.id})</strong> الخاص بالمنشأة <strong className="font-mono text-sky-600">({deleteConfirmReq.unitCode})</strong> بشكل نهائي؟
-            </p>
-            <div className="flex flex-col-reverse sm:flex-row items-center justify-end gap-2.5 sm:gap-3 pt-3 border-t border-slate-200 ">
-              <button
-                type="button"
-                onClick={() => setDeleteConfirmReq(null)}
-                className={`w-full sm:w-auto px-4 py-2.5 rounded-xl font-bold text-xs transition cursor-pointer min-h-[40px] flex items-center justify-center bg-slate-100 text-slate-700 hover:bg-slate-200`}
-              >
-                إلغاء
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  if (onDeleteMaintenanceRequest) {
-                    onDeleteMaintenanceRequest(deleteConfirmReq.id);
-                  }
-                  if (fullEditReq?.id === deleteConfirmReq.id) {
-                    setFullEditReq(null);
-                  }
-                  setDeleteConfirmReq(null);
-                }}
-                className="w-full sm:w-auto px-5 py-2.5 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs rounded-xl transition cursor-pointer shadow-lg shadow-rose-600/30 flex items-center justify-center gap-1.5 min-h-[40px]"
-              >
-                <Trash2 className="w-4 h-4" />
-                <span>تأكيد الحذف النهائي</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* نافذة تأكيد الحذف الموحدة */}
+      <ConfirmDialog
+        open={!!deleteConfirmReq}
+        danger
+        title="تأكيد حذف طلب الصيانة"
+        message={
+          deleteConfirmReq && (
+            <>هل تريد حذف طلب الصيانة رقم <strong className="font-mono">{deleteConfirmReq.id}</strong> الخاص بالوحدة <strong className="font-mono">{deleteConfirmReq.unitCode}</strong> نهائياً؟ لا يمكن التراجع عن الحذف.</>
+          )
+        }
+        onClose={() => setDeleteConfirmReq(null)}
+        onConfirm={() => {
+          if (!deleteConfirmReq) return;
+          if (onDeleteMaintenanceRequest) onDeleteMaintenanceRequest(deleteConfirmReq.id);
+          if (fullEditReq?.id === deleteConfirmReq.id) setFullEditReq(null);
+          setDeleteConfirmReq(null);
+        }}
+      />
 
       {/* RESULTS / NOTES POPUP MODAL CARD */}
       {viewNotesReq && (

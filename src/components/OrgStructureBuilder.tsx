@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
+import { ConfirmDialog, useConfirm } from './ui';
 import {
   Network,
   Building2,
@@ -90,6 +91,7 @@ export const OrgStructureBuilder: React.FC<OrgStructureBuilderProps> = ({
 
   // Delete State
   const [deleteConfirmNode, setDeleteConfirmNode] = useState<OrgEntity | null>(null);
+  const confirm = useConfirm();
   const [deleteCascadeOption, setDeleteCascadeOption] = useState<'reparent' | 'cascade'>('reparent');
 
   // Excel Import Modal State
@@ -431,7 +433,7 @@ export const OrgStructureBuilder: React.FC<OrgStructureBuilderProps> = ({
   };
 
   // Save Modal
-  const handleSaveModal = (e: React.FormEvent) => {
+  const handleSaveModal = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formNameAr.trim()) {
       setFormError('يرجى إدخال اسم التشكيل التنظيمي');
@@ -453,6 +455,7 @@ export const OrgStructureBuilder: React.FC<OrgStructureBuilderProps> = ({
         level: formLevel,
         employeeCount: Number(formEmployeeCount) || 0,
       };
+      if (!(await confirm({ title: 'تأكيد تعديل التشكيل', message: <>هل تريد حفظ التعديلات على «{editingNode.nameAr}»؟ تغيير الاسم ينتقل إلى الوحدات وسجلات الإشغال التي تحمله.</> }))) return;
       onUpdateOrgEntity(updated);
     } else {
       const newEntity: OrgEntity = {
@@ -1681,86 +1684,38 @@ export const OrgStructureBuilder: React.FC<OrgStructureBuilderProps> = ({
         </div>
       )}
 
-      {/* ==================== MODAL: Permanent Delete Confirmation ==================== */}
-      {deleteConfirmNode && (
-        <div className="fixed inset-0 bg-card/80 backdrop-blur-sm flex items-center justify-center p-4 z-[100]">
-          <div
-            className={`max-w-md w-full p-6 rounded-2xl border shadow-2xl bg-card border-slate-200 text-slate-900`}
-          >
-            <div className="flex items-center gap-3 mb-3">
-              <div className="p-3 bg-rose-500/10 text-rose-600 rounded-2xl border border-rose-500/20">
-                <Trash2 className="w-6 h-6" />
-              </div>
-              <div>
-                <h3 className="font-bold text-base text-rose-600">تأكيد حذف التشكيل التنظيمي نهائياً</h3>
-                <p className={`text-xs text-slate-500`}>
-                  {deleteConfirmNode.nameAr} ({deleteConfirmNode.code})
-                </p>
-              </div>
-            </div>
-
-            <p className={`text-xs mb-4 leading-relaxed text-slate-600`}>
-              سيتم حذف هذا التشكيل نهائياً من قاعدة البيانات والتسلسل الهرمي. لن يعود هذا التشكيل للظهور بعد الحذف حتى يتم إضافته يدوياً مرة أخرى.
-            </p>
-
-            {/* Branch handling options if node has children */}
-            {getDirectChildrenCount(deleteConfirmNode.id) > 0 && (
-              <div
-                className={`p-3 rounded-xl border mb-4 space-y-2 text-xs bg-brand-50 border-brand-200`}
-              >
-                <div className="font-bold flex items-center gap-1.5 text-brand-700">
-                  <AlertTriangle className="w-4 h-4" />
-                  <span>تنبيه: يحتوي هذا التشكيل على ({getDirectChildrenCount(deleteConfirmNode.id)}) فروع وشعب تابعة!</span>
-                </div>
-
-                <div className="space-y-1.5 pt-1">
-                  <label className="flex items-start gap-2 cursor-pointer font-bold">
-                    <input
-                      type="radio"
-                      name="cascadeOption"
-                      checked={deleteCascadeOption === 'reparent'}
-                      onChange={() => setDeleteCascadeOption('reparent')}
-                      className="mt-0.5"
-                    />
-                    <span>رفع تبعية الفروع التابعة إلى الجهة الأعلى (الحفاظ على الأبناء)</span>
+      {/* نافذة تأكيد الحذف الموحدة */}
+      <ConfirmDialog
+        open={!!deleteConfirmNode}
+        danger
+        title="تأكيد حذف التشكيل التنظيمي"
+        message={
+          deleteConfirmNode && (
+            <div className="space-y-3">
+              <p>هل تريد حذف «<strong>{deleteConfirmNode.nameAr}</strong>» ({deleteConfirmNode.code}) نهائياً من الهيكل التنظيمي؟</p>
+              {getDirectChildrenCount(deleteConfirmNode.id) > 0 && (
+                <div className="space-y-2 rounded-lg border border-brand-200 bg-brand-50 p-3 text-xs">
+                  <div className="font-bold text-brand-700">يتبع هذا التشكيل ({getDirectChildrenCount(deleteConfirmNode.id)}) فروع وشعب:</div>
+                  <label className="flex cursor-pointer items-start gap-2 font-bold">
+                    <input type="radio" name="cascadeOption" checked={deleteCascadeOption === 'reparent'} onChange={() => setDeleteCascadeOption('reparent')} className="mt-0.5" />
+                    <span>نقل الفروع التابعة إلى الجهة الأعلى</span>
                   </label>
-                  <label className="flex items-start gap-2 cursor-pointer font-bold text-rose-600">
-                    <input
-                      type="radio"
-                      name="cascadeOption"
-                      checked={deleteCascadeOption === 'cascade'}
-                      onChange={() => setDeleteCascadeOption('cascade')}
-                      className="mt-0.5"
-                    />
-                    <span>حذف التشكيل مع كافة الفروع والشعب التابعة له بالكامل</span>
+                  <label className="flex cursor-pointer items-start gap-2 font-bold text-rose-600">
+                    <input type="radio" name="cascadeOption" checked={deleteCascadeOption === 'cascade'} onChange={() => setDeleteCascadeOption('cascade')} className="mt-0.5" />
+                    <span>حذف التشكيل مع كل الفروع والشعب التابعة له</span>
                   </label>
                 </div>
-              </div>
-            )}
-
-            <div className="flex items-center justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => setDeleteConfirmNode(null)}
-                className={`px-4 py-2 rounded-xl font-bold text-xs bg-slate-100 text-slate-700 hover:bg-slate-200`}
-              >
-                إلغاء
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  onDeleteOrgEntity(deleteConfirmNode.id, deleteCascadeOption === 'cascade');
-                  setDeleteConfirmNode(null);
-                }}
-                className="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white font-black text-xs rounded-xl shadow cursor-pointer flex items-center gap-1.5"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-                <span>تأكيد الحذف النهائي</span>
-              </button>
+              )}
             </div>
-          </div>
-        </div>
-      )}
+          )
+        }
+        onClose={() => setDeleteConfirmNode(null)}
+        onConfirm={() => {
+          if (!deleteConfirmNode) return;
+          onDeleteOrgEntity(deleteConfirmNode.id, deleteCascadeOption === 'cascade');
+          setDeleteConfirmNode(null);
+        }}
+      />
       {/* Interactive Printable Org Chart Modal */}
       {showOrgChartModal && (
         <OrgChartModal

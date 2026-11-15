@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useConfirm } from './ui';
 import {
   X,
   Save,
@@ -98,6 +99,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
   const [selectedRoomForQr, setSelectedRoomForQr] = useState<Room | null>(null);
 
   // Rooms Tab View Mode & Filter State
+  const confirm = useConfirm();
   const [roomsViewMode, setRoomsViewMode] = useState<'cards' | 'table'>('cards');
   const [roomSearchQuery, setRoomSearchQuery] = useState<string>('');
   const [roomFloorFilter, setRoomFloorFilter] = useState<string>('all');
@@ -411,7 +413,9 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
     setEditingAttachment(null);
   };
 
-  const handleDeleteAttachment = (id: string) => {
+  const handleDeleteAttachment = async (id: string) => {
+    const target = attachments.find((att) => att.id === id);
+    if (!(await confirm({ title: 'تأكيد حذف المرفق', message: <>هل تريد حذف المرفق «{target?.name || id}» من الوحدة؟ يُنفَّذ الحذف عند حفظ التعديلات.</>, danger: true }))) return;
     const updated = attachments.filter((att) => att.id !== id);
     setAttachments(updated);
     setAttachmentsCount(updated.length);
@@ -540,11 +544,12 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
     );
   };
 
-  const handleRegenerateAllRoomCodes = () => {
+  const handleRegenerateAllRoomCodes = async () => {
     if (
-      window.confirm(
-        'هل أنت متأكد من إعادة توليد وترقيم جميع رموز الغرف؟\n\nتنبيه مهم: سيؤدي هذا الإجراء إلى تغيير الرموز القياسية للغرف ويتطلب طباعة ولصق بطاقات QR جديدة لجميع الغرف على أبوابها.'
-      )
+      await confirm({
+        title: 'تأكيد إعادة ترقيم الغرف',
+        message: 'هل تريد إعادة توليد رموز كل الغرف؟ تتغير الرموز الحالية، ويلزم طباعة بطاقات QR جديدة ولصقها على الأبواب.',
+      })
     ) {
       const updated = normalizeUnitRoomsSequence(unit.code, rooms);
       setRooms(updated);
@@ -554,7 +559,9 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
     }
   };
 
-  const handleDeleteRoom = (roomId: string) => {
+  const handleDeleteRoom = async (roomId: string) => {
+    const target = rooms.find((rm) => rm.id === roomId);
+    if (!(await confirm({ title: 'تأكيد حذف الغرفة', message: <>هل تريد حذف الغرفة «{target?.name || roomId}» مع معداتها من الوحدة؟ يُنفَّذ الحذف عند حفظ التعديلات.</>, danger: true }))) return;
     setRooms((prev) => prev.filter((rm) => rm.id !== roomId));
   };
 
@@ -623,7 +630,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
     return { totalArea, activeCount, stoppedCount, vacantCount };
   }, [rooms]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // Validate Fixed Asset Code if provided
@@ -686,6 +693,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
       lastUpdated: getServerIsoDateOnly(),
     };
 
+    if (!(await confirm({ title: 'تأكيد تعديل الوحدة', message: <>هل تريد حفظ التعديلات على الوحدة <strong className="font-mono">{unit.code}</strong>؟</> }))) return;
     onSave(updated);
     onClose();
   };

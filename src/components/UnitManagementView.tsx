@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { ConfirmDialog } from './ui';
 import {
   Search,
   Filter,
@@ -2001,111 +2002,49 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
         />
       )}
 
-      {/* Decommission / Freeze Unit Modal */}
-      {selectedUnit && showDecommissionModal && (
-        <div className="fixed inset-0 z-50 bg-card/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-          <div className={`border rounded-2xl max-w-lg w-full p-4 sm:p-6 shadow-2xl space-y-4 max-h-[92vh] flex flex-col overflow-y-auto transition-colors bg-card border-slate-200 text-slate-900`}>
-            <div className="flex items-center justify-between border-b pb-3 border-brand-200 shrink-0">
-              <div className="flex items-center gap-2">
-                <Archive className="w-5 h-5 sm:w-6 sm:h-6 text-brand-700" />
-                <h3 className="font-black text-sm sm:text-base">شطب وتجميد المنشأة ({selectedUnit.code})</h3>
-              </div>
-              <button onClick={() => setShowDecommissionModal(false)} className="text-slate-500 hover:text-slate-900 p-1 rounded-lg hover:bg-slate-100 cursor-pointer">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="space-y-3 text-xs leading-relaxed flex-1 overflow-y-auto pr-1">
-              <p className={'text-slate-600'}>
-                <strong>الشطب والتجميد:</strong> سيتم نقل المنشأة <strong>"{selectedUnit.name}"</strong> إلى حالة <strong>"مشطوبة ومجمدة"</strong> مع الاحتفاظ بكافة بياناتها، غرفها، ومعداتها في النظام لتبقى متاحة في تقارير الوحدات المشطوبة.
-              </p>
-
-              <div className="space-y-1.5">
-                <label className="font-bold block text-brand-700 ">سبب الشطب والتجميد (إلزامي للتوثيق):</label>
+      {/* نافذتا التأكيد الموحدتان: الشطب والحذف */}
+      <ConfirmDialog
+        open={!!selectedUnit && showDecommissionModal}
+        title={`شطب وتجميد الوحدة (${selectedUnit?.code ?? ''})`}
+        confirmDisabled={!decommissionReasonInput.trim()}
+        message={
+          selectedUnit && (
+            <div className="space-y-3">
+              <p>تُنقل الوحدة «<strong>{selectedUnit.name}</strong>» إلى حالة «مشطوبة ومجمدة»، وتبقى بياناتها وغرفها ومعداتها محفوظة وتظهر في تقارير الوحدات المشطوبة.</p>
+              <label className="block space-y-1.5 text-xs">
+                <span className="font-bold text-brand-700">سبب الشطب (إلزامي):</span>
                 <textarea
                   value={decommissionReasonInput}
                   onChange={(e) => setDecommissionReasonInput(e.target.value)}
-                  placeholder="أدخل سبب الشطب (مثال: أضرار إنشائية جسيمة، عدم صلاحية للاستخدام الإداري، انتهاء العمر التشغيلي)..."
+                  placeholder="مثال: أضرار إنشائية جسيمة، انتهاء العمر التشغيلي"
                   rows={3}
-                  className={`w-full border rounded-xl p-3 text-xs focus:outline-none focus:border-brand-600 bg-slate-50 border-slate-300 text-slate-800`}
+                  className="w-full rounded-lg border border-slate-300 bg-slate-50 p-2.5 text-xs text-slate-800 focus:border-brand-600 focus:outline-none"
                 />
-              </div>
+              </label>
             </div>
-
-            <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-200 text-xs shrink-0">
-              <button
-                onClick={() => setShowDecommissionModal(false)}
-                className={`px-4 py-2 rounded-xl font-bold border bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300`}
-              >
-                إلغاء
-              </button>
-              <button
-                onClick={() => {
-                  if (onDecommissionUnit) {
-                    onDecommissionUnit(selectedUnit.code, decommissionReasonInput || 'تم الشطب والتجميد بناءً على تقرير السلامة والتقييم الإنشائي');
-                  }
-                  setShowDecommissionModal(false);
-                }}
-                className="bg-brand-700 hover:bg-brand-800 text-on-brand font-black px-4 sm:px-5 py-2 rounded-xl shadow-lg transition cursor-pointer flex items-center gap-1.5"
-              >
-                <Archive className="w-4 h-4" />
-                <span>تأكيد شطب وتجميد المنشأة</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Delete Unit Permanent Confirmation Modal */}
-      {selectedUnit && showDeleteModal && (
-        <div className="fixed inset-0 z-50 bg-card/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-          <div className={`border rounded-2xl max-w-lg w-full p-4 sm:p-6 shadow-2xl space-y-4 max-h-[92vh] flex flex-col overflow-y-auto transition-colors bg-card border-slate-200 text-slate-900`}>
-            <div className="flex items-center justify-between border-b pb-3 border-rose-500/30">
-              <div className="flex items-center gap-2">
-                <Trash2 className="w-6 h-6 text-rose-600" />
-                <h3 className="font-black text-base text-rose-600">حذف المنشأة نهائياً ({selectedUnit.code})</h3>
-              </div>
-              <button onClick={() => setShowDeleteModal(false)} className="text-slate-500 hover:text-slate-900 p-1 cursor-pointer">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="space-y-3 text-xs leading-relaxed">
-              <div className="p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl flex items-start gap-2.5 text-rose-200">
-                <ShieldAlert className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
-                <p>
-                  <strong>تحذير نهائي:</strong> الحذف هو إزالة نهائية مع كل معلومات المنشأة وبياناتها (الغرف، المعدات، المخططات ثلاثية الأبعاد، والسجلات) من النظام ومن قاعدة البيانات. لا يمكن التراجع أو الاستعادة!
-                </p>
-              </div>
-
-              <p className={'text-slate-600'}>
-                هل أنت متأكد من رغبتك بالحذف النهائي للمنشأة <strong>"{selectedUnit.name}"</strong> (رمز: <span className="font-mono">{selectedUnit.code}</span>)؟
-              </p>
-            </div>
-
-            <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-200 text-xs">
-              <button
-                onClick={() => setShowDeleteModal(false)}
-                className={`px-4 py-2 rounded-xl font-bold border bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300`}
-              >
-                إلغاء الأمر
-              </button>
-              <button
-                onClick={() => {
-                  if (onDeleteUnit) {
-                    onDeleteUnit(selectedUnit.code);
-                  }
-                  setShowDeleteModal(false);
-                }}
-                className="bg-rose-600 hover:bg-rose-500 text-white font-black px-5 py-2 rounded-xl shadow-lg transition cursor-pointer flex items-center gap-1.5"
-              >
-                <Trash2 className="w-4 h-4" />
-                <span>نعم، حذف نهائياً من النظام</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+          )
+        }
+        onClose={() => setShowDecommissionModal(false)}
+        onConfirm={() => {
+          if (selectedUnit && onDecommissionUnit) onDecommissionUnit(selectedUnit.code, decommissionReasonInput.trim());
+          setShowDecommissionModal(false);
+        }}
+      />
+      <ConfirmDialog
+        open={!!selectedUnit && showDeleteModal}
+        danger
+        title={`حذف الوحدة نهائياً (${selectedUnit?.code ?? ''})`}
+        message={
+          selectedUnit && (
+            <>هل تريد حذف الوحدة «<strong>{selectedUnit.name}</strong>» (<span className="font-mono">{selectedUnit.code}</span>) مع غرفها ومعداتها ومخططاتها نهائياً؟ لا يمكن التراجع ولا الاستعادة. وحدة لها صيانة أو كشوفات أو إشغال لا تُحذف، وتُشطب بدل ذلك.</>
+          )
+        }
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={() => {
+          if (selectedUnit && onDeleteUnit) onDeleteUnit(selectedUnit.code);
+          setShowDeleteModal(false);
+        }}
+      />
 
       {/* Attachment Preview & Program Launcher Modal */}
       {selectedUnit && previewAttachment && (

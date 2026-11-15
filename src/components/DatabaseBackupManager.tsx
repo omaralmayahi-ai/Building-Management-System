@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { ConfirmDialog, useConfirm } from './ui';
 import {
   Database,
   Download,
@@ -157,6 +158,7 @@ export const DatabaseBackupManager: React.FC<DatabaseBackupManagerProps> = ({
   const [importMode, setImportMode] = useState<'overwrite' | 'merge'>('overwrite');
   const [isRestoring, setIsRestoring] = useState(false);
   const [showRestoreConfirmModal, setShowRestoreConfirmModal] = useState(false);
+  const confirm = useConfirm();
   const [confirmAgreementChecked, setConfirmAgreementChecked] = useState(false);
 
   // Save Schedule Config Changes
@@ -1188,7 +1190,8 @@ export const DatabaseBackupManager: React.FC<DatabaseBackupManagerProps> = ({
               {backupHistory.length > 0 && (
                 <button
                   type="button"
-                  onClick={() => {
+                  onClick={async () => {
+                    if (!(await confirm({ title: 'تأكيد مسح السجل', message: 'هل تريد مسح سجل أرشيف النسخ كله من هذا المتصفح؟', danger: true }))) return;
                     setBackupHistory([]);
                     safeSetItem('app_backup_history', []);
                     triggerSaveToast('تم تفريغ سجل الأرشيف');
@@ -1312,7 +1315,8 @@ export const DatabaseBackupManager: React.FC<DatabaseBackupManagerProps> = ({
 
                         <button
                           type="button"
-                          onClick={() => {
+                          onClick={async () => {
+                            if (!(await confirm({ title: 'تأكيد حذف النسخة', message: 'هل تريد حذف هذه النسخة من أرشيف هذا المتصفح؟', danger: true }))) return;
                             const filtered = backupHistory.filter((b) => b.id !== item.id);
                             setBackupHistory(filtered);
                             safeSetItem('app_backup_history', filtered);
@@ -1408,7 +1412,8 @@ export const DatabaseBackupManager: React.FC<DatabaseBackupManagerProps> = ({
 
                               <button
                                 type="button"
-                                onClick={() => {
+                                onClick={async () => {
+                                  if (!(await confirm({ title: 'تأكيد حذف النسخة', message: 'هل تريد حذف هذه النسخة من أرشيف هذا المتصفح؟', danger: true }))) return;
                                   const filtered = backupHistory.filter((b) => b.id !== item.id);
                                   setBackupHistory(filtered);
                                   safeSetItem('app_backup_history', filtered);
@@ -1435,98 +1440,43 @@ export const DatabaseBackupManager: React.FC<DatabaseBackupManagerProps> = ({
       {/* ========================================================================= */}
       {/* RESTORE CONFIRMATION SAFETY MODAL */}
       {/* ========================================================================= */}
-      {showRestoreConfirmModal && parsedBackupData && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-card/80 backdrop-blur-sm animate-fadeIn">
-          <div
-            className={`w-full max-w-lg rounded-3xl p-6 border shadow-2xl space-y-4 bg-card border-slate-200 text-slate-900`}
-          >
-            <div className={`flex items-center gap-3 border-b pb-3 border-slate-200`}>
-              <div
-                className={`p-2.5 rounded-2xl border bg-red-100 text-red-700 border-red-200`}
-              >
-                <ShieldAlert className="w-6 h-6" />
+      <ConfirmDialog
+        open={showRestoreConfirmModal && !!parsedBackupData}
+        danger
+        loading={isRestoring}
+        confirmDisabled={!confirmAgreementChecked}
+        title="تأكيد استعادة قاعدة البيانات"
+        message={
+          parsedBackupData && (
+            <div className="space-y-3">
+              <p>
+                {importMode === 'overwrite'
+                  ? 'تُستبدل البيانات الحالية كلها بالنسخة المستوردة.'
+                  : 'تُدمج السجلات المستوردة مع البيانات الحالية وتُحدَّث.'}
+              </p>
+              <div className="space-y-1 rounded-lg border border-slate-200 bg-slate-50 p-2.5 text-xs">
+                <div>تاريخ النسخة: <strong className="font-mono">{parsedBackupData.exportedAtFormatted}</strong></div>
+                <div>عدد الوحدات: <strong className="font-mono">{toArabicDigits(parsedBackupData.data?.units?.length || 0)}</strong></div>
+                <div>نوع الاستعادة: <strong>{importMode === 'overwrite' ? 'استبدال شامل' : 'دمج وتحديث'}</strong></div>
               </div>
-              <div>
-                <h3 className={`font-bold text-sm text-red-600`}>
-                  تأكيد استعادة وتطبيق قاعدة البيانات
-                </h3>
-                <p className={`text-xs mt-0.5 text-slate-600`}>
-                  {importMode === 'overwrite'
-                    ? 'تحذير: سيتم استبدال البيانات الحالية بالكامل بالنسخة المستوردة.'
-                    : 'سيتم دمج وتحديث السجلات والوحدات مع المحافظة على البيانات القائمة.'}
-                </p>
-              </div>
+              <label className="flex cursor-pointer items-start gap-2 text-xs">
+                <input
+                  type="checkbox"
+                  checked={confirmAgreementChecked}
+                  onChange={(e) => setConfirmAgreementChecked(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 cursor-pointer accent-brand-700"
+                />
+                <span>أقر بأنني مدير مخوّل وأوافق على الاستعادة الآن، وتُسجَّل العملية في سجل النشاطات.</span>
+              </label>
             </div>
-
-            {/* Summary Box */}
-            <div
-              className={`p-3.5 rounded-2xl border space-y-2 text-xs bg-slate-50 border-slate-200 text-slate-800`}
-            >
-              <div className="flex justify-between">
-                <span className={'text-slate-600'}>تاريخ النسخة المستوردة:</span>
-                <span className={`font-mono font-bold text-brand-800`}>
-                  {parsedBackupData.exportedAtFormatted}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className={'text-slate-600'}>عدد المباني المستوردة:</span>
-                <span className={`font-mono font-bold text-emerald-700`}>
-                  {toArabicDigits(parsedBackupData.data?.units?.length || 0)} أصل
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className={'text-slate-600'}>نوع الاستعادة:</span>
-                <span className={`font-bold text-cyan-700`}>
-                  {importMode === 'overwrite' ? 'استبدال واستعادة شاملة' : 'دمج وتحديث ذكي'}
-                </span>
-              </div>
-            </div>
-
-            {/* Checkbox agreement */}
-            <label
-              className={`flex items-start gap-2.5 text-xs cursor-pointer select-none p-3 rounded-xl border bg-slate-50 border-slate-200 text-slate-800`}
-            >
-              <input
-                type="checkbox"
-                checked={confirmAgreementChecked}
-                onChange={(e) => setConfirmAgreementChecked(e.target.checked)}
-                className="mt-0.5 rounded border-slate-400 text-brand-700 focus:ring-brand-600 accent-brand-700 cursor-pointer w-4 h-4"
-              />
-              <span>
-                أقر بأنني مدير مخول وأوافق على تطبيق واستعادة قاعدة البيانات الآن مع تسجيل العملية في سجل التدقيق.
-              </span>
-            </label>
-
-            {/* Actions */}
-            <div className="flex items-center justify-end gap-3 pt-2">
-              <button
-                type="button"
-                onClick={() => {
-                  setShowRestoreConfirmModal(false);
-                  setConfirmAgreementChecked(false);
-                }}
-                className={`px-4 py-2.5 font-bold text-xs rounded-xl transition cursor-pointer border bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300`}
-              >
-                إلغاء
-              </button>
-
-              <button
-                type="button"
-                onClick={handleExecuteRestore}
-                disabled={!confirmAgreementChecked || isRestoring}
-                className="px-6 py-2.5 bg-red-500 hover:bg-red-600 active:scale-95 text-white font-bold text-xs rounded-xl flex items-center gap-2 transition cursor-pointer shadow-lg shadow-red-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isRestoring ? (
-                  <RefreshCw className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Check className="w-4 h-4" />
-                )}
-                <span>تأكيد واستعادة البيانات فوراً</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+          )
+        }
+        onClose={() => {
+          setShowRestoreConfirmModal(false);
+          setConfirmAgreementChecked(false);
+        }}
+        onConfirm={handleExecuteRestore}
+      />
     </div>
   );
 };
