@@ -57,7 +57,7 @@ import {
   isRoomVacant,
 } from '../utils/unitAndRoomCodeUtils';
 import { downloadAttachment } from '../utils/fileUtils';
-import { BUILDING_SHAPE_OPTIONS } from './NewUnitWizard';
+import { BUILDING_SHAPE_OPTIONS } from '../utils/buildingShapes';
 import { toArabicDigits } from '../utils/arabicUtils';
 import { INITIAL_GOVERNORATES, INITIAL_OILFIELDS, INITIAL_ORG_ENTITIES, INITIAL_REFERENCE_UNIT_TYPES } from '../data/mockData';
 import { OrgEntityPickerModal } from './OrgEntityPickerModal';
