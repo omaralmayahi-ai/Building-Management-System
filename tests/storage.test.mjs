@@ -535,4 +535,67 @@ describe('وضع الملف المحلي (للتجربة)', () => {
     const old = await call('POST', '/api/units', { token, body: { ...legacy, name: 'تعديل اسم فقط' } });
     assert.equal(old.status, 200, old.text);
   });
+
+  test('تغيير اسم محافظة أو حقل أو قسم ينتقل إلى السجلات، والمستخدم منها لا يُحذف', async () => {
+    const current = (await call('GET', '/api/reference-data', { token })).json;
+    const ref = {
+      ...current,
+      governorates: [{ id: 'g1', code: 'WAS', nameAr: 'واسط', status: 'active' }, { id: 'g2', code: 'BGD', nameAr: 'بغداد', status: 'active' }],
+      oilfields: [{ id: 'f1', governorateId: 'g1', code: 'AHD', nameAr: 'الأحدب', status: 'active' }, { id: 'f2', governorateId: 'g2', code: 'EBD', nameAr: 'شرقي بغداد', status: 'active' }],
+      maintenanceDepartments: [{ id: 'd1', code: 'ELC', nameAr: 'الصيانة الكهربائية', status: 'active' }],
+    };
+    const save = (body) => call('POST', '/api/reference-data', { token, body });
+    assert.equal((await save(ref)).status, 200);
+
+    const u = await call('POST', '/api/units', { token, body: unit('L-1', { governorate: 'واسط', field: 'الأحدب', department: 'قسم الخدمات', departments: ['قسم الخدمات', 'قسم آخر'] }) });
+    assert.equal(u.json.unit.governorateId, 'g1', 'المعرّف يُضاف من الاسم');
+    assert.equal(u.json.unit.fieldId, 'f1');
+    await call('POST', '/api/inspections', { token, body: { id: 'I-L1', unitCode: 'L-1', governorate: 'واسط', field: 'الأحدب' } });
+    await call('POST', '/api/maintenance', { token, body: { id: 'M-L1', unitCode: 'L-1', field: 'الأحدب', maintenanceDepartment: 'الصيانة الكهربائية' } });
+
+    // حذف المستخدم مرفوض
+    const delGov = await save({ ...ref, governorates: [ref.governorates[1]], oilfields: [ref.oilfields[1]] });
+    assert.equal(delGov.status, 409);
+    assert.equal(delGov.json.code, 'REFERENCE_IN_USE');
+    assert.equal((await save({ ...ref, maintenanceDepartments: [] })).status, 409);
+    assert.equal((await save({ ...ref, governorates: [ref.governorates[0]] })).status, 409, 'حقل يبقى بلا محافظة');
+    assert.equal((await save({ ...ref, governorates: [...ref.governorates, { id: 'g3', code: 'X', nameAr: 'بغداد' }] })).json.code, 'DUPLICATE_NAME');
+
+    // تغيير الاسم ينتقل
+    const renamed = {
+      ...ref,
+      governorates: [{ ...ref.governorates[0], nameAr: 'محافظة واسط' }, ref.governorates[1]],
+      oilfields: [{ ...ref.oilfields[0], nameAr: 'حقل الأحدب' }, ref.oilfields[1]],
+      maintenanceDepartments: [{ ...ref.maintenanceDepartments[0], nameAr: 'شعبة الكهرباء' }],
+    };
+    const r = await save(renamed);
+    assert.equal(r.status, 200, r.text);
+    assert.equal(r.json.renamed, 3);
+    const unitNow = (await call('GET', '/api/units', { token })).json.find((x) => x.code === 'L-1');
+    assert.equal(unitNow.governorate, 'محافظة واسط');
+    assert.equal(unitNow.field, 'حقل الأحدب');
+    assert.equal(unitNow._v, u.json.unit._v + 2, 'رقم النسخة يرتفع مع كل تغيير');
+    const insp = (await call('GET', '/api/inspections', { token })).json.find((x) => x.id === 'I-L1');
+    assert.deepEqual([insp.governorate, insp.field], ['محافظة واسط', 'حقل الأحدب']);
+    const maint = (await call('GET', '/api/maintenance', { token })).json.find((x) => x.id === 'M-L1');
+    assert.deepEqual([maint.field, maint.maintenanceDepartment], ['حقل الأحدب', 'شعبة الكهرباء']);
+    assert.equal((await save({ ...renamed, governorates: renamed.governorates, oilfields: [renamed.oilfields[0]] })).status, 200, 'حذف حقل غير مستخدم مسموح');
+
+    // الهيكل التنظيمي
+    const org = (id, nameAr) => ({ id, code: id, nameAr, parentId: null, level: 'department', employeeCount: 0, status: 'active' });
+    await call('POST', '/api/org-entities', { token, body: org('o1', 'قسم الخدمات') });
+    await call('POST', '/api/org-entities', { token, body: org('o2', 'قسم غير مستخدم') });
+    await call('POST', '/api/occupancy', { token, body: { id: 'OC-1', unitCode: 'L-1', roomId: 'r', department: 'قسم الخدمات', startDate: '2026-01-01' } });
+    const blocked = await call('DELETE', '/api/org-entities/o1', { token });
+    assert.equal(blocked.status, 409);
+    assert.equal(blocked.json.code, 'REFERENCE_IN_USE');
+    assert.equal((await call('POST', '/api/org-entities/batch', { token, body: { upserts: [], deletes: ['o2', 'o1'] } })).status, 409);
+    assert.equal((await call('DELETE', '/api/org-entities/o2', { token })).status, 200);
+    const ren = await call('PUT', '/api/org-entities/o1', { token, body: { ...org('o1', 'قسم الخدمات الإدارية') } });
+    assert.equal(ren.status, 200, ren.text);
+    const unitAfter = (await call('GET', '/api/units', { token })).json.find((x) => x.code === 'L-1');
+    assert.equal(unitAfter.department, 'قسم الخدمات الإدارية');
+    assert.deepEqual(unitAfter.departments, ['قسم الخدمات الإدارية', 'قسم آخر']);
+    assert.equal((await call('GET', '/api/occupancy', { token })).json.find((x) => x.id === 'OC-1').department, 'قسم الخدمات الإدارية');
+  });
 });

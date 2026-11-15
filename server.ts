@@ -896,6 +896,102 @@ async function startServer() {
     return null;
   }
 
+  // ==========================================================================
+  // الروابط المرجعية (3-و): السجلات تحمل اسم المحافظة والحقل والقسم. الخادم يبقيها متسقة:
+  //  - تغيير الاسم في القائمة المرجعية ينتقل إلى كل السجلات التي تحمله.
+  //  - عنصر مستخدم في سجلات لا يُحذف من قائمته.
+  //  - الوحدة والكشف يحملان أيضاً معرّف المحافظة والحقل (governorateId / fieldId).
+  // ==========================================================================
+  type NameLink = [collection: string, field: string];
+  const REFERENCE_NAME_LINKS: Record<string, { label: string; links: NameLink[] }> = {
+    governorates: { label: 'المحافظة', links: [['units', 'governorate'], ['inspections', 'governorate']] },
+    oilfields: { label: 'الحقل', links: [['units', 'field'], ['inspections', 'field'], ['maintenance', 'field']] },
+    maintenanceDepartments: { label: 'قسم الصيانة', links: [['maintenance', 'maintenanceDepartment']] },
+  };
+  const ORG_NAME_LINKS: NameLink[] = [['units', 'department'], ['occupancy', 'department']];
+  const refName = (item: any) => String(item?.nameAr ?? '').trim();
+
+  function recordUsesName(record: any, field: string, name: string): boolean {
+    if (!record || !name) return false;
+    if (record[field] === name) return true;
+    return field === 'department' && Array.isArray(record.departments) && record.departments.includes(name);
+  }
+
+  function countNameUsage(links: NameLink[], name: string): number {
+    let count = 0;
+    for (const [key, field] of links) {
+      for (const record of COLLECTIONS[key].get()) if (recordUsesName(record, field, name)) count++;
+    }
+    return count;
+  }
+
+  /** يغيّر الاسم في كل السجلات المرتبطة ويعيد المجموعات التي تغيّرت */
+  function renameInRecords(links: NameLink[], oldName: string, newName: string): string[] {
+    const touched: string[] = [];
+    if (!oldName || !newName || oldName === newName) return touched;
+    for (const [key, field] of links) {
+      const def = COLLECTIONS[key];
+      let changed = false;
+      const next = def.get().map((record) => {
+        if (!recordUsesName(record, field, oldName)) return record;
+        changed = true;
+        const copy: any = { ...record, _v: (Number(record._v) || 0) + 1, _updatedAt: new Date().toISOString() };
+        if (record[field] === oldName) copy[field] = newName;
+        if (field === 'department' && Array.isArray(record.departments)) {
+          copy.departments = record.departments.map((d: any) => (d === oldName ? newName : d));
+        }
+        return copy;
+      });
+      if (changed) {
+        def.set(next);
+        if (!touched.includes(key)) touched.push(key);
+      }
+    }
+    return touched;
+  }
+
+  const COLLECTION_EVENTS: Record<string, string> = {
+    units: 'units_updated',
+    maintenance: 'maintenance_updated',
+    occupancy: 'occupancy_updated',
+    inspections: 'inspections_updated',
+  };
+
+  /** يضيف معرّف المحافظة والحقل إلى الوحدة أو الكشف بحسب الاسم (إن وُجد في القوائم المرجعية) */
+  function linkReferenceIds(key: string, record: any): any {
+    if (key !== 'units' && key !== 'inspections') return record;
+    const ref = memStore.referenceData;
+    if (!ref || !record) return record;
+    const gov = (Array.isArray(ref.governorates) ? ref.governorates : []).find((g: any) => refName(g) && refName(g) === record.governorate);
+    const fld = (Array.isArray(ref.oilfields) ? ref.oilfields : []).find(
+      (f: any) => refName(f) && refName(f) === record.field && (!gov || !f.governorateId || f.governorateId === gov.id)
+    );
+    const governorateId = gov ? String(gov.id) : undefined;
+    const fieldId = fld ? String(fld.id) : undefined;
+    if (record.governorateId === governorateId && record.fieldId === fieldId) return record;
+    return { ...record, governorateId, fieldId };
+  }
+
+  /** أثر تغيير اسم تشكيل في الهيكل التنظيمي: يعيد المجموعات المتأثرة. الاسم المشترك بين تشكيلين لا يُنقل (لا يُعرف أيهما المقصود) */
+  function cascadeOrgRename(existing: any, next: any): string[] {
+    const oldName = refName(existing);
+    const newName = refName(next);
+    if (!existing || !oldName || !newName || oldName === newName) return [];
+    const shared = memStore.orgEntities.some((e: any) => String(e?.id) !== String(existing.id) && refName(e) === oldName);
+    return shared ? [] : renameInRecords(ORG_NAME_LINKS, oldName, newName);
+  }
+
+  /** رسالة منع حذف تشكيل مستخدم في وحدات أو إشغال، أو null */
+  function orgDeleteError(id: string, alsoDeleting: string[] = []): string | null {
+    const entity = memStore.orgEntities.find((e: any) => String(e?.id) === id);
+    const name = refName(entity);
+    if (!entity || !name) return null;
+    const gone = new Set([id, ...alsoDeleting]);
+    if (memStore.orgEntities.some((e: any) => !gone.has(String(e?.id)) && refName(e) === name)) return null;
+    const count = countNameUsage(ORG_NAME_LINKS, name);
+    return count > 0 ? `التشكيل «${name}» مستخدم في ${count} سجل (وحدات أو إشغال) فلا يُحذف. عطّله بدل حذفه، أو انقل تلك السجلات أولاً.` : null;
+  }
+
   // نوع الوحدة: الرمز المرجعي (BLD، CRV...)؛ السجلات القديمة تحمل الاسم الإنجليزي في type
   const LEGACY_UNIT_TYPE_CODES: Record<string, string> = {
     building: 'BLD',
@@ -974,13 +1070,16 @@ async function startServer() {
       }
       const dated = normalizeRecordDates(o.key, req.body);
       if (dated.error) return rejectInvalidDate(res, dated.error);
-      const rec = stampRecord(dated.record, existing, req);
+      const rec = stampRecord(linkReferenceIds(o.key, dated.record), existing, req);
       put(rec);
+      const cascaded = o.key === 'orgEntities' ? cascadeOrgRename(existing, rec) : [];
       try {
-        await commit([o.key], [id]);
+        if (cascaded.length > 0) await commit([o.key, ...cascaded]);
+        else await commit([o.key], [id]);
       } catch (err) {
         return storageFailure(res, err);
       }
+      for (const key of cascaded) notifySyncChange(COLLECTION_EVENTS[key], { action: 'rename' });
       notifySyncChange(o.event, { action: existing ? 'update' : 'add', id });
       return res.json({ success: true, [o.single]: rec });
     });
@@ -1000,19 +1099,26 @@ async function startServer() {
         }
         const dated = normalizeRecordDates(o.key, req.body);
         if (dated.error) return rejectInvalidDate(res, dated.error);
-        const rec = stampRecord(dated.record, existing, req);
+        const rec = stampRecord(linkReferenceIds(o.key, dated.record), existing, req);
         put(rec, paramId);
+        const cascaded = o.key === 'orgEntities' ? cascadeOrgRename(existing, rec) : [];
         try {
-          await commit([o.key], [paramId, def.idOf(rec)]);
+          if (cascaded.length > 0) await commit([o.key, ...cascaded]);
+          else await commit([o.key], [paramId, def.idOf(rec)]);
         } catch (err) {
           return storageFailure(res, err);
         }
+        for (const key of cascaded) notifySyncChange(COLLECTION_EVENTS[key], { action: 'rename' });
         notifySyncChange(o.event, { action: 'update', id: paramId });
         return res.json({ success: true, [o.single]: rec });
       });
 
       app.delete(`/api/${o.route}/:id`, async (req, res) => {
         if (o.key === 'units' && unitHasHistory(req.params.id)) return res.status(409).json(UNIT_HISTORY_ERROR);
+        if (o.key === 'orgEntities') {
+          const inUse = orgDeleteError(req.params.id);
+          if (inUse) return res.status(409).json({ success: false, code: 'REFERENCE_IN_USE', error: inUse });
+        }
         remove(req.params.id);
         try {
           await commit([o.key], [req.params.id]);
@@ -1054,6 +1160,12 @@ async function startServer() {
         return res.status(409).json({ success: false, code: 'VERSION_CONFLICT', error: CONFLICT_MESSAGE, conflicts });
       }
       if (o.key === 'units' && deletes.some((id) => unitHasHistory(id))) return res.status(409).json(UNIT_HISTORY_ERROR);
+      if (o.key === 'orgEntities') {
+        for (const id of deletes) {
+          const inUse = orgDeleteError(id, deletes);
+          if (inUse) return res.status(409).json({ success: false, code: 'REFERENCE_IN_USE', error: inUse });
+        }
+      }
       if (o.key === 'units') {
         const batchCodes = new Map<string, string>();
         for (const rec of upserts) {
@@ -1072,19 +1184,25 @@ async function startServer() {
         }
       }
       const records: any[] = [];
+      const cascaded: string[] = [];
       for (const rec of upserts) {
         const existing = find(def.idOf(rec));
         if (o.appendOnly && existing) continue;
-        const stamped = stampRecord(rec, existing, req);
+        const stamped = stampRecord(linkReferenceIds(o.key, rec), existing, req);
         put(stamped);
         records.push(stamped);
+        if (o.key === 'orgEntities') {
+          for (const key of cascadeOrgRename(existing, stamped)) if (!cascaded.includes(key)) cascaded.push(key);
+        }
       }
       for (const id of deletes) remove(id);
       try {
-        await commit([o.key], [...records.map((r) => def.idOf(r)), ...deletes]);
+        if (cascaded.length > 0) await commit([o.key, ...cascaded]);
+        else await commit([o.key], [...records.map((r) => def.idOf(r)), ...deletes]);
       } catch (err) {
         return storageFailure(res, err);
       }
+      for (const key of cascaded) notifySyncChange(COLLECTION_EVENTS[key], { action: 'rename' });
       if (records.length > 0 || deletes.length > 0) notifySyncChange(o.event, { action: 'batch' });
       return res.json({ success: true, records });
     });
@@ -1109,7 +1227,7 @@ async function startServer() {
         if (!id || id === 'undefined') continue;
         const existing = find(id);
         if (o.appendOnly && existing) continue;
-        put(stampRecord(rec, existing, req));
+        put(stampRecord(linkReferenceIds(o.key, rec), existing, req));
         ids.push(id);
       }
       try {
@@ -1525,14 +1643,64 @@ async function startServer() {
         }
       }
     }
+    // المحافظات والحقول وأقسام الصيانة: الاسم فريد، والمستخدم لا يُحذف، وتغيير الاسم ينتقل إلى السجلات
+    const previous = memStore.referenceData || {};
+    const renames: Array<{ links: NameLink[]; from: string; to: string }> = [];
+    for (const [listKey, cfg] of Object.entries(REFERENCE_NAME_LINKS)) {
+      if (!Array.isArray(body[listKey])) continue;
+      const names = new Set<string>();
+      for (const item of body[listKey]) {
+        const name = refName(item);
+        if (!name) continue;
+        if (names.has(name)) {
+          return res.status(400).json({ success: false, code: 'DUPLICATE_NAME', error: `${cfg.label} «${name}» مكرر في القائمة` });
+        }
+        names.add(name);
+      }
+      for (const old of Array.isArray(previous[listKey]) ? previous[listKey] : []) {
+        const oldName = refName(old);
+        if (!oldName) continue;
+        const next = body[listKey].find((item: any) => String(item?.id) === String(old?.id));
+        if (!next) {
+          // حُذف العنصر: مسموح إن لم يُستخدم اسمه، أو إن بقي عنصر آخر بالاسم نفسه
+          const count = names.has(oldName) ? 0 : countNameUsage(cfg.links, oldName);
+          if (count > 0) {
+            return res.status(409).json({
+              success: false,
+              code: 'REFERENCE_IN_USE',
+              error: `${cfg.label} «${oldName}» مستخدم في ${count} سجل فلا يُحذف. عطّله بدل حذفه، أو انقل تلك السجلات أولاً.`,
+            });
+          }
+        } else if (refName(next) && refName(next) !== oldName) {
+          renames.push({ links: cfg.links, from: oldName, to: refName(next) });
+        }
+      }
+    }
+    if (Array.isArray(body.governorates) && Array.isArray(body.oilfields)) {
+      const govIds = new Set(body.governorates.map((g: any) => String(g?.id)));
+      const orphan = body.oilfields.find((f: any) => f?.governorateId && !govIds.has(String(f.governorateId)));
+      if (orphan) {
+        return res.status(409).json({
+          success: false,
+          code: 'REFERENCE_IN_USE',
+          error: `الحقل «${refName(orphan)}» تابع لمحافظة غير موجودة في القائمة. انقله إلى محافظة أخرى أو احذفه أولاً.`,
+        });
+      }
+    }
+
     memStore.referenceData = body;
+    const touched: string[] = [];
+    for (const r of renames) {
+      for (const key of renameInRecords(r.links, r.from, r.to)) if (!touched.includes(key)) touched.push(key);
+    }
     try {
-      await commit(['settings']);
+      await commit(['settings', ...touched]);
     } catch (err) {
       return storageFailure(res, err);
     }
+    for (const key of touched) notifySyncChange(COLLECTION_EVENTS[key], { action: 'rename' });
     notifySyncChange('reference_data_updated', {});
-    return res.json({ success: true });
+    return res.json({ success: true, renamed: renames.length });
   });
 
   // ==========================================================================
