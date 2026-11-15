@@ -1,5 +1,5 @@
 import { getServerIsoDateOnly } from '../services/serverTime';
-import { ConfirmDialog, useConfirm } from './ui';
+import { Button, ConfirmDialog, EmptyState, Field, Input, Modal, PageHeader, Select, Textarea, useConfirm } from './ui';
 import React, { useState, useMemo } from 'react';
 import {
   Wrench,
@@ -279,6 +279,17 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
     setFormError(null);
   };
 
+  const closeNotesModal = () => {
+    setViewNotesReq(null);
+    setCopiedNotes(false);
+  };
+
+  const closeUpdateModal = () => {
+    setSelectedReq(null);
+    setActionModalType(null);
+    setFormError(null);
+  };
+
   const handleOpenFullEdit = (req: MaintenanceRequest) => {
     if (isMaintenanceEmployee) return; // Prevented for maintenance employee
     setFullEditReq(req);
@@ -338,30 +349,23 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
         </div>
       )}
 
-      {/* Header Banner */}
-      <div className={`rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 border bg-card border-slate-200`}>
-        <div>
-          <h2 className={`text-base sm:text-lg font-bold flex items-center gap-2 text-slate-900`}>
-            <Wrench className="w-5 h-5 text-brand-700 shrink-0" />
-            <span>إدارة طلبات الصيانة</span>
-          </h2>
-          <p className={`text-[11px] sm:text-xs mt-0.5 leading-relaxed text-slate-600`}>
-            {isMaintenanceEmployee
-              ? `متابعة وإنجاز أو رفض طلبات ${employeeDept || 'الصيانة'} الموجهة لحسابك وتوثيق الملاحظات`
-              : 'متابعة بلاغات الأعطال، معالجة وتعديل حالة الطلب، وتوجيهها لجهات الصيانة المختصة'}
-          </p>
-        </div>
-
-        {!isMaintenanceEmployee && (
-          <button
-            onClick={onOpenNewMaintenanceModal}
-            className="w-full sm:w-auto bg-brand-700 hover:bg-brand-800 text-on-brand font-black px-4 py-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-lg transition cursor-pointer min-h-[40px]"
-          >
-            <Plus className="w-4 h-4" />
-            <span>+ طلب صيانة جديد</span>
-          </button>
-        )}
-      </div>
+      {/* الترويسة */}
+      <PageHeader
+        icon={Wrench}
+        title="إدارة طلبات الصيانة"
+        description={
+          isMaintenanceEmployee
+            ? `متابعة وإنجاز أو رفض طلبات ${employeeDept || 'الصيانة'} الموجهة لحسابك وتوثيق الملاحظات`
+            : 'متابعة بلاغات الأعطال، معالجة حالة الطلب، وتوجيهها لجهات الصيانة المختصة'
+        }
+        actions={
+          !isMaintenanceEmployee && (
+            <Button variant="primary" icon={Plus} onClick={onOpenNewMaintenanceModal}>
+              طلب صيانة جديد
+            </Button>
+          )
+        }
+      />
 
       {/* SLA Metrics Cards */}
       <div className="space-y-2">
@@ -439,8 +443,9 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
 
             {/* Clear Filters Button if any filter active */}
             {(filterStatus !== 'all' || filterDepartment !== 'all' || filterPriority !== 'all' || searchCode || sortOrder !== 'newest_first') && (
-              <button
-                type="button"
+              <Button
+                size="sm"
+                icon={RotateCcw}
                 onClick={() => {
                   setFilterStatus('all');
                   setFilterDepartment('all');
@@ -448,114 +453,58 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
                   setSearchCode('');
                   setSortOrder('newest_first');
                 }}
-                className={`text-xs flex items-center gap-1 px-2.5 py-1 rounded-lg transition cursor-pointer font-bold w-fit bg-slate-100 text-slate-700 hover:bg-slate-200`}
               >
-                <RotateCcw className="w-3 h-3 text-brand-700" />
-                <span>إعادة ضبط الفلاتر</span>
-              </button>
+                إعادة ضبط الفلاتر
+              </Button>
             )}
           </div>
 
-          {/* Filters Bar: Sort Order, Status, Department, Priority, Search */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 text-xs">
-            {/* 1. Sort Order Filter */}
-            <div className="flex flex-col gap-1">
-              <label className={`text-[11px] font-bold flex items-center gap-1 text-slate-600`}>
-                <ArrowUpDown className="w-3 h-3 text-brand-700" />
-                <span>الترتيب الزمني:</span>
-              </label>
-              <select
-                value={sortOrder}
-                onChange={(e) => setSortOrder(e.target.value as 'newest_first' | 'oldest_first')}
-                className={`w-full rounded-lg px-2.5 py-2 focus:outline-none border font-semibold bg-slate-50 border-slate-200 text-slate-800 focus:border-brand-600`}
-              >
-                <option value="newest_first">من الأحدث إلى الأقدم (الأحدث أولاً)</option>
-                <option value="oldest_first">من الأقدم إلى الأحدث (الأقدم أولاً)</option>
-              </select>
-            </div>
-
-            {/* 2. Status Filter */}
-            <div className="flex flex-col gap-1">
-              <label className={`text-[11px] font-bold flex items-center gap-1 text-slate-600`}>
-                <Clock className="w-3 h-3 text-brand-700" />
-                <span>حالة الطلب:</span>
-              </label>
-              <select
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value)}
-                className={`w-full rounded-lg px-2.5 py-2 focus:outline-none border font-semibold bg-slate-50 border-slate-200 text-slate-800 focus:border-brand-600`}
-              >
+          {/* شريط الفلاتر */}
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
+            <Field label="الترتيب الزمني">
+              <Select value={sortOrder} onChange={(e) => setSortOrder(e.target.value as 'newest_first' | 'oldest_first')}>
+                <option value="newest_first">الأحدث أولاً</option>
+                <option value="oldest_first">الأقدم أولاً</option>
+              </Select>
+            </Field>
+            <Field label="حالة الطلب">
+              <Select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
                 <option value="all">كافة الحالات</option>
                 <option value="in_progress">قيد المعالجة والتنفيذ</option>
                 <option value="completed">تمت المعالجة والإنجاز</option>
-                <option value="rejected">تم رفض طلب الصيانة</option>
-                <option value="cancelled">تم إلغاء طلب الصيانة</option>
-              </select>
-            </div>
-
-            {/* 3. Maintenance Department Filter */}
-            <div className="flex flex-col gap-1">
-              <label className={`text-[11px] font-bold flex items-center gap-1 text-slate-600`}>
-                <Wrench className="w-3 h-3 text-brand-700" />
-                <span>جهة الصيانة:</span>
-              </label>
-              <select
-                value={filterDepartment}
-                onChange={(e) => setFilterDepartment(e.target.value)}
-                disabled={Boolean(isMaintenanceEmployee && employeeDept)}
-                className={`w-full rounded-lg px-2.5 py-2 focus:outline-none border font-semibold bg-slate-50 border-slate-200 text-slate-800 focus:border-brand-600 ${isMaintenanceEmployee && employeeDept ? 'opacity-70 cursor-not-allowed' : ''}`}
-              >
+                <option value="rejected">مرفوض</option>
+                <option value="cancelled">ملغى</option>
+              </Select>
+            </Field>
+            <Field label="جهة الصيانة">
+              <Select value={filterDepartment} onChange={(e) => setFilterDepartment(e.target.value)} disabled={Boolean(isMaintenanceEmployee && employeeDept)}>
                 <option value="all">كافة جهات الصيانة</option>
                 {availableDepartments.map((dept) => (
                   <option key={dept} value={dept}>
                     {dept}
                   </option>
                 ))}
-              </select>
-            </div>
-
-            {/* 4. Priority Filter */}
-            <div className="flex flex-col gap-1">
-              <label className={`text-[11px] font-bold flex items-center gap-1 text-slate-600`}>
-                <AlertTriangle className="w-3 h-3 text-brand-700" />
-                <span>درجة الأولوية:</span>
-              </label>
-              <select
-                value={filterPriority}
-                onChange={(e) => setFilterPriority(e.target.value)}
-                className={`w-full rounded-lg px-2.5 py-2 focus:outline-none border font-semibold bg-slate-50 border-slate-200 text-slate-800 focus:border-brand-600`}
-              >
+              </Select>
+            </Field>
+            <Field label="درجة الأولوية">
+              <Select value={filterPriority} onChange={(e) => setFilterPriority(e.target.value)}>
                 <option value="all">كافة درجات الأولوية</option>
                 <option value="critical">حرج جداً (طارئ وفوري)</option>
                 <option value="normal">عادي (اعتيادي)</option>
                 <option value="low">منخفض (وقائي / ثانوي)</option>
-              </select>
-            </div>
-
-            {/* 5. Search Filter */}
-            <div className="flex flex-col gap-1">
-              <label className={`text-[11px] font-bold flex items-center gap-1 text-slate-600`}>
-                <Search className="w-3 h-3 text-brand-700" />
-                <span>بحث بالرمز أو العطل:</span>
-              </label>
+              </Select>
+            </Field>
+            <Field label="بحث">
               <div className="relative">
-                <Search className="absolute right-2.5 top-2.5 w-3.5 h-3.5 text-slate-500" />
-                <input
-                  type="text"
-                  value={searchCode}
-                  onChange={(e) => setSearchCode(e.target.value)}
-                  placeholder="ابحث بالرمز، الوحدة، العطل..."
-                  className={`w-full rounded-lg pr-8 pl-2 py-2 text-xs focus:outline-none border bg-slate-50 border-slate-200 text-slate-800 focus:border-brand-600`}
-                />
+                <Search className="pointer-events-none absolute right-3 top-3 h-4 w-4 text-slate-500" aria-hidden />
+                <Input type="text" value={searchCode} onChange={(e) => setSearchCode(e.target.value)} placeholder="الرمز، الوحدة، العطل..." className="pr-9" />
               </div>
-            </div>
+            </Field>
           </div>
         </div>
 
         {filteredRequests.length === 0 ? (
-          <div className="p-8 text-center text-slate-500 text-xs font-semibold">
-            لا توجد طلبات أو بلاغات صيانة تطابق معايير الفلترة المحددة.
-          </div>
+          <EmptyState text="لا توجد طلبات صيانة تطابق الفلاتر المحددة." />
         ) : (
           <div>
             {/* Mobile Cards View (md:hidden) */}
@@ -1243,46 +1192,32 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
   </div>
 
       {/* UPDATE / COMPLETE / REJECT MAINTENANCE REQUEST MODAL */}
-      {selectedReq && (
-        <div className={`fixed inset-0 z-50 backdrop-blur-sm flex items-center justify-center p-2.5 sm:p-4 overflow-y-auto bg-slate-900/40`}>
-          <div className={`rounded-2xl sm:rounded-3xl p-4 sm:p-6 w-full max-w-lg space-y-3.5 sm:space-y-4 shadow-2xl relative my-2 sm:my-8 border bg-card border-slate-200 text-slate-900`}>
-            <div className={`flex items-center justify-between border-b pb-3 border-slate-200`}>
-              <div className="flex items-center gap-2">
-                {actionModalType === 'reject' ? (
-                  <div className="p-2 rounded-xl bg-rose-500/20 text-rose-600 border border-rose-500/30">
-                    <Ban className="w-5 h-5" />
-                  </div>
-                ) : (
-                  <div className="p-2 rounded-xl bg-emerald-500/20 text-emerald-600 border border-emerald-500/30">
-                    <CheckCircle2 className="w-5 h-5" />
-                  </div>
-                )}
-                <div>
-                  <h3 className={`font-bold text-sm sm:text-base text-slate-900`}>
-                    {actionModalType === 'reject'
-                      ? 'توثيق رفض طلب الصيانة'
-                      : isMaintenanceEmployee
-                      ? 'توثيق إنجاز طلب الصيانة'
-                      : `معالجة وتحديث حالة طلب الصيانة (${toArabicDigits(selectedReq.id)})`}
-                  </h3>
-                  <p className={`text-[11px] text-slate-500`}>
-                    رقم الطلب: <span className="font-mono text-brand-700 font-bold">{selectedReq.id}</span>
-                  </p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  setSelectedReq(null);
-                  setActionModalType(null);
-                  setFormError(null);
-                }}
-                className={`p-1.5 rounded-xl cursor-pointer text-slate-400 hover:text-slate-700 bg-slate-100`}
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
+      <Modal
+        open={!!selectedReq}
+        staticBackdrop
+        icon={actionModalType === 'reject' ? Ban : CheckCircle2}
+        title={
+          actionModalType === 'reject'
+            ? 'توثيق رفض طلب الصيانة'
+            : isMaintenanceEmployee
+            ? 'توثيق إنجاز طلب الصيانة'
+            : 'معالجة وتحديث حالة طلب الصيانة'
+        }
+        onClose={closeUpdateModal}
+        footer={
+          <>
+            <Button type="submit" form="maintenance-update-form" variant={actionModalType === 'reject' || status === 'rejected' ? 'danger' : 'primary'} icon={CheckCircle2}>
+              {actionModalType === 'reject' ? 'حفظ الرفض وسببه' : isMaintenanceEmployee ? 'حفظ إنجاز الصيانة' : 'حفظ حالة الطلب'}
+            </Button>
+            <Button onClick={closeUpdateModal}>إلغاء</Button>
+          </>
+        }
+      >
+        {selectedReq && (
+          <div className="space-y-3.5">
+            <p className="text-xs text-slate-500">
+              رقم الطلب: <span className="font-mono font-bold text-brand-700">{selectedReq.id}</span>
+            </p>
             {formError && (
               <div className="p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl text-rose-600 font-bold text-xs flex items-center gap-2">
                 <AlertTriangle className="w-4 h-4 shrink-0" />
@@ -1290,7 +1225,7 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
               </div>
             )}
 
-            <form onSubmit={handleSaveUpdate} className="space-y-3 text-xs">
+            <form id="maintenance-update-form" onSubmit={handleSaveUpdate} className="space-y-3 text-xs">
               <div className="p-3 bg-brand-50 border border-brand-200 rounded-xl text-brand-700 font-bold space-y-1">
                 <div>الوحدة: {toArabicDigits(selectedReq.unitCode)} | المشكلة: {selectedReq.issue}</div>
                 <div className="text-[11px] text-brand-700">جهة الصيانة: {selectedReq.maintenanceDepartment || 'عامة'}</div>
@@ -1372,52 +1307,35 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
                 </div>
               )}
 
-              <div className={`flex flex-col-reverse sm:flex-row items-center justify-end gap-2.5 sm:gap-3 pt-3 border-t border-slate-200`}>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSelectedReq(null);
-                    setActionModalType(null);
-                    setFormError(null);
-                  }}
-                  className={`w-full sm:w-auto px-4 py-2.5 rounded-xl font-bold transition cursor-pointer min-h-[40px] flex items-center justify-center bg-slate-100 text-slate-700 hover:bg-slate-200`}
-                >
-                  إلغاء
-                </button>
-                <button
-                  type="submit"
-                  className={`w-full sm:w-auto px-5 py-2.5 font-black rounded-xl transition cursor-pointer shadow-lg min-h-[40px] flex items-center justify-center ${
-                    actionModalType === 'reject' || status === 'rejected'
-                      ? 'bg-rose-600 hover:bg-rose-500 text-white shadow-rose-600/30'
-                      : 'bg-emerald-500 hover:bg-emerald-400 text-on-brand shadow-emerald-500/20'
-                  }`}
-                >
-                  {actionModalType === 'reject'
-                    ? 'تأكيد رفض الطلب وحفظ السبب'
-                    : isMaintenanceEmployee
-                    ? 'تأكيد وحفظ إنجاز الصيانة'
-                    : 'حفظ وتحديث حالة الصيانة'}
-                </button>
-              </div>
             </form>
           </div>
-        </div>
-      )}
+        )}
+      </Modal>
 
       {/* FULL EDIT MAINTENANCE REQUEST MODAL */}
-      {fullEditReq && (
-        <div className={`fixed inset-0 z-50 backdrop-blur-sm flex items-center justify-center p-2.5 sm:p-4 overflow-y-auto bg-slate-900/40`}>
-          <div className={`rounded-2xl sm:rounded-3xl p-4 sm:p-6 w-full max-w-md space-y-3.5 sm:space-y-4 shadow-2xl relative border bg-card border-slate-200 text-slate-900`}>
-            <div className={`flex items-center justify-between border-b pb-3 border-slate-200`}>
-              <h3 className={`font-bold text-sm sm:text-base text-slate-900`}>
-                تحرير طلب صيانة ({toArabicDigits(fullEditReq.id)})
-              </h3>
-              <button onClick={() => setFullEditReq(null)} className={`p-1.5 rounded-xl cursor-pointer text-slate-400 hover:text-slate-700 bg-slate-100`}>
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleSaveFullEdit} className="space-y-3 text-xs">
+      <Modal
+        open={!!fullEditReq}
+        staticBackdrop
+        icon={Edit3}
+        title={`تعديل طلب الصيانة (${fullEditReq?.id ?? ''})`}
+        onClose={() => setFullEditReq(null)}
+        footer={
+          <>
+            <Button type="submit" form="maintenance-edit-form" variant="primary" icon={CheckCircle2}>
+              حفظ التعديلات
+            </Button>
+            <Button onClick={() => setFullEditReq(null)}>إلغاء</Button>
+            {onDeleteMaintenanceRequest && (
+              <Button variant="danger-ghost" icon={Trash2} className="ms-auto" onClick={() => fullEditReq && setDeleteConfirmReq(fullEditReq)}>
+                حذف الطلب
+              </Button>
+            )}
+          </>
+        }
+      >
+        {fullEditReq && (
+          <div>
+            <form id="maintenance-edit-form" onSubmit={handleSaveFullEdit} className="space-y-3 text-xs">
               <div>
                 <label className={`block font-bold mb-1 text-slate-700`}>
                   تاريخ تقديم الطلب:
@@ -1505,38 +1423,10 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
                 </select>
               </div>
 
-              <div className={`flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-2.5 pt-3 border-t border-slate-200`}>
-                {onDeleteMaintenanceRequest ? (
-                  <button
-                    type="button"
-                    onClick={() => setDeleteConfirmReq(fullEditReq)}
-                    className="w-full sm:w-auto px-3.5 py-2.5 bg-rose-500/20 hover:bg-rose-500/30 text-rose-600 border border-rose-500/30 rounded-xl font-bold transition cursor-pointer min-h-[40px] flex items-center justify-center gap-1.5"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                    <span>حذف الطلب</span>
-                  </button>
-                ) : <div />}
-                
-                <div className="flex items-center gap-2 w-full sm:w-auto">
-                  <button
-                    type="button"
-                    onClick={() => setFullEditReq(null)}
-                    className={`flex-1 sm:flex-none px-4 py-2.5 rounded-xl font-bold transition cursor-pointer min-h-[40px] flex items-center justify-center bg-slate-100 text-slate-700 hover:bg-slate-200`}
-                  >
-                    إلغاء
-                  </button>
-                  <button
-                    type="submit"
-                    className="flex-1 sm:flex-none px-5 py-2.5 bg-sky-500 text-white font-black rounded-xl hover:bg-sky-400 transition cursor-pointer min-h-[40px] flex items-center justify-center"
-                  >
-                    حفظ التعديلات
-                  </button>
-                </div>
-              </div>
             </form>
           </div>
-        </div>
-      )}
+        )}
+      </Modal>
 
       {/* نافذة تأكيد الحذف الموحدة */}
       <ConfirmDialog
@@ -1558,68 +1448,46 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
       />
 
       {/* RESULTS / NOTES POPUP MODAL CARD */}
-      {viewNotesReq && (
-        <div className={`fixed inset-0 z-50 backdrop-blur-md flex items-center justify-center p-2.5 sm:p-4 overflow-y-auto bg-slate-900/50`}>
-          <div className={`rounded-2xl sm:rounded-3xl p-4 sm:p-6 w-full max-w-xl space-y-3.5 sm:space-y-4 shadow-2xl relative border animate-in fade-in zoom-in-95 duration-150 bg-card border-slate-200 text-slate-900`}>
-            {/* Header */}
-            <div className={`flex items-start justify-between border-b pb-3.5 border-slate-200`}>
-              <div className="flex items-center gap-2.5 sm:gap-3">
-                <div className={`p-2 sm:p-2.5 rounded-xl sm:rounded-2xl border shrink-0 ${
-                  viewNotesReq.status === 'rejected'
-                    ? 'bg-rose-500/20 text-rose-600 border-rose-500/30'
-                    : viewNotesReq.status === 'completed'
-                    ? 'bg-emerald-500/20 text-emerald-600 border-emerald-500/30'
-                    : 'bg-brand-100 text-brand-700 border-brand-200'
-                }`}>
-                  {viewNotesReq.status === 'rejected' ? (
-                    <Ban className="w-5 h-5 sm:w-6 sm:h-6" />
-                  ) : viewNotesReq.status === 'completed' ? (
-                    <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6" />
-                  ) : (
-                    <FileText className="w-5 h-5 sm:w-6 sm:h-6" />
-                  )}
-                </div>
-                <div>
-                  <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-                    <h3 className={`font-black text-sm sm:text-base text-slate-900`}>
-                      {viewNotesReq.status === 'rejected'
-                        ? 'بطاقة سبب الرفض والملاحظات الفنية'
-                        : viewNotesReq.status === 'completed'
-                        ? 'بطاقة نتائج الإنجاز والتقرير الفني'
-                        : 'بطاقة نتائج وملاحظات طلب الصيانة'}
-                    </h3>
-                    <span className={`px-2 py-0.5 rounded-md font-bold text-[10px] sm:text-[10.5px] border ${
-                      viewNotesReq.status === 'rejected'
-                        ? 'bg-rose-500/20 text-rose-600 border-rose-500/30'
-                        : viewNotesReq.status === 'completed'
-                        ? 'bg-emerald-500/20 text-emerald-600 border-emerald-500/30'
-                        : 'bg-brand-100 text-brand-700 border-brand-200'
-                    }`}>
-                      {viewNotesReq.status === 'rejected'
-                        ? 'مرفوض'
-                        : viewNotesReq.status === 'completed'
-                        ? 'تم الإنجاز'
-                        : viewNotesReq.status === 'cancelled'
-                        ? 'ملغى'
-                        : 'قيد المعالجة'}
-                    </span>
-                  </div>
-                  <p className={`text-[10.5px] sm:text-xs font-mono mt-0.5 text-slate-500`}>
-                    طلب صيانة رقم: <span className="text-brand-700 font-bold">{toArabicDigits(viewNotesReq.id)}</span> • تاريخ الطلب: {formatDateOnly(viewNotesReq.createdAt)}
-                  </p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  setViewNotesReq(null);
-                  setCopiedNotes(false);
-                }}
-                className={`p-1.5 sm:p-2 rounded-xl transition cursor-pointer shrink-0 text-slate-400 hover:text-slate-700 bg-slate-100`}
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
+      <Modal
+        open={!!viewNotesReq}
+        icon={viewNotesReq?.status === 'rejected' ? Ban : viewNotesReq?.status === 'completed' ? CheckCircle2 : FileText}
+        title={
+          viewNotesReq?.status === 'rejected'
+            ? 'سبب الرفض والملاحظات الفنية'
+            : viewNotesReq?.status === 'completed'
+            ? 'نتائج الإنجاز والتقرير الفني'
+            : 'نتائج وملاحظات طلب الصيانة'
+        }
+        onClose={closeNotesModal}
+        footer={
+          <>
+            <Button variant="primary" onClick={closeNotesModal}>
+              إغلاق
+            </Button>
+            <Button
+              icon={Edit3}
+              onClick={() => {
+                const reqToEdit = viewNotesReq;
+                closeNotesModal();
+                if (!reqToEdit) return;
+                if (isMaintenanceEmployee) {
+                  if (reqToEdit.status === 'rejected') handleOpenRejectModal(reqToEdit);
+                  else handleOpenCompleteModal(reqToEdit);
+                } else {
+                  handleOpenEditModal(reqToEdit);
+                }
+              }}
+            >
+              تعديل التقرير / الحالة
+            </Button>
+          </>
+        }
+      >
+        {viewNotesReq && (
+          <div className="space-y-3.5">
+            <p className="text-xs text-slate-500">
+              طلب رقم <span className="font-mono font-bold text-brand-700">{toArabicDigits(viewNotesReq.id)}</span> • تاريخ الطلب: {formatDateOnly(viewNotesReq.createdAt)} • مسؤول الإجراء: {viewNotesReq.reportedBy || currentUser?.name || 'فريق الصيانة'}
+            </p>
 
             {/* Overview Details Strip */}
             {(() => {
@@ -1751,49 +1619,9 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
               </div>
             </div>
 
-            {/* Footer Buttons */}
-            <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-slate-200`}>
-              <div className="text-[11px] text-slate-500">
-                مسؤول الإجراء: <strong className="text-slate-600">{viewNotesReq.reportedBy || currentUser?.name || 'فريق الصيانة'}</strong>
-              </div>
-
-              <div className="flex items-center gap-2 w-full sm:w-auto">
-                <button
-                  type="button"
-                  onClick={() => {
-                    const reqToEdit = viewNotesReq;
-                    setViewNotesReq(null);
-                    if (isMaintenanceEmployee) {
-                      if (reqToEdit.status === 'rejected') {
-                        handleOpenRejectModal(reqToEdit);
-                      } else {
-                        handleOpenCompleteModal(reqToEdit);
-                      }
-                    } else {
-                      handleOpenEditModal(reqToEdit);
-                    }
-                  }}
-                  className={`flex-1 sm:flex-none px-3.5 py-2 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition min-h-[38px] bg-slate-100 hover:bg-slate-200 text-slate-700`}
-                >
-                  <Edit3 className="w-3.5 h-3.5 text-brand-700" />
-                  <span>تعديل التقرير / الحالة</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setViewNotesReq(null);
-                    setCopiedNotes(false);
-                  }}
-                  className="flex-1 sm:flex-none px-5 py-2 bg-brand-700 hover:bg-brand-800 text-on-brand font-black rounded-xl text-xs transition cursor-pointer shadow-md min-h-[38px] flex items-center justify-center"
-                >
-                  إغلاق
-                </button>
-              </div>
-            </div>
           </div>
-        </div>
-      )}
+        )}
+      </Modal>
 
       {/* ATTACHMENT VIEWER MODAL */}
       {previewAttachment && (

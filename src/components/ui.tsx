@@ -388,6 +388,7 @@ export function Modal({
   wide,
   icon,
   top,
+  staticBackdrop,
 }: {
   open: boolean;
   title: string;
@@ -398,6 +399,8 @@ export function Modal({
   icon?: LucideIcon;
   /** فوق كل النوافذ الأخرى (نوافذ التأكيد) */
   top?: boolean;
+  /** نوافذ النماذج: النقر خارج النافذة لا يغلقها (حتى لا يضيع ما كُتب) */
+  staticBackdrop?: boolean;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   // onClose في مرجع: الأب يمرر دالة جديدة مع كل رسم، ولا نريد إعادة التركيز لأول حقل أثناء الكتابة
@@ -437,7 +440,7 @@ export function Modal({
   // تُرسم النافذة في body مباشرة: لو كانت داخل عنصر عليه backdrop-blur أو transform (مثل الشريط العلوي)
   // يصبح موضعها نسبةً لذلك العنصر بدل الشاشة كلها
   return createPortal(
-    <div className={cx("ds fixed inset-0 flex items-start justify-center overflow-y-auto bg-black/45 p-4 text-slate-900 backdrop-blur-[2px] sm:items-center", top ? "z-[2000000]" : "z-50")} dir="rtl" onMouseDown={onClose}>
+    <div className={cx("ds fixed inset-0 flex items-start justify-center overflow-y-auto bg-black/45 p-4 text-slate-900 backdrop-blur-[2px] sm:items-center", top ? "z-[2000000]" : "z-50")} dir="rtl" onMouseDown={staticBackdrop ? undefined : onClose}>
       <div
         ref={ref}
         role="dialog"

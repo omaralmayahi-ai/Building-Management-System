@@ -722,6 +722,7 @@ export const Header: React.FC<HeaderProps> = ({
       {/* نافذة تغيير كلمة المرور بالمكوّنات الموحدة */}
       <Modal
         open={isPasswordModalOpen}
+        staticBackdrop
         title="تغيير كلمة المرور"
         icon={KeyRound}
         onClose={handleClosePasswordModal}

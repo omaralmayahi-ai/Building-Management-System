@@ -16,6 +16,7 @@ import { SystemUser, SystemBranding, UnitAsset } from '../types';
 import { INITIAL_BRANDING, INITIAL_USERS } from '../data/mockData';
 import { safeParse } from '../utils/storageUtils';
 import * as api from '../services/apiClient';
+import { Button, Field, Input } from './ui';
 import { MapPin, Navigation, ExternalLink, Compass, Copy, Check } from 'lucide-react';
 import { toArabicDigits } from '../utils/arabicUtils';
 
@@ -262,25 +263,14 @@ export const LoginView: React.FC<LoginViewProps> = ({
         </div>
 
         {/* Theme Toggle Button (Light / Dark) */}
-        <button
-          onClick={onToggleTheme}
-          type="button"
+        <Button
           id="login-theme-toggle-button"
-          className={`px-3 py-2 rounded-xl border text-xs font-bold flex items-center gap-2 transition cursor-pointer shadow-xs bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-300`}
+          icon={isLight ? Moon : Sun}
+          onClick={onToggleTheme}
           title={isLight ? 'التحويل للوضع الداكن' : 'التحويل للوضع الفاتح'}
         >
-          {isLight ? (
-            <>
-              <Moon className="w-4 h-4 text-indigo-600" />
-              <span>الوضع الداكن</span>
-            </>
-          ) : (
-            <>
-              <Sun className="w-4 h-4 text-brand-700" />
-              <span>الوضع الفاتح</span>
-            </>
-          )}
-        </button>
+          {isLight ? 'الوضع الداكن' : 'الوضع الفاتح'}
+        </Button>
       </header>
 
       {/* Main Login Card Container */}
@@ -389,7 +379,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
         })()}
 
         <div
-          className={`border rounded-3xl p-6 sm:p-8 shadow-2xl backdrop-blur-md transition-all bg-card/95 border-slate-200 shadow-slate-300/60`}
+          className={`border rounded-2xl p-6 sm:p-8 shadow-xl bg-card border-slate-200`}
         >
           {/* Card Header & System Branding Title */}
           <div className="text-center space-y-2 mb-6">
@@ -419,142 +409,100 @@ export const LoginView: React.FC<LoginViewProps> = ({
             </p>
           </div>
 
-          {/* Error Alert Box */}
+          {/* تنبيه الخطأ */}
           {errorMessage && (
-            <div
-              className={`mb-5 p-3.5 rounded-2xl border text-xs flex items-start gap-2.5 animate-in fade-in duration-200 bg-rose-50 border-rose-200 text-rose-800`}
-            >
-              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-600" />
+            <div role="alert" className="mb-5 flex items-start gap-2.5 rounded-lg border border-rose-200 bg-rose-50 p-3 text-xs text-rose-800">
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
               <div className="font-bold leading-relaxed">{errorMessage}</div>
             </div>
           )}
 
-          {/* Login Form */}
+          {/* النماذج بالمكوّنات الموحدة */}
           {pendingUser ? (
             <form onSubmit={handleForcedPasswordChange} className="space-y-4">
-              <div
-                className={`rounded-xl border px-3 py-2.5 text-xs font-bold leading-relaxed bg-brand-50 border-brand-200 text-brand-800`}
-              >
+              <div className="rounded-lg border border-brand-200 bg-brand-50 px-3 py-2.5 text-xs font-bold leading-relaxed text-brand-800">
                 حسابك «{pendingUser.name}» ما زال بكلمة المرور الافتراضية. اختر كلمة مرور جديدة (8 أحرف على الأقل) للمتابعة.
               </div>
-              <div className="space-y-1.5">
-                <label className={`block text-xs font-bold text-slate-700`}>
-                  كلمة المرور الجديدة:
-                </label>
-                <input
+              <Field label="كلمة المرور الجديدة" required>
+                <Input
                   type="password"
                   dir="ltr"
                   autoFocus
+                  autoComplete="new-password"
                   value={newPassword}
                   onChange={(e) => {
                     setNewPassword(e.target.value);
                     if (errorMessage) setErrorMessage(null);
                   }}
-                  className={`w-full rounded-xl py-2.5 px-3 text-xs font-bold transition focus:outline-none focus:ring-2 focus:ring-brand-600 border bg-slate-50 border-slate-300 text-slate-900 focus:bg-card`}
+                  className="font-mono"
                 />
-              </div>
-              <div className="space-y-1.5">
-                <label className={`block text-xs font-bold text-slate-700`}>
-                  تأكيد كلمة المرور الجديدة:
-                </label>
-                <input
+              </Field>
+              <Field label="تأكيد كلمة المرور الجديدة" required>
+                <Input
                   type="password"
                   dir="ltr"
+                  autoComplete="new-password"
                   value={confirmPassword}
                   onChange={(e) => {
                     setConfirmPassword(e.target.value);
                     if (errorMessage) setErrorMessage(null);
                   }}
-                  className={`w-full rounded-xl py-2.5 px-3 text-xs font-bold transition focus:outline-none focus:ring-2 focus:ring-brand-600 border bg-slate-50 border-slate-300 text-slate-900 focus:bg-card`}
+                  className="font-mono"
                 />
-              </div>
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="w-full rounded-xl py-2.5 text-sm font-black bg-brand-700 hover:bg-brand-800 text-on-brand transition disabled:opacity-60"
-              >
-                {isLoading ? 'جارٍ الحفظ...' : 'حفظ كلمة المرور والدخول'}
-              </button>
+              </Field>
+              <Button type="submit" variant="primary" loading={isLoading} className="h-11 w-full">
+                حفظ كلمة المرور والدخول
+              </Button>
             </form>
           ) : (
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Username Input */}
-            <div className="space-y-1.5">
-              <label
-                className={`block text-xs font-bold text-slate-700`}
-              >
-                اسم المستخدم / البريد الإلكتروني:
-              </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  required
-                  value={username}
-                  onChange={(e) => {
-                    setUsername(e.target.value);
-                    if (errorMessage) setErrorMessage(null);
-                  }}
-                  placeholder="مثال: inspector أو admin أو اسمك المسجل"
-                  className={`w-full rounded-xl py-2.5 pr-10 pl-3 text-xs font-bold transition focus:outline-none focus:ring-2 focus:ring-brand-600 border bg-slate-50 border-slate-300 text-slate-900 focus:bg-card placeholder:text-slate-400`}
-                />
-                <User className="w-4 h-4 text-slate-500 absolute right-3 top-3 pointer-events-none" />
-              </div>
-            </div>
-
-            {/* Password Input */}
-            <div className="space-y-1.5">
-              <label
-                className={`block text-xs font-bold text-slate-700`}
-              >
-                كلمة المرور:
-              </label>
-              <div className="relative">
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  required
-                  value={password}
-                  onChange={(e) => {
-                    setPassword(e.target.value);
-                    if (errorMessage) setErrorMessage(null);
-                  }}
-                  placeholder="••••••••"
-                  className={`w-full rounded-xl py-2.5 pr-10 pl-10 text-xs font-bold transition focus:outline-none focus:ring-2 focus:ring-brand-600 border font-mono bg-slate-50 border-slate-300 text-slate-900 focus:bg-card placeholder:text-slate-400`}
-                />
-                <Lock className="w-4 h-4 text-slate-500 absolute right-3 top-3 pointer-events-none" />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className={`absolute left-3 top-2.5 transition p-0.5 cursor-pointer text-slate-400 hover:text-slate-700`}
-                  title={showPassword ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'}
-                >
-                  {showPassword ? (
-                    <EyeOff className="w-4 h-4" />
-                  ) : (
-                    <Eye className="w-4 h-4" />
-                  )}
-                </button>
-              </div>
-            </div>
-
-            {/* Submit Button */}
-            <button
-              type="submit"
-              disabled={isLoading}
-              className={`w-full font-black py-3 px-4 rounded-xl text-xs flex items-center justify-center gap-2 shadow-lg transition cursor-pointer disabled:opacity-50 mt-4 border bg-brand-700 hover:bg-brand-800 text-on-brand border-brand-200 `}
-            >
-              {isLoading ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-slate-950 border-t-transparent rounded-full animate-spin" />
-                  <span>جارٍ التحقق من الحساب...</span>
-                </>
-              ) : (
-                <>
-                  <LogIn className="w-4 h-4" />
-                  <span>دخول النظام</span>
-                </>
-              )}
-            </button>
-          </form>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <Field label="اسم المستخدم" required>
+                <div className="relative">
+                  <Input
+                    type="text"
+                    required
+                    autoComplete="username"
+                    value={username}
+                    onChange={(e) => {
+                      setUsername(e.target.value);
+                      if (errorMessage) setErrorMessage(null);
+                    }}
+                    placeholder="اسم الحساب المسجل"
+                    className="pr-10"
+                  />
+                  <User className="pointer-events-none absolute right-3 top-3 h-4 w-4 text-slate-500" aria-hidden />
+                </div>
+              </Field>
+              <Field label="كلمة المرور" required>
+                <div className="relative">
+                  <Input
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    autoComplete="current-password"
+                    value={password}
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                      if (errorMessage) setErrorMessage(null);
+                    }}
+                    className="pl-10 pr-10 font-mono"
+                  />
+                  <Lock className="pointer-events-none absolute right-3 top-3 h-4 w-4 text-slate-500" aria-hidden />
+                  <button
+                    type="button"
+                    tabIndex={-1}
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute left-2 top-1/2 -translate-y-1/2 cursor-pointer rounded p-1 text-slate-500 hover:text-slate-800"
+                    title={showPassword ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'}
+                    aria-label={showPassword ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'}
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" aria-hidden /> : <Eye className="h-4 w-4" aria-hidden />}
+                  </button>
+                </div>
+              </Field>
+              <Button type="submit" variant="primary" icon={LogIn} loading={isLoading} className="mt-2 h-11 w-full">
+                {isLoading ? 'جارٍ التحقق من الحساب...' : 'دخول النظام'}
+              </Button>
+            </form>
           )}
         </div>
       </main>

@@ -1,4 +1,5 @@
 import { getServerIsoDateOnly } from '../services/serverTime';
+import { Button, Modal } from './ui';
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import {
   Wrench,
@@ -430,35 +431,24 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
   };
 
   return (
-    <div className={`fixed inset-0 z-50 backdrop-blur-md flex items-center justify-center p-2.5 sm:p-5 overflow-y-auto bg-slate-900/40`}>
-      <div
-        className={`rounded-2xl max-w-4xl w-full p-3.5 sm:p-5 shadow-2xl border flex flex-col max-h-[92vh] space-y-3.5 sm:space-y-4 text-xs bg-card border-slate-200 text-slate-800`}
+    <>
+      <Modal
+        open
+        wide
+        staticBackdrop
+        icon={Wrench}
+        title="طلب صيانة جديد"
+        onClose={onClose}
+        footer={
+          <>
+            <Button type="submit" form="new-maintenance-form" variant="primary" icon={Wrench}>
+              إرسال وحفظ طلب الصيانة
+            </Button>
+            <Button onClick={onClose}>إلغاء</Button>
+          </>
+        }
       >
-        {/* MODAL HEADER */}
-        <div className="flex items-center justify-between pb-2.5 sm:pb-3 border-b border-slate-200 shrink-0">
-          <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
-            <div className="p-1.5 sm:p-2 rounded-xl bg-brand-50 text-brand-700 border border-brand-200 shrink-0">
-              <Wrench className="w-4 h-4 sm:w-5 sm:h-5" />
-            </div>
-            <div className="min-w-0">
-              <h3 className={`font-bold text-sm sm:text-base truncate text-slate-900`}>
-                طلب صيانة جديد
-              </h3>
-              <p className={`text-[10px] sm:text-[11px] truncate text-slate-500`}>
-                توثيق وإصدار طلب صيانة جديد وتكليف الجهة الفنية المختصة
-              </p>
-            </div>
-          </div>
-          <button
-            onClick={onClose}
-            className={`p-1.5 rounded-xl transition cursor-pointer shrink-0 hover:bg-slate-100 text-slate-400 hover:text-slate-700`}
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        {/* FORM CONTENT */}
-        <form onSubmit={handleSubmit} className="space-y-4 overflow-y-auto pr-1 flex-1">
+        <form id="new-maintenance-form" onSubmit={handleSubmit} className="space-y-4 text-xs text-slate-800">
           {/* SECTION 1: UNIT SELECTION */}
           <div className={`p-4 rounded-2xl border space-y-3.5 bg-slate-50/80 border-slate-200`}>
             {isLocked ? (
@@ -1734,29 +1724,12 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
             </div>
           )}
 
-          {/* FOOTER ACTIONS */}
-          <div className="flex flex-col-reverse sm:flex-row items-center justify-end gap-2.5 sm:gap-3 pt-2 shrink-0">
-            <button
-              type="button"
-              onClick={onClose}
-              className={`w-full sm:w-auto px-5 py-2.5 rounded-xl font-bold transition cursor-pointer text-center bg-slate-100 hover:bg-slate-200 text-slate-700`}
-            >
-              إلغاء
-            </button>
-            <button
-              type="submit"
-              className="w-full sm:w-auto px-6 py-2.5 bg-brand-700 hover:bg-brand-800 text-on-brand font-black rounded-xl shadow-lg transition cursor-pointer flex items-center justify-center gap-2"
-            >
-              <Wrench className="w-4 h-4" />
-              <span>إرسال وحفظ طلب الصيانة</span>
-            </button>
-          </div>
         </form>
-      </div>
+      </Modal>
 
       {/* FULL PREVIEW MODAL FOR ATTACHMENT */}
       {previewItem && (
-        <div className="fixed inset-0 z-50 bg-card/90 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 animate-fadeIn">
+        <div className="fixed inset-0 z-[60] bg-card/90 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 animate-fadeIn">
           <div className="bg-card border border-slate-200 rounded-3xl p-4 sm:p-5 w-full max-w-2xl space-y-4 shadow-2xl flex flex-col max-h-[90vh]">
             <div className="flex items-center justify-between border-b border-slate-200 pb-3">
               <div className="flex items-center gap-2">
@@ -1811,6 +1784,6 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 };

@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { Badge, Button, CardHeader, EmptyState, PageHeader, Select, Table, Tabs, Td } from './ui';
 import {
   Building2,
   Users,
@@ -396,47 +397,19 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
   return (
     <div className="ds space-y-3.5 sm:space-y-5 text-right dir-rtl w-full max-w-full overflow-hidden">
-      {/* HEADER & GOVERNORATE FILTER BAR */}
-      <div
-        className={`p-3.5 sm:p-5 rounded-2xl border transition shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4 max-w-full overflow-hidden bg-card border-slate-200 text-slate-800`}
-      >
-        <div className="flex items-start sm:items-center gap-2.5 sm:gap-3.5 min-w-0 flex-1">
-          <div className="p-2 sm:p-2.5 bg-brand-50 text-brand-700 rounded-xl border border-brand-200 shrink-0 mt-0.5 sm:mt-0">
-            <BarChart3 className="w-5 h-5 sm:w-6 sm:h-6" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-              <h1 className={`text-sm xs:text-base sm:text-lg font-black tracking-tight leading-tight text-slate-900`}>
-                لوحة القيادة والمؤشرات
-              </h1>
-              <span className="bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 text-[9px] sm:text-[10px] px-1.5 sm:px-2 py-0.5 rounded-md font-bold flex items-center gap-1 shrink-0">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                مزامنة حية
-              </span>
-            </div>
-            <p className={`text-[11px] sm:text-xs mt-1 leading-relaxed break-words text-slate-600`}>
-              متابعة أصول {companyName}، الصيانة، والكشوفات عبر الحقول
-            </p>
-          </div>
-        </div>
-
-        {/* Global Governorate Filter & GIS Map Button */}
-        <div className="flex items-center gap-2 pt-2 border-t border-slate-100 md:border-none md:pt-0 w-full md:w-auto shrink-0">
-          <button
-            type="button"
-            onClick={() => onNavigateTab('gis_map')}
-            className="flex-1 md:flex-initial h-9 px-3 sm:px-3.5 rounded-xl text-xs font-bold bg-brand-700 hover:bg-brand-800 text-on-brand flex items-center justify-center gap-1.5 shadow-xs transition cursor-pointer shrink-0"
-          >
-            <MapIcon className="w-3.5 h-3.5 shrink-0" />
-            <span className="whitespace-nowrap">خريطة GIS</span>
-          </button>
-
-          <div className="flex-1 md:flex-initial flex items-center gap-1.5 text-xs font-bold min-w-0 max-w-full">
-            <Filter className="w-3.5 h-3.5 text-brand-700 shrink-0 hidden xs:inline" />
-            <select
+      {/* الترويسة وفلتر المحافظة */}
+      <PageHeader
+        icon={BarChart3}
+        title="لوحة القيادة والمؤشرات"
+        description={`متابعة أصول ${companyName}، الصيانة، والكشوفات عبر الحقول`}
+        actions={
+          <>
+            <div className="w-full sm:w-56">
+            <Select
+              aria-label="المحافظة"
               value={selectedGovernorate}
               onChange={(e) => setSelectedGovernorate(e.target.value)}
-              className={`w-full md:w-auto h-9 text-xs font-bold rounded-xl px-2.5 sm:px-3 py-1.5 border outline-none cursor-pointer transition truncate max-w-full bg-slate-50 border-slate-300 text-slate-900 focus:border-brand-600`}
+              className="h-9 font-semibold"
             >
               <option value="all">كافة المحافظات</option>
               {effectiveGovernorates
@@ -446,10 +419,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     محافظة {g.nameAr} ({g.code})
                   </option>
                 ))}
-            </select>
-          </div>
-        </div>
-      </div>
+            </Select>
+            </div>
+            <Button variant="primary" icon={MapIcon} onClick={() => onNavigateTab('gis_map')}>
+              خريطة GIS
+            </Button>
+          </>
+        }
+      />
 
       {/* KPI METRICS GRID (COMPACT & TOUCH-FRIENDLY ON MOBILE) */}
       <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-2 sm:gap-3">
@@ -639,70 +616,18 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       <div
         className={`rounded-2xl border shadow-sm transition overflow-hidden bg-card border-slate-200`}
       >
-        {/* Navigation Tabs Header (Strictly NO horizontal scroll on mobile, responsive 2x2 grid) */}
-        <div
-          className={`p-2.5 sm:p-4 border-b flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 border-slate-200 bg-slate-50/50`}
-        >
-          <div className="flex items-center gap-2 px-1">
-            <Layers className="w-4 h-4 sm:w-5 sm:h-5 text-brand-700 shrink-0" />
-            <h2 className={`font-black text-xs sm:text-sm truncate text-slate-900`}>
-              التحليلات والمؤشرات التفصيلية
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-2 sm:flex sm:items-center gap-1.5 text-xs font-bold w-full sm:w-auto">
-            <button
-              onClick={() => setActiveSubTab('geo')}
-              className={`px-2 sm:px-3 py-2 sm:py-1.5 rounded-lg transition flex items-center justify-center sm:justify-start gap-1.5 cursor-pointer text-[11px] sm:text-xs font-bold ${
-                activeSubTab === 'geo'
-                  ? 'bg-brand-700 text-on-brand shadow'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-              }`}
-            >
-              <MapPin className="w-3.5 h-3.5 shrink-0" />
-              <span className="sm:hidden truncate">المحافظات ({oilfieldsBreakdown.length})</span>
-              <span className="hidden sm:inline">توزيع المحافظات والحقول ({oilfieldsBreakdown.length})</span>
-            </button>
-
-            <button
-              onClick={() => setActiveSubTab('org')}
-              className={`px-2 sm:px-3 py-2 sm:py-1.5 rounded-lg transition flex items-center justify-center sm:justify-start gap-1.5 cursor-pointer text-[11px] sm:text-xs font-bold ${
-                activeSubTab === 'org'
-                  ? 'bg-brand-700 text-on-brand shadow'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-              }`}
-            >
-              <Building className="w-3.5 h-3.5 shrink-0" />
-              <span className="sm:hidden truncate">التشكيلات ({orgEntitiesBreakdown.length})</span>
-              <span className="hidden sm:inline">التشكيلات والجهات الشاغلة ({orgEntitiesBreakdown.length})</span>
-            </button>
-
-            <button
-              onClick={() => setActiveSubTab('maintenance')}
-              className={`px-2 sm:px-3 py-2 sm:py-1.5 rounded-lg transition flex items-center justify-center sm:justify-start gap-1.5 cursor-pointer text-[11px] sm:text-xs font-bold ${
-                activeSubTab === 'maintenance'
-                  ? 'bg-brand-700 text-on-brand shadow'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-              }`}
-            >
-              <Activity className="w-3.5 h-3.5 shrink-0" />
-              <span className="sm:hidden truncate">الصيانة ({filteredMaintenance.length})</span>
-              <span className="hidden sm:inline">الصيانة والتفتيش الدوري</span>
-            </button>
-
-            <button
-              onClick={() => setActiveSubTab('grades')}
-              className={`px-2 sm:px-3 py-2 sm:py-1.5 rounded-lg transition flex items-center justify-center sm:justify-start gap-1.5 cursor-pointer text-[11px] sm:text-xs font-bold ${
-                activeSubTab === 'grades'
-                  ? 'bg-brand-700 text-on-brand shadow'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-              }`}
-            >
-              <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
-              <span className="sm:hidden truncate">السلامة والتصنيف</span>
-              <span className="hidden sm:inline">السلامة وأنواع المباني</span>
-            </button>
-          </div>
+        <CardHeader icon={Layers} title="التحليلات والمؤشرات التفصيلية" />
+        <div className="px-3 pt-3 sm:px-5 sm:pt-4">
+          <Tabs
+            value={activeSubTab}
+            onChange={setActiveSubTab}
+            tabs={[
+              { key: 'geo', label: 'المحافظات والحقول', icon: MapPin, count: oilfieldsBreakdown.length },
+              { key: 'org', label: 'التشكيلات والجهات الشاغلة', icon: Building, count: orgEntitiesBreakdown.length },
+              { key: 'maintenance', label: 'الصيانة والكشف الدوري', icon: Activity, count: filteredMaintenance.length },
+              { key: 'grades', label: 'السلامة وأنواع المباني', icon: ShieldCheck },
+            ]}
+          />
         </div>
 
         {/* Tab 1: Governorates & Oilfields Breakdown */}
@@ -961,155 +886,50 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               </div>
             </div>
 
-            {/* Recent Maintenance Requests Table */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <h3 className={`font-bold text-xs text-slate-800`}>
-                  أحدث طلبات الصيانة الميدانية المسجلة:
-                </h3>
-                <button
-                  onClick={() => onNavigateTab('maintenance')}
-                  className="text-xs text-brand-700 hover:underline font-bold flex items-center gap-1"
-                >
-                  <span>عرض جميع الطلبات</span>
-                  <ChevronLeft className="w-3.5 h-3.5" />
-                </button>
-              </div>
-
+            {/* أحدث طلبات الصيانة */}
+            <div className="overflow-hidden rounded-xl border border-slate-200">
+              <CardHeader
+                title="أحدث طلبات الصيانة"
+                actions={
+                  <Button size="sm" variant="ghost" onClick={() => onNavigateTab('maintenance')}>
+                    عرض كل الطلبات
+                    <ChevronLeft className="h-3.5 w-3.5" aria-hidden />
+                  </Button>
+                }
+              />
               {filteredMaintenance.length === 0 ? (
-                <div className={`p-6 text-center text-xs text-slate-500`}>
-                  لا توجد طلبات صيانة في هذا النطاق
-                </div>
+                <EmptyState text="لا توجد طلبات صيانة في هذا النطاق" />
               ) : (
-                <>
-                  {/* Desktop Table View */}
-                  <div className="hidden sm:block overflow-x-auto rounded-xl border border-slate-200 ">
-                    <table className="w-full text-right text-xs">
-                      <thead>
-                        <tr className={'bg-slate-100 text-slate-700 border-b border-slate-200'}>
-                          <th className="p-3 font-semibold">رقم الطلب</th>
-                          <th className="p-3 font-semibold">رمز الأصل</th>
-                          <th className="p-3 font-semibold">الحقل</th>
-                          <th className="p-3 font-semibold">طبيعة العطل</th>
-                          <th className="p-3 font-semibold">الأولوية</th>
-                          <th className="p-3 font-semibold">جهة الصيانة المختصة</th>
-                          <th className="p-3 font-semibold">الحالة</th>
-                          <th className="p-3 font-semibold text-center">معاينة</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100 ">
-                        {filteredMaintenance.slice(0, 6).map((req) => (
-                          <tr key={req.id} className={'hover:bg-brand-50 text-slate-800'}>
-                            <td className="p-3 font-mono font-bold text-brand-700">{req.id}</td>
-                            <td className="p-3 font-mono font-semibold">{req.unitCode}</td>
-                            <td className="p-3">{req.field}</td>
-                            <td className="p-3 font-medium">{req.issue}</td>
-                            <td className="p-3">
-                              {req.priority === 'critical' ? (
-                                <span className="bg-red-500/10 text-red-600 border border-red-500/20 px-2 py-0.5 rounded text-[10px] font-bold">
-                                  طارئة جداً
-                                </span>
-                              ) : (
-                                <span className="bg-brand-50 text-brand-700 border border-brand-200 px-2 py-0.5 rounded text-[10px] font-bold">
-                                  اعتيادية
-                                </span>
-                              )}
-                            </td>
-                            <td className="p-3">
-                              <span className="px-2 py-0.5 rounded-lg text-[10.5px] font-bold bg-brand-50 text-brand-700 border border-brand-200 whitespace-nowrap">
-                                {req.maintenanceDepartment || 'الصيانة العامة'}
-                              </span>
-                            </td>
-                            <td className="p-3">
-                              {req.status === 'completed' ? (
-                                <span className="bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 px-2 py-0.5 rounded text-[10px] font-bold">
-                                  منجز
-                                </span>
-                              ) : req.status === 'overdue' ? (
-                                <span className="bg-red-500/10 text-red-600 border border-red-500/20 px-2 py-0.5 rounded text-[10px] font-bold">
-                                  متأخر
-                                </span>
-                              ) : (
-                                <span className="bg-brand-50 text-brand-700 border border-brand-200 px-2 py-0.5 rounded text-[10px] font-bold">
-                                  قيد التنفيذ
-                                </span>
-                              )}
-                            </td>
-                            <td className="p-3 text-center">
-                              <button
-                                onClick={() => onSelectUnit(req.unitCode)}
-                                className="bg-brand-50 hover:bg-brand-800 text-brand-700 hover:text-on-brand px-2.5 py-1 rounded transition text-[11px] font-bold cursor-pointer"
-                              >
-                                معاينة الأصل
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-
-                  {/* Mobile Cards View */}
-                  <div className="sm:hidden space-y-2.5">
-                    {filteredMaintenance.slice(0, 6).map((req) => (
-                      <div
-                        key={req.id}
-                        className={`p-3 rounded-xl border space-y-2 transition bg-slate-50 border-slate-200 text-slate-800`}
-                      >
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="font-mono text-xs font-black text-brand-700 bg-brand-50 px-2 py-0.5 rounded-md border border-brand-200">
-                            {req.id}
-                          </span>
-                          <div className="flex items-center gap-1.5">
-                            {req.priority === 'critical' ? (
-                              <span className="bg-red-500/10 text-red-600 border border-red-500/20 px-2 py-0.5 rounded text-[10px] font-bold">
-                                طارئة جداً
-                              </span>
-                            ) : (
-                              <span className="bg-brand-50 text-brand-700 border border-brand-200 px-2 py-0.5 rounded text-[10px] font-bold">
-                                اعتيادية
-                              </span>
-                            )}
-                            {req.status === 'completed' ? (
-                              <span className="bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 px-2 py-0.5 rounded text-[10px] font-bold">
-                                منجز
-                              </span>
-                            ) : req.status === 'overdue' ? (
-                              <span className="bg-red-500/10 text-red-600 border border-red-500/20 px-2 py-0.5 rounded text-[10px] font-bold">
-                                متأخر
-                              </span>
-                            ) : (
-                              <span className="bg-brand-50 text-brand-700 border border-brand-200 px-2 py-0.5 rounded text-[10px] font-bold">
-                                قيد التنفيذ
-                              </span>
-                            )}
-                          </div>
-                        </div>
-
-                        <div className="text-xs font-semibold leading-relaxed">
-                          {req.issue}
-                        </div>
-
-                        <div className="flex items-center justify-between text-[11px] pt-1 border-t border-slate-200 text-slate-500">
-                          <span className="font-mono font-bold text-brand-700 ">
-                            {req.unitCode} ({req.field})
-                          </span>
-                          <span className="truncate max-w-[140px]">
-                            {req.maintenanceDepartment || 'الصيانة العامة'}
-                          </span>
-                        </div>
-
-                        <button
-                          onClick={() => onSelectUnit(req.unitCode)}
-                          className="w-full h-9 rounded-lg bg-brand-50 hover:bg-brand-800 text-brand-700 hover:text-on-brand font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-98 cursor-pointer mt-1"
-                        >
-                          <span>معاينة الأصل الهندسي</span>
-                          <ChevronLeft className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </>
+                <Table head={['رقم الطلب', 'رمز الوحدة', 'الحقل', 'طبيعة العطل', 'الأولوية', 'جهة الصيانة', 'الحالة', '']}>
+                  {filteredMaintenance.slice(0, 6).map((req) => (
+                    <tr key={req.id}>
+                      <Td className="font-mono font-bold text-brand-700">{req.id}</Td>
+                      <Td className="font-mono font-semibold">{req.unitCode}</Td>
+                      <Td>{req.field}</Td>
+                      <Td>{req.issue}</Td>
+                      <Td>{req.priority === 'critical' ? <Badge tone="red">طارئة جداً</Badge> : <Badge>اعتيادية</Badge>}</Td>
+                      <Td>{req.maintenanceDepartment || 'الصيانة العامة'}</Td>
+                      <Td>
+                        {req.status === 'completed' ? (
+                          <Badge tone="green">منجز</Badge>
+                        ) : req.status === 'overdue' ? (
+                          <Badge tone="red">متأخر</Badge>
+                        ) : req.status === 'rejected' ? (
+                          <Badge tone="red">مرفوض</Badge>
+                        ) : req.status === 'cancelled' ? (
+                          <Badge>ملغى</Badge>
+                        ) : (
+                          <Badge tone="blue">قيد التنفيذ</Badge>
+                        )}
+                      </Td>
+                      <Td>
+                        <Button size="sm" onClick={() => onSelectUnit(req.unitCode)}>
+                          معاينة الوحدة
+                        </Button>
+                      </Td>
+                    </tr>
+                  ))}
+                </Table>
               )}
             </div>
           </div>
