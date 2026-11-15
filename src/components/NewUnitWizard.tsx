@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
+import { Button, Modal, PageHeader, fieldLook, fieldLookSm } from './ui';
 import QRCode from 'qrcode';
 import {
   Building2,
@@ -989,24 +990,13 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
     <div
       className={`border rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden space-y-4 sm:space-y-6 pb-8 transition-colors bg-slate-50 border-slate-200 text-slate-900`}
     >
-      {/* Page Header Window Toolbar */}
-      <div
-        className={`p-3.5 sm:p-6 border-b flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4 sticky top-0 z-30 shadow-md transition-colors bg-card border-slate-200`}
-      >
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="bg-brand-100 text-brand-700 border border-brand-200 text-xs px-3 py-1 rounded-full font-black flex items-center gap-1.5">
-              <Building2 className="w-3.5 h-3.5" />
-              <span>تسجيل أصل جديد - نظام حركي ديناميكي</span>
-            </span>
-          </div>
-          <h2 className={`text-lg sm:text-2xl font-black mt-2 flex items-center gap-2 text-slate-900`}>
-            استمارة إدخال وحدة / مبنى / كرفان جديد
-          </h2>
-          <p className={`text-xs mt-1 text-slate-500`}>
-            نافذة تسجيل موحدة تضم كافة البيانات التعريفية والموقع الجغرافي والمواصفات الإنشائية والتقييم
-          </p>
-        </div>
+      {/* الترويسة */}
+      <div className="border-b border-slate-200 bg-card px-4 pt-5 sm:px-6">
+        <PageHeader
+          icon={Building2}
+          title="تسجيل وحدة جديدة"
+          description="استمارة موحدة: البيانات التعريفية، الموقع الجغرافي، المواصفات الإنشائية، والتقييم"
+        />
       </div>
 
       {/* Main Single Form Body */}
@@ -1051,7 +1041,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
               <select
                 value={selectedUnitType}
                 onChange={(e) => setSelectedUnitType(e.target.value)}
-                className="w-full bg-card border border-slate-200 rounded-xl p-3 text-slate-800 font-bold focus:border-brand-600 outline-none transition cursor-pointer"
+                className={`${fieldLook} w-full cursor-pointer`}
               >
                 <option value="">-- اختر فئة ونوع المنشأة المرجعي --</option>
                 {unitTypes
@@ -1073,7 +1063,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="مثال: مبنى إدارة حقل الأحدب الرئيسي - الجناح الغربي"
-                  className="w-full bg-card border border-slate-200 rounded-xl p-3 text-slate-800 focus:border-brand-600 outline-none transition font-medium"
+                  className={`${fieldLook} w-full`}
                 />
               </div>
 
@@ -1084,7 +1074,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                   value={constructionYear}
                   onChange={(e) => setConstructionYear(e.target.value === '' ? '' : Number(e.target.value))}
                   placeholder="سنة الإنشاء والتشغيل (مثال: 2024)..."
-                  className="w-full bg-card border border-slate-200 rounded-xl p-3 text-slate-800 focus:border-brand-600 outline-none transition font-mono"
+                  className={`${fieldLook} w-full font-mono`}
                 />
               </div>
             </div>
@@ -1167,7 +1157,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                             ? '123.1234.123 (أرقام مع فواصل للكرفانات)'
                             : '0123456789 (أرقام بدون فواصل للأبنية)'
                         }
-                        className={`w-full border rounded-xl p-3 font-mono font-bold text-sm tracking-wider outline-none transition focus:border-indigo-500 bg-card border-slate-300 text-slate-900 placeholder:text-slate-400`}
+                        className={`${fieldLook} w-full font-mono tracking-wider`}
                       />
                     </div>
 
@@ -1291,7 +1281,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                     if (firstFld) setFieldId(firstFld.id);
                     else setFieldId('');
                   }}
-                  className="w-full bg-card border border-slate-200 rounded-xl p-3 text-slate-800 font-bold focus:border-brand-600 outline-none transition cursor-pointer"
+                  className={`${fieldLook} w-full cursor-pointer`}
                 >
                   <option value="">-- اختر المحافظة العراقية --</option>
                   {governorates
@@ -1320,7 +1310,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                 <select
                   value={fieldId}
                   onChange={(e) => setFieldId(e.target.value)}
-                  className="w-full bg-card border border-slate-200 rounded-xl p-3 text-slate-800 font-bold focus:border-brand-600 outline-none transition cursor-pointer"
+                  className={`${fieldLook} w-full cursor-pointer`}
                 >
                   <option value="">-- اختر الحقل النفطي --</option>
                   {availableOilfields.map((f) => (
@@ -1364,7 +1354,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                     value={lat}
                     onChange={(e) => setLat(e.target.value === '' ? '' : Number(e.target.value))}
                     placeholder="مثال: 32.6189"
-                    className={`w-full border rounded-xl p-2.5 font-mono font-bold text-sm focus:border-brand-600 outline-none transition bg-card border-slate-300 text-brand-700 placeholder-slate-400`}
+                    className={`${fieldLook} w-full font-mono`}
                   />
                 </div>
 
@@ -1376,7 +1366,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                     value={lng}
                     onChange={(e) => setLng(e.target.value === '' ? '' : Number(e.target.value))}
                     placeholder="مثال: 45.7531"
-                    className={`w-full border rounded-xl p-2.5 font-mono font-bold text-sm focus:border-brand-600 outline-none transition bg-card border-slate-300 text-brand-700 placeholder-slate-400`}
+                    className={`${fieldLook} w-full font-mono`}
                   />
                 </div>
               </div>
@@ -1422,7 +1412,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                     value={lengthM}
                     onChange={(e) => handleLengthChange(e.target.value)}
                     placeholder="الطول (أمتار)..."
-                    className={`w-full border rounded-xl p-2.5 font-bold font-mono text-sm focus:border-brand-600 outline-none transition bg-card border-slate-300 text-slate-900`}
+                    className={`${fieldLook} w-full font-mono`}
                   />
                 </div>
 
@@ -1435,7 +1425,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                     value={widthM}
                     onChange={(e) => handleWidthChange(e.target.value)}
                     placeholder="العرض (أمتار)..."
-                    className={`w-full border rounded-xl p-2.5 font-bold font-mono text-sm focus:border-brand-600 outline-none transition bg-card border-slate-300 text-slate-900`}
+                    className={`${fieldLook} w-full font-mono`}
                   />
                 </div>
 
@@ -1451,7 +1441,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                     value={heightM}
                     onChange={(e) => setHeightM(e.target.value === '' ? '' : Number(e.target.value))}
                     placeholder="الارتفاع (مثال: 3)..."
-                    className={`w-full border rounded-xl p-2.5 font-bold font-mono text-sm focus:border-brand-600 outline-none transition bg-card border-slate-300 text-slate-900`}
+                    className={`${fieldLook} w-full font-mono`}
                   />
                 </div>
 
@@ -1463,7 +1453,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                     value={areaSqM}
                     onChange={(e) => setAreaSqM(e.target.value === '' ? '' : Number(e.target.value))}
                     placeholder="المساحة الكلية (م²)..."
-                    className={`w-full border rounded-xl p-2.5 font-black font-mono text-sm focus:border-brand-600 outline-none transition bg-brand-100 border-brand-200 text-brand-800`}
+                    className={`${fieldLook} w-full font-mono`}
                   />
                 </div>
               </div>
@@ -1480,7 +1470,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                     value={floorsCount}
                     onChange={(e) => setFloorsCount(e.target.value === '' ? '' : Math.max(1, Math.min(20, Number(e.target.value))))}
                     placeholder="عدد الطوابق (مثال: 1 أو 2)..."
-                    className={`w-full border rounded-xl p-3 font-bold text-sm focus:border-brand-600 outline-none transition bg-slate-50 border-slate-300 text-slate-900`}
+                    className={`${fieldLook} w-full`}
                   />
                   <span className={`text-xs font-bold whitespace-nowrap text-slate-600`}>طوابق</span>
                 </div>
@@ -1607,7 +1597,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
               <select
                 value={buildingShape}
                 onChange={(e) => handleShapeChange(e.target.value)}
-                className={`w-full border rounded-xl p-3 font-bold text-xs focus:border-brand-600 outline-none transition cursor-pointer bg-card border-slate-300 text-slate-900`}
+                className={`${fieldLook} w-full cursor-pointer`}
               >
                 <option value="">-- اختر شكل وتصميم المبنى الهندسي --</option>
                 {BUILDING_SHAPE_OPTIONS.map((shp) => (
@@ -1822,7 +1812,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                     value={roomSearchQuery}
                     onChange={(e) => setRoomSearchQuery(e.target.value)}
                     placeholder="ابحث بالاسم، الرمز، أو الجهة..."
-                    className={`w-full text-xs rounded-xl py-2 pl-7 pr-8 border outline-none font-medium transition bg-card border-slate-300 text-slate-900 placeholder-slate-400 focus:border-brand-600`}
+                    className={`${fieldLook} w-full pl-7 pr-8`}
                   />
                   <Search className="w-3.5 h-3.5 absolute right-2.5 top-3 text-slate-500 pointer-events-none" />
                   {roomSearchQuery && (
@@ -2023,7 +2013,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                           value={rm.name}
                           onChange={(e) => handleUpdateRoom(rm.id, 'name', e.target.value)}
                           placeholder="مثال: مكتب المهندس المقيم / غرفة الاجتماعات"
-                          className={`w-full border rounded-xl px-2.5 py-1.5 text-xs font-bold outline-none transition focus:border-brand-600 bg-slate-50 border-slate-300 text-slate-900 focus:bg-card`}
+                          className={`${fieldLook} w-full`}
                         />
                       </div>
 
@@ -2037,7 +2027,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                             type="text"
                             value={rm.type}
                             onChange={(e) => handleUpdateRoom(rm.id, 'type', e.target.value)}
-                            className={`w-full border rounded-lg px-2 py-1 text-xs outline-none transition focus:border-brand-600 bg-slate-50 border-slate-300 text-slate-900 focus:bg-card`}
+                            className={`${fieldLookSm} w-full`}
                           />
                         </div>
 
@@ -2048,7 +2038,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                           <select
                             value={rm.floor}
                             onChange={(e) => handleUpdateRoom(rm.id, 'floor', e.target.value)}
-                            className={`w-full border rounded-lg px-2 py-1 text-xs font-bold outline-none transition focus:border-brand-600 cursor-pointer bg-slate-50 border-slate-300 text-slate-900 focus:bg-card`}
+                            className={`${fieldLookSm} w-full cursor-pointer`}
                           >
                             {Array.from({ length: Math.max(1, Number(floorsCount) || 1) }, (_, i) => `الطابق ${i + 1}`).map((flr) => (
                               <option key={flr} value={flr}>{flr}</option>
@@ -2065,7 +2055,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                             min="1"
                             value={rm.areaSqM}
                             onChange={(e) => handleUpdateRoom(rm.id, 'areaSqM', Number(e.target.value))}
-                            className={`w-full border rounded-lg px-2 py-1 text-xs font-bold outline-none transition focus:border-brand-600 bg-slate-50 border-slate-300 text-slate-900 focus:bg-card`}
+                            className={`${fieldLookSm} w-full`}
                           />
                         </div>
                       </div>
@@ -2090,7 +2080,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                                 placeholder="السعة"
                                 value={rm.capacity ?? ''}
                                 onChange={(e) => handleUpdateRoom(rm.id, 'capacity', Number(e.target.value) || 0)}
-                                className={`w-14 sm:w-16 border rounded-lg px-2 py-0.5 text-xs font-bold outline-none text-center bg-slate-50 border-slate-300 text-slate-900`}
+                                className={`${fieldLookSm} w-14 sm:w-16 text-center`}
                               />
                               <span className="text-[10px] text-sky-600 font-bold whitespace-nowrap">طاقة استيعابية</span>
                             </div>
@@ -2102,7 +2092,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                                 placeholder="الشاغلين"
                                 value={rm.occupantsCount ?? ''}
                                 onChange={(e) => handleUpdateRoom(rm.id, 'occupantsCount', Number(e.target.value) || 0)}
-                                className={`w-14 sm:w-16 border rounded-lg px-2 py-0.5 text-xs font-bold outline-none text-center bg-slate-50 border-slate-300 text-slate-900`}
+                                className={`${fieldLookSm} w-14 sm:w-16 text-center`}
                               />
                               <span className="text-[10px] text-emerald-600 font-bold whitespace-nowrap">شاغل</span>
                               {isVacant && (
@@ -2128,7 +2118,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                                 handleUpdateRoom(rm.id, 'status', 'Active');
                               }
                             }}
-                            className={`w-full border rounded-xl px-2.5 py-1.5 text-xs outline-none cursor-pointer transition font-medium bg-slate-50 border-slate-300 text-slate-900 focus:border-brand-600`}
+                            className={`${fieldLook} w-full cursor-pointer`}
                           >
                             <option value="">🏢 شاغرة (بدون إشغال / فارغة)</option>
                             {selectedDepartments.length > 0 ? (
@@ -2160,7 +2150,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                             placeholder="أدخل سبب التوقف أو متطلبات الصيانة..."
                             value={rm.notes || ''}
                             onChange={(e) => handleUpdateRoom(rm.id, 'notes', e.target.value)}
-                            className={`w-full border rounded-lg px-2 py-1 text-xs outline-none font-bold transition bg-card border-rose-200 text-rose-900 placeholder-rose-400 focus:border-rose-500`}
+                            className={`${fieldLookSm} w-full`}
                           />
                         </div>
                       )}
@@ -2232,7 +2222,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                                 type="text"
                                 value={rm.name}
                                 onChange={(e) => handleUpdateRoom(rm.id, 'name', e.target.value)}
-                                className={`w-full border rounded-lg px-2.5 py-1 text-xs outline-none font-bold bg-slate-50 border-slate-300 text-slate-900`}
+                                className={`${fieldLookSm} w-full`}
                               />
                             </td>
 
@@ -2265,7 +2255,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                                 type="text"
                                 value={rm.type}
                                 onChange={(e) => handleUpdateRoom(rm.id, 'type', e.target.value)}
-                                className={`w-full border rounded-lg px-2 py-1 text-xs outline-none bg-slate-50 border-slate-300 text-slate-900`}
+                                className={`${fieldLookSm} w-full`}
                               />
                             </td>
 
@@ -2273,7 +2263,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                               <select
                                 value={rm.floor}
                                 onChange={(e) => handleUpdateRoom(rm.id, 'floor', e.target.value)}
-                                className={`w-full border rounded-lg px-2 py-1 text-xs font-bold outline-none cursor-pointer bg-slate-50 border-slate-300 text-slate-900`}
+                                className={`${fieldLookSm} w-full cursor-pointer`}
                               >
                                 {Array.from({ length: Math.max(1, Number(floorsCount) || 1) }, (_, i) => `الطابق ${i + 1}`).map((flr) => (
                                   <option key={flr} value={flr}>{flr}</option>
@@ -2286,7 +2276,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                                 type="number"
                                 value={rm.areaSqM}
                                 onChange={(e) => handleUpdateRoom(rm.id, 'areaSqM', Number(e.target.value))}
-                                className={`w-full border rounded-lg px-2 py-1 text-xs font-bold outline-none bg-slate-50 border-slate-300 text-slate-900`}
+                                className={`${fieldLookSm} w-full`}
                               />
                             </td>
 
@@ -2302,7 +2292,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                                     min="0"
                                     value={rm.capacity ?? ''}
                                     onChange={(e) => handleUpdateRoom(rm.id, 'capacity', Number(e.target.value) || 0)}
-                                    className={`w-14 border rounded-lg px-1.5 py-1 text-xs font-bold outline-none text-center bg-slate-50 border-slate-300 text-slate-900`}
+                                    className={`${fieldLookSm} w-14 text-center`}
                                   />
                                   <span className="text-[10px] text-sky-600 font-bold whitespace-nowrap">طاقة</span>
                                 </div>
@@ -2313,7 +2303,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                                     min="0"
                                     value={rm.occupantsCount ?? ''}
                                     onChange={(e) => handleUpdateRoom(rm.id, 'occupantsCount', Number(e.target.value) || 0)}
-                                    className={`w-14 border rounded-lg px-1.5 py-1 text-xs font-bold outline-none text-center bg-slate-50 border-slate-300 text-slate-900`}
+                                    className={`${fieldLookSm} w-14 text-center`}
                                   />
                                   <span className="text-[10px] text-emerald-600 font-bold whitespace-nowrap">شاغل</span>
                                 </div>
@@ -2332,7 +2322,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                                     handleUpdateRoom(rm.id, 'status', 'Active');
                                   }
                                 }}
-                                className={`w-full border rounded-lg px-2 py-1 text-xs outline-none cursor-pointer bg-slate-50 border-slate-300 text-slate-900`}
+                                className={`${fieldLookSm} w-full cursor-pointer`}
                               >
                                 <option value="">🏢 شاغرة (بدون إشغال)</option>
                                 {selectedDepartments.map((deptName, deptIdx) => (
@@ -2556,22 +2546,12 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
         <div
           className={`border rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 transition-colors bg-card border-slate-200 shadow-xs`}
         >
-          <button
-            type="button"
-            onClick={onCancel}
-            className={`w-full sm:w-auto text-xs px-6 py-3 rounded-xl font-bold transition cursor-pointer border flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300`}
-          >
-            <ArrowRight className="w-4 h-4" />
-            <span>تراجع / إلغاء</span>
-          </button>
-
-          <button
-            type="submit"
-            className="w-full sm:w-auto bg-brand-700 hover:bg-brand-800 text-on-brand text-xs sm:text-sm px-8 py-3 rounded-xl font-black shadow-lg transition cursor-pointer flex items-center justify-center gap-2 active:scale-98"
-          >
-            <CheckCircle2 className="w-5 h-5" />
-            <span>حفظ الوحدة وتوليد الهوية القياسية</span>
-          </button>
+          <Button icon={ArrowRight} onClick={onCancel} className="h-11 w-full sm:w-auto">
+            تراجع / إلغاء
+          </Button>
+          <Button type="submit" variant="primary" icon={CheckCircle2} className="h-11 w-full px-8 sm:w-auto">
+            حفظ الوحدة وتوليد الهوية القياسية
+          </Button>
         </div>
 
         {/* ==================== GENERATED STRUCTURAL CODE & QR CODE SECTION (Post-Save) ==================== */}
@@ -2667,23 +2647,23 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
       </form>
 
       {/* ==================== MODAL: Add New Governorate ==================== */}
-      {showAddGovModal && (
-        <div className="fixed inset-0 z-50 bg-card/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-card border border-slate-200 rounded-3xl p-6 w-full max-w-md shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
-              <h3 className="font-bold text-slate-800 flex items-center gap-2">
-                <Plus className="w-4 h-4 text-brand-700" />
-                <span>إضافة محافظة عراقية جديدة</span>
-              </h3>
-              <button
-                type="button"
-                onClick={() => setShowAddGovModal(false)}
-                className="text-slate-500 hover:text-slate-800 cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
+      <Modal
+        open={!!(showAddGovModal)}
+        staticBackdrop
+        icon={Plus}
+        title="إضافة محافظة عراقية جديدة"
+        onClose={() => setShowAddGovModal(false)}
+        footer={
+          <>
+            <Button variant="primary" icon={Check} onClick={() => handleSaveNewGov()}>
+              حفظ واختيار المحافظة
+            </Button>
+            <Button onClick={() => setShowAddGovModal(false)}>إلغاء</Button>
+          </>
+        }
+      >
+        {showAddGovModal && (
+          <>
             <div className="space-y-4 text-xs">
               <div>
                 <label className="block text-slate-600 font-bold mb-1">اسم المحافظة:</label>
@@ -2693,7 +2673,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                   value={newGovNameAr}
                   onChange={(e) => setNewGovNameAr(e.target.value)}
                   placeholder="مثال: محافظة كركوك"
-                  className="w-full bg-card border border-slate-200 rounded-xl p-2.5 text-slate-800"
+                  className={`${fieldLook} w-full`}
                 />
               </div>
 
@@ -2705,49 +2685,34 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                   value={newGovCode}
                   onChange={(e) => setNewGovCode(e.target.value)}
                   placeholder="مثال: KIR"
-                  className="w-full bg-card border border-slate-200 rounded-xl p-2.5 text-brand-700 font-mono font-bold"
+                  className={`${fieldLook} w-full font-mono`}
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-200">
-                <button
-                  type="button"
-                  onClick={() => setShowAddGovModal(false)}
-                  className="bg-slate-100 text-slate-600 px-4 py-2 rounded-xl font-bold cursor-pointer"
-                >
-                  إلغاء
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleSaveNewGov()}
-                  className="bg-brand-700 hover:bg-brand-800 text-on-brand px-5 py-2 rounded-xl font-bold cursor-pointer shadow"
-                >
-                  حفظ واختيار المحافظة
-                </button>
-              </div>
+              
             </div>
-          </div>
-        </div>
-      )}
+          </>
+        )}
+      </Modal>
 
       {/* ==================== MODAL: Add New Oilfield ==================== */}
-      {showAddFieldModal && (
-        <div className="fixed inset-0 z-50 bg-card/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-card border border-slate-200 rounded-3xl p-6 w-full max-w-md shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
-              <h3 className="font-bold text-slate-800 flex items-center gap-2">
-                <Plus className="w-4 h-4 text-brand-700" />
-                <span>إضافة حقل نفطي جديد</span>
-              </h3>
-              <button
-                type="button"
-                onClick={() => setShowAddFieldModal(false)}
-                className="text-slate-500 hover:text-slate-800 cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
+      <Modal
+        open={!!(showAddFieldModal)}
+        staticBackdrop
+        icon={Plus}
+        title="إضافة حقل نفطي جديد"
+        onClose={() => setShowAddFieldModal(false)}
+        footer={
+          <>
+            <Button variant="primary" icon={Check} onClick={() => handleSaveNewOilfield()}>
+              حفظ واختيار الحقل
+            </Button>
+            <Button onClick={() => setShowAddFieldModal(false)}>إلغاء</Button>
+          </>
+        }
+      >
+        {showAddFieldModal && (
+          <>
             <div className="space-y-4 text-xs">
               <div>
                 <label className="block text-slate-600 font-bold mb-1">اسم الحقل النفطي:</label>
@@ -2757,7 +2722,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                   value={newFieldNameAr}
                   onChange={(e) => setNewFieldNameAr(e.target.value)}
                   placeholder="مثال: حقل مجنون النفطي"
-                  className="w-full bg-card border border-slate-200 rounded-xl p-2.5 text-slate-800"
+                  className={`${fieldLook} w-full`}
                 />
               </div>
 
@@ -2769,49 +2734,34 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                   value={newFieldCode}
                   onChange={(e) => setNewFieldCode(e.target.value)}
                   placeholder="مثال: MAJ"
-                  className="w-full bg-card border border-slate-200 rounded-xl p-2.5 text-brand-700 font-mono font-bold"
+                  className={`${fieldLook} w-full font-mono`}
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-200">
-                <button
-                  type="button"
-                  onClick={() => setShowAddFieldModal(false)}
-                  className="bg-slate-100 text-slate-600 px-4 py-2 rounded-xl font-bold cursor-pointer"
-                >
-                  إلغاء
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleSaveNewOilfield()}
-                  className="bg-brand-700 hover:bg-brand-800 text-on-brand px-5 py-2 rounded-xl font-bold cursor-pointer shadow"
-                >
-                  حفظ واختيار الحقل
-                </button>
-              </div>
+              
             </div>
-          </div>
-        </div>
-      )}
+          </>
+        )}
+      </Modal>
 
       {/* ==================== MODAL: Add New Reference Unit Type ==================== */}
-      {showAddUnitTypeModal && (
-        <div className="fixed inset-0 z-50 bg-card/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-card border border-slate-200 rounded-3xl p-6 w-full max-w-md shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
-              <h3 className="font-bold text-slate-800 flex items-center gap-2">
-                <Plus className="w-4 h-4 text-brand-700" />
-                <span>إضافة فئة ونوع منشأة مرجعي جديد</span>
-              </h3>
-              <button
-                type="button"
-                onClick={() => setShowAddUnitTypeModal(false)}
-                className="text-slate-500 hover:text-slate-800 cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
+      <Modal
+        open={!!(showAddUnitTypeModal)}
+        staticBackdrop
+        icon={Plus}
+        title="إضافة فئة ونوع منشأة مرجعي جديد"
+        onClose={() => setShowAddUnitTypeModal(false)}
+        footer={
+          <>
+            <Button variant="primary" icon={Check} onClick={() => handleSaveNewUnitType()}>
+              حفظ واختيار الفئة
+            </Button>
+            <Button onClick={() => setShowAddUnitTypeModal(false)}>إلغاء</Button>
+          </>
+        }
+      >
+        {showAddUnitTypeModal && (
+          <>
             <div className="space-y-4 text-xs">
               <div>
                 <label className="block text-slate-600 font-bold mb-1">اسم فئة المنشأة (بالعربية):</label>
@@ -2821,7 +2771,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                   value={newUtNameAr}
                   onChange={(e) => setNewUtNameAr(e.target.value)}
                   placeholder="مثال: وحدة معالجة المياه"
-                  className="w-full bg-card border border-slate-200 rounded-xl p-2.5 text-slate-800"
+                  className={`${fieldLook} w-full`}
                 />
               </div>
 
@@ -2833,7 +2783,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                   value={newUtCode}
                   onChange={(e) => setNewUtCode(e.target.value.toUpperCase())}
                   placeholder="مثال: WTP"
-                  className="w-full bg-card border border-slate-200 rounded-xl p-2.5 text-brand-700 font-mono font-bold"
+                  className={`${fieldLook} w-full font-mono`}
                 />
               </div>
 
@@ -2855,7 +2805,7 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                 <select
                   value={newUtDefaultRoof}
                   onChange={(e) => setNewUtDefaultRoof(e.target.value as any)}
-                  className="w-full bg-card border border-slate-200 rounded-xl p-2.5 text-slate-800"
+                  className={`${fieldLook} w-full`}
                 >
                   <option value="ساندويج بانل">ساندويج بانل</option>
                   <option value="كونكريت">كونكريت</option>
@@ -2863,26 +2813,11 @@ export const NewUnitWizard: React.FC<NewUnitWizardProps> = ({
                 </select>
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-200">
-                <button
-                  type="button"
-                  onClick={() => setShowAddUnitTypeModal(false)}
-                  className="bg-slate-100 text-slate-600 px-4 py-2 rounded-xl font-bold cursor-pointer"
-                >
-                  إلغاء
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleSaveNewUnitType()}
-                  className="bg-brand-700 hover:bg-brand-800 text-on-brand px-5 py-2 rounded-xl font-bold cursor-pointer shadow"
-                >
-                  حفظ واختيار الفئة
-                </button>
-              </div>
+              
             </div>
-          </div>
-        </div>
-      )}
+          </>
+        )}
+      </Modal>
 
       {/* ==================== MODAL: Attachment Preview / View ==================== */}
       {previewAttachment && (

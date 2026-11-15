@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { useConfirm } from './ui';
+import { Button, Modal, Tabs, fieldLook, fieldLookSm, useConfirm } from './ui';
 import {
   X,
   Save,
@@ -732,77 +732,19 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
           </button>
         </div>
 
-        {/* Tab Navigation Ribbon - Responsive with Smooth Mobile Sliding */}
-        <div className={`px-2.5 sm:px-6 py-1.5 sm:py-2 border-b flex items-center gap-1 sm:gap-2 overflow-x-auto text-xs font-bold shrink-0 scrollbar-none bg-slate-100/80 border-slate-200`}>
-          <button
-            type="button"
-            onClick={() => setActiveTab('basic')}
-            className={`px-2.5 sm:px-3.5 py-1.5 rounded-xl transition flex items-center gap-1 sm:gap-1.5 cursor-pointer whitespace-nowrap text-xs shrink-0 ${
-              activeTab === 'basic'
-                ? 'bg-brand-700 text-on-brand font-black shadow-sm'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/70'
-            }`}
-          >
-            <Building className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            <span className="hidden sm:inline">1. الهوية والاسم والمكان</span>
-            <span className="sm:hidden">1. الهوية</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab('shape3d')}
-            className={`px-2.5 sm:px-3.5 py-1.5 rounded-xl transition flex items-center gap-1 sm:gap-1.5 cursor-pointer whitespace-nowrap text-xs shrink-0 ${
-              activeTab === 'shape3d'
-                ? 'bg-brand-700 text-on-brand font-black shadow-sm'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/70'
-            }`}
-          >
-            <Box className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            <span className="hidden sm:inline">2. أبعاد وهندسة الـ 3D</span>
-            <span className="sm:hidden">2. الأبعاد 3D</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab('location')}
-            className={`px-2.5 sm:px-3.5 py-1.5 rounded-xl transition flex items-center gap-1 sm:gap-1.5 cursor-pointer whitespace-nowrap text-xs shrink-0 ${
-              activeTab === 'location'
-                ? 'bg-brand-700 text-on-brand font-black shadow-sm'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/70'
-            }`}
-          >
-            <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            <span className="hidden sm:inline">3. الموقع وحسابات GPS</span>
-            <span className="sm:hidden">3. الموقع</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab('rooms')}
-            className={`px-2.5 sm:px-3.5 py-1.5 rounded-xl transition flex items-center gap-1 sm:gap-1.5 cursor-pointer whitespace-nowrap text-xs shrink-0 ${
-              activeTab === 'rooms'
-                ? 'bg-brand-700 text-on-brand font-black shadow-sm'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/70'
-            }`}
-          >
-            <Layers className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            <span className="hidden sm:inline">4. تقسيم الغرف ({toArabicDigits(rooms.length)})</span>
-            <span className="sm:hidden">4. الغرف ({toArabicDigits(rooms.length)})</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab('docs')}
-            className={`px-2.5 sm:px-3.5 py-1.5 rounded-xl transition flex items-center gap-1 sm:gap-1.5 cursor-pointer whitespace-nowrap text-xs shrink-0 ${
-              activeTab === 'docs'
-                ? 'bg-brand-700 text-on-brand font-black shadow-sm'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/70'
-            }`}
-          >
-            <Paperclip className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            <span className="hidden sm:inline">5. المرفقات والأرشيف</span>
-            <span className="sm:hidden">5. المرفقات</span>
-          </button>
+        {/* التبويبات */}
+        <div className="shrink-0 border-b border-slate-200 bg-slate-50 px-2.5 pt-2 sm:px-6 [&>div]:mb-2">
+          <Tabs
+            value={activeTab}
+            onChange={setActiveTab}
+            tabs={[
+              { key: 'basic', label: 'الهوية والمكان', icon: Building },
+              { key: 'shape3d', label: 'الأبعاد 3D', icon: Box },
+              { key: 'location', label: 'الموقع', icon: MapPin },
+              { key: 'rooms', label: 'الغرف', icon: Layers, count: rooms.length },
+              { key: 'docs', label: 'المرفقات', icon: Paperclip, count: attachments.length },
+            ]}
+          />
         </div>
 
         {/* Form Body with Fixed Bottom Action Footer */}
@@ -826,7 +768,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                   <select
                     value={type}
                     onChange={(e) => setType(e.target.value as UnitType)}
-                    className={`w-full border rounded-xl p-2.5 font-bold outline-none transition focus:border-brand-600 cursor-pointer bg-card border-slate-300 text-slate-900`}
+                    className={`${fieldLook} w-full cursor-pointer`}
                   >
                     {unitTypes.length > 0 ? (
                       unitTypes.map((ut) => {
@@ -856,7 +798,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                     required
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className={`w-full border rounded-xl p-2.5 font-bold outline-none transition focus:border-brand-600 bg-card border-slate-300 text-slate-900`}
+                    className={`${fieldLook} w-full`}
                   />
                 </div>
 
@@ -867,7 +809,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                   <select
                     value={governorate}
                     onChange={(e) => setGovernorate(e.target.value)}
-                    className={`w-full border rounded-xl p-2.5 font-bold outline-none transition focus:border-brand-600 cursor-pointer bg-card border-slate-300 text-slate-900`}
+                    className={`${fieldLook} w-full cursor-pointer`}
                   >
                     {governorates.length > 0 ? (
                       governorates.map((g) => (
@@ -895,7 +837,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                   <select
                     value={field}
                     onChange={(e) => setField(e.target.value)}
-                    className={`w-full border rounded-xl p-2.5 font-bold outline-none transition focus:border-brand-600 cursor-pointer bg-card border-slate-300 text-slate-900`}
+                    className={`${fieldLook} w-full cursor-pointer`}
                   >
                     {oilfields.length > 0 ? (
                       oilfields.map((f) => (
@@ -1025,7 +967,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                     max={2030}
                     value={constructionYear}
                     onChange={(e) => setConstructionYear(Number(e.target.value))}
-                    className={`w-full border rounded-xl p-2.5 font-bold outline-none transition focus:border-brand-600 bg-card border-slate-300 text-slate-900`}
+                    className={`${fieldLook} w-full`}
                   />
                 </div>
 
@@ -1099,7 +1041,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                                 ? '123.1234.123 (أرقام مع فواصل للكرفانات)'
                                 : '0123456789 (أرقام بدون فواصل للأبنية)'
                             }
-                            className={`w-full border rounded-xl p-2.5 font-mono font-bold text-xs tracking-wider outline-none transition focus:border-indigo-500 bg-card border-slate-300 text-slate-900 placeholder:text-slate-400`}
+                            className={`${fieldLook} w-full font-mono tracking-wider`}
                           />
                         </div>
 
@@ -1199,7 +1141,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                     step="0.5"
                     value={lengthM}
                     onChange={(e) => handleLengthChange(Number(e.target.value))}
-                    className={`w-full border rounded-xl p-2.5 font-bold font-mono outline-none transition focus:border-brand-600 bg-card border-slate-300 text-slate-900`}
+                    className={`${fieldLook} w-full font-mono`}
                   />
                 </div>
 
@@ -1213,7 +1155,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                     step="0.5"
                     value={widthM}
                     onChange={(e) => handleWidthChange(Number(e.target.value))}
-                    className={`w-full border rounded-xl p-2.5 font-bold font-mono outline-none transition focus:border-brand-600 bg-card border-slate-300 text-slate-900`}
+                    className={`${fieldLook} w-full font-mono`}
                   />
                 </div>
 
@@ -1228,7 +1170,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                     step="0.1"
                     value={heightM}
                     onChange={(e) => setHeightM(Number(e.target.value))}
-                    className={`w-full border rounded-xl p-2.5 font-bold font-mono outline-none transition focus:border-brand-600 bg-card border-slate-300 text-slate-900`}
+                    className={`${fieldLook} w-full font-mono`}
                   />
                 </div>
 
@@ -1242,7 +1184,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                     max={50000}
                     value={totalAreaSqM}
                     onChange={(e) => setTotalAreaSqM(Number(e.target.value))}
-                    className={`w-full border rounded-xl p-2.5 font-black font-mono outline-none transition focus:border-brand-600 bg-brand-100 border-brand-200 text-brand-800`}
+                    className={`${fieldLook} w-full font-mono`}
                   />
                 </div>
               </div>
@@ -1258,7 +1200,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                     max={20}
                     value={floorsCount}
                     onChange={(e) => setFloorsCount(Math.max(1, Math.min(20, Number(e.target.value))))}
-                    className={`w-full border rounded-xl p-2.5 font-bold outline-none transition focus:border-brand-600 bg-card border-slate-300 text-slate-900`}
+                    className={`${fieldLook} w-full`}
                   />
                 </div>
 
@@ -1269,7 +1211,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                   <select
                     value={conditionGrade}
                     onChange={(e) => setConditionGrade(e.target.value as ConditionGrade)}
-                    className={`w-full border rounded-xl p-2.5 font-bold outline-none transition focus:border-brand-600 cursor-pointer bg-card border-slate-300 text-slate-900`}
+                    className={`${fieldLook} w-full cursor-pointer`}
                   >
                     <option value="A">درجة A - ممتاز وشغال بالكامل</option>
                     <option value="B">درجة B - جيد مع ملاحظات خفيفة</option>
@@ -1324,7 +1266,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                     <select
                       value={archStyle}
                       onChange={(e) => setArchStyle(e.target.value as any)}
-                      className={`w-full border rounded-xl p-2.5 font-bold outline-none cursor-pointer transition bg-card border-slate-300 text-slate-900`}
+                      className={`${fieldLook} w-full cursor-pointer`}
                     >
                       <option value="modern">حديث معاصر (Modern Glass & Steel)</option>
                       <option value="classic">كلاسيكي صناعي (Classic Industrial)</option>
@@ -1340,7 +1282,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                     <select
                       value={roofType}
                       onChange={(e) => setRoofType(e.target.value as any)}
-                      className={`w-full border rounded-xl p-2.5 font-bold outline-none cursor-pointer transition bg-card border-slate-300 text-slate-900`}
+                      className={`${fieldLook} w-full cursor-pointer`}
                     >
                       <option value="flat">سطح مسطح (سطح مستوي)</option>
                       <option value="flat_parapet">سطح مسطح مع سياج السطح</option>
@@ -1465,7 +1407,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                     step="0.000001"
                     value={lat}
                     onChange={(e) => setLat(Number(e.target.value))}
-                    className={`w-full border rounded-xl p-2.5 font-mono font-bold outline-none transition focus:border-brand-600 bg-card border-slate-300 text-slate-900`}
+                    className={`${fieldLook} w-full font-mono`}
                   />
                 </div>
 
@@ -1478,7 +1420,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                     step="0.000001"
                     value={lng}
                     onChange={(e) => setLng(Number(e.target.value))}
-                    className={`w-full border rounded-xl p-2.5 font-mono font-bold outline-none transition focus:border-brand-600 bg-card border-slate-300 text-slate-900`}
+                    className={`${fieldLook} w-full font-mono`}
                   />
                 </div>
               </div>
@@ -1615,7 +1557,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                       value={roomSearchQuery}
                       onChange={(e) => setRoomSearchQuery(e.target.value)}
                       placeholder="ابحث بالاسم، الرمز، أو الجهة..."
-                      className={`w-full text-xs rounded-xl py-1.5 pl-7 pr-8 border outline-none font-medium transition bg-card border-slate-300 text-slate-900 placeholder-slate-400 focus:border-brand-600`}
+                      className={`${fieldLook} w-full pl-7 pr-8`}
                     />
                     <Search className="w-3.5 h-3.5 absolute right-2.5 top-2.5 text-slate-500 pointer-events-none" />
                     {roomSearchQuery && (
@@ -1806,7 +1748,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                             value={rm.name}
                             onChange={(e) => handleUpdateRoom(rm.id, 'name', e.target.value)}
                             placeholder="مثال: مكتب المهندس المقيم / غرفة الاجتماعات"
-                            className={`w-full border rounded-xl px-2.5 py-1.5 text-xs font-bold outline-none transition focus:border-brand-600 bg-slate-50 border-slate-300 text-slate-900 focus:bg-card`}
+                            className={`${fieldLook} w-full`}
                           />
                         </div>
 
@@ -1820,7 +1762,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                               type="text"
                               value={rm.type}
                               onChange={(e) => handleUpdateRoom(rm.id, 'type', e.target.value)}
-                              className={`w-full border rounded-lg px-2 py-1 text-xs outline-none transition focus:border-brand-600 bg-slate-50 border-slate-300 text-slate-900 focus:bg-card`}
+                              className={`${fieldLookSm} w-full`}
                             />
                           </div>
 
@@ -1832,7 +1774,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                               type="text"
                               value={rm.floor}
                               onChange={(e) => handleUpdateRoom(rm.id, 'floor', e.target.value)}
-                              className={`w-full border rounded-lg px-2 py-1 text-xs font-bold outline-none transition focus:border-brand-600 bg-slate-50 border-slate-300 text-slate-900 focus:bg-card`}
+                              className={`${fieldLookSm} w-full`}
                             />
                           </div>
 
@@ -1845,7 +1787,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                               min="1"
                               value={rm.areaSqM}
                               onChange={(e) => handleUpdateRoom(rm.id, 'areaSqM', Number(e.target.value))}
-                              className={`w-full border rounded-lg px-2 py-1 text-xs font-bold outline-none transition focus:border-brand-600 bg-slate-50 border-slate-300 text-slate-900 focus:bg-card`}
+                              className={`${fieldLookSm} w-full`}
                             />
                           </div>
                         </div>
@@ -1870,7 +1812,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                                   placeholder="السعة"
                                   value={rm.capacity ?? ''}
                                   onChange={(e) => handleUpdateRoom(rm.id, 'capacity', Number(e.target.value) || 0)}
-                                  className={`w-14 sm:w-16 border rounded-lg px-2 py-0.5 text-xs font-bold outline-none text-center bg-slate-50 border-slate-300 text-slate-900`}
+                                  className={`${fieldLookSm} w-14 sm:w-16 text-center`}
                                 />
                                 <span className="text-[10px] text-sky-600 font-bold whitespace-nowrap">طاقة استيعابية</span>
                               </div>
@@ -1882,7 +1824,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                                   placeholder="الشاغلين"
                                   value={rm.occupantsCount ?? ''}
                                   onChange={(e) => handleUpdateRoom(rm.id, 'occupantsCount', Number(e.target.value) || 0)}
-                                  className={`w-14 sm:w-16 border rounded-lg px-2 py-0.5 text-xs font-bold outline-none text-center bg-slate-50 border-slate-300 text-slate-900`}
+                                  className={`${fieldLookSm} w-14 sm:w-16 text-center`}
                                 />
                                 <span className="text-[10px] text-emerald-600 font-bold whitespace-nowrap">شاغل</span>
                                 {isVacant && (
@@ -1908,7 +1850,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                                   handleUpdateRoom(rm.id, 'status', 'Active');
                                 }
                               }}
-                              className={`w-full border rounded-xl px-2.5 py-1.5 text-xs outline-none cursor-pointer transition font-medium bg-slate-50 border-slate-300 text-slate-900 focus:border-brand-600`}
+                              className={`${fieldLook} w-full cursor-pointer`}
                             >
                               <option value="">🏢 شاغرة (بدون إشغال / فارغة)</option>
                               {selectedDepartments.length > 0 ? (
@@ -1940,7 +1882,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                               placeholder="أدخل سبب التوقف أو متطلبات الصيانة..."
                               value={rm.notes || ''}
                               onChange={(e) => handleUpdateRoom(rm.id, 'notes', e.target.value)}
-                              className={`w-full border rounded-lg px-2 py-1 text-xs outline-none font-bold transition bg-card border-rose-200 text-rose-900 placeholder-rose-400 focus:border-rose-500`}
+                              className={`${fieldLookSm} w-full`}
                             />
                           </div>
                         )}
@@ -2012,7 +1954,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                                   type="text"
                                   value={rm.name}
                                   onChange={(e) => handleUpdateRoom(rm.id, 'name', e.target.value)}
-                                  className={`w-full border rounded-lg px-2.5 py-1 text-xs outline-none font-bold bg-slate-50 border-slate-300 text-slate-900`}
+                                  className={`${fieldLookSm} w-full`}
                                 />
                               </td>
 
@@ -2045,7 +1987,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                                   type="text"
                                   value={rm.type}
                                   onChange={(e) => handleUpdateRoom(rm.id, 'type', e.target.value)}
-                                  className={`w-full border rounded-lg px-2 py-1 text-xs outline-none bg-slate-50 border-slate-300 text-slate-900`}
+                                  className={`${fieldLookSm} w-full`}
                                 />
                               </td>
 
@@ -2054,7 +1996,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                                   type="text"
                                   value={rm.floor}
                                   onChange={(e) => handleUpdateRoom(rm.id, 'floor', e.target.value)}
-                                  className={`w-full border rounded-lg px-2 py-1 text-xs font-bold outline-none bg-slate-50 border-slate-300`}
+                                  className={`${fieldLookSm} w-full`}
                                 />
                               </td>
 
@@ -2063,7 +2005,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                                   type="number"
                                   value={rm.areaSqM}
                                   onChange={(e) => handleUpdateRoom(rm.id, 'areaSqM', Number(e.target.value))}
-                                  className={`w-full border rounded-lg px-2 py-1 text-xs font-bold outline-none bg-slate-50 border-slate-300 text-slate-900`}
+                                  className={`${fieldLookSm} w-full`}
                                 />
                               </td>
 
@@ -2080,7 +2022,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                                       placeholder="السعة"
                                       value={rm.capacity ?? ''}
                                       onChange={(e) => handleUpdateRoom(rm.id, 'capacity', Number(e.target.value) || 0)}
-                                      className={`w-full border rounded-lg px-2 py-1 text-xs font-bold outline-none bg-slate-50 border-slate-300`}
+                                      className={`${fieldLookSm} w-full`}
                                     />
                                     <span className="text-[10px] text-sky-600 font-semibold whitespace-nowrap">طاقة</span>
                                   </div>
@@ -2093,7 +2035,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                                         placeholder="شاغلين"
                                         value={rm.occupantsCount ?? ''}
                                         onChange={(e) => handleUpdateRoom(rm.id, 'occupantsCount', Number(e.target.value) || 0)}
-                                        className={`w-full border rounded-lg px-2 py-1 text-xs font-bold outline-none bg-slate-50 border-slate-300`}
+                                        className={`${fieldLookSm} w-full`}
                                       />
                                       <span className="text-[10px] text-emerald-600 font-semibold whitespace-nowrap">شاغل</span>
                                     </div>
@@ -2116,7 +2058,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                                       handleUpdateRoom(rm.id, 'status', 'Active');
                                     }
                                   }}
-                                  className={`w-full border rounded-lg px-2 py-1 text-xs outline-none cursor-pointer transition bg-slate-50 border-slate-300 text-slate-900 font-medium focus:border-brand-600`}
+                                  className={`${fieldLookSm} w-full cursor-pointer`}
                                 >
                                   <option value="">🏢 شاغرة (بدون إشغال / فارغة)</option>
                                   {selectedDepartments.length > 0 ? (
@@ -2158,7 +2100,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                                     placeholder="أدخل سبب التوقف..."
                                     value={rm.notes || ''}
                                     onChange={(e) => handleUpdateRoom(rm.id, 'notes', e.target.value)}
-                                    className={`w-full border rounded-lg px-2 py-1 text-xs outline-none font-bold transition bg-rose-50 border-rose-200 text-rose-900 placeholder-rose-400 focus:border-rose-500`}
+                                    className={`${fieldLookSm} w-full`}
                                   />
                                 ) : (
                                   <span className={`text-[11px] font-semibold italic text-slate-400`}>
@@ -2367,40 +2309,35 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
             </div>
 
             <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto order-1 sm:order-2">
-              <button
-                type="button"
-                onClick={onClose}
-                className={`flex-1 sm:flex-initial px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs font-bold transition cursor-pointer text-center bg-slate-100 hover:bg-slate-200 text-slate-700`}
-              >
+              <Button type="submit" variant="primary" icon={Save} className="flex-1 sm:flex-initial">
+                حفظ التعديلات
+              </Button>
+              <Button onClick={onClose} className="flex-1 sm:flex-initial">
                 إلغاء
-              </button>
-
-              <button
-                type="submit"
-                className="flex-1 sm:flex-initial bg-brand-700 hover:bg-brand-800 text-on-brand px-5 sm:px-6 py-2 sm:py-2.5 rounded-xl text-xs font-black flex items-center justify-center gap-2 shadow-lg transition cursor-pointer active:scale-98"
-              >
-                <Save className="w-4 h-4 shrink-0" />
-                <span>حفظ كافة التعديلات والـ 3D</span>
-              </button>
+              </Button>
             </div>
           </div>
         </form>
       </div>
 
       {/* MODAL 1: Add New Attachment */}
-      {showAddAttachmentModal && (
-        <div className="fixed inset-0 z-50 bg-card/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className={`border rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-4 bg-card border-slate-200 text-slate-900`}>
-            <div className="flex items-center justify-between border-b pb-3 border-brand-200">
-              <h4 className="font-bold text-sm text-brand-700 flex items-center gap-2">
-                <Paperclip className="w-4 h-4" />
-                <span>إضافة وثيقة / مرفق جديد للوحدة</span>
-              </h4>
-              <button onClick={() => setShowAddAttachmentModal(false)} className="text-slate-500 hover:text-slate-900 p-1">
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
+      <Modal
+        open={!!(showAddAttachmentModal)}
+        staticBackdrop
+        icon={Paperclip}
+        title="إضافة وثيقة / مرفق جديد للوحدة"
+        onClose={() => setShowAddAttachmentModal(false)}
+        footer={
+          <>
+            <Button variant="primary" icon={Check} onClick={handleSaveNewAttachment} disabled={!newAttName.trim()}>
+              حفظ الوثيقة
+            </Button>
+            <Button onClick={() => setShowAddAttachmentModal(false)}>إلغاء</Button>
+          </>
+        }
+      >
+        {showAddAttachmentModal && (
+          <>
             <div className="space-y-3 text-xs">
               <div>
                 <label className="block font-bold mb-1 text-slate-600">اختيار الملف (معاينة وتحميل مباشر):</label>
@@ -2418,7 +2355,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                   value={newAttName}
                   onChange={(e) => setNewAttName(e.target.value)}
                   placeholder="مثال: المخطط الهندسي لشبكة الإطفاء.pdf"
-                  className={`w-full border rounded-xl p-2.5 outline-none font-bold bg-slate-50 border-slate-300 text-slate-900`}
+                  className={`${fieldLook} w-full`}
                 />
               </div>
 
@@ -2428,7 +2365,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                   <select
                     value={newAttCategory}
                     onChange={(e) => setNewAttCategory(e.target.value)}
-                    className={`w-full border rounded-xl p-2.5 outline-none font-bold cursor-pointer bg-slate-50 border-slate-300 text-slate-900`}
+                    className={`${fieldLook} w-full cursor-pointer`}
                   >
                     <option value="مخططات هندسية">مخططات هندسية</option>
                     <option value="محاضر استلام">محاضر استلام</option>
@@ -2443,7 +2380,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                   <select
                     value={newAttType}
                     onChange={(e) => setNewAttType(e.target.value)}
-                    className={`w-full border rounded-xl p-2.5 outline-none font-bold cursor-pointer bg-slate-50 border-slate-300 text-slate-900`}
+                    className={`${fieldLook} w-full cursor-pointer`}
                   >
                     <option value="pdf">PDF Document</option>
                     <option value="dwg">AutoCAD (DWG)</option>
@@ -2461,7 +2398,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                   step="0.1"
                   value={newAttSizeMB}
                   onChange={(e) => setNewAttSizeMB(Number(e.target.value))}
-                  className={`w-full border rounded-xl p-2.5 outline-none font-bold bg-slate-50 border-slate-300 text-slate-900`}
+                  className={`${fieldLook} w-full`}
                 />
               </div>
 
@@ -2472,46 +2409,34 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                   onChange={(e) => setNewAttNotes(e.target.value)}
                   placeholder="ملاحظات حول المرفق أو أرقام الصادر والوارد..."
                   rows={2}
-                  className={`w-full border rounded-xl p-2.5 outline-none bg-slate-50 border-slate-300 text-slate-900`}
+                  className={`${fieldLook} w-full h-auto min-h-20`}
                 />
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-200 text-xs">
-              <button
-                type="button"
-                onClick={() => setShowAddAttachmentModal(false)}
-                className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-100 text-slate-600 font-bold"
-              >
-                إلغاء
-              </button>
-              <button
-                type="button"
-                onClick={handleSaveNewAttachment}
-                disabled={!newAttName.trim()}
-                className="px-5 py-2 rounded-xl bg-brand-700 hover:bg-brand-800 text-on-brand font-bold shadow disabled:opacity-50"
-              >
-                حفظ الوثيقة
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+            
+          </>
+        )}
+      </Modal>
 
       {/* MODAL 2: Edit Attachment */}
-      {editingAttachment && (
-        <div className="fixed inset-0 z-50 bg-card/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className={`border rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-4 bg-card border-slate-200 text-slate-900`}>
-            <div className="flex items-center justify-between border-b pb-3 border-brand-200">
-              <h4 className="font-bold text-sm text-brand-700 flex items-center gap-2">
-                <Edit3 className="w-4 h-4" />
-                <span>تعديل بيانات المرفق الأرشيفي</span>
-              </h4>
-              <button onClick={() => setEditingAttachment(null)} className="text-slate-500 hover:text-slate-900 p-1">
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
+      <Modal
+        open={!!(editingAttachment)}
+        staticBackdrop
+        icon={Edit3}
+        title="تعديل بيانات المرفق الأرشيفي"
+        onClose={() => setEditingAttachment(null)}
+        footer={
+          <>
+            <Button variant="primary" icon={Check} onClick={handleSaveEditAttachment}>
+              تعديل وحفظ
+            </Button>
+            <Button onClick={() => setEditingAttachment(null)}>إلغاء</Button>
+          </>
+        }
+      >
+        {editingAttachment && (
+          <>
             <div className="space-y-3 text-xs">
               <div>
                 <label className="block font-bold mb-1 text-slate-600">اسم الوثيقة / المستند:</label>
@@ -2519,7 +2444,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                   type="text"
                   value={editingAttachment.name}
                   onChange={(e) => setEditingAttachment({ ...editingAttachment, name: e.target.value })}
-                  className={`w-full border rounded-xl p-2.5 outline-none font-bold bg-slate-50 border-slate-300 text-slate-900`}
+                  className={`${fieldLook} w-full`}
                 />
               </div>
 
@@ -2529,7 +2454,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                   <select
                     value={editingAttachment.category}
                     onChange={(e) => setEditingAttachment({ ...editingAttachment, category: e.target.value })}
-                    className={`w-full border rounded-xl p-2.5 outline-none font-bold cursor-pointer bg-slate-50 border-slate-300 text-slate-900`}
+                    className={`${fieldLook} w-full cursor-pointer`}
                   >
                     <option value="مخططات هندسية">مخططات هندسية</option>
                     <option value="محاضر استلام">محاضر استلام</option>
@@ -2544,7 +2469,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                   <select
                     value={editingAttachment.type}
                     onChange={(e) => setEditingAttachment({ ...editingAttachment, type: e.target.value })}
-                    className={`w-full border rounded-xl p-2.5 outline-none font-bold cursor-pointer bg-slate-50 border-slate-300 text-slate-900`}
+                    className={`${fieldLook} w-full cursor-pointer`}
                   >
                     <option value="pdf">PDF Document</option>
                     <option value="dwg">AutoCAD (DWG)</option>
@@ -2561,7 +2486,7 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                   type="date"
                   value={editingAttachment.uploadDate}
                   onChange={(e) => setEditingAttachment({ ...editingAttachment, uploadDate: e.target.value })}
-                  className={`w-full border rounded-xl p-2.5 outline-none font-bold bg-slate-50 border-slate-300 text-slate-900`}
+                  className={`${fieldLook} w-full`}
                 />
               </div>
 
@@ -2571,30 +2496,15 @@ export const EditUnitModal: React.FC<EditUnitModalProps> = ({
                   value={editingAttachment.notes || ''}
                   onChange={(e) => setEditingAttachment({ ...editingAttachment, notes: e.target.value })}
                   rows={2}
-                  className={`w-full border rounded-xl p-2.5 outline-none bg-slate-50 border-slate-300 text-slate-900`}
+                  className={`${fieldLook} w-full h-auto min-h-20`}
                 />
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-200 text-xs">
-              <button
-                type="button"
-                onClick={() => setEditingAttachment(null)}
-                className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-100 text-slate-600 font-bold"
-              >
-                إلغاء
-              </button>
-              <button
-                type="button"
-                onClick={handleSaveEditAttachment}
-                className="px-5 py-2 rounded-xl bg-brand-700 hover:bg-brand-800 text-on-brand font-bold shadow"
-              >
-                تعديل وحفظ
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+            
+          </>
+        )}
+      </Modal>
 
       {/* MODAL 3: Preview Attachment */}
       {previewAttachment && (

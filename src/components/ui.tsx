@@ -53,8 +53,13 @@ export function Button({
 // ---------------------------------------------------------------------
 // الحقول
 // ---------------------------------------------------------------------
-const fieldBase =
-  "w-full rounded-lg border border-slate-300 bg-card px-3 py-2 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-brand-600 focus:ring-3 focus:ring-brand-100 disabled:bg-slate-100 disabled:text-slate-500";
+const fieldLookBase =
+  "rounded-lg border border-slate-300 bg-card text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-brand-600 focus:ring-3 focus:ring-brand-100 disabled:bg-slate-100 disabled:text-slate-500 [&[readonly]]:bg-slate-100";
+const fieldBase = `w-full px-3 py-2 text-sm ${fieldLookBase}`;
+/** شكل الحقل الموحد لحقول خام داخل نماذج كبيرة لم تُحوَّل بعد إلى Input/Select (العرض يُضاف بجانبه: w-full أو w-14...) */
+export const fieldLook = `h-10 px-3 py-2 text-sm ${fieldLookBase}`;
+/** حقل مضغوط داخل الجداول وبطاقات الغرف */
+export const fieldLookSm = `h-8 px-2 py-1 text-xs ${fieldLookBase}`;
 
 export function Input(props: InputHTMLAttributes<HTMLInputElement>) {
   return <input {...props} className={cx(fieldBase, "h-10", props.className)} />;

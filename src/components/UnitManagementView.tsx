@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { ConfirmDialog } from './ui';
+import { Badge, Button, Card, ConfirmDialog, EmptyState, PageHeader, Pagination, Table, Tabs, Td, fieldLookSm } from './ui';
 import {
   Search,
   Filter,
@@ -580,27 +580,17 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
   return (
     <div className="space-y-4 sm:space-y-6 text-right dir-rtl w-full max-w-full min-w-0 overflow-hidden break-words">
       {/* Top Header & Search Filter Bar */}
-      <div className={`border rounded-2xl p-3.5 sm:p-5 shadow-lg flex flex-col gap-3 transition-colors w-full min-w-0 overflow-hidden bg-card border-slate-200 text-slate-900 shadow-sm`}>
-        {/* Title & Subtitle Phrase Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b pb-3 border-slate-200 min-w-0">
-          <div className="min-w-0">
-            <h2 className={`text-base sm:text-xl font-black flex items-center gap-2 sm:gap-2.5 text-slate-900`}>
-              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-brand-100 border border-brand-200 flex items-center justify-center text-brand-700 font-bold shrink-0">
-                <Box className="w-4 h-4 sm:w-5 sm:h-5 text-brand-700" />
-              </div>
-              <span className="truncate">الوحدات والمشاهدة ثلاثية الأبعاد (3D)</span>
-            </h2>
-            <p className={`text-[11px] sm:text-xs mt-1 font-medium leading-relaxed break-words text-slate-600`}>
-              استعراض المنشآت النفطية بالـ 3D، قطع الطوابق، التقييم الهندسي، وتعديل كافة البيانات الهندسية
-            </p>
-          </div>
-
-          <div className="flex items-center gap-2 text-xs shrink-0 w-full sm:w-auto">
-            <span className={`w-full sm:w-auto text-center px-3 py-1.5 rounded-xl border font-bold text-[11px] sm:text-xs bg-slate-50 border-slate-200 text-slate-700`}>
-              المنشآت المطابقة: <b className="text-brand-700 font-black">{toArabicDigits(filteredUnits.length)}</b> من {toArabicDigits(units.length)}
-            </span>
-          </div>
-        </div>
+      <div className={`border rounded-2xl p-3.5 sm:p-5 shadow-lg flex flex-col gap-3 transition-colors w-full min-w-0 overflow-hidden bg-card border-slate-200 text-slate-900 shadow-sm [&>div:first-child]:mb-1`}>
+        <PageHeader
+          icon={Box}
+          title="الوحدات المسجلة"
+          description="استعراض الوحدات ومجسّمها ثلاثي الأبعاد، التقييم الهندسي، وتعديل بياناتها"
+          actions={
+            <Badge tone="blue">
+              المطابقة: {toArabicDigits(filteredUnits.length)} من {toArabicDigits(units.length)}
+            </Badge>
+          }
+        />
 
         {/* Filter Controls Bar - Responsive Grid on Mobile, Flex on Desktop */}
         <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 pt-0.5 text-xs w-full min-w-0">
@@ -608,7 +598,7 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
           <select
             value={filterGovernorate}
             onChange={(e) => handleGovernorateFilterChange(e.target.value)}
-            className={`w-full sm:w-auto min-w-0 border rounded-lg px-2 sm:px-2.5 py-1.5 focus:outline-none focus:border-brand-600 font-semibold cursor-pointer text-[11px] sm:text-xs truncate bg-slate-50 border-slate-300 text-slate-800`}
+            className={`${fieldLookSm} w-full sm:w-auto min-w-0 cursor-pointer truncate`}
           >
             <option value="all">كافة المحافظات</option>
             {effectiveGovernorates
@@ -624,7 +614,7 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
           <select
             value={filterField}
             onChange={(e) => setFilterField(e.target.value)}
-            className={`w-full sm:w-auto min-w-0 border rounded-lg px-2 sm:px-2.5 py-1.5 focus:outline-none focus:border-brand-600 font-semibold cursor-pointer text-[11px] sm:text-xs truncate bg-slate-50 border-slate-300 text-slate-800`}
+            className={`${fieldLookSm} w-full sm:w-auto min-w-0 cursor-pointer truncate`}
           >
             <option value="all">كافة الحقول</option>
             {availableOilfieldOptions.map((f) => (
@@ -636,34 +626,18 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
 
           {/* زر التشكيلات / الجهات الشاغلة - يظهر صفحة التشكيلات للاختيار منها */}
           <div className="flex items-center gap-1 col-span-2 sm:col-span-1 min-w-0 w-full sm:w-auto">
-            <button
-              type="button"
+            <Button
+              size="sm"
+              variant={filterOrgEntity !== 'all' ? 'primary' : 'secondary'}
+              icon={Network}
               onClick={() => setShowOrgPickerModal(true)}
-              className={`w-full sm:w-auto px-2.5 sm:px-3 py-1.5 rounded-lg border font-bold flex items-center justify-between sm:justify-start gap-1.5 transition cursor-pointer shadow-sm text-[11px] sm:text-xs min-w-0 ${
-                filterOrgEntity !== 'all'
-                  ? 'bg-brand-700 text-on-brand border-brand-200 font-black ring-1 ring-brand-600'
-                  : 'bg-brand-50 hover:bg-brand-100 border-brand-200 text-brand-800'
-              }`}
               title="فتح صفحة التشكيلات والجهات الشاغلة للاختيار منها"
+              className="w-full sm:w-auto"
             >
-              <div className="flex items-center gap-1.5 min-w-0">
-                <Network className="w-3.5 h-3.5 shrink-0 text-brand-700" />
-                <span className="truncate max-w-[160px] sm:max-w-[200px]">
-                  {filterOrgEntity !== 'all' ? `التشكيل: ${filterOrgEntity}` : 'التشكيلات / الجهات الشاغلة'}
-                </span>
-              </div>
-              <ChevronDown className="w-3.5 h-3.5 shrink-0 opacity-70" />
-            </button>
-
+              <span className="max-w-[200px] truncate">{filterOrgEntity !== 'all' ? `التشكيل: ${filterOrgEntity}` : 'التشكيلات / الجهات الشاغلة'}</span>
+            </Button>
             {filterOrgEntity !== 'all' && (
-              <button
-                type="button"
-                onClick={() => setFilterOrgEntity('all')}
-                className={`p-1.5 rounded-lg border text-red-600 hover:bg-red-500/10 transition cursor-pointer shrink-0 border-red-200 bg-red-50`}
-                title="إلغاء تصفية التشكيل"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
+              <Button size="sm" variant="danger-ghost" icon={X} onClick={() => setFilterOrgEntity('all')} title="إلغاء تصفية التشكيل" aria-label="إلغاء تصفية التشكيل" />
             )}
           </div>
 
@@ -671,7 +645,7 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
           <select
             value={filterGrade}
             onChange={(e) => setFilterGrade(e.target.value)}
-            className={`w-full sm:w-auto min-w-0 border rounded-lg px-2 sm:px-2.5 py-1.5 focus:outline-none focus:border-brand-600 font-semibold cursor-pointer text-[11px] sm:text-xs truncate bg-slate-50 border-slate-300 text-slate-800`}
+            className={`${fieldLookSm} w-full sm:w-auto min-w-0 cursor-pointer truncate`}
           >
             <option value="all">كافة درجات التقييم</option>
             <option value="A">Grade A - ممتاز</option>
@@ -684,7 +658,7 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value)}
-            className={`w-full sm:w-auto min-w-0 border rounded-lg px-2 sm:px-2.5 py-1.5 focus:outline-none focus:border-brand-600 font-semibold cursor-pointer text-[11px] sm:text-xs truncate bg-slate-50 border-slate-300 text-slate-800`}
+            className={`${fieldLookSm} w-full sm:w-auto min-w-0 cursor-pointer truncate`}
           >
             <option value="all">كافة الأنواع ({toArabicDigits(availableFilterTypes.length)})</option>
             {availableFilterTypes.map((ut) => (
@@ -698,7 +672,7 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value as any)}
-            className={`w-full sm:w-auto min-w-0 border rounded-lg px-2 sm:px-2.5 py-1.5 focus:outline-none focus:border-brand-600 font-semibold cursor-pointer text-[11px] sm:text-xs truncate bg-slate-50 border-slate-300 text-slate-800`}
+            className={`${fieldLookSm} w-full sm:w-auto min-w-0 cursor-pointer truncate`}
           >
             <option value="all">كافة الحالات</option>
             <option value="active">نشطة وتشغيلية</option>
@@ -713,19 +687,15 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
               value={searchCode}
               onChange={(e) => setSearchCode(e.target.value)}
               placeholder="ابحث بالرمز، الاسم، التشكيل..."
-              className={`w-full border rounded-lg pr-8 pl-2 py-1.5 text-xs focus:outline-none focus:border-brand-600 bg-slate-50 border-slate-300 text-slate-800 placeholder-slate-400`}
+              className={`${fieldLookSm} w-full pr-8 pl-2`}
             />
           </div>
 
           {/* Reset Filters Button */}
           {isFiltered && (
-            <button
-              onClick={handleResetFilters}
-              className={`col-span-2 sm:col-span-1 w-full sm:w-auto px-3 py-1.5 rounded-lg border text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer bg-brand-100 hover:bg-brand-100 text-brand-800 border-brand-200`}
-              title="إلغاء تصفية البحث وإظهار كافة المباني"
-            >
-              <span>إعادة ضبط ({toArabicDigits(filteredUnits.length)})</span>
-            </button>
+            <Button size="sm" icon={RotateCcw} onClick={handleResetFilters} title="إلغاء التصفية وإظهار كل الوحدات" className="col-span-2 sm:col-span-1">
+              إعادة ضبط
+            </Button>
           )}
         </div>
       </div>
@@ -1034,120 +1004,19 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
           </div>
         )}
 
-        {/* Pagination Controls Bar */}
+        {/* ترقيم الصفحات */}
         {totalUnitsCount > 0 && (
-          <div className={`mt-3 pt-3 border-t flex flex-col sm:flex-row items-center justify-between gap-2.5 sm:gap-3 text-xs w-full min-w-0 border-slate-200 text-slate-700`}>
-            {/* Pagination Range Summary */}
-            <div className="flex items-center justify-center sm:justify-start gap-1.5 sm:gap-2 flex-wrap text-center sm:text-right w-full sm:w-auto">
-              <span className="font-semibold text-[11px] sm:text-xs">
-                عرض <strong className="font-mono text-brand-700">{toArabicDigits(startIndex + 1)}</strong> إلى{' '}
-                <strong className="font-mono text-brand-700">{toArabicDigits(endIndex)}</strong> من إجمالي{' '}
-                <strong className="font-mono text-brand-700">{toArabicDigits(totalUnitsCount)}</strong>
-              </span>
-              <span className={`text-[9.5px] sm:text-[10px] px-2 py-0.5 rounded-full font-bold border bg-slate-100 border-slate-300 text-slate-600`}>
-                50 وحدة / صفحة
-              </span>
-            </div>
-
-            {/* Pagination Navigation Buttons */}
-            {totalPages > 1 && (
-              <div className="flex flex-wrap items-center justify-center gap-1 sm:gap-1.5 select-none w-full sm:w-auto">
-                {/* Previous Button (RTL: right arrow goes back to page - 1) */}
-                <button
-                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                  disabled={validPage === 1}
-                  className={`px-2 sm:px-2.5 py-1.5 rounded-lg border font-bold flex items-center gap-1 transition text-[11px] sm:text-xs ${
-                    validPage === 1
-                      ? 'opacity-40 cursor-not-allowed border-transparent'
-                      : 'bg-slate-100 hover:bg-slate-200 border-slate-300 text-slate-800 cursor-pointer'
-                  }`}
-                  title="الصفحة السابقة"
-                >
-                  <ChevronRight className="w-3.5 h-3.5" />
-                  <span className="hidden xs:inline">السابق</span>
-                </button>
-
-                {/* Page Number Chips */}
-                <div className="flex items-center gap-1">
-                  {(() => {
-                    const pages: (number | string)[] = [];
-                    if (totalPages <= 7) {
-                      for (let i = 1; i <= totalPages; i++) pages.push(i);
-                    } else {
-                      pages.push(1);
-                      if (validPage > 3) pages.push('ellipsis-start');
-                      const start = Math.max(2, validPage - 1);
-                      const end = Math.min(totalPages - 1, validPage + 1);
-                      for (let i = start; i <= end; i++) {
-                        if (!pages.includes(i)) pages.push(i);
-                      }
-                      if (validPage < totalPages - 2) pages.push('ellipsis-end');
-                      if (!pages.includes(totalPages)) pages.push(totalPages);
-                    }
-
-                    return pages.map((item, idx) => {
-                      if (typeof item === 'string') {
-                        return (
-                          <span key={`el-${idx}`} className="px-1 text-slate-500 font-mono text-[10px]">
-                            ...
-                          </span>
-                        );
-                      }
-
-                      const isActive = item === validPage;
-                      return (
-                        <button
-                          key={item}
-                          onClick={() => setCurrentPage(item)}
-                          className={`w-6.5 h-6.5 sm:w-7 sm:h-7 rounded-lg text-[11px] sm:text-xs font-bold font-mono transition flex items-center justify-center cursor-pointer ${
-                            isActive
-                              ? 'bg-brand-700 text-on-brand font-black shadow-sm'
-                              : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200'
-                          }`}
-                        >
-                          {toArabicDigits(item)}
-                        </button>
-                      );
-                    });
-                  })()}
-                </div>
-
-                {/* Next Button (RTL: left arrow goes forward to page + 1) */}
-                <button
-                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                  disabled={validPage === totalPages}
-                  className={`px-2 sm:px-2.5 py-1.5 rounded-lg border font-bold flex items-center gap-1 transition text-[11px] sm:text-xs ${
-                    validPage === totalPages
-                      ? 'opacity-40 cursor-not-allowed border-transparent'
-                      : 'bg-slate-100 hover:bg-slate-200 border-slate-300 text-slate-800 cursor-pointer'
-                  }`}
-                  title="الصفحة التالية"
-                >
-                  <span className="hidden xs:inline">التالي</span>
-                  <ChevronLeft className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            )}
+          <div className="mt-3">
+            <Pagination page={validPage} pages={totalPages} onPage={setCurrentPage} total={totalUnitsCount} unit="وحدة (50 في الصفحة)" />
           </div>
         )}
       </div>
 
       {/* When NO unit is selected: Show informative placeholder */}
       {!selectedUnit ? (
-        <div className={`border rounded-3xl p-8 sm:p-12 text-center space-y-6 shadow-xl transition-all bg-slate-50/90 border-slate-200 text-slate-800`}>
-          <div className="w-20 h-20 rounded-3xl bg-brand-100 border-2 border-brand-200 text-brand-700 mx-auto flex items-center justify-center shadow-lg animate-pulse">
-            <Box className="w-10 h-10" />
-          </div>
-
-          <div className="max-w-xl mx-auto space-y-2">
-            <h3 className={`font-black text-lg sm:text-xl text-slate-900`}>
-              اختر منشأة أو أصلاً نفطياً لمشاهدة مجسم الـ 3D والبيانات الهندسية
-            </h3>
-            <p className={`text-xs sm:text-sm leading-relaxed text-slate-600`}>
-              الرجاء تحديد أي منشأة من شجرة الهيكلية التنظيمية (المحافظات والحقول) أعلاه لمشاهدة النموذج ثلاثي الأبعاد، استعراض تفاصيل الغرف والمعدات، تقارير الفحص الدوري، وتوليد بطاقات الوصول السريع QR.
-            </p>
-          </div>
-        </div>
+        <Card>
+          <EmptyState icon={Box} text="اختر وحدة من القائمة أعلاه لعرض مجسّمها ثلاثي الأبعاد وبياناتها وغرفها ومرفقاتها." />
+        </Card>
       ) : (
         <>
           {/* Top Return / Selection Switch Bar */}
@@ -1607,33 +1476,14 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
 
       {/* Bottom Tabs Area: Rooms, Attachments */}
       <div className={`border rounded-2xl p-3.5 sm:p-5 shadow-lg transition-colors w-full min-w-0 overflow-hidden bg-card border-slate-200`}>
-        {/* Tab Headers */}
-        <div className={`grid grid-cols-2 gap-1.5 sm:flex sm:items-center sm:gap-2 border-b pb-3 mb-4 text-xs font-bold w-full min-w-0 border-slate-200`}>
-          <button
-            onClick={() => setActiveTab('rooms')}
-            className={`px-2.5 sm:px-4 py-2 rounded-lg transition text-center justify-center flex items-center gap-1 min-w-0 ${
-              activeTab === 'rooms'
-                ? 'bg-brand-700 text-on-brand shadow font-bold'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-            }`}
-          >
-            <span className="hidden sm:inline">سجل الغرف والقاعات</span>
-            <span className="sm:hidden">الغرف والقاعات</span>
-            <span>({toArabicDigits(selectedUnit.rooms.length)})</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('attachments')}
-            className={`px-2.5 sm:px-4 py-2 rounded-lg transition text-center justify-center flex items-center gap-1 min-w-0 ${
-              activeTab === 'attachments'
-                ? 'bg-brand-700 text-on-brand shadow font-bold'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-            }`}
-          >
-            <span className="hidden sm:inline">المرفقات والمخططات الرسمية</span>
-            <span className="sm:hidden">المرفقات</span>
-            <span>({toArabicDigits(selectedUnit.attachments?.length || 0)})</span>
-          </button>
-        </div>
+        <Tabs
+          value={activeTab}
+          onChange={setActiveTab}
+          tabs={[
+            { key: 'rooms', label: 'الغرف والقاعات', icon: DoorOpen, count: selectedUnit.rooms.length },
+            { key: 'attachments', label: 'المرفقات والمخططات', icon: Paperclip, count: selectedUnit.attachments?.length || 0 },
+          ]}
+        />
 
         {/* Rooms Tab Content */}
         {activeTab === 'rooms' && (
@@ -1647,11 +1497,7 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
                   <select
                     value={roomFloorFilter}
                     onChange={(e) => setRoomFloorFilter(e.target.value)}
-                    className={`w-full text-xs font-bold py-1.5 px-2.5 rounded-lg border outline-none cursor-pointer transition ${
-                      roomFloorFilter !== 'all'
-                        ? 'bg-brand-100 border-brand-600 text-brand-700 font-black'
-                        : 'bg-card border-slate-300 text-slate-800'
-                    }`}
+                    className={`${fieldLookSm} w-full cursor-pointer`}
                   >
                     <option value="all">كافة الطوابق ({toArabicDigits(selectedUnit.rooms?.length || 0)})</option>
                     {availableFloors.map((floor) => {
@@ -1671,11 +1517,7 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
                   <select
                     value={roomTypeFilter}
                     onChange={(e) => setRoomTypeFilter(e.target.value)}
-                    className={`w-full text-xs font-bold py-1.5 px-2.5 rounded-lg border outline-none cursor-pointer transition ${
-                      roomTypeFilter !== 'all'
-                        ? 'bg-brand-100 border-brand-600 text-brand-700 font-black'
-                        : 'bg-card border-slate-300 text-slate-800'
-                    }`}
+                    className={`${fieldLookSm} w-full cursor-pointer`}
                   >
                     <option value="all">كافة أنواع الغرف</option>
                     {availableRoomTypes.map((type) => {
@@ -1697,7 +1539,7 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
                     value={roomSearchQuery}
                     onChange={(e) => setRoomSearchQuery(e.target.value)}
                     placeholder="بحث بالرمز، الاسم، أو الشاغل..."
-                    className={`w-full pr-8 pl-7 py-1.5 text-xs rounded-lg border outline-none font-medium transition bg-card border-slate-300 text-slate-900`}
+                    className={`${fieldLookSm} w-full pr-8 pl-7`}
                   />
                   {roomSearchQuery && (
                     <button
@@ -1740,185 +1582,51 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
 
             {/* Empty state when no rooms match filter */}
             {filteredRooms.length === 0 ? (
-              <div className={`p-8 text-center rounded-xl border border-dashed space-y-2.5 bg-slate-50 border-slate-300`}>
-                <DoorOpen className="w-8 h-8 mx-auto text-slate-500 animate-pulse" />
-                <p className="text-xs sm:text-sm font-bold text-slate-500">
-                  لا توجد غرف أو قاعات مطابقة لخيارات الفلترة المحددة
-                </p>
-                <button
-                  type="button"
+              <EmptyState icon={DoorOpen} text="لا توجد غرف مطابقة للفلاتر المحددة">
+                <Button
+                  size="sm"
                   onClick={() => {
                     setRoomFloorFilter('all');
                     setRoomTypeFilter('all');
                     setRoomSearchQuery('');
                   }}
-                  className="px-3 py-1.5 rounded-lg bg-brand-700 text-on-brand text-xs font-black hover:bg-brand-800 transition cursor-pointer"
                 >
-                  إعادة عرض كافة الغرف والقاعات
-                </button>
-              </div>
+                  عرض كل الغرف
+                </Button>
+              </EmptyState>
             ) : (
-              <>
-                {/* Mobile Stacked Room Cards View (md:hidden) */}
-                <div className="md:hidden space-y-2.5">
-                  {filteredRooms.map((rm) => {
-                    const isStopped = rm.status === 'Stopped' || rm.status === 'متوقفة';
-                    const roomComputedCode =
-                      (rm.code && rm.code.trim()) ? rm.code.trim() : getStandardRoomCode(selectedUnit.code, rm, selectedUnit.rooms);
-                    const occDisplay = formatRoomOccupancyDisplay(rm);
-
-                    return (
-                      <div
-                        key={rm.id}
-                        className={`p-3 rounded-xl border space-y-2 transition ${
-                          isStopped
-                            ? 'bg-red-50/70 border-red-200'
-                            : 'bg-slate-50 border-slate-200'
-                        }`}
-                      >
-                        <div className="flex items-center justify-between gap-2">
-                          <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                            <span className="font-mono font-black text-xs text-brand-700 bg-brand-50 px-2 py-0.5 rounded-lg border border-brand-200 shrink-0">
-                              {roomComputedCode}
-                            </span>
-                            <span className={`font-bold text-xs truncate text-slate-900`}>
-                              {rm.name}
-                            </span>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => setSelectedRoomForQrCard({ ...rm, code: roomComputedCode })}
-                            className="p-1.5 rounded-lg bg-brand-50 hover:bg-brand-800 text-brand-700 hover:text-on-brand transition cursor-pointer inline-flex items-center gap-1 text-[11px] font-bold shrink-0"
-                            title="استعراض وطباعة بطاقة QR للغرفة"
-                          >
-                            <QrCode className="w-3.5 h-3.5" />
-                            <span>QR</span>
-                          </button>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-2 text-[11px] pt-1 border-t border-slate-200/60 ">
-                          <div>
-                            <span className="text-slate-500 font-medium">الاستخدام: </span>
-                            <span className="font-bold">{rm.type}</span>
-                          </div>
-                          <div>
-                            <span className="text-slate-500 font-medium">الطابق: </span>
-                            <span className="font-bold">{rm.floor}</span>
-                          </div>
-                          <div>
-                            <span className="text-slate-500 font-medium">المساحة: </span>
-                            <span className="font-bold text-emerald-600 ">{toArabicDigits(rm.areaSqM)} م²</span>
-                          </div>
-                          <div>
-                            <span className="text-slate-500 font-medium">الشاغلون: </span>
-                            <span className={occDisplay.badgeClass}>{toArabicDigits(occDisplay.text)}</span>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center justify-between gap-2 text-[11px] pt-1">
-                          <div className="truncate flex-1 min-w-0">
-                            <span className="text-slate-500 font-medium">الجهة: </span>
-                            {rm.occupiedBy && rm.occupiedBy.trim() && !isRoomVacant(rm.occupiedBy) ? (
-                              <span className="font-semibold text-slate-800 ">{rm.occupiedBy}</span>
-                            ) : (
-                              <span className="text-brand-700 font-bold">شاغرة</span>
-                            )}
-                          </div>
-                          <span className={`border px-2 py-0.5 rounded text-[10px] font-bold flex items-center gap-1 shrink-0 ${
-                            isStopped
-                              ? 'bg-red-100 text-red-800 border-red-200'
-                              : 'bg-emerald-100 text-emerald-800 border-emerald-200'
-                          }`}>
-                            <span className={`w-1.5 h-1.5 rounded-full ${isStopped ? 'bg-red-500 animate-pulse' : 'bg-emerald-500'}`} />
-                            {isStopped ? 'متوقفة' : 'فعالة'}
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {/* Desktop Table View (hidden md:block) */}
-                <div className="hidden md:block overflow-x-auto">
-                  <table className="w-full text-right text-xs">
-                    <thead>
-                      <tr className={`bg-slate-100 text-slate-700 border-slate-200 border-b`}>
-                        <th className="p-3 font-semibold">رمز الغرفة القياسي</th>
-                        <th className="p-3 font-semibold">اسم الغرفة</th>
-                        <th className="p-3 font-semibold">نوع الاستخدام</th>
-                        <th className="p-3 font-semibold">الطابق</th>
-                        <th className="p-3 font-semibold">المساحة (م²)</th>
-                        <th className="p-3 font-semibold">عدد الشاغلين</th>
-                        <th className="p-3 font-semibold">الجهة الشاغلة</th>
-                        <th className="p-3 font-semibold">الحالة</th>
-                        <th className="p-3 font-semibold text-center">بطاقة QR</th>
-                      </tr>
-                    </thead>
-                    <tbody className={`divide-y divide-slate-200 text-slate-800`}>
-                      {filteredRooms.map((rm) => {
-                        const isStopped = rm.status === 'Stopped' || rm.status === 'متوقفة';
-                        const roomComputedCode =
-                          (rm.code && rm.code.trim()) ? rm.code.trim() : getStandardRoomCode(selectedUnit.code, rm, selectedUnit.rooms);
-                        const occDisplay = formatRoomOccupancyDisplay(rm);
-
-                        return (
-                          <tr key={rm.id} className={`${isStopped ? ('bg-red-50/50') : 'hover:bg-brand-50'} transition`}>
-                            <td className="p-3">
-                              <span className="font-mono font-black text-xs text-brand-700 bg-brand-50 px-2 py-0.5 rounded-lg border border-brand-200">
-                                {roomComputedCode}
-                              </span>
-                            </td>
-                            <td className={`p-3 font-bold text-slate-900`}>{rm.name}</td>
-                            <td className="p-3">{rm.type}</td>
-                            <td className="p-3">{rm.floor}</td>
-                            <td className="p-3 font-semibold">{toArabicDigits(rm.areaSqM)} م²</td>
-                            <td className="p-3 font-semibold">
-                              <span className={occDisplay.badgeClass}>{toArabicDigits(occDisplay.text)}</span>
-                            </td>
-                            <td className={`p-3 text-slate-600`}>
-                              {rm.occupiedBy && rm.occupiedBy.trim() && !isRoomVacant(rm.occupiedBy) ? (
-                                <span className="font-semibold">{rm.occupiedBy}</span>
-                              ) : (
-                                <span className="text-brand-700 font-bold text-xs bg-brand-50 px-2 py-0.5 rounded-md border border-brand-200">
-                                  شاغرة (فارغة)
-                                </span>
-                              )}
-                            </td>
-                            <td className="p-3">
-                              <div className="flex flex-col gap-1 items-start">
-                                <span className={`border px-2.5 py-0.5 rounded text-[11px] font-bold flex items-center gap-1 ${
-                                  isStopped
-                                    ? 'bg-red-100 text-red-800 border-red-200'
-                                    : 'bg-emerald-100 text-emerald-800 border-emerald-200'
-                                }`}>
-                                  <span className={`w-1.5 h-1.5 rounded-full ${isStopped ? 'bg-red-500 animate-pulse' : 'bg-emerald-500'}`} />
-                                  {isStopped ? 'متوقفة 🔴' : 'فعالة 🟢'}
-                                </span>
-                                {isStopped && rm.notes && (
-                                  <span className={`text-[11px] font-bold text-red-700`}>
-                                    سبب التوقف: {rm.notes}
-                                  </span>
-                                )}
-                              </div>
-                            </td>
-                            <td className="p-3 text-center">
-                              <button
-                                type="button"
-                                onClick={() => setSelectedRoomForQrCard({ ...rm, code: roomComputedCode })}
-                                className="p-1.5 rounded-lg bg-brand-50 hover:bg-brand-800 text-brand-700 hover:text-on-brand transition cursor-pointer inline-flex items-center gap-1 text-[11px] font-bold"
-                                title="استعراض وطباعة بطاقة QR للغرفة"
-                              >
-                                <QrCode className="w-3.5 h-3.5" />
-                                <span>QR</span>
-                              </button>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              </>
+              <Table head={['رمز الغرفة', 'اسم الغرفة', 'نوع الاستخدام', 'الطابق', 'المساحة', 'عدد الشاغلين', 'الجهة الشاغلة', 'الحالة', 'بطاقة QR']}>
+                {filteredRooms.map((rm) => {
+                  const isStopped = rm.status === 'Stopped' || rm.status === 'متوقفة';
+                  const roomComputedCode =
+                    (rm.code && rm.code.trim()) ? rm.code.trim() : getStandardRoomCode(selectedUnit.code, rm, selectedUnit.rooms);
+                  const occDisplay = formatRoomOccupancyDisplay(rm);
+                  return (
+                    <tr key={rm.id}>
+                      <Td className="font-mono font-bold text-brand-700">{roomComputedCode}</Td>
+                      <Td className="font-bold text-slate-900">{rm.name}</Td>
+                      <Td>{rm.type}</Td>
+                      <Td>{rm.floor}</Td>
+                      <Td>{toArabicDigits(rm.areaSqM)} م²</Td>
+                      <Td>
+                        <span className={occDisplay.badgeClass}>{toArabicDigits(occDisplay.text)}</span>
+                      </Td>
+                      <Td>
+                        {rm.occupiedBy && rm.occupiedBy.trim() && !isRoomVacant(rm.occupiedBy) ? rm.occupiedBy : <Badge tone="blue">شاغرة</Badge>}
+                      </Td>
+                      <Td>
+                        <Badge tone={isStopped ? 'red' : 'green'}>{isStopped ? 'متوقفة' : 'فعالة'}</Badge>
+                        {isStopped && rm.notes && <div className="mt-1 text-xs text-rose-700">سبب التوقف: {rm.notes}</div>}
+                      </Td>
+                      <Td>
+                        <Button size="sm" icon={QrCode} onClick={() => setSelectedRoomForQrCard({ ...rm, code: roomComputedCode })} title="استعراض وطباعة بطاقة QR للغرفة">
+                          QR
+                        </Button>
+                      </Td>
+                    </tr>
+                  );
+                })}
+              </Table>
             )}
           </div>
         )}
@@ -2018,7 +1726,7 @@ export const UnitManagementView: React.FC<UnitManagementViewProps> = ({
                   onChange={(e) => setDecommissionReasonInput(e.target.value)}
                   placeholder="مثال: أضرار إنشائية جسيمة، انتهاء العمر التشغيلي"
                   rows={3}
-                  className="w-full rounded-lg border border-slate-300 bg-slate-50 p-2.5 text-xs text-slate-800 focus:border-brand-600 focus:outline-none"
+                  className={`${fieldLookSm} w-full h-auto min-h-20`}
                 />
               </label>
             </div>
