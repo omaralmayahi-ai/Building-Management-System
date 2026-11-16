@@ -246,6 +246,41 @@ export function CardHeader({ title, icon, actions, description }: { title: React
   );
 }
 
+/** بطاقة مؤشر موحدة: عنوان، قيمة كبيرة، سطر فرعي، وأيقونة ملوّنة */
+export function StatCard({
+  label,
+  value,
+  hint,
+  icon,
+  tone = "slate",
+}: {
+  label: ReactNode;
+  value: ReactNode;
+  hint?: ReactNode;
+  icon?: LucideIcon;
+  tone?: "brand" | "amber" | "red" | "green" | "slate" | "blue";
+}) {
+  const valueTone = {
+    brand: "text-brand-700",
+    amber: "text-amber-700",
+    red: "text-rose-700",
+    green: "text-emerald-700",
+    slate: "text-slate-900",
+    blue: "text-sky-700",
+  }[tone];
+  const iconTone = (tone === "blue" ? "brand" : tone) as "brand" | "amber" | "red" | "green" | "slate";
+  return (
+    <div className="flex min-w-0 items-center justify-between gap-3 rounded-xl border border-slate-200 bg-card p-3 sm:p-4">
+      <div className="min-w-0">
+        <div className="text-[11px] font-bold leading-snug text-slate-500 sm:text-xs">{label}</div>
+        <div className={cx("mt-0.5 text-lg font-black leading-tight sm:text-2xl", valueTone)}>{value}</div>
+        {hint && <div className="mt-0.5 text-[10px] leading-snug text-slate-500 sm:text-[11px]">{hint}</div>}
+      </div>
+      {icon && <IconTile icon={icon} tone={iconTone} size="lg" />}
+    </div>
+  );
+}
+
 export function PageHeader({ title, description, actions, icon }: { title: string; description?: string; actions?: ReactNode; icon?: LucideIcon }) {
   const Icon = icon;
   return (
@@ -339,7 +374,7 @@ export function Table({ head, children, empty }: { head: ReactNode[]; children: 
   const ref = useRef<HTMLTableElement>(null);
   useCellLabels(ref);
   return (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto [container-type:inline-size]">
       <table ref={ref} className="rtable w-full text-sm">
         <thead>
           <tr className="border-b border-slate-200 bg-slate-50 text-right text-xs text-slate-500">
@@ -369,9 +404,9 @@ export function EmptyState({ text, icon: Icon = Inbox, children }: { text: React
   );
 }
 
-export function Td({ children, className, colSpan, title }: { children?: ReactNode; className?: string; colSpan?: number; title?: string }) {
+export function Td({ children, className, colSpan, title, dir }: { children?: ReactNode; className?: string; colSpan?: number; title?: string; dir?: "rtl" | "ltr" }) {
   return (
-    <td colSpan={colSpan} title={title} className={cx("px-4 py-2.5 align-middle", className)}>
+    <td colSpan={colSpan} title={title} dir={dir} className={cx("px-4 py-2.5 align-middle", className)}>
       {children}
     </td>
   );

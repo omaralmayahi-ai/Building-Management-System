@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Badge, Button, CardHeader, EmptyState, PageHeader, Select, Table, Tabs, Td } from './ui';
+import { Badge, Button, CardHeader, EmptyState, PageHeader, Select, StatCard, Table, Tabs, Td } from './ui';
 import {
   Building2,
   Users,
@@ -428,162 +428,56 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         }
       />
 
-      {/* KPI METRICS GRID (COMPACT & TOUCH-FRIENDLY ON MOBILE) */}
-      <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-2 sm:gap-3">
-        {/* KPI 1: Total Assets */}
-        <div
-          className={`p-2.5 sm:p-4 rounded-xl border transition shadow-xs flex flex-col justify-between min-w-0 overflow-hidden bg-card border-slate-200 shadow-xs`}
-        >
-          <div className="flex items-center justify-between gap-1 min-w-0">
-            <span className={`text-[11px] sm:text-xs font-bold truncate text-slate-600`}>
-              الوحدات والأصول
-            </span>
-            <div className="p-1.5 sm:p-2 bg-brand-50 text-brand-700 rounded-lg shrink-0">
-              <Building2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            </div>
-          </div>
-          <div className="mt-2 sm:mt-3 min-w-0">
-            <div className={`text-base sm:text-xl font-black truncate text-slate-900`}>
-              {toArabicDigits(totalUnits)} أصل
-            </div>
-            <div className="flex flex-col xs:flex-row xs:items-center justify-between mt-1 text-[10px] sm:text-[11px] gap-0.5 min-w-0">
-              <span className="text-emerald-600 font-bold truncate">{toArabicDigits(activeUnitsCount)} نشط</span>
-              <span className={`truncate text-slate-500`}>
-                {toArabicDigits(totalBuiltArea.toLocaleString('ar-IQ'))} م²
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* KPI 2: Occupancy Rate */}
-        <div
-          className={`p-2.5 sm:p-4 rounded-xl border transition shadow-xs flex flex-col justify-between min-w-0 overflow-hidden bg-card border-slate-200 shadow-xs`}
-        >
-          <div className="flex items-center justify-between gap-1 min-w-0">
-            <span className={`text-[11px] sm:text-xs font-bold truncate text-slate-600`}>
-              نسبة الإشغال
-            </span>
-            <div className="p-1.5 sm:p-2 bg-sky-500/10 text-sky-600 rounded-lg shrink-0">
-              <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            </div>
-          </div>
-          <div className="mt-2 sm:mt-3 min-w-0">
-            <div className={`text-base sm:text-xl font-black truncate text-slate-900`}>
-              {toArabicDigits(occupancyPercentage)}%
-            </div>
-            <div className="flex flex-col xs:flex-row xs:items-center justify-between mt-1 text-[10px] sm:text-[11px] gap-0.5 min-w-0">
-              <span className="text-sky-600 font-bold truncate">{toArabicDigits(occupiedRoomsCount)} مأهولة</span>
-              <span className={`truncate text-slate-500`}>
-                {toArabicDigits(vacantRoomsCount)} شاغرة
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* KPI 3: Maintenance Requests */}
-        <div
-          className={`p-2.5 sm:p-4 rounded-xl border transition shadow-xs flex flex-col justify-between min-w-0 overflow-hidden bg-card border-slate-200 shadow-xs`}
-        >
-          <div className="flex items-center justify-between gap-1 min-w-0">
-            <span className={`text-[11px] sm:text-xs font-bold truncate text-slate-600`}>
-              بلاغات الصيانة
-            </span>
-            <div className="p-1.5 sm:p-2 bg-red-500/10 text-red-600 rounded-lg shrink-0">
-              <Wrench className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            </div>
-          </div>
-          <div className="mt-2 sm:mt-3 min-w-0">
-            <div className="text-base sm:text-xl font-black text-red-600 flex items-center gap-1.5 flex-wrap min-w-0">
-              <span className="truncate">{toArabicDigits(activeMaintenanceTickets.length)} نشط</span>
-              {overdueMaintenanceTickets.length > 0 && (
-                <span className="text-[9px] sm:text-[10px] bg-red-500 text-white px-1.5 py-0.5 rounded font-mono font-bold animate-pulse shrink-0">
-                  {toArabicDigits(overdueMaintenanceTickets.length)} متأخر
-                </span>
-              )}
-            </div>
-            <div className="flex flex-col xs:flex-row xs:items-center justify-between mt-1 text-[10px] sm:text-[11px] gap-0.5 min-w-0">
-              <span className="text-emerald-600 font-bold truncate">{toArabicDigits(completedMaintenanceTickets.length)} منجز</span>
-              <span className={`truncate text-slate-500`}>
-                إنجاز {toArabicDigits(maintenanceCompletionRate)}%
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* KPI 4: Periodic Inspections */}
-        <div
-          className={`p-2.5 sm:p-4 rounded-xl border transition shadow-xs flex flex-col justify-between min-w-0 overflow-hidden bg-card border-slate-200 shadow-xs`}
-        >
-          <div className="flex items-center justify-between gap-1 min-w-0">
-            <span className={`text-[11px] sm:text-xs font-bold truncate text-slate-600`}>
-              الكشوفات الدورية
-            </span>
-            <div className="p-1.5 sm:p-2 bg-indigo-500/10 text-indigo-600 rounded-lg shrink-0">
-              <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            </div>
-          </div>
-          <div className="mt-2 sm:mt-3 min-w-0">
-            <div className={`text-base sm:text-xl font-black truncate text-slate-900`}>
-              {toArabicDigits(totalInspectionsCount)} كشف
-            </div>
-            <div className="flex flex-col xs:flex-row xs:items-center justify-between mt-1 text-[10px] sm:text-[11px] gap-0.5 min-w-0">
-              <span className="text-emerald-600 font-bold truncate">{toArabicDigits(completedInspectionsCount)} مكتمل</span>
-              <span className={`truncate ${overdueInspectionsCount > 0 ? 'text-red-600 font-bold' : 'text-slate-500'}`}>
-                {overdueInspectionsCount > 0 ? `${toArabicDigits(overdueInspectionsCount)} متأخر` : `${toArabicDigits(scheduledInspectionsCount)} مجدول`}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* KPI 5: Grade D Critical Units */}
-        <div
-          className={`p-2.5 sm:p-4 rounded-xl border transition shadow-xs flex flex-col justify-between min-w-0 overflow-hidden bg-card border-slate-200 shadow-xs`}
-        >
-          <div className="flex items-center justify-between gap-1 min-w-0">
-            <span className={`text-[11px] sm:text-xs font-bold truncate text-slate-600`}>
-              وحدات حرجة (D)
-            </span>
-            <div className="p-1.5 sm:p-2 bg-brand-50 text-brand-700 rounded-lg shrink-0">
-              <ShieldAlert className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            </div>
-          </div>
-          <div className="mt-2 sm:mt-3 min-w-0">
-            <div className="text-base sm:text-xl font-black text-brand-700 truncate">
-              {toArabicDigits(gradeDCount)} وحدة
-            </div>
-            <div className="flex flex-col xs:flex-row xs:items-center justify-between mt-1 text-[10px] sm:text-[11px] gap-0.5 min-w-0">
-              <span className="text-brand-700 font-bold truncate">{toArabicDigits(gradeDPct)}% حرجة</span>
-              <span className={`truncate text-slate-500`}>
-                {gradeDCount > 0 ? 'تتطلب تأهيلاً' : 'سلامة تامة'}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* KPI 6: Formations & Reach */}
-        <div
-          className={`p-2.5 sm:p-4 rounded-xl border transition shadow-xs flex flex-col justify-between min-w-0 overflow-hidden bg-card border-slate-200 shadow-xs`}
-        >
-          <div className="flex items-center justify-between gap-1 min-w-0">
-            <span className={`text-[11px] sm:text-xs font-bold truncate text-slate-600`}>
-              التشكيلات والحقول
-            </span>
-            <div className="p-1.5 sm:p-2 bg-purple-500/10 text-purple-600 rounded-lg shrink-0">
-              <Compass className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            </div>
-          </div>
-          <div className="mt-2 sm:mt-3 min-w-0">
-            <div className={`text-base sm:text-xl font-black truncate text-slate-900`}>
-              {toArabicDigits(oilfieldsBreakdown.length)} حقل
-            </div>
-            <div className="flex flex-col xs:flex-row xs:items-center justify-between mt-1 text-[10px] sm:text-[11px] gap-0.5 min-w-0">
-              <span className="text-purple-600 font-bold truncate">{toArabicDigits(orgEntitiesBreakdown.length)} تشكيل</span>
-              <span className={`truncate text-slate-500`}>
-                {toArabicDigits(governorateBreakdown.length)} محافظة
-              </span>
-            </div>
-          </div>
-        </div>
+      {/* بطاقات المؤشرات */}
+      <div className="grid grid-cols-2 gap-2.5 sm:gap-3 lg:grid-cols-3 xl:grid-cols-6">
+        <StatCard
+          icon={Building2}
+          label="الوحدات والأصول"
+          value={`${toArabicDigits(totalUnits)} أصل`}
+          hint={`${toArabicDigits(activeUnitsCount)} نشط • ${toArabicDigits(totalBuiltArea.toLocaleString('ar-IQ'))} م²`}
+        />
+        <StatCard
+          icon={Users}
+          tone="green"
+          label="نسبة الإشغال"
+          value={`${toArabicDigits(occupancyPercentage)}%`}
+          hint={`${toArabicDigits(occupiedRoomsCount)} مشغولة • ${toArabicDigits(vacantRoomsCount)} شاغرة`}
+        />
+        <StatCard
+          icon={Wrench}
+          tone="red"
+          label="بلاغات الصيانة"
+          value={`${toArabicDigits(activeMaintenanceTickets.length)} نشط`}
+          hint={
+            overdueMaintenanceTickets.length > 0
+              ? `${toArabicDigits(overdueMaintenanceTickets.length)} متأخر • إنجاز ${toArabicDigits(maintenanceCompletionRate)}%`
+              : `${toArabicDigits(completedMaintenanceTickets.length)} منجز • إنجاز ${toArabicDigits(maintenanceCompletionRate)}%`
+          }
+        />
+        <StatCard
+          icon={Calendar}
+          tone="brand"
+          label="الكشوفات الدورية"
+          value={`${toArabicDigits(totalInspectionsCount)} كشف`}
+          hint={
+            overdueInspectionsCount > 0
+              ? `${toArabicDigits(overdueInspectionsCount)} متأخر`
+              : `${toArabicDigits(completedInspectionsCount)} مكتمل`
+          }
+        />
+        <StatCard
+          icon={ShieldAlert}
+          tone={gradeDCount > 0 ? 'red' : 'green'}
+          label="وحدات حرجة (D)"
+          value={`${toArabicDigits(gradeDCount)} وحدة`}
+          hint={gradeDCount > 0 ? 'تتطلب تأهيلاً' : 'سلامة تامة'}
+        />
+        <StatCard
+          icon={Compass}
+          label="التشكيلات والحقول"
+          value={`${toArabicDigits(oilfieldsBreakdown.length)} حقل`}
+          hint={`${toArabicDigits(governorateBreakdown.length)} محافظة`}
+        />
       </div>
 
       {/* EXECUTIVE AUTOMATED INSIGHTS BANNER */}

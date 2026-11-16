@@ -1,5 +1,5 @@
 import { getServerIsoDateOnly } from '../services/serverTime';
-import { Button, Card, CardHeader, ConfirmDialog, EmptyState, Field, Input, Modal, PageHeader, Select, Table, Tabs, Td, fieldLook, useConfirm } from './ui';
+import { Button, Card, CardHeader, ConfirmDialog, EmptyState, Field, Input, Modal, PageHeader, Select, StatCard, Table, Tabs, Td, fieldLook, useConfirm } from './ui';
 import { calculateNextDueDate } from '../utils/inspectionSchedule';
 import React, { useState, useMemo, useEffect, lazy, Suspense } from 'react';
 import {
@@ -903,51 +903,12 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
         />
       </div>
 
-      {/* KPI Cards Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
-        <div className={`rounded-xl sm:rounded-2xl p-3 sm:p-4 flex items-center justify-between shadow-sm transition-colors bg-card border border-slate-200`}>
-          <div className="min-w-0">
-            <p className={`text-[11px] sm:text-xs font-bold truncate text-slate-600`}>إجمالي الكشوفات المجدولة</p>
-            <h3 className={`text-xl sm:text-2xl font-black mt-0.5 sm:mt-1 text-slate-900`}>{toArabicDigits(totalCount)}</h3>
-            <p className={`text-[10px] sm:text-[11px] mt-0.5 truncate text-slate-500`}>جدول متابعة معتمد للنظام</p>
-          </div>
-          <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center shrink-0 border mr-2 bg-slate-100 border-slate-200 text-slate-700`}>
-            <CalendarDays className="w-5 h-5 sm:w-6 sm:h-6" />
-          </div>
-        </div>
-
-        <div className={`rounded-xl sm:rounded-2xl p-3 sm:p-4 flex items-center justify-between shadow-sm transition-colors bg-red-50/70 border border-red-200`}>
-          <div className="min-w-0">
-            <p className={`text-[11px] sm:text-xs font-bold truncate text-red-800`}>غير مكتملة (مستحقة فوراً)</p>
-            <h3 className={`text-xl sm:text-2xl font-black mt-0.5 sm:mt-1 text-red-700`}>{toArabicDigits(overdueCount)}</h3>
-            <p className={`text-[10px] sm:text-[11px] mt-0.5 truncate text-red-600/80`}>تتطلب معالجة وإنجاز كشف عاجل</p>
-          </div>
-          <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center shrink-0 border mr-2 bg-red-100 border-red-200 text-red-600`}>
-            <AlertTriangle className="w-5 h-5 sm:w-6 sm:h-6" />
-          </div>
-        </div>
-
-        <div className={`rounded-xl sm:rounded-2xl p-3 sm:p-4 flex items-center justify-between shadow-sm transition-colors bg-brand-50 border border-brand-200`}>
-          <div className="min-w-0">
-            <p className={`text-[11px] sm:text-xs font-bold truncate text-brand-800`}>غير مكتملة (مجدولة قادمة)</p>
-            <h3 className={`text-xl sm:text-2xl font-black mt-0.5 sm:mt-1 text-brand-700`}>{toArabicDigits(scheduledCount)}</h3>
-            <p className={`text-[10px] sm:text-[11px] mt-0.5 truncate text-brand-700`}>بانتظار تاريخ الاستحقاق</p>
-          </div>
-          <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center shrink-0 border mr-2 bg-brand-100 border-brand-200 text-brand-700`}>
-            <Clock className="w-5 h-5 sm:w-6 sm:h-6" />
-          </div>
-        </div>
-
-        <div className={`rounded-xl sm:rounded-2xl p-3 sm:p-4 flex items-center justify-between shadow-sm transition-colors bg-emerald-50/70 border border-emerald-200`}>
-          <div className="min-w-0">
-            <p className={`text-[11px] sm:text-xs font-bold truncate text-emerald-800`}>كشوفات مكتملة وموثقة</p>
-            <h3 className={`text-xl sm:text-2xl font-black mt-0.5 sm:mt-1 text-emerald-700`}>{toArabicDigits(completedCount)}</h3>
-            <p className={`text-[10px] sm:text-[11px] mt-0.5 truncate text-emerald-700/80`}>تم ترفيع تقاريرها وتحديث الدرجة</p>
-          </div>
-          <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center shrink-0 border mr-2 bg-emerald-100 border-emerald-200 text-emerald-700`}>
-            <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6" />
-          </div>
-        </div>
+      {/* بطاقات المؤشرات */}
+      <div className="grid grid-cols-2 gap-2.5 sm:gap-3 lg:grid-cols-4">
+        <StatCard icon={CalendarDays} label="إجمالي الكشوفات المجدولة" value={toArabicDigits(totalCount)} hint="جدول متابعة معتمد" />
+        <StatCard icon={AlertTriangle} tone="red" label="غير مكتملة (مستحقة فوراً)" value={toArabicDigits(overdueCount)} hint="تتطلب إنجاز كشف عاجل" />
+        <StatCard icon={Clock} tone="brand" label="غير مكتملة (مجدولة قادمة)" value={toArabicDigits(scheduledCount)} hint="بانتظار تاريخ الاستحقاق" />
+        <StatCard icon={CheckCircle2} tone="green" label="كشوفات مكتملة وموثقة" value={toArabicDigits(completedCount)} hint="رُفعت تقاريرها" />
       </div>
 
       {/* شريط الفلاتر */}
@@ -2531,178 +2492,38 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                     <div className="p-8 text-center text-slate-500 text-xs">لا توجد سجلات كشف دوري مسجلة لهذه الوحدة حتى الآن.</div>
                   ) : (
                     <div>
-                      {/* Mobile Cards View for Inspection Archive (md:hidden) */}
-                      <div className="md:hidden space-y-3">
-                        {schedules
-                          .filter((s) => s.unitCode === showUnitArchiveModal.code)
-                          .map((sch) => {
-                            const p = (sch.performedByName || (sch.status === 'completed' && sch.inspectorName))
-                              ? getPerformerDisplay(sch.performedByName, sch.inspectorName, users, sch.status === 'completed')
-                              : null;
+                      <Table
+                        head={[
+                          'عنوان الكشف',
+                          'التكرار',
+                          'آخر كشف',
+                          'الموعد المستحق',
+                          'الحالة والدرجة',
+                          'مُنفِّذ الكشف',
+                          'الملاحظات والنتائج',
+                          'التوصيات والإجراءات',
+                          'المرفقات / الصور',
+                          'تحديث الكشف',
+                        ]}
+                      >
 
-                            return (
-                              <div
-                                key={sch.id}
-                                className={`p-3 rounded-xl border space-y-2.5 transition bg-card border-slate-200 shadow-xs`}
-                              >
-                                {/* Top Title & Badges */}
-                                <div className="flex items-start justify-between gap-2">
-                                  <div className="min-w-0">
-                                    <h5 className={`font-extrabold text-xs sm:text-sm leading-snug text-slate-900`}>
-                                      {sch.title}
-                                    </h5>
-                                    <div className="flex items-center gap-1.5 mt-1 flex-wrap">
-                                      <span className={`px-2 py-0.5 rounded-lg text-[10px] font-bold border bg-brand-50 text-brand-800 border-brand-200`}>
-                                        {getFrequencyLabel(sch.frequency, sch.customIntervalDays)}
-                                      </span>
-                                      {sch.conditionGradeGiven && getConditionGradeBadge(sch.conditionGradeGiven)}
-                                    </div>
-                                  </div>
-                                  <div className="shrink-0">
-                                    {getStatusBadge(sch.status)}
-                                  </div>
-                                </div>
-
-                                {/* Dates Grid */}
-                                <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-slate-200/60 ">
-                                  <div>
-                                    <span className="text-slate-500 text-[10px] block">آخر كشف:</span>
-                                    <span className="font-mono font-bold text-[11px]">{toArabicDigits(sch.lastInspectionDate)}</span>
-                                  </div>
-                                  <div>
-                                    <span className="text-slate-500 text-[10px] block">الموعد المستحق:</span>
-                                    <span className={`font-mono font-bold text-[11px] ${sch.status === 'overdue' ? 'text-rose-600 font-black' : 'text-brand-800'}`}>
-                                      {toArabicDigits(sch.nextDueDate)}
-                                    </span>
-                                  </div>
-                                </div>
-
-                                {/* Performer */}
-                                <div className="flex items-center justify-between text-xs pt-2 border-t border-slate-200/60 ">
-                                  <span className="text-slate-500 text-[10px]">المُنفِّذ:</span>
-                                  {p ? (
-                                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold border ${p.roleBadgeClass}`}>
-                                      <UserCheck className="w-3 h-3" />
-                                      <span>{p.userName || p.roleBadgeText}</span>
-                                    </span>
-                                  ) : (
-                                    <span className="text-slate-500 text-[10px]">{sch.status === 'completed' ? '—' : 'لم يُنجز بعد'}</span>
-                                  )}
-                                </div>
-
-                                {/* Findings & Notes if available */}
-                                {(sch.findings || sch.notes) && (
-                                  <div className={`p-2.5 rounded-xl text-xs space-y-1 bg-slate-50 border border-slate-200`}>
-                                    <span className="font-bold text-[10px] text-slate-500 block">الملاحظات والنتائج:</span>
-                                    <p className={`text-[11px] leading-relaxed text-slate-800`}>
-                                      {sch.findings || sch.notes}
-                                    </p>
-                                  </div>
-                                )}
-
-                                {/* Recommendations if available */}
-                                {sch.recommendations && (
-                                  <div className={`p-2.5 rounded-xl text-xs space-y-1 bg-brand-50 border border-brand-200 text-brand-800`}>
-                                    <span className="font-bold text-[10px] opacity-80 block">التوصيات والإجراءات:</span>
-                                    <p className="text-[11px] leading-relaxed font-semibold">
-                                      {sch.recommendations}
-                                    </p>
-                                  </div>
-                                )}
-
-                                {/* Report Attachment & Actions */}
-                                <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-200/60 ">
-                                  <div>
-                                    {sch.reportFileName || sch.reportFileUrl ? (
-                                      <button
-                                        type="button"
-                                        onClick={() => {
-                                          const ext = sch.reportFileName?.split('.').pop() || 'pdf';
-                                          setPreviewAttachment({
-                                            id: 'insp-arch-mob-' + sch.id,
-                                            name: sch.reportFileName || 'تقرير_الكشف.pdf',
-                                            type: ext,
-                                            url: sch.reportFileUrl || '#',
-                                            uploadedAt: sch.lastInspectionDate || getServerIsoDateOnly(),
-                                            size: '1.5 MB',
-                                          });
-                                        }}
-                                        className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer border min-h-[34px] bg-emerald-50 text-emerald-800 border-emerald-200`}
-                                      >
-                                        <Eye className="w-3.5 h-3.5" />
-                                        <span>معاينة التقرير</span>
-                                      </button>
-                                    ) : (
-                                      <span className="text-slate-500 text-[10px]">لا يوجد مرفق</span>
-                                    )}
-                                  </div>
-
-                                  <div>
-                                    {sch.status !== 'completed' ? (
-                                      <button
-                                        onClick={() => {
-                                          const matchedUnit = units.find((u) => u.code === sch.unitCode);
-                                          setShowCompleteModal(sch);
-                                          setCompleteDate(sch.lastInspectionDate || getServerIsoDateOnly());
-                                          setMaintDate(sch.lastInspectionDate || getServerIsoDateOnly());
-                                          setCompletePerformedByName(sch.performedByName || '');
-                                          if (matchedUnit) {
-                                            setCompleteGrade(sch.conditionGradeGiven || matchedUnit.conditionGrade);
-                                          }
-                                        }}
-                                        className={`px-3 py-1.5 rounded-lg text-xs font-bold cursor-pointer transition flex items-center gap-1.5 min-h-[34px] bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm`}
-                                      >
-                                        <RefreshCw className="w-3.5 h-3.5" />
-                                        <span>تحديث وإنجاز</span>
-                                      </button>
-                                    ) : (
-                                      <span className={`px-2.5 py-1 rounded-lg text-[11px] font-bold inline-flex items-center gap-1 bg-emerald-100 text-emerald-800`}>
-                                        <CheckCircle2 className="w-3.5 h-3.5" />
-                                        <span>مكتمل وموثق</span>
-                                      </span>
-                                    )}
-                                  </div>
-                                </div>
-                              </div>
-                            );
-                          })}
-                      </div>
-
-                      {/* Desktop Table View (hidden md:block) */}
-                      <div className="hidden md:block overflow-x-auto">
-                        <table className="w-full text-right text-xs">
-                          <thead className={`font-bold border-b bg-slate-100 text-slate-700`}>
-                            <tr>
-                              <th className="p-2">عنوان الكشف</th>
-                              <th className="p-2">التكرار</th>
-                              <th className="p-2">آخر كشف</th>
-                              <th className="p-2">الموعد المستحق</th>
-                              <th className="p-2">الحالة والدرجة</th>
-                              <th className="p-2">مُنفِّذ الكشف</th>
-                              <th className="p-2">الملاحظات والنتائج</th>
-                              <th className="p-2">التوصيات والإجراءات</th>
-                              <th className="p-2 text-center">المرفقات / الصور</th>
-                              <th className="p-2 text-center">تحديث الكشف</th>
-                            </tr>
-                          </thead>
-                          <tbody className={`divide-y divide-slate-200`}>
                             {schedules
                               .filter((s) => s.unitCode === showUnitArchiveModal.code)
                               .map((sch) => (
                                 <tr key={sch.id} className={'hover:bg-slate-100/80'}>
-                                  <td className="p-2 font-bold">
+                                  <Td className="font-bold">
                                     <div className={'text-slate-900'}>{sch.title}</div>
-                                  </td>
-                                  <td className={`p-2 text-[11px] text-slate-700`}>{getFrequencyLabel(sch.frequency, sch.customIntervalDays)}</td>
-                                  <td className={`p-2 font-mono text-[11px] text-slate-700`}>{toArabicDigits(sch.lastInspectionDate)}</td>
-                                  <td className={`p-2 font-mono font-bold text-[11px] text-brand-700`}>{toArabicDigits(sch.nextDueDate)}</td>
-                                  <td className="p-2">
+                                  </Td>
+                                  <Td className="text-[11px] text-slate-700">{getFrequencyLabel(sch.frequency, sch.customIntervalDays)}</Td>
+                                  <Td className="font-mono text-[11px] text-slate-700">{toArabicDigits(sch.lastInspectionDate)}</Td>
+                                  <Td className="font-mono font-bold text-[11px] text-brand-700">{toArabicDigits(sch.nextDueDate)}</Td>
+                                  <Td>
                                     <div className="space-y-1">
                                       <div>{getStatusBadge(sch.status)}</div>
                                       {sch.conditionGradeGiven && <div>{getConditionGradeBadge(sch.conditionGradeGiven)}</div>}
                                     </div>
-                                  </td>
-                                  <td className="p-2 text-[11px] whitespace-nowrap">
+                                  </Td>
+                                  <Td className="text-[11px] whitespace-nowrap">
                                     {sch.performedByName || (sch.status === 'completed' && sch.inspectorName) ? (
                                       (() => {
                                         const p = getPerformerDisplay(sch.performedByName, sch.inspectorName, users, sch.status === 'completed');
@@ -2732,8 +2553,8 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                                     ) : (
                                       <span className="text-slate-500">{sch.status === 'completed' ? '—' : 'لم يُنجز بعد'}</span>
                                     )}
-                                  </td>
-                                  <td className="p-2 max-w-[160px]">
+                                  </Td>
+                                  <Td className="max-w-[160px]">
                                     {sch.findings || sch.notes ? (
                                       <span className={`text-[11px] line-clamp-2 text-slate-700`} title={sch.findings || sch.notes}>
                                         {sch.findings || sch.notes}
@@ -2741,8 +2562,8 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                                     ) : (
                                       <span className="text-slate-500 text-[10px]">لا توجد ملاحظات</span>
                                     )}
-                                  </td>
-                                  <td className="p-2 max-w-[160px]">
+                                  </Td>
+                                  <Td className="max-w-[160px]">
                                     {sch.recommendations ? (
                                       <span className={`text-[11px] line-clamp-2 font-semibold text-brand-800`} title={sch.recommendations}>
                                         {sch.recommendations}
@@ -2750,8 +2571,8 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                                     ) : (
                                       <span className="text-slate-500 text-[10px]">لا توجد توصيات</span>
                                     )}
-                                  </td>
-                                  <td className="p-2 text-center whitespace-nowrap">
+                                  </Td>
+                                  <Td className="text-center whitespace-nowrap">
                                     {sch.reportFileName || sch.reportFileUrl ? (
                                       <button
                                         type="button"
@@ -2775,8 +2596,8 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                                     ) : (
                                       <span className="text-slate-500 text-[10px]">لا يوجد مرفق</span>
                                     )}
-                                  </td>
-                                  <td className="p-2 text-center">
+                                  </Td>
+                                  <Td className="text-center">
                                     {sch.status !== 'completed' ? (
                                       <button
                                         onClick={() => {
@@ -2800,12 +2621,10 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                                         مكتمل وموثق
                                       </span>
                                     )}
-                                  </td>
+                                  </Td>
                                 </tr>
                               ))}
-                          </tbody>
-                        </table>
-                      </div>
+                      </Table>
                     </div>
                   )}
                 </div>
@@ -2828,157 +2647,25 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                     <div className="p-8 text-center text-slate-500 text-xs">لا توجد بلاغات صيانة سابقة لهذه الوحدة.</div>
                   ) : (
                     <div>
-                      {/* Mobile Cards View for Maintenance Archive (md:hidden) */}
-                      <div className="md:hidden space-y-3">
-                        {maintenanceRequests
-                          .filter((r) => r.unitCode === showUnitArchiveModal.code)
-                          .map((req) => (
-                            <div
-                              key={req.id}
-                              className={`p-3 rounded-xl border space-y-2.5 transition bg-card border-slate-200 shadow-xs`}
-                            >
-                              {/* Top: ID, Priority, Status */}
-                              <div className="flex items-center justify-between gap-2">
-                                <div className="flex items-center gap-2">
-                                  <span className={`font-mono font-bold text-xs text-brand-700`}>
-                                    #{toArabicDigits(req.id)}
-                                  </span>
-                                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                                    req.priority === 'critical'
-                                      ? 'bg-red-100 text-red-800'
-                                      : 'bg-blue-100 text-blue-800'
-                                  }`}>
-                                    {req.priority === 'critical' ? 'حرج' : 'عادي'}
-                                  </span>
-                                </div>
+                      <Table
+                        head={[
+                          'رقم الطلب',
+                          'العطل',
+                          'جهة الصيانة',
+                          'حالة الطلب',
+                          'تاريخ الإنجاز / الإلغاء',
+                          'المدة (بالأيام)',
+                          'المرفقات',
+                          'النتائج',
+                          'الإجراءات',
+                        ]}
+                      >
 
-                                <div>
-                                  {req.status === 'completed' ? (
-                                    <span className={`px-2 py-0.5 rounded-md font-bold border text-[10px] bg-emerald-100 text-emerald-800 border-emerald-200`}>
-                                      منجز
-                                    </span>
-                                  ) : req.status === 'rejected' ? (
-                                    <span className={`px-2 py-0.5 rounded-md font-bold border text-[10px] bg-rose-100 text-rose-800 border-rose-200`}>
-                                      مرفوض
-                                    </span>
-                                  ) : req.status === 'cancelled' ? (
-                                    <span className={`px-2 py-0.5 rounded-md font-bold border text-[10px] bg-slate-200 text-slate-700 border-slate-300`}>
-                                      ملغى
-                                    </span>
-                                  ) : (
-                                    <span className={`px-2 py-0.5 rounded-md font-bold border text-[10px] bg-brand-100 text-brand-800 border-brand-200`}>
-                                      قيد المعالجة
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-
-                              {/* Issue Description */}
-                              <div>
-                                <h5 className={`font-bold text-xs leading-relaxed text-slate-900`}>
-                                  {req.issue}
-                                </h5>
-                                <div className="flex items-center gap-2 mt-1">
-                                  <span className={`px-2 py-0.5 rounded-lg text-[10px] font-bold border bg-brand-50 text-brand-800 border-brand-200`}>
-                                    {req.maintenanceDepartment || 'الصيانة العامة'}
-                                  </span>
-                                </div>
-                              </div>
-
-                              {/* Dates Grid */}
-                              <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-slate-200/60 ">
-                                <div>
-                                  <span className="text-slate-500 text-[10px] block">تاريخ البلاغ:</span>
-                                  <span className="font-mono text-[11px] font-medium">{formatDateOnly(req.createdAt)}</span>
-                                </div>
-                                <div>
-                                  <span className="text-slate-500 text-[10px] block">الإنجاز / الإلغاء:</span>
-                                  <span className="font-mono text-[11px] font-medium">{getCompletionOrCancellationDate(req.completedAt, req.status)}</span>
-                                </div>
-                                <div>
-                                  <span className="text-slate-500 text-[10px] block">مدة الإنجاز:</span>
-                                  <span className={`font-bold text-[11px] text-brand-800`}>
-                                    {calculateMaintenanceDurationDays(req.createdAt, req.completedAt, req.status)}
-                                  </span>
-                                </div>
-                              </div>
-
-                              {/* Resolution Notes if available */}
-                              {req.resolutionNotes && (
-                                <div className={`p-2.5 rounded-xl text-xs space-y-1 bg-slate-50 border border-slate-200`}>
-                                  <span className="font-bold text-[10px] text-slate-500 block">ملاحظات ونتائج المعالجة:</span>
-                                  <p className={`text-[11px] leading-relaxed text-slate-800`}>
-                                    {req.resolutionNotes}
-                                  </p>
-                                </div>
-                              )}
-
-                              {/* Attachment & Action button */}
-                              <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-200/60 ">
-                                <div>
-                                  {req.attachmentUrl || req.attachmentName ? (
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        const ext = req.attachmentName?.split('.').pop() || 'jpg';
-                                        setPreviewAttachment({
-                                          id: 'maint-arch-mob-' + req.id,
-                                          name: req.attachmentName || 'صورة_البلاغ.jpg',
-                                          type: ext,
-                                          url: req.attachmentUrl || '#',
-                                          uploadedAt: formatDateOnly(req.createdAt),
-                                          size: '1.2 MB',
-                                        });
-                                      }}
-                                      className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer border min-h-[34px] bg-brand-50 text-brand-800 border-brand-200`}
-                                    >
-                                      <Eye className="w-3.5 h-3.5" />
-                                      <span>معاينة المرفق</span>
-                                    </button>
-                                  ) : (
-                                    <span className="text-slate-500 text-[10px]">لا يوجد مرفق</span>
-                                  )}
-                                </div>
-
-                                <button
-                                  onClick={() => {
-                                    setEditMaintenanceReq(req);
-                                    setMaintNewStatus(req.status === 'cancelled' ? 'cancelled' : 'completed');
-                                    setMaintResolutionNotes(req.resolutionNotes || '');
-                                    setMaintCompletedDate(req.completedAt?.split(' ')[0] || getServerIsoDateOnly());
-                                  }}
-                                  className={`px-3 py-1.5 rounded-lg text-xs font-bold cursor-pointer transition whitespace-nowrap border flex items-center gap-1 min-h-[34px] bg-brand-100 hover:bg-brand-100 text-brand-800 border-brand-200`}
-                                >
-                                  <Edit3 className="w-3.5 h-3.5" />
-                                  <span>تحديث الحالة</span>
-                                </button>
-                              </div>
-                            </div>
-                          ))}
-                      </div>
-
-                      {/* Desktop Table View (hidden md:block) */}
-                      <div className="hidden md:block overflow-x-auto">
-                        <table className="w-full text-right text-xs">
-                          <thead className={`font-bold border-b bg-slate-100 text-slate-700`}>
-                            <tr>
-                              <th className="p-2 whitespace-nowrap">رقم الطلب</th>
-                              <th className="p-2 min-w-[130px] max-w-[180px]">العطل</th>
-                              <th className="p-2 whitespace-nowrap">جهة الصيانة</th>
-                              <th className="p-2 whitespace-nowrap">حالة الطلب</th>
-                              <th className="p-2 whitespace-nowrap">تاريخ الإنجاز / الإلغاء</th>
-                              <th className="p-2 whitespace-nowrap text-center">المدة (بالأيام)</th>
-                              <th className="p-2 text-center whitespace-nowrap">المرفقات</th>
-                              <th className="p-2 min-w-[110px] max-w-[150px]">النتائج</th>
-                              <th className="p-2 text-center whitespace-nowrap">الإجراءات</th>
-                            </tr>
-                          </thead>
-                          <tbody className={`divide-y divide-slate-200`}>
                             {maintenanceRequests
                               .filter((r) => r.unitCode === showUnitArchiveModal.code)
                               .map((req) => (
                                 <tr key={req.id} className={'hover:bg-slate-100/80'}>
-                                  <td className="p-2 whitespace-nowrap">
+                                  <Td className="whitespace-nowrap">
                                     <div className="space-y-0.5">
                                       <div className={`font-mono font-bold text-[11px] text-brand-700`}>
                                         {toArabicDigits(req.id)}
@@ -2987,8 +2674,8 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                                         {formatDateOnly(req.createdAt)}
                                       </div>
                                     </div>
-                                  </td>
-                                  <td className="p-2 max-w-[180px]">
+                                  </Td>
+                                  <Td className="max-w-[180px]">
                                     <div className={`font-bold text-xs line-clamp-2 text-slate-900`} title={req.issue}>{req.issue}</div>
                                     <div className="mt-0.5">
                                       <span className={`px-1.5 py-0.2 rounded text-[9px] ${
@@ -2999,13 +2686,13 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                                         {req.priority === 'critical' ? 'حرج' : 'عادي'}
                                       </span>
                                     </div>
-                                  </td>
-                                  <td className="p-2 whitespace-nowrap">
+                                  </Td>
+                                  <Td className="whitespace-nowrap">
                                     <span className={`px-2 py-0.5 rounded-lg text-[10px] font-bold bg-brand-100 text-brand-800 border border-brand-200`}>
                                       {req.maintenanceDepartment || 'الصيانة العامة'}
                                     </span>
-                                  </td>
-                                  <td className="p-2 whitespace-nowrap">
+                                  </Td>
+                                  <Td className="whitespace-nowrap">
                                     {req.status === 'completed' ? (
                                       <span className={`px-2 py-0.5 rounded font-bold border text-[10px] bg-emerald-100 text-emerald-800 border-emerald-200`}>
                                         منجز
@@ -3023,10 +2710,10 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                                         قيد المعالجة
                                       </span>
                                     )}
-                                  </td>
-                                  <td className={`p-2 font-mono text-[11px] font-semibold whitespace-nowrap text-slate-700`}>{getCompletionOrCancellationDate(req.completedAt, req.status)}</td>
-                                  <td className={`p-2 font-bold text-[11px] text-center whitespace-nowrap text-brand-700`}>{calculateMaintenanceDurationDays(req.createdAt, req.completedAt, req.status)}</td>
-                                  <td className="p-2 text-center whitespace-nowrap">
+                                  </Td>
+                                  <Td className="font-mono text-[11px] font-semibold whitespace-nowrap text-slate-700">{getCompletionOrCancellationDate(req.completedAt, req.status)}</Td>
+                                  <Td className="font-bold text-[11px] text-center whitespace-nowrap text-brand-700">{calculateMaintenanceDurationDays(req.createdAt, req.completedAt, req.status)}</Td>
+                                  <Td className="text-center whitespace-nowrap">
                                     {req.attachmentUrl || req.attachmentName ? (
                                       <button
                                         type="button"
@@ -3050,15 +2737,15 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                                     ) : (
                                       <span className="text-slate-500 text-[10px]">لا يوجد مرفق</span>
                                     )}
-                                  </td>
-                                  <td className="p-2 max-w-[150px]">
+                                  </Td>
+                                  <Td className="max-w-[150px]">
                                     {req.resolutionNotes ? (
                                       <span className={`text-[10px] line-clamp-2 block text-slate-700`} title={req.resolutionNotes}>{req.resolutionNotes}</span>
                                     ) : (
                                       <span className="text-slate-500 text-[10px]">لا توجد ملاحظات</span>
                                     )}
-                                  </td>
-                                  <td className="p-2 text-center whitespace-nowrap">
+                                  </Td>
+                                  <Td className="text-center whitespace-nowrap">
                                     <button
                                       onClick={() => {
                                         setEditMaintenanceReq(req);
@@ -3070,12 +2757,10 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                                     >
                                       تحديث الحالة
                                     </button>
-                                  </td>
+                                  </Td>
                                 </tr>
                               ))}
-                          </tbody>
-                        </table>
-                      </div>
+                      </Table>
                     </div>
                   )}
                 </div>

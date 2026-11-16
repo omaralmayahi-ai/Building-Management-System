@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ConfirmDialog, useConfirm } from './ui';
+import { ConfirmDialog, Table, Td, useConfirm } from './ui';
 import {
   Database,
   Download,
@@ -1218,148 +1218,31 @@ export const DatabaseBackupManager: React.FC<DatabaseBackupManagerProps> = ({
               </div>
             ) : (
               <>
-                {/* Mobile Backup Cards View (md:hidden) */}
-                <div className="md:hidden space-y-3">
-                  {backupHistory.map((item) => (
-                    <div
-                      key={item.id}
-                      className={`p-3.5 rounded-2xl border transition shadow-sm space-y-3 bg-card border-slate-200 shadow-slate-200/50`}
-                    >
-                      {/* Header: Filename & Trigger Type Badge */}
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="min-w-0 space-y-1">
-                          <div className="flex items-center gap-1.5">
-                            <HardDrive className={`w-3.5 h-3.5 shrink-0 text-brand-700`} />
-                            <span className={`font-mono font-bold text-xs truncate text-slate-900`} title={item.filename}>
-                              {item.filename}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-1.5 text-[11px] text-slate-500 font-mono">
-                            <Clock className="w-3 h-3 shrink-0" />
-                            <span>{item.timestampFormatted}</span>
-                          </div>
-                        </div>
-                        <span
-                          className={`px-2 py-0.5 rounded-full text-[10px] font-bold border shrink-0 ${
-                            item.triggerType === 'scheduled'
-                              ? 'bg-purple-100 text-purple-800 border-purple-200'
-                              : 'bg-blue-100 text-blue-800 border-blue-200'
-                          }`}
-                        >
-                          {item.triggerType === 'scheduled' ? 'مجدول تلقائي' : 'تصدير يدوي'}
-                        </span>
-                      </div>
+                <Table
+                  head={[
+                    'اسم الملف',
+                    'تاريخ ووقت التصدير',
+                    'حجم الملف',
+                    'المباني والسجلات',
+                    'مسار الحفظ',
+                    'النوع',
+                    'إجراءات',
+                  ]}
+                >
 
-                      {/* Meta Specs Grid */}
-                      <div className={`grid grid-cols-2 gap-2 p-2.5 rounded-xl text-xs border bg-slate-50 border-slate-200/80`}>
-                        <div>
-                          <span className="text-[10px] text-slate-500 block mb-0.5">حجم الملف</span>
-                          <span className={`font-mono font-bold text-xs text-brand-700`}>
-                            {item.sizeFormatted}
-                          </span>
-                        </div>
-                        <div>
-                          <span className="text-[10px] text-slate-500 block mb-0.5">المحتوى</span>
-                          <span className={'text-slate-700'}>
-                            <span className={`font-bold text-emerald-700`}>{toArabicDigits(item.unitsCount)}</span> مبنى (
-                            <span className={`font-bold text-cyan-700`}>{toArabicDigits(item.totalRecords)}</span> سجل)
-                          </span>
-                        </div>
-                        <div className="col-span-2 pt-1 border-t border-slate-200/60 ">
-                          <span className="text-[10px] text-slate-500 block mb-0.5">مسار الحفظ</span>
-                          <span className={`font-mono text-[11px] truncate block text-slate-600`} dir="ltr">
-                            {item.storagePath}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Actions row */}
-                      <div className="flex items-center gap-2 pt-1 border-t border-slate-200/80 ">
-                        {item.payloadSnapshot && (
-                          <>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const jsonContent = JSON.stringify(item.payloadSnapshot, null, 2);
-                                const blob = new Blob([jsonContent], { type: 'application/json' });
-                                const url = URL.createObjectURL(blob);
-                                const link = document.createElement('a');
-                                link.href = url;
-                                link.download = item.filename;
-                                document.body.appendChild(link);
-                                link.click();
-                                document.body.removeChild(link);
-                                URL.revokeObjectURL(url);
-                                triggerSaveToast('تم تنزيل النسخة الاحتياطية مجدداً');
-                              }}
-                              className={`flex-1 min-h-[38px] px-3 py-1.5 rounded-xl font-bold text-xs border transition cursor-pointer flex items-center justify-center gap-1.5 bg-brand-50 hover:bg-brand-100 text-brand-800 border-brand-200`}
-                            >
-                              <Download className="w-3.5 h-3.5" />
-                              <span>تحميل</span>
-                            </button>
-
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setParsedBackupData(item.payloadSnapshot || null);
-                                setActiveSubTab('import');
-                                triggerSaveToast('تم تحميل بيانات النسخة في تبويب الاستيراد');
-                              }}
-                              className={`flex-1 min-h-[38px] px-3 py-1.5 rounded-xl font-bold text-xs border transition cursor-pointer flex items-center justify-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border-emerald-200`}
-                            >
-                              <RotateCcw className="w-3.5 h-3.5" />
-                              <span>استعادة</span>
-                            </button>
-                          </>
-                        )}
-
-                        <button
-                          type="button"
-                          onClick={async () => {
-                            if (!(await confirm({ title: 'تأكيد حذف النسخة', message: 'هل تريد حذف هذه النسخة من أرشيف هذا المتصفح؟', danger: true }))) return;
-                            const filtered = backupHistory.filter((b) => b.id !== item.id);
-                            setBackupHistory(filtered);
-                            safeSetItem('app_backup_history', filtered);
-                            triggerSaveToast('تم حذف النسخة من الأرشيف');
-                          }}
-                          className={`min-h-[38px] px-3 py-1.5 rounded-xl font-bold text-xs border transition cursor-pointer flex items-center justify-center gap-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border-rose-200`}
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                          <span>حذف</span>
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Desktop Table (hidden md:block) */}
-                <div className="hidden md:block overflow-x-auto">
-                  <table className="w-full text-right text-xs">
-                    <thead>
-                      <tr className={`border-b border-slate-200 text-slate-500`}>
-                        <th className="pb-2.5 font-bold">اسم الملف</th>
-                        <th className="pb-2.5 font-bold">تاريخ ووقت التصدير</th>
-                        <th className="pb-2.5 font-bold">حجم الملف</th>
-                        <th className="pb-2.5 font-bold">المباني والسجلات</th>
-                        <th className="pb-2.5 font-bold">مسار الحفظ</th>
-                        <th className="pb-2.5 font-bold">النوع</th>
-                        <th className="pb-2.5 font-bold text-center">إجراءات</th>
-                      </tr>
-                    </thead>
-                    <tbody className={`divide-y divide-slate-200`}>
                       {backupHistory.map((item) => (
                         <tr key={item.id} className={`transition hover:bg-slate-50`}>
-                          <td className={`py-3 font-mono font-bold text-slate-900`}>{item.filename}</td>
-                          <td className={`py-3 font-mono text-slate-600`}>{item.timestampFormatted}</td>
-                          <td className={`py-3 font-mono font-bold text-brand-700`}>{item.sizeFormatted}</td>
-                          <td className={`py-3 text-slate-700`}>
+                          <Td className={`font-mono font-bold text-slate-900`}>{item.filename}</Td>
+                          <Td className={`font-mono text-slate-600`}>{item.timestampFormatted}</Td>
+                          <Td className={`font-mono font-bold text-brand-700`}>{item.sizeFormatted}</Td>
+                          <Td className={`text-slate-700`}>
                             <span className={`font-bold text-emerald-700`}>{toArabicDigits(item.unitsCount)}</span> مبنى (
                             <span className={`font-bold text-cyan-700`}>{toArabicDigits(item.totalRecords)}</span> سجل)
-                          </td>
-                          <td className={`py-3 font-mono text-[11px] text-slate-600`} dir="ltr">
+                          </Td>
+                          <Td className={`font-mono text-[11px] text-slate-600`} dir="ltr">
                             {item.storagePath}
-                          </td>
-                          <td className="py-3">
+                          </Td>
+                          <Td className="py-3">
                             <span
                               className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
                                 item.triggerType === 'scheduled'
@@ -1369,8 +1252,8 @@ export const DatabaseBackupManager: React.FC<DatabaseBackupManagerProps> = ({
                             >
                               {item.triggerType === 'scheduled' ? 'مجدول تلقائي' : 'تصدير يدوي'}
                             </span>
-                          </td>
-                          <td className="py-3 text-center">
+                          </Td>
+                          <Td className="py-3 text-center">
                             <div className="flex items-center justify-center gap-1.5">
                               {item.payloadSnapshot && (
                                 <>
@@ -1425,12 +1308,10 @@ export const DatabaseBackupManager: React.FC<DatabaseBackupManagerProps> = ({
                                 <Trash2 className="w-3.5 h-3.5" />
                               </button>
                             </div>
-                          </td>
+                          </Td>
                         </tr>
                       ))}
-                    </tbody>
-                  </table>
-                </div>
+                </Table>
               </>
             )}
           </div>

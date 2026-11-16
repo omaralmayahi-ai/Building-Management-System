@@ -1,5 +1,5 @@
 import { getServerIsoDateOnly } from '../services/serverTime';
-import { Button, ConfirmDialog, EmptyState, Field, Input, Modal, PageHeader, Select, Textarea, useConfirm } from './ui';
+import { Button, ConfirmDialog, EmptyState, Field, Input, Modal, PageHeader, Select, StatCard, Table, Td, Textarea, useConfirm } from './ui';
 import React, { useState, useMemo, lazy, Suspense } from 'react';
 import {
   Wrench,
@@ -383,57 +383,32 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
             <span>إحصائيات وبلاغات خاصة باختصاص: {employeeDept}</span>
           </div>
         )}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
-          <div className={`rounded-xl p-4 flex items-center justify-between border bg-card border-slate-200 shadow-xs`}>
-            <div>
-              <span className={`text-xs block font-semibold text-slate-500`}>
-                {isMaintenanceEmployee ? `إجمالي بلاغات (${employeeDept || 'قسمكم'}):` : 'إجمالي البلاغات والطلبات:'}
-              </span>
-              <span className={`text-2xl font-black text-slate-900`}>
-                {toArabicDigits(visibleRequests.length)}{' '}
-                <span className="text-sm font-bold text-brand-700">({toArabicDigits(openCount)} نشط)</span>
-              </span>
-            </div>
-            <div className="p-3 bg-brand-50 text-brand-700 rounded-xl">
-              <Wrench className="w-6 h-6" />
-            </div>
-          </div>
-
-          <div className={`rounded-xl p-4 flex items-center justify-between border bg-card border-slate-200 shadow-xs`}>
-            <div>
-              <span className={`text-xs block font-semibold text-slate-500`}>
-                {isMaintenanceEmployee ? 'قيد المعالجة (قسمكم):' : 'قيد المعالجة والتنفيذ:'}
-              </span>
-              <span className="text-2xl font-black text-sky-600">{toArabicDigits(inProgressCount)} طلب</span>
-            </div>
-            <div className="p-3 bg-sky-500/10 text-sky-600 rounded-xl">
-              <UserCheck className="w-6 h-6" />
-            </div>
-          </div>
-
-          <div className={`rounded-xl p-4 flex items-center justify-between border bg-card border-slate-200 shadow-xs`}>
-            <div>
-              <span className={`text-xs block font-semibold text-slate-500`}>
-                {isMaintenanceEmployee ? 'تمت المعالجة (قسمكم):' : 'تمت المعالجة والإنجاز:'}
-              </span>
-              <span className="text-2xl font-black text-emerald-600">{toArabicDigits(completedCount)} طلب</span>
-            </div>
-            <div className="p-3 bg-emerald-500/10 text-emerald-600 rounded-xl">
-              <CheckCircle2 className="w-6 h-6" />
-            </div>
-          </div>
-
-          <div className={`rounded-xl p-4 flex items-center justify-between border bg-card border-slate-200 shadow-xs`}>
-            <div>
-              <span className={`text-xs block font-semibold text-slate-500`}>
-                {isMaintenanceEmployee ? 'مرفوضة / ملغاة (قسمكم):' : 'طلبات مرفوضة / ملغاة:'}
-              </span>
-              <span className="text-2xl font-black text-rose-600">{toArabicDigits(rejectedCount + cancelledCount)} طلب</span>
-            </div>
-            <div className="p-3 bg-rose-500/10 text-rose-600 rounded-xl">
-              <XCircle className="w-6 h-6" />
-            </div>
-          </div>
+        <div className="grid grid-cols-2 gap-2.5 sm:gap-3 lg:grid-cols-4">
+          <StatCard
+            icon={Wrench}
+            tone="brand"
+            label={isMaintenanceEmployee ? `إجمالي بلاغات (${employeeDept || 'قسمكم'})` : 'إجمالي البلاغات'}
+            value={`${toArabicDigits(visibleRequests.length)} طلب`}
+            hint={`${toArabicDigits(openCount)} نشط`}
+          />
+          <StatCard
+            icon={UserCheck}
+            tone="blue"
+            label={isMaintenanceEmployee ? 'قيد المعالجة (قسمكم)' : 'قيد المعالجة والتنفيذ'}
+            value={`${toArabicDigits(inProgressCount)} طلب`}
+          />
+          <StatCard
+            icon={CheckCircle2}
+            tone="green"
+            label={isMaintenanceEmployee ? 'تمت المعالجة (قسمكم)' : 'تمت المعالجة والإنجاز'}
+            value={`${toArabicDigits(completedCount)} طلب`}
+          />
+          <StatCard
+            icon={XCircle}
+            tone="red"
+            label={isMaintenanceEmployee ? 'مرفوضة / ملغاة (قسمكم)' : 'طلبات مرفوضة / ملغاة'}
+            value={`${toArabicDigits(rejectedCount + cancelledCount)} طلب`}
+          />
         </div>
       </div>
 
@@ -515,336 +490,22 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
           <EmptyState text="لا توجد طلبات صيانة تطابق الفلاتر المحددة." />
         ) : (
           <div>
-            {/* Mobile Cards View (md:hidden) */}
-            <div className="md:hidden space-y-3">
-              {filteredRequests.map((req) => {
-                const matchedUnit = units.find((u) => u.code === req.unitCode || u.id === req.unitCode);
-                const unitName = req.unitName || matchedUnit?.name || 'غير محدد';
-                const unitOccupant = matchedUnit
-                  ? (matchedUnit.departments && matchedUnit.departments.length > 0
-                      ? Array.from(new Set(matchedUnit.departments.filter(Boolean))).join(' ، ')
-                      : matchedUnit.department ||
-                        (matchedUnit.rooms && matchedUnit.rooms.length > 0
-                          ? Array.from(new Set(matchedUnit.rooms.map((r) => r.occupiedBy).filter(Boolean))).join(' ، ')
-                          : '')) || 'عام / غير محدد'
-                  : 'عام / غير محدد';
+            <Table
+              head={[
+                'رقم وتاريخ الطلب',
+                'رمز واسم وبيانات المنشأة',
+                'جهة الصيانة',
+                'العطل',
+                'الأولوية',
+                'مقدّم الطلب',
+                'حالة الطلب',
+                'تاريخ الإنجاز والمدة',
+                'المرفقات',
+                'النتائج',
+                'الإجراءات',
+              ]}
+            >
 
-                const matchedRoom = req.roomCode && matchedUnit?.rooms
-                  ? matchedUnit.rooms.find((r) => r.code === req.roomCode || r.id === req.roomCode)
-                  : undefined;
-                const roomOccupant = req.roomCode
-                  ? (req.occupyingEntity || matchedRoom?.occupiedBy || 'غير محدد')
-                  : undefined;
-
-                const hasNotes = Boolean(
-                  req.resolutionNotes?.trim() ||
-                  req.rejectionReason?.trim() ||
-                  req.status === 'completed' ||
-                  req.status === 'rejected'
-                );
-
-                const reqAttachments: ReportAttachment[] =
-                  req.attachments && req.attachments.length > 0
-                    ? req.attachments
-                    : req.attachmentUrl || req.attachmentName
-                    ? [
-                        {
-                          id: `maint-att-${req.id}`,
-                          name: req.attachmentName || 'صورة_البلاغ.jpg',
-                          url: req.attachmentUrl,
-                          type: 'image/jpeg',
-                        },
-                      ]
-                    : [];
-
-                const itemsToPreview: AttachmentViewerItem[] = reqAttachments.map((a, i) => ({
-                  id: a.id || `maint-att-${req.id}-${i}`,
-                  name: a.name || `مرفق_طلب_صيانة_${toArabicDigits(i + 1)}.jpg`,
-                  type: a.type || 'image/jpeg',
-                  url: a.url || req.attachmentUrl || '#',
-                  uploadDate: formatDateOnly(req.createdAt),
-                  category: `مرفق طلب صيانة (${toArabicDigits(i + 1)} من ${toArabicDigits(reqAttachments.length)})`,
-                }));
-
-                return (
-                  <div
-                    key={req.id}
-                    className={`p-3.5 rounded-2xl border space-y-3 transition-all bg-card border-slate-200/90 shadow-xs`}
-                  >
-                    {/* Top Row: Request ID & Date + Priority & Status */}
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="space-y-0.5">
-                        <div className="flex items-center gap-1.5">
-                          <span className="font-mono font-black text-brand-700 text-sm">
-                            #{toArabicDigits(req.id)}
-                          </span>
-                          <span className={`text-[10px] font-mono flex items-center gap-1 text-slate-500`}>
-                            <Calendar className="w-3 h-3 text-slate-500 shrink-0" />
-                            <span>{formatDateOnly(req.createdAt)}</span>
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-1.5 shrink-0 flex-wrap justify-end">
-                        {/* Priority Badge */}
-                        <span
-                          className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${
-                            req.priority === 'critical'
-                              ? 'bg-red-500/20 text-red-600 border border-red-500/30'
-                              : req.priority === 'low'
-                              ? 'bg-slate-500/20 text-slate-500 border border-slate-500/30'
-                              : 'bg-blue-500/20 text-blue-600 border border-blue-500/30'
-                          }`}
-                        >
-                          {req.priority === 'critical' ? 'حرج جداً' : req.priority === 'low' ? 'منخفض' : 'عادي'}
-                        </span>
-
-                        {/* Status Badge */}
-                        {req.status === 'completed' ? (
-                          <span className="bg-emerald-500/15 text-emerald-600 border border-emerald-500/30 px-2 py-0.5 rounded-md text-[10.5px] font-bold inline-flex items-center gap-1">
-                            <CheckCircle2 className="w-3 h-3 shrink-0" />
-                            <span>منجز</span>
-                          </span>
-                        ) : req.status === 'rejected' ? (
-                          <span className="bg-rose-500/15 text-rose-600 border border-rose-500/30 px-2 py-0.5 rounded-md text-[10.5px] font-bold inline-flex items-center gap-1">
-                            <Ban className="w-3 h-3 shrink-0" />
-                            <span>مرفوض</span>
-                          </span>
-                        ) : req.status === 'cancelled' ? (
-                          <span className="bg-slate-500/15 text-slate-500 border border-slate-500/30 px-2 py-0.5 rounded-md text-[10.5px] font-bold inline-flex items-center gap-1">
-                            <XCircle className="w-3 h-3 shrink-0" />
-                            <span>ملغى</span>
-                          </span>
-                        ) : (
-                          <span className="bg-brand-100 text-brand-700 border border-brand-200 px-2 py-0.5 rounded-md text-[10.5px] font-bold inline-flex items-center gap-1">
-                            <Clock className="w-3 h-3 shrink-0" />
-                            <span>قيد المعالجة</span>
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Facility and Room Info */}
-                    <div className="space-y-1 pt-2 border-t border-slate-200/60 ">
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <div className="font-mono font-black text-brand-700 text-xs flex items-center gap-1">
-                          <Building2 className="w-3.5 h-3.5 shrink-0 opacity-80" />
-                          <span>{toArabicDigits(req.unitCode)}</span>
-                        </div>
-                        <span className="opacity-40">•</span>
-                        <h4 className={`font-black text-xs sm:text-sm leading-snug break-words text-slate-900`}>
-                          {unitName}
-                        </h4>
-                      </div>
-
-                      <div className={`text-[10.5px] flex items-center gap-1 text-slate-600`}>
-                        <UserCheck className="w-3 h-3 text-sky-600 shrink-0" />
-                        <span className="opacity-75">الجهة الشاغلة:</span>
-                        <span className="font-bold truncate">{unitOccupant}</span>
-                      </div>
-
-                      {req.roomCode && (
-                        <div className="pt-1 mt-1 border-t border-slate-200/70 space-y-0.5">
-                          <div className="font-bold text-[10.5px] text-emerald-600 flex items-center gap-1 bg-emerald-500/10 border border-emerald-500/25 px-2 py-0.5 rounded-md w-fit">
-                            <DoorClosed className="w-3 h-3 text-emerald-600 shrink-0" />
-                            <span className="font-mono font-bold">غرفة: {toArabicDigits(req.roomCode)}</span>
-                            {req.roomName && <span>• {req.roomName}</span>}
-                            {req.roomFloor && <span className="text-[9.5px] opacity-80 font-sans">({req.roomFloor})</span>}
-                          </div>
-                          <div className="text-[10px] leading-tight flex items-center gap-1 text-emerald-700 pr-0.5">
-                            <span className="opacity-75">شاغل الغرفة:</span>
-                            <span className="font-bold truncate">{roomOccupant}</span>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Defect / Issue Box */}
-                    <div className={`p-2.5 rounded-xl border text-xs leading-relaxed space-y-1.5 bg-slate-50 border-slate-200`}>
-                      <div className="flex items-center justify-between gap-1.5 flex-wrap">
-                        <span className="font-bold text-[10px] text-slate-500 flex items-center gap-1">
-                          <Wrench className="w-3 h-3 text-brand-700" />
-                          <span>وصف العطل / البلاغ:</span>
-                        </span>
-                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-brand-50 text-brand-700 border border-brand-200">
-                          {req.maintenanceDepartment || 'الصيانة العامة'}
-                        </span>
-                      </div>
-                      <p className={`font-semibold text-xs leading-relaxed text-slate-800`}>
-                        {req.issue}
-                      </p>
-                    </div>
-
-                    {/* Details Grid: Reporter, Completion Date, Duration */}
-                    <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-slate-200/60 ">
-                      <div>
-                        <span className="text-slate-500 text-[10px] block">مقدّم الطلب:</span>
-                        <span className="font-bold text-[11px] truncate block">{req.reportedBy || 'غير معروف'}</span>
-                      </div>
-                      <div>
-                        <span className="text-slate-500 text-[10px] block">تاريخ الإنجاز / الإلغاء:</span>
-                        <span className="font-mono text-[11px] font-medium block">{getCompletionOrCancellationDate(req.completedAt, req.status)}</span>
-                      </div>
-                      <div>
-                        <span className="text-slate-500 text-[10px] block">مدة الاستجابة:</span>
-                        <span className="font-bold text-[11px] text-brand-700 block">
-                          {calculateMaintenanceDurationDays(req.createdAt, req.completedAt, req.status)}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Attachments & Results Buttons */}
-                    <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-200/60 ">
-                      <div>
-                        {reqAttachments.length > 0 ? (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setPreviewAttachment({
-                                attachments: itemsToPreview,
-                                initialIndex: 0,
-                                unitCode: req.unitCode,
-                              });
-                            }}
-                            className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer border min-h-[34px] bg-brand-50 text-brand-800 border-brand-200 hover:bg-brand-100`}
-                          >
-                            <Paperclip className="w-3.5 h-3.5 text-brand-700" />
-                            <span>المرفقات ({toArabicDigits(reqAttachments.length)})</span>
-                          </button>
-                        ) : (
-                          <span className="text-slate-500 text-[10.5px]">لا توجد مرفقات</span>
-                        )}
-                      </div>
-
-                      <div>
-                        {hasNotes && (
-                          <button
-                            type="button"
-                            onClick={() => setViewNotesReq(req)}
-                            className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer border min-h-[34px] ${
-                              req.status === 'rejected'
-                                ? 'bg-rose-500/15 text-rose-600 border-rose-500/30 hover:bg-rose-500/25'
-                                : req.status === 'completed'
-                                ? 'bg-emerald-500/15 text-emerald-600 border-emerald-500/30 hover:bg-emerald-500/25'
-                                : 'bg-brand-100 text-brand-700 border-brand-200 hover:bg-brand-100'
-                            }`}
-                          >
-                            {req.status === 'rejected' ? (
-                              <Ban className="w-3.5 h-3.5" />
-                            ) : req.status === 'completed' ? (
-                              <CheckCircle2 className="w-3.5 h-3.5" />
-                            ) : (
-                              <FileText className="w-3.5 h-3.5" />
-                            )}
-                            <span>{req.status === 'rejected' ? 'سبب الرفض' : req.status === 'completed' ? 'تقرير الإنجاز' : 'الملاحظات'}</span>
-                          </button>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Actions Bar */}
-                    <div className="flex items-center gap-2 pt-2 border-t border-slate-200/60 ">
-                      {isMaintenanceEmployee ? (
-                        <>
-                          {req.status !== 'completed' && req.status !== 'rejected' && req.status !== 'cancelled' ? (
-                            <>
-                              <button
-                                type="button"
-                                onClick={() => handleOpenCompleteModal(req)}
-                                className="flex-1 px-3 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-on-brand font-black text-xs transition cursor-pointer flex items-center justify-center gap-1.5 min-h-[40px] shadow-sm shadow-emerald-500/20"
-                              >
-                                <CheckCircle2 className="w-4 h-4" />
-                                <span>إنجاز وتوثيق</span>
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => handleOpenRejectModal(req)}
-                                className="px-3 py-2 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-600 border border-rose-500/30 font-bold text-xs transition cursor-pointer flex items-center justify-center gap-1.5 min-h-[40px]"
-                              >
-                                <Ban className="w-4 h-4" />
-                                <span>رفض</span>
-                              </button>
-                            </>
-                          ) : req.status === 'completed' ? (
-                            <button
-                              type="button"
-                              onClick={() => handleOpenCompleteModal(req)}
-                              className="w-full px-3 py-2 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-600 border border-emerald-500/30 font-bold text-xs transition cursor-pointer flex items-center justify-center gap-1.5 min-h-[40px]"
-                            >
-                              <CheckCircle2 className="w-4 h-4" />
-                              <span>تعديل تقرير الإنجاز</span>
-                            </button>
-                          ) : req.status === 'rejected' ? (
-                            <button
-                              type="button"
-                              onClick={() => handleOpenRejectModal(req)}
-                              className="w-full px-3 py-2 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-600 border border-rose-500/30 font-bold text-xs transition cursor-pointer flex items-center justify-center gap-1.5 min-h-[40px]"
-                            >
-                              <Ban className="w-4 h-4" />
-                              <span>تعديل سبب الرفض</span>
-                            </button>
-                          ) : (
-                            <div className="w-full text-center text-slate-500 text-xs py-1.5">طلب مغلق</div>
-                          )}
-                        </>
-                      ) : (
-                        <>
-                          <button
-                            type="button"
-                            onClick={() => handleOpenEditModal(req)}
-                            className={`flex-1 px-3 py-2 rounded-xl font-bold text-xs transition cursor-pointer flex items-center justify-center gap-1.5 min-h-[40px] ${
-                              req.status === 'completed'
-                                ? 'bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-600 border border-emerald-500/30'
-                                : req.status === 'rejected'
-                                ? 'bg-rose-500/20 hover:bg-rose-500/30 text-rose-600 border border-rose-500/30'
-                                : 'bg-brand-700 text-on-brand hover:bg-brand-800 shadow-md font-black'
-                            }`}
-                          >
-                            <CheckCircle2 className="w-4 h-4" />
-                            <span>
-                              {req.status === 'completed'
-                                ? 'تعديل حالة الإنجاز'
-                                : req.status === 'rejected'
-                                ? 'تعديل سبب الرفض'
-                                : 'معالجة وتحديث الحالة'}
-                            </span>
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => setDeleteConfirmReq(req)}
-                            className="p-2.5 bg-rose-500/20 hover:bg-rose-500/30 text-rose-600 border border-rose-500/30 rounded-xl transition cursor-pointer flex items-center justify-center min-h-[40px] shrink-0"
-                            title="حذف طلب الصيانة"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Desktop Table View (hidden md:block) */}
-            <div className="hidden md:block overflow-x-auto">
-              <table className="w-full text-right text-[11px] table-fixed">
-            <thead className={`border-b bg-slate-50 border-slate-200 text-slate-700`}>
-              <tr>
-                <th className="py-2.5 px-2.5 font-semibold w-[12%]">رقم وتاريخ الطلب</th>
-                <th className="py-2.5 px-3 font-bold w-[30%]">رمز واسم وبيانات المنشأة</th>
-                <th className="py-2.5 px-2 font-semibold w-[9%]">جهة الصيانة</th>
-                <th className="py-2.5 px-2 font-semibold w-[15%]">العطل</th>
-                <th className="py-2.5 px-1 font-semibold text-center w-[5%]">الأولوية</th>
-                <th className="py-2.5 px-2 font-semibold w-[9%]">مقدّم الطلب</th>
-                <th className="py-2.5 px-1 font-semibold text-center w-[5%]">حالة الطلب</th>
-                <th className="py-2.5 px-1.5 font-semibold text-center w-[8%]">تاريخ الإنجاز والمدة</th>
-                <th className="py-2.5 px-1 font-semibold text-center w-[4%]">المرفقات</th>
-                <th className="py-2.5 px-1 font-semibold text-center w-[4%]">النتائج</th>
-                <th className="py-2.5 px-1.5 font-semibold text-center w-[7%]">الإجراءات</th>
-              </tr>
-            </thead>
-            <tbody className={`divide-y divide-slate-200 text-slate-800`}>
               {filteredRequests.map((req) => {
                 const matchedUnit = units.find((u) => u.code === req.unitCode || u.id === req.unitCode);
                 const unitName = req.unitName || matchedUnit?.name || 'غير محدد';
@@ -874,7 +535,7 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
                 return (
                   <tr key={req.id} className="hover:bg-brand-50 transition">
                     {/* رقم الطلب مدمج مع تاريخ الطلب */}
-                    <td className="py-3 px-2 align-middle">
+                    <Td className="align-middle">
                       <div className="space-y-0.5">
                         <div className="font-mono font-bold text-brand-700 text-[11px]">
                           {toArabicDigits(req.id)}
@@ -884,10 +545,10 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
                           <span>{formatDateOnly(req.createdAt)}</span>
                         </div>
                       </div>
-                    </td>
+                    </Td>
 
                     {/* رمز واسم المنشأة والجهة الشاغلة وبيانات الغرفة */}
-                    <td className="py-3 px-2.5 align-middle">
+                    <Td className="align-middle">
                       <div className="space-y-1">
                         {/* السطر 1: رمز المنشأة واسمها */}
                         <div className="flex items-center gap-1.5 flex-wrap">
@@ -924,24 +585,24 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
                           </div>
                         )}
                       </div>
-                    </td>
+                    </Td>
 
                     {/* جهة الصيانة */}
-                    <td className="py-3 px-2 align-middle">
+                    <Td className="align-middle">
                       <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-brand-50 text-brand-700 border border-brand-200 block truncate text-center" title={req.maintenanceDepartment || 'الصيانة العامة'}>
                         {req.maintenanceDepartment || 'الصيانة العامة'}
                       </span>
-                    </td>
+                    </Td>
 
                     {/* العطل */}
-                    <td className="py-3 px-2 align-middle">
+                    <Td className="align-middle">
                       <div className={`font-bold text-[11px] line-clamp-3 leading-relaxed text-slate-800`} title={req.issue}>
                         {req.issue}
                       </div>
-                    </td>
+                    </Td>
 
                     {/* الأولوية */}
-                    <td className="py-3 px-1.5 text-center align-middle">
+                    <Td className="text-center align-middle">
                       <span
                         className={`px-1.5 py-0.5 rounded text-[9.5px] font-bold inline-block ${
                           req.priority === 'critical'
@@ -953,20 +614,20 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
                       >
                         {req.priority === 'critical' ? 'حرج جداً' : req.priority === 'low' ? 'منخفض' : 'عادي'}
                       </span>
-                    </td>
+                    </Td>
 
                     {/* مقدّم الطلب */}
-                    <td className="py-3 px-2 align-middle">
+                    <Td className="align-middle">
                       <div className="flex items-center gap-1 font-bold text-[11px]">
                         <UserCheck className={`w-3 h-3 shrink-0 text-brand-700`} />
                         <span className={`truncate text-slate-900`} title={req.reportedBy}>
                           {req.reportedBy || 'غير معروف'}
                         </span>
                       </div>
-                    </td>
+                    </Td>
 
                     {/* حالة الطلب */}
-                    <td className="py-3 px-1 text-center align-middle">
+                    <Td className="text-center align-middle">
                       {req.status === 'completed' ? (
                         <span
                           className="bg-emerald-500/20 text-emerald-600 border border-emerald-500/30 p-1.5 rounded-lg inline-flex items-center justify-center transition"
@@ -996,10 +657,10 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
                           <Clock className="w-3.5 h-3.5 shrink-0" />
                         </span>
                       )}
-                    </td>
+                    </Td>
 
                     {/* تاريخ الإنجاز / الرفض + المدة مدمجة */}
-                    <td className="py-3 px-1.5 text-center align-middle font-mono text-[10px]">
+                    <Td className="text-center align-middle font-mono text-[10px]">
                       <div className="space-y-0.5">
                         <div className="font-semibold truncate">
                           {getCompletionOrCancellationDate(req.completedAt, req.status)}
@@ -1008,10 +669,10 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
                           المدة: {calculateMaintenanceDurationDays(req.createdAt, req.completedAt, req.status)}
                         </div>
                       </div>
-                    </td>
+                    </Td>
 
                     {/* المرفقات - أيقونة فقط عند الضغط عليها تفتح الملف المرفق */}
-                    <td className="py-3 px-1 text-center align-middle">
+                    <Td className="text-center align-middle">
                       {(() => {
                         const reqAttachments: ReportAttachment[] =
                           req.attachments && req.attachments.length > 0
@@ -1068,10 +729,10 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
                           </div>
                         );
                       })()}
-                    </td>
+                    </Td>
 
                     {/* النتائج والملاحظات - أيقونة مصغرة مع تلميح */}
-                    <td className="py-3 px-1 text-center align-middle">
+                    <Td className="text-center align-middle">
                       {hasNotes ? (
                         <button
                           type="button"
@@ -1102,10 +763,10 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
                       ) : (
                         <span className="text-slate-500 text-[11px] font-mono select-none">—</span>
                       )}
-                    </td>
+                    </Td>
 
                     {/* الإجراءات - أزرار أيقونات مصغرة */}
-                    <td className="py-3 px-1 text-center align-middle">
+                    <Td className="text-center align-middle">
                       <div className="flex items-center justify-center gap-1">
                         {isMaintenanceEmployee ? (
                           <>
@@ -1188,13 +849,11 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
                           </>
                         )}
                       </div>
-                    </td>
+                    </Td>
                   </tr>
                 );
               })}
-            </tbody>
-          </table>
-        </div>
+            </Table>
       </div>
     )}
   </div>

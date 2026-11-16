@@ -380,6 +380,7 @@
 }
 
 /* الجداول الموحدة (ui.tsx Table) على الشاشات الضيقة: كل صف يصير بطاقة وكل خلية تظهر مع عنوان عمودها */
+/* الحاوية هي غلاف الجدول في ui.tsx (container-type: inline-size) */
 @container (max-width: 40rem) {
   table.rtable,
   table.rtable > tbody,
