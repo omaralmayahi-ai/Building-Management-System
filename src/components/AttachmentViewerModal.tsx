@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import { downloadAttachment } from '../utils/fileUtils';
 import { toArabicDigits } from '../utils/arabicUtils';
+import { cachedFileUrl } from '../services/fileCache';
 
 // Configure local PDF.js worker from bundled package
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker;
@@ -352,15 +353,43 @@ export const AttachmentViewerModal: React.FC<AttachmentViewerModalProps> = ({
   const [rotation, setRotation] = useState(0);
   const [activeCadLayer, setActiveCadLayer] = useState<'all' | 'structural' | 'pipes' | 'electrical'>('all');
 
-  // Effective URL checking
-  const effectiveUrl = activeAttachment.url || activeAttachment.fileUrl;
+  // Effective URL — يُحلّ عبر الكاش للدعم دون اتصال
+  const rawEffectiveUrl = activeAttachment.url || activeAttachment.fileUrl;
+  const [resolvedUrl, setResolvedUrl] = useState<string | null | undefined>(undefined);
+  const [offlineUnavailable, setOfflineUnavailable] = useState(false);
 
   React.useEffect(() => {
+    setResolvedUrl(undefined);
+    setOfflineUnavailable(false);
     setImageError(false);
     setZoomLevel(100);
     setRotation(0);
     setCurrentPage(1);
-  }, [safeIndex, effectiveUrl]);
+
+    if (!rawEffectiveUrl) {
+      setResolvedUrl(null);
+      return;
+    }
+    // إن كان رابطاً داخلياً /api/files/* نمرره عبر الكاش
+    if (rawEffectiveUrl.startsWith('/api/files/')) {
+      let cancelled = false;
+      cachedFileUrl(rawEffectiveUrl).then((url) => {
+        if (cancelled) return;
+        if (url === null) {
+          setOfflineUnavailable(true);
+          setResolvedUrl(null);
+        } else {
+          setResolvedUrl(url);
+        }
+      });
+      return () => { cancelled = true; };
+    }
+    // data URL أو blob URL أو رابط خارجي — مباشرة
+    setResolvedUrl(rawEffectiveUrl);
+  }, [safeIndex, rawEffectiveUrl]);
+
+  // ما يظهر في العرض: نتظر حتى يُحلّ الرابط
+  const effectiveUrl = resolvedUrl;
 
   // Format file size string
   const displaySize = activeAttachment.size
@@ -660,6 +689,27 @@ export const AttachmentViewerModal: React.FC<AttachmentViewerModalProps> = ({
         <div
           className={`flex-1 overflow-auto p-4 sm:p-6 relative flex flex-col items-center justify-center min-h-[420px] bg-slate-100/90`}
         >
+          {/* حالة الانتظار أثناء حل الرابط */}
+          {resolvedUrl === undefined && rawEffectiveUrl?.startsWith('/api/files/') && (
+            <div className="flex flex-col items-center gap-3 text-slate-500">
+              <div className="w-8 h-8 border-2 border-brand-600 border-t-transparent rounded-full animate-spin" />
+              <span className="text-sm">جارٍ تحميل الملف…</span>
+            </div>
+          )}
+
+          {/* رسالة غير متاح دون اتصال */}
+          {offlineUnavailable && (
+            <div className="flex flex-col items-center gap-3 text-center max-w-xs">
+              <div className="w-14 h-14 rounded-full bg-amber-100 border border-amber-300 flex items-center justify-center">
+                <RefreshCcw className="w-7 h-7 text-amber-600" />
+              </div>
+              <p className="font-bold text-slate-800 text-sm">المرفق غير متاح دون اتصال</p>
+              <p className="text-xs text-slate-500">
+                افتح الملف مرة واحدة وهو متصل بالخادم ليُحفظ تلقائياً ويصبح متاحاً لاحقاً.
+              </p>
+            </div>
+          )}
+
           {/* IMAGE VIEW */}
           {isImage && (
             <div className="flex flex-col items-center justify-center w-full h-full max-h-[68vh]">

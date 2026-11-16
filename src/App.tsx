@@ -75,6 +75,7 @@ import {
   getServerTimestamp,
 } from './utils/arabicUtils';
 import { safeParse, safeSetItem } from './utils/storageUtils';
+import { prefetchFiles } from './services/fileCache';
 import { normalizeUnitRoomsSequence, findMatchingRoom, isRoomVacant } from './utils/unitAndRoomCodeUtils';
 import { syncBrowserBranding } from './utils/brandingDomSync';
 import * as api from './services/apiClient';
@@ -476,6 +477,23 @@ export function App() {
         if (Array.isArray(apiOcc)) setOccupancyRecords(apiOcc);
         if (Array.isArray(apiInsp)) setPeriodicInspections(apiInsp);
         if (Array.isArray(apiLogs)) setAuditLogs(apiLogs);
+
+        // تخزين مؤقت للمرفقات في الخلفية (6-هـ: عرض دون اتصال)
+        {
+          const fileUrls: string[] = [];
+          const collectUrls = (records: Array<{ attachments?: Array<{ url?: string; fileUrl?: string }> }>) => {
+            for (const r of records || []) {
+              for (const a of r.attachments || []) {
+                if (a.url?.startsWith('/api/files/')) fileUrls.push(a.url);
+                else if (a.fileUrl?.startsWith('/api/files/')) fileUrls.push(a.fileUrl);
+              }
+            }
+          };
+          if (Array.isArray(apiUnits)) collectUrls(apiUnits as typeof apiUnits & Array<{ attachments?: Array<{ url?: string; fileUrl?: string }> }>);
+          if (Array.isArray(apiMaint)) collectUrls(apiMaint as unknown as Array<{ attachments?: Array<{ url?: string; fileUrl?: string }> }>);
+          if (Array.isArray(apiInsp)) collectUrls(apiInsp as unknown as Array<{ attachments?: Array<{ url?: string; fileUrl?: string }> }>);
+          if (fileUrls.length > 0) prefetchFiles(fileUrls);
+        }
         if (apiEntities && apiEntities.length > 0) {
           const sorted = [...apiEntities].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
           setOrgEntities(sorted);
