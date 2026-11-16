@@ -1,4 +1,5 @@
 import { getServerIsoDateOnly } from '../services/serverTime';
+import { CAIRO_FONT_CSS } from '../utils/printFonts';
 import { Badge, Button, Card, EmptyState, PageHeader, Table, Tabs, Td, fieldLookSm } from './ui';
 import React, { useState, useMemo, useCallback, useEffect, lazy, Suspense } from 'react';
 import {
@@ -1752,7 +1753,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
  <title>${h(reportTitle)} - ${h(companyName)}</title>
  <meta name="viewport" content="width=device-width, initial-scale=1.0">
  <style>
- @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap');
+ ${CAIRO_FONT_CSS}
  
  @page {
  size: A4 landscape;

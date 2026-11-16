@@ -353,6 +353,59 @@ describe('PostgreSQL مصدراً معتمداً', { skip: pgAvailable ? false :
 });
 
 // ---------------------------------------------------------------------------
+// اختبار التحميل الكسول للمجموعات (6-د)
+describe('التحميل الكسول للمجموعات (6-د)', { skip: pgAvailable ? false : 'PostgreSQL غير متاح للاختبار' }, () => {
+  const port = 39700 + Math.floor(Math.random() * 90);
+  const { call } = makeClient(port);
+  const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'bms-lazy-'));
+  let server;
+  let token;
+
+  before(async () => {
+    server = await startServer(port, {
+      DATABASE_URL: pg.url,
+      BMS_DATA_DIR: dataDir,
+      BMS_SESSION_EXPIRY_MS: '3600000',
+    });
+    const r = await call('POST', '/api/auth/login', { body: { username: 'admin', password: 'Admin#Test2026' } });
+    token = r.json?.token;
+  });
+
+  after(async () => {
+    await stopServer(server);
+    fs.rmSync(dataDir, { recursive: true, force: true });
+  });
+
+  test('المجموعات الكسولة تُرجع بيانات بعد إضافة سجل', async () => {
+    const unit = { code: 'LZ-1', nameAr: 'وحدة تحميل كسول', type: 'مبنى', governorate: 'بغداد', field: 'حقل الرميلة', conditionGrade: 3, status: 'active' };
+    const addR = await call('POST', '/api/units', { token, body: unit });
+    assert.equal(addR.status, 200, `فشل إضافة وحدة: ${addR.text}`);
+
+    const listR = await call('GET', '/api/units', { token });
+    assert.equal(listR.status, 200, 'GET /api/units يجب أن يرجع 200');
+    assert.ok(Array.isArray(listR.json), 'الاستجابة مصفوفة');
+    assert.ok(listR.json.some((u) => u.code === 'LZ-1'), 'الوحدة المضافة موجودة في القائمة');
+  });
+
+  test('المجموعات الكسولة تُحمَّل بشكل مستقل (units, maintenance, inspections)', async () => {
+    const maintR = await call('GET', '/api/maintenance', { token });
+    assert.equal(maintR.status, 200, 'GET /api/maintenance يجب أن يرجع 200');
+    assert.ok(Array.isArray(maintR.json), 'الصيانة مصفوفة');
+
+    const inspR = await call('GET', '/api/inspections', { token });
+    assert.equal(inspR.status, 200, 'GET /api/inspections يجب أن يرجع 200');
+    assert.ok(Array.isArray(inspR.json), 'الكشوفات مصفوفة');
+  });
+
+  test('الصفحة الرئيسية (dashboard) تعمل دون تحميل كل المجموعات مسبقاً', async () => {
+    // /api/health يرد دون أي بيانات تشغيلية
+    const healthR = await call('GET', '/api/health');
+    assert.equal(healthR.status, 200, '/api/health يجب أن يرجع 200');
+    assert.ok(!healthR.json?.units, '/api/health لا يكشف عدد الوحدات');
+  });
+});
+
+// ---------------------------------------------------------------------------
 describe('وضع الملف المحلي (للتجربة)', () => {
   const port = 39800 + Math.floor(Math.random() * 90);
   const { call } = makeClient(port);

@@ -1062,16 +1062,19 @@ export function App() {
         .map((e) => (e.parentId === id ? { ...e, parentId } : e));
     }
 
+    const ok = await saveFirst(
+      async () => {
+        await api.deleteOrgEntitiesBatch(Array.from(toDeleteIds));
+        await api.saveOrgEntities(updated);
+      },
+      'فشل حذف التشكيل التنظيمي',
+      'جارٍ حذف التشكيل…'
+    );
+    if (!ok) return;
+
     setOrgEntities(updated);
     safeSetItem('app_ref_org_entities', updated);
-
-    try {
-      await api.deleteOrgEntitiesBatch(Array.from(toDeleteIds));
-      await api.saveOrgEntities(updated);
-      showToast('تم حذف التشكيل التنظيمي وحفظ التحديثات نهائياً بنجاح', 'success', 'نجاح الحذف');
-    } catch (err: any) {
-      console.error('API saveOrgEntities error after delete:', err);
-    }
+    showToast('تم حذف التشكيل التنظيمي وحفظ التحديثات نهائياً بنجاح', 'success', 'نجاح الحذف');
 
     if (entity) {
       appendAuditLog({
@@ -1097,19 +1100,19 @@ export function App() {
       ...e,
       sortOrder: e.sortOrder !== undefined && e.sortOrder !== null ? e.sortOrder : idx,
     }));
+    const ok = await saveFirst(
+      () => api.saveOrgEntities(ordered),
+      'فشل حفظ الهيكل التنظيمي في قاعدة البيانات المركزية',
+      'جارٍ حفظ الهيكل…'
+    );
+    if (!ok) return;
     setOrgEntities(ordered);
     safeSetItem('app_ref_org_entities', ordered);
-    try {
-      await api.saveOrgEntities(ordered);
-      showToast(
-        customToastMessage || `تم حفظ وترتيب ${ordered.length} تشكيل بنجاح في قاعدة البيانات`,
-        'success',
-        customAction || 'إعادة ترتيب الهيكل'
-      );
-    } catch (err: any) {
-      console.error('API saveOrgEntities error:', err);
-      showToast(err.message || 'فشل حفظ الهيكل التنظيمي في قاعدة البيانات المركزية', 'error', 'خطأ في الحفظ');
-    }
+    showToast(
+      customToastMessage || `تم حفظ وترتيب ${ordered.length} تشكيل بنجاح في قاعدة البيانات`,
+      'success',
+      customAction || 'إعادة ترتيب الهيكل'
+    );
     appendAuditLog({
       id: `LOG-${getServerTimestamp()}`,
       timestamp: getServerDateTimeFormatted(),
@@ -1135,14 +1138,16 @@ export function App() {
   };
 
   const handleClearOrgEntities = async () => {
+    const prevCount = orgEntities.length;
+    const ok = await saveFirst(
+      () => api.clearOrgEntities(),
+      'فشل مسح الهيكل التنظيمي',
+      'جارٍ مسح الهيكل…'
+    );
+    if (!ok) return;
     setOrgEntities([]);
     safeSetItem('app_ref_org_entities', []);
-    try {
-      await api.clearOrgEntities();
-      showToast('تم مسح وتفريغ الهيكل التنظيمي بالكامل بنجاح', 'success', 'تفريغ الهيكل');
-    } catch (err) {
-      console.error('Clear org entities error:', err);
-    }
+    showToast('تم مسح وتفريغ الهيكل التنظيمي بالكامل بنجاح', 'success', 'تفريغ الهيكل');
     appendAuditLog({
       id: `LOG-${getServerTimestamp()}`,
       timestamp: getServerDateTimeFormatted(),
@@ -1150,20 +1155,21 @@ export function App() {
       user: currentUser?.name || 'مدير النظام',
       userInitials: 'عم',
       affectedField: 'الهيكل التنظيمي',
-      previousValue: `${orgEntities.length} تشكيل`,
+      previousValue: `${prevCount} تشكيل`,
       newValue: 'تفريغ الهيكل بالكامل (0)',
     });
   };
 
   const handleResetOrgEntitiesToDefault = async () => {
+    const ok = await saveFirst(
+      () => api.resetOrgEntitiesToDefault(),
+      'فشل استعادة الهيكل التنظيمي الافتراضي',
+      'جارٍ استعادة الهيكل…'
+    );
+    if (!ok) return;
     setOrgEntities(INITIAL_ORG_ENTITIES);
     safeSetItem('app_ref_org_entities', INITIAL_ORG_ENTITIES);
-    try {
-      await api.resetOrgEntitiesToDefault();
-      showToast('تمت استعادة الهيكل التنظيمي الافتراضي لشركة نفط الوسط بنجاح', 'success', 'استعادة الهيكل');
-    } catch (err) {
-      console.error('Reset org entities error:', err);
-    }
+    showToast('تمت استعادة الهيكل التنظيمي الافتراضي لشركة نفط الوسط بنجاح', 'success', 'استعادة الهيكل');
     appendAuditLog({
       id: `LOG-${getServerTimestamp()}`,
       timestamp: getServerDateTimeFormatted(),

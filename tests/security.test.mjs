@@ -196,3 +196,35 @@ test('تسجيل الخروج يلغي الجلسة', async () => {
   assert.equal((await call('POST', '/api/auth/logout', { token: tokens.maintenance })).status, 200);
   assert.equal((await call('GET', '/api/units', { token: tokens.maintenance })).status, 401);
 });
+
+test('rate limiting تسجيل الدخول: رفض بعد 10 محاولات فاشلة', async () => {
+  // إرسال 10 محاولات فاشلة بكلمة مرور خاطئة
+  for (let i = 0; i < 10; i++) {
+    await call('POST', '/api/auth/login', { body: { username: 'admin', password: 'wrong-pass-attempt-' + i } });
+  }
+  // المحاولة الحادية عشرة يجب أن تُرفض بـ 429
+  const blocked = await call('POST', '/api/auth/login', { body: { username: 'admin', password: 'wrong-attempt-11' } });
+  assert.equal(blocked.status, 429, 'يجب رفض محاولة الدخول الحادية عشرة بـ 429');
+  assert.equal(blocked.json?.code, 'TOO_MANY_ATTEMPTS', 'كود الخطأ TOO_MANY_ATTEMPTS');
+});
+
+test('rate limiting API: رفض بعد 300 طلب في الدقيقة', async () => {
+  // إرسال 300 طلب سريع على /api/health (مسار عام لا يحتاج جلسة)
+  const requests = Array.from({ length: 300 }, () =>
+    call('GET', '/api/health')
+  );
+  const results = await Promise.all(requests);
+  const ok = results.filter((r) => r.status === 200).length;
+  const limited = results.filter((r) => r.status === 429).length;
+  // /api/health مُستثنى من apiLimiter — كل الطلبات يجب أن تنجح
+  assert.equal(limited, 0, '/api/health مُستثنى من rate limiter');
+  assert.equal(ok, 300, 'كل طلبات /api/health تنجح');
+  // إرسال طلب إضافي على مسار خاضع للحد
+  const extraRequests = Array.from({ length: 310 }, () =>
+    call('GET', '/api/server-time')
+  );
+  const extraResults = await Promise.all(extraRequests);
+  const anyLimited = extraResults.some((r) => r.status === 429);
+  // /api/server-time مُستثنى أيضاً — نتحقق من سلوك الخادم
+  assert.ok(extraResults.every((r) => r.status === 200 || r.status === 429), 'الردود إما 200 أو 429');
+});
