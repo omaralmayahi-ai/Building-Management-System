@@ -101,7 +101,7 @@ interface NewMaintenanceModalProps {
   initialRoomFloor?: string;
   isUnitLocked?: boolean;
   isRoomLocked?: boolean;
-  onAddRequest: (req: MaintenanceRequest) => void;
+  onAddRequest: (req: MaintenanceRequest) => void | boolean | Promise<void | boolean>;
   onClose: () => void;
   isLight?: boolean;
   currentUser?: SystemUser | null;
@@ -376,7 +376,7 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
     currentUnitField ||
     (effectiveGov && groupedUnits[effectiveGov] ? Object.keys(groupedUnits[effectiveGov])[0] : '');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setValidationError('');
 
@@ -427,7 +427,9 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
       attachments: attachments,
     };
 
-    onAddRequest(newReq);
+    // 5-ز: لا تُغلق النافذة قبل تأكيد الخادم؛ عند الفشل تبقى البيانات المكتوبة
+    const saved = await onAddRequest(newReq);
+    if (saved === false) return;
     onClose();
   };
 

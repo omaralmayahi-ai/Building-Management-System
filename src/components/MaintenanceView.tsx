@@ -57,7 +57,7 @@ interface MaintenanceViewProps {
   currentUser?: SystemUser | null;
   maintenanceDepartments?: MaintenanceDepartmentRef[];
   onOpenNewMaintenanceModal: () => void;
-  onUpdateMaintenanceRequest?: (updated: MaintenanceRequest) => void;
+  onUpdateMaintenanceRequest?: (updated: MaintenanceRequest) => void | boolean | Promise<void | boolean>;
   onDeleteMaintenanceRequest?: (id: string) => void;
   theme?: 'dark' | 'light';
 }
@@ -281,7 +281,9 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
     });
     if (!approved) return;
 
-    onUpdateMaintenanceRequest(updated);
+    // 5-ز: النافذة لا تُغلق قبل تأكيد الخادم
+    const saved = await onUpdateMaintenanceRequest(updated);
+    if (saved === false) return;
     setSelectedReq(null);
     setActionModalType(null);
     setFormError(null);
@@ -329,7 +331,8 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
     });
     if (!approved) return;
 
-    onUpdateMaintenanceRequest(updated);
+    const saved = await onUpdateMaintenanceRequest(updated);
+    if (saved === false) return;
     setFullEditReq(null);
   };
 

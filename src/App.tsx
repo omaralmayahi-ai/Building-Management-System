@@ -16,6 +16,7 @@ import {
   X,
   MapPin,
   QrCode,
+  Loader2,
 } from 'lucide-react';
 import { Header } from './components/Header';
 import { Sidebar, NavTab } from './components/Sidebar';
@@ -527,6 +528,28 @@ export function App() {
       if (timer) clearTimeout(timer);
     };
   }, []);
+
+  /**
+   * 5-ز: الحفظ على الخادم أولاً، ثم إظهار التعديل على الشاشة.
+   * يعيد true عند النجاح. عند الفشل: لا تتغير الشاشة، ويظهر سبب الفشل في الشريط الأحمر.
+   * كل مُعالج كتابة يبدأ بـ: if (!(await saveFirst(() => api.X(...), 'رسالة الفشل'))) return;
+   */
+  const [savingLabel, setSavingLabel] = useState<string | null>(null);
+  const saveFirst = async (call: () => Promise<unknown>, fallbackMessage: string, label = 'جارٍ الحفظ في قاعدة البيانات…'): Promise<boolean> => {
+    setSavingLabel(label);
+    try {
+      await call();
+      return true;
+    } catch (err: unknown) {
+      const message = err instanceof Error && err.message ? err.message : fallbackMessage;
+      console.error('saveFirst:', err);
+      setSaveError(message);
+      return false;
+    } finally {
+      setSavingLabel(null);
+    }
+  };
+
   const lastOrgEntitySaveTimeRef = useRef<number>(0);
 
   useEffect(() => {
@@ -637,14 +660,11 @@ export function App() {
     syncBrowserBranding(branding);
   }, [branding]);
 
-  const handleUpdateBranding = (newBranding: SystemBranding) => {
+  const handleUpdateBranding = async (newBranding: SystemBranding) => {
+    if (!(await saveFirst(() => api.saveBranding(newBranding), 'فشل حفظ الهوية البصرية'))) return;
     setBranding(newBranding);
     safeSetItem('app_branding', newBranding);
     syncBrowserBranding(newBranding);
-    api.saveBranding(newBranding).catch((err) => {
-      console.error('API saveBranding error:', err);
-      showToast(err.message || 'فشل حفظ الهوية البصرية', 'error', 'خطأ في الحفظ');
-    });
   };
 
   // System Users State
@@ -960,15 +980,12 @@ export function App() {
     auditLogs,
   ]);
 
-  const handleAddOrgEntity = (newEntity: OrgEntity) => {
+  const handleAddOrgEntity = async (newEntity: OrgEntity) => {
+    if (!(await saveFirst(() => api.addOrgEntity(newEntity), 'فشل حفظ التشكيل التنظيمي في قاعدة البيانات'))) return;
     setOrgEntities((prev) => {
       const updated = [newEntity, ...prev];
       safeSetItem('app_ref_org_entities', updated);
       return updated;
-    });
-    api.addOrgEntity(newEntity).catch((err) => {
-      console.error('API addOrgEntity error:', err);
-      showToast(err.message || 'فشل حفظ التشكيل التنظيمي في قاعدة البيانات', 'error', 'خطأ في حفظ البيانات');
     });
     appendAuditLog({
       id: `LOG-${getServerTimestamp()}`,
@@ -982,15 +999,12 @@ export function App() {
     });
   };
 
-  const handleUpdateOrgEntity = (updatedEntity: OrgEntity) => {
+  const handleUpdateOrgEntity = async (updatedEntity: OrgEntity) => {
+    if (!(await saveFirst(() => api.updateOrgEntity(updatedEntity), 'فشل تحديث التشكيل التنظيمي في قاعدة البيانات'))) return;
     setOrgEntities((prev) => {
       const updated = prev.map((e) => (e.id === updatedEntity.id ? updatedEntity : e));
       safeSetItem('app_ref_org_entities', updated);
       return updated;
-    });
-    api.updateOrgEntity(updatedEntity).catch((err) => {
-      console.error('API updateOrgEntity error:', err);
-      showToast(err.message || 'فشل تحديث التشكيل التنظيمي في قاعدة البيانات', 'error', 'خطأ في حفظ البيانات');
     });
     appendAuditLog({
       id: `LOG-${getServerTimestamp()}`,
@@ -1090,25 +1104,16 @@ export function App() {
     });
   };
 
-  const handleToggleOrgEntityStatus = (id: string) => {
-    let targetEntity: OrgEntity | null = null;
+  const handleToggleOrgEntityStatus = async (id: string) => {
+    const current = orgEntities.find((e) => e.id === id);
+    if (!current) return;
+    const targetEntity: OrgEntity = { ...current, status: current.status === 'active' ? 'disabled' : 'active' };
+    if (!(await saveFirst(() => api.updateOrgEntity(targetEntity), 'فشل تحديث حالة التشكيل التنظيمي'))) return;
     setOrgEntities((prev) => {
-      const updated = prev.map((e) => {
-        if (e.id === id) {
-          targetEntity = { ...e, status: e.status === 'active' ? 'disabled' : 'active' };
-          return targetEntity;
-        }
-        return e;
-      });
+      const updated = prev.map((e) => (e.id === id ? targetEntity : e));
       safeSetItem('app_ref_org_entities', updated);
       return updated;
     });
-    if (targetEntity) {
-      api.updateOrgEntity(targetEntity).catch((err) => {
-        console.error('API updateOrgEntity error:', err);
-        showToast(err.message || 'فشل تحديث حالة التشكيل التنظيمي', 'error', 'خطأ في الحفظ');
-      });
-    }
   };
 
   const handleClearOrgEntities = async () => {
@@ -1254,26 +1259,16 @@ export function App() {
   };
 
   // Grade Update handler
-  const handleUpdateGrade = (code: string, newGrade: ConditionGrade) => {
-    let updatedUnitObj: UnitAsset | null = null;
+  const handleUpdateGrade = async (code: string, newGrade: ConditionGrade) => {
+    const current = units.find((u) => u.code === code);
+    if (!current) return;
+    const updatedUnitObj: UnitAsset = { ...current, conditionGrade: newGrade, lastUpdated: getServerIsoDateOnly() };
+    if (!(await saveFirst(() => api.updateUnit(updatedUnitObj), 'فشل تحديث درجة التقييم في قاعدة البيانات المركزية'))) return;
     setUnits((prev) => {
-      const updated = prev.map((u) => {
-        if (u.code === code) {
-          updatedUnitObj = { ...u, conditionGrade: newGrade, lastUpdated: getServerIsoDateOnly() };
-          return updatedUnitObj;
-        }
-        return u;
-      });
+      const updated = prev.map((u) => (u.code === code ? updatedUnitObj : u));
       safeSetItem('app_units', updated);
       return updated;
     });
-
-    if (updatedUnitObj) {
-      api.updateUnit(updatedUnitObj).catch((err) => {
-        console.error('API updateUnit grade error:', err);
-        showToast(err.message || 'فشل تحديث درجة التقييم في قاعدة البيانات المركزية', 'error', 'خطأ في حفظ البيانات');
-      });
-    }
 
     const newLog: AuditLogItem = {
       id: `LOG-${Math.floor(10 + Math.random() * 90)}`,
@@ -1290,15 +1285,12 @@ export function App() {
   };
 
   // User Management Handlers with Immediate System Reflection & Audit Logging
-  const handleAddUser = (newUser: SystemUser) => {
+  const handleAddUser = async (newUser: SystemUser) => {
+    if (!(await saveFirst(() => api.addUser(newUser), 'فشل إضافة المستخدم في قاعدة البيانات المركزية'))) return;
     setUsers((prev) => {
       const updated = [newUser, ...prev];
       safeSetItem('app_users', updated);
       return updated;
-    });
-    api.addUser(newUser).catch((err) => {
-      console.error('API addUser error:', err);
-      showToast(err.message || 'فشل إضافة المستخدم في قاعدة البيانات المركزية', 'error', 'خطأ في الحفظ');
     });
     appendAuditLog({
       id: `LOG-${getServerTimestamp()}`,
@@ -1312,7 +1304,8 @@ export function App() {
     });
   };
 
-  const handleUpdateUser = (updatedUser: SystemUser) => {
+  const handleUpdateUser = async (updatedUser: SystemUser) => {
+    if (!(await saveFirst(() => api.updateUser(updatedUser), 'فشل تحديث بيانات المستخدم في قاعدة البيانات'))) return;
     setUsers((prev) => {
       const updated = prev.map((u) => (u.id === updatedUser.id ? updatedUser : u));
       safeSetItem('app_users', updated);
@@ -1321,10 +1314,6 @@ export function App() {
     if (currentUser?.id === updatedUser.id) {
       setCurrentUser(updatedUser);
     }
-    api.updateUser(updatedUser).catch((err) => {
-      console.error('API updateUser error:', err);
-      showToast(err.message || 'فشل تحديث بيانات المستخدم في قاعدة البيانات', 'error', 'خطأ في الحفظ');
-    });
     appendAuditLog({
       id: `LOG-${getServerTimestamp()}`,
       timestamp: getServerDateTimeFormatted(),
@@ -1337,8 +1326,9 @@ export function App() {
     });
   };
 
-  const handleDeleteUser = (userId: string) => {
+  const handleDeleteUser = async (userId: string) => {
     const usr = users.find((u) => u.id === userId);
+    if (!(await saveFirst(() => api.deleteUser(userId), 'فشل حذف المستخدم من قاعدة البيانات'))) return;
     setUsers((prev) => {
       const updated = prev.filter((u) => u.id !== userId);
       safeSetItem('app_users', updated);
@@ -1347,10 +1337,6 @@ export function App() {
     if (currentUser?.id === userId) {
       handleLogout();
     }
-    api.deleteUser(userId).catch((err) => {
-      console.error('API deleteUser error:', err);
-      showToast(err.message || 'فشل حذف المستخدم من قاعدة البيانات', 'error', 'خطأ في الحذف');
-    });
     if (usr) {
       appendAuditLog({
         id: `LOG-${getServerTimestamp()}`,
@@ -1365,27 +1351,19 @@ export function App() {
     }
   };
 
-  const handleToggleUserStatus = (userId: string) => {
-    let targetUser: SystemUser | null = null;
+  const handleToggleUserStatus = async (userId: string) => {
+    const current = users.find((u) => u.id === userId);
+    if (!current) return;
+    const newStatus: SystemUser['status'] = current.status === 'active' ? 'disabled' : 'active';
+    const targetUser: SystemUser = { ...current, status: newStatus };
+    if (!(await saveFirst(() => api.updateUser(targetUser), 'فشل تحديث حالة المستخدم في قاعدة البيانات'))) return;
     setUsers((prev) => {
-      const updated = prev.map((u) => {
-        if (u.id === userId) {
-          const newStatus = u.status === 'active' ? 'disabled' : 'active';
-          targetUser = { ...u, status: newStatus };
-          if (currentUser?.id === userId && newStatus === 'disabled') {
-            setTimeout(() => handleLogout(), 100);
-          }
-          return targetUser;
-        }
-        return u;
-      });
+      const updated = prev.map((u) => (u.id === userId ? targetUser : u));
       safeSetItem('app_users', updated);
       return updated;
     });
-    if (targetUser) {
-      api.updateUser(targetUser).catch((err) => {
-        console.error('API updateUser status error:', err);
-      });
+    if (currentUser?.id === userId && newStatus === 'disabled') {
+      setTimeout(() => handleLogout(), 100);
     }
   };
 
@@ -1853,34 +1831,29 @@ export function App() {
   };
 
   // Add new unit handler from Wizard
-  const handleAddUnit = (newUnit: UnitAsset) => {
+  const handleAddUnit = async (newUnit: UnitAsset): Promise<boolean> => {
     const normalizedRooms = newUnit.rooms ? normalizeUnitRoomsSequence(newUnit.code, newUnit.rooms) : [];
     const normalizedUnit: UnitAsset = { ...newUnit, rooms: normalizedRooms };
+    if (!(await saveFirst(() => api.addUnit(normalizedUnit), 'فشل حفظ الوحدة الجديدة في قاعدة البيانات المركزية'))) return false;
     setUnits((prev) => {
       const updated = [normalizedUnit, ...prev];
       safeSetItem('app_units', updated);
       return updated;
     });
-    api.addUnit(normalizedUnit).catch((err) => {
-      console.error('API addUnit error:', err);
-      showToast(err.message || 'فشل حفظ الوحدة الجديدة في قاعدة البيانات المركزية', 'error', 'خطأ في حفظ البيانات');
-    });
     setSelectedUnitCode(normalizedUnit.code);
     setActiveTab('units');
+    return true;
   };
 
   // Update existing unit handler
-  const handleUpdateUnit = (updatedUnit: UnitAsset) => {
+  const handleUpdateUnit = async (updatedUnit: UnitAsset): Promise<boolean> => {
     const normalizedRooms = updatedUnit.rooms ? normalizeUnitRoomsSequence(updatedUnit.code, updatedUnit.rooms) : [];
     const normalizedUnit: UnitAsset = { ...updatedUnit, rooms: normalizedRooms };
+    if (!(await saveFirst(() => api.updateUnit(normalizedUnit), 'فشل تحديث بيانات الوحدة في قاعدة البيانات المركزية'))) return false;
     setUnits((prev) => {
       const updated = prev.map((u) => (u.id === normalizedUnit.id || u.code === normalizedUnit.code ? normalizedUnit : u));
       safeSetItem('app_units', updated);
       return updated;
-    });
-    api.updateUnit(normalizedUnit).catch((err) => {
-      console.error('API updateUnit error:', err);
-      showToast(err.message || 'فشل تحديث بيانات الوحدة في قاعدة البيانات المركزية', 'error', 'خطأ في حفظ البيانات');
     });
     const newLog: AuditLogItem = {
       id: `LOG-${Math.floor(100 + Math.random() * 900)}`,
@@ -1894,11 +1867,13 @@ export function App() {
       newValue: `تم تحديث المبنى (${normalizedUnit.name})`,
     };
     appendAuditLog(newLog);
+    return true;
   };
 
   // Delete unit handler (Permanent removal)
-  const handleDeleteUnit = (unitCode: string) => {
+  const handleDeleteUnit = async (unitCode: string) => {
     const targetUnit = units.find((u) => u.code === unitCode);
+    if (!(await saveFirst(() => api.deleteUnit(unitCode), 'فشل حذف الوحدة من قاعدة البيانات المركزية'))) return;
     setUnits((prev) => {
       const remaining = prev.filter((u) => u.code !== unitCode);
       safeSetItem('app_units', remaining);
@@ -1906,10 +1881,6 @@ export function App() {
         setSelectedUnitCode(remaining[0]?.code || '');
       }
       return remaining;
-    });
-    api.deleteUnit(unitCode).catch((err) => {
-      console.error('API deleteUnit error:', err);
-      showToast(err.message || 'فشل حذف الوحدة من قاعدة البيانات المركزية', 'error', 'خطأ في حذف البيانات');
     });
 
     const newLog: AuditLogItem = {
@@ -1927,33 +1898,23 @@ export function App() {
   };
 
   // Decommission unit handler (Freeze & mark as written off)
-  const handleDecommissionUnit = (unitCode: string, reason: string) => {
+  const handleDecommissionUnit = async (unitCode: string, reason: string) => {
     const timestampStr = getServerDateFormatted();
-    let targetUnitObj: UnitAsset | null = null;
+    const current = units.find((u) => u.code === unitCode);
+    if (!current) return;
+    const targetUnitObj: UnitAsset = {
+      ...current,
+      status: 'decommissioned' as const,
+      decommissionedAt: timestampStr,
+      decommissionReason: reason || 'تم الشطب والتجميد بناءً على توصيات السلامة والتقييم الإنشائي',
+      lastUpdated: getServerIsoDateOnly(),
+    };
+    if (!(await saveFirst(() => api.updateUnit(targetUnitObj), 'فشل شطب وتجميد المنشأة في قاعدة البيانات المركزية'))) return;
     setUnits((prev) => {
-      const updated = prev.map((u) => {
-        if (u.code === unitCode) {
-          targetUnitObj = {
-            ...u,
-            status: 'decommissioned' as const,
-            decommissionedAt: timestampStr,
-            decommissionReason: reason || 'تم الشطب والتجميد بناءً على توصيات السلامة والتقييم الإنشائي',
-            lastUpdated: getServerIsoDateOnly(),
-          };
-          return targetUnitObj;
-        }
-        return u;
-      });
+      const updated = prev.map((u) => (u.code === unitCode ? targetUnitObj : u));
       safeSetItem('app_units', updated);
       return updated;
     });
-
-    if (targetUnitObj) {
-      api.updateUnit(targetUnitObj).catch((err) => {
-        console.error('API decommission unit error:', err);
-        showToast(err.message || 'فشل شطب وتجميد المنشأة في قاعدة البيانات المركزية', 'error', 'خطأ في حفظ البيانات');
-      });
-    }
 
     const newLog: AuditLogItem = {
       id: `LOG-${Math.floor(100 + Math.random() * 900)}`,
@@ -1970,32 +1931,22 @@ export function App() {
   };
 
   // Reactivate unit handler
-  const handleReactivateUnit = (unitCode: string) => {
-    let targetUnitObj: UnitAsset | null = null;
+  const handleReactivateUnit = async (unitCode: string) => {
+    const current = units.find((u) => u.code === unitCode);
+    if (!current) return;
+    const targetUnitObj: UnitAsset = {
+      ...current,
+      status: 'active' as const,
+      decommissionedAt: undefined,
+      decommissionReason: undefined,
+      lastUpdated: getServerIsoDateOnly(),
+    };
+    if (!(await saveFirst(() => api.updateUnit(targetUnitObj), 'فشل إعادة تفعيل المنشأة في قاعدة البيانات المركزية'))) return;
     setUnits((prev) => {
-      const updated = prev.map((u) => {
-        if (u.code === unitCode) {
-          targetUnitObj = {
-            ...u,
-            status: 'active' as const,
-            decommissionedAt: undefined,
-            decommissionReason: undefined,
-            lastUpdated: getServerIsoDateOnly(),
-          };
-          return targetUnitObj;
-        }
-        return u;
-      });
+      const updated = prev.map((u) => (u.code === unitCode ? targetUnitObj : u));
       safeSetItem('app_units', updated);
       return updated;
     });
-
-    if (targetUnitObj) {
-      api.updateUnit(targetUnitObj).catch((err) => {
-        console.error('API reactivate unit error:', err);
-        showToast(err.message || 'فشل إعادة تفعيل المنشأة في قاعدة البيانات المركزية', 'error', 'خطأ في حفظ البيانات');
-      });
-    }
 
     const newLog: AuditLogItem = {
       id: `LOG-${Math.floor(100 + Math.random() * 900)}`,
@@ -2060,16 +2011,14 @@ export function App() {
   };
 
   // Add new maintenance request
-  const handleAddMaintenanceRequest = (req: MaintenanceRequest) => {
+  const handleAddMaintenanceRequest = async (req: MaintenanceRequest): Promise<boolean> => {
+    if (!(await saveFirst(() => api.addMaintenanceRequest(req), 'فشل حفظ أمر الصيانة في قاعدة البيانات المركزية'))) return false;
     setMaintenanceRequests((prev) => {
       const updated = [req, ...prev];
       safeSetItem('app_maintenance_requests', updated);
       return updated;
     });
-    api.addMaintenanceRequest(req).catch((err) => {
-      console.error('API addMaintenanceRequest error:', err);
-      showToast(err.message || 'فشل حفظ أمر الصيانة في قاعدة البيانات المركزية', 'error', 'خطأ في حفظ البيانات');
-    });
+    return true;
   };
 
   // Open maintenance modal for specific unit (locked to scanned or targeted unit)
@@ -2091,43 +2040,34 @@ export function App() {
   };
 
   // Periodic Inspection Handlers
-  const handleAddPeriodicInspection = (schedule: PeriodicInspectionSchedule) => {
+  const handleAddPeriodicInspection = async (schedule: PeriodicInspectionSchedule) => {
+    if (!(await saveFirst(() => api.addPeriodicInspection(schedule), 'فشل جدولة الكشف الدوري في قاعدة البيانات المركزية'))) return;
     setPeriodicInspections((prev) => {
       const updated = [schedule, ...prev];
       safeSetItem('app_periodic_inspections', updated);
       return updated;
     });
-    api.addPeriodicInspection(schedule).catch((err) => {
-      console.error('API addPeriodicInspection error:', err);
-      showToast(err.message || 'فشل جدولة الكشف الدوري في قاعدة البيانات المركزية', 'error', 'خطأ في حفظ البيانات');
-    });
   };
 
-  const handleUpdatePeriodicInspection = (updated: PeriodicInspectionSchedule) => {
+  const handleUpdatePeriodicInspection = async (updated: PeriodicInspectionSchedule) => {
+    if (!(await saveFirst(() => api.updatePeriodicInspection(updated), 'فشل تحديث بيانات الكشف الدوري في قاعدة البيانات'))) return;
     setPeriodicInspections((prev) => {
       const list = prev.map((s) => (s.id === updated.id ? updated : s));
       safeSetItem('app_periodic_inspections', list);
       return list;
     });
-    api.updatePeriodicInspection(updated).catch((err) => {
-      console.error('API updatePeriodicInspection error:', err);
-      showToast(err.message || 'فشل تحديث بيانات الكشف الدوري في قاعدة البيانات', 'error', 'خطأ في حفظ البيانات');
-    });
   };
 
-  const handleDeletePeriodicInspection = (id: string) => {
+  const handleDeletePeriodicInspection = async (id: string) => {
+    if (!(await saveFirst(() => api.deletePeriodicInspection(id), 'فشل حذف الكشف الدوري من قاعدة البيانات'))) return;
     setPeriodicInspections((prev) => {
       const remaining = prev.filter((s) => s.id !== id);
       safeSetItem('app_periodic_inspections', remaining);
       return remaining;
     });
-    api.deletePeriodicInspection(id).catch((err) => {
-      console.error('API deletePeriodicInspection error:', err);
-      showToast(err.message || 'فشل حذف الكشف الدوري من قاعدة البيانات', 'error', 'خطأ في حذف البيانات');
-    });
   };
 
-  const handleCompletePeriodicInspection = (
+  const handleCompletePeriodicInspection = async (
     id: string,
     outcome: {
       completionDate: string;
@@ -2148,12 +2088,12 @@ export function App() {
     const existing = periodicInspections.find((s) => s.id === id);
     if (!existing) return;
 
+    // 5-ز: تُبنى كل السجلات أولاً، ثم تُحفظ على الخادم، ولا تتغير الشاشة إلا بعد نجاح الحفظ كاملاً
     let createdMaintId: string | undefined = undefined;
-
-    // Trigger maintenance request if requested
+    let newReq: MaintenanceRequest | null = null;
     if (outcome.createMaintenance) {
       createdMaintId = `REQ-${Math.floor(1000 + Math.random() * 9000)}`;
-      const newReq: MaintenanceRequest = {
+      newReq = {
         id: createdMaintId,
         unitCode: existing.unitCode,
         unitName: existing.unitName,
@@ -2172,18 +2112,8 @@ export function App() {
         details: `صادر عن كشف المعاينة ${existing.id}. التقييم الممنوح: ${outcome.grade}. التوصيات: ${outcome.recommendations || 'لا يوجد'}`,
         sourceInspectionId: existing.id,
       };
-      setMaintenanceRequests((prev) => {
-        const updatedMaint = [newReq, ...prev];
-        safeSetItem('app_maintenance_requests', updatedMaint);
-        return updatedMaint;
-      });
-      api.addMaintenanceRequest(newReq).catch((err) => {
-        console.error('API addMaintenanceRequest error:', err);
-        showToast(err.message || 'فشل حفظ أمر الصيانة المرتبط بالكشف في قاعدة البيانات', 'error', 'خطأ في حفظ البيانات');
-      });
     }
 
-    // Mark existing as completed
     const updatedExisting: PeriodicInspectionSchedule = {
       ...existing,
       status: 'completed',
@@ -2196,37 +2126,16 @@ export function App() {
       reportFileUrl: outcome.reportFileUrl,
       createdMaintenanceRequestId: createdMaintId,
     };
-    api.updatePeriodicInspection(updatedExisting).catch((err) => {
-      console.error('API updatePeriodicInspection error:', err);
-      showToast(err.message || 'فشل توثيق إنجاز الكشف الدوري في قاعدة البيانات', 'error', 'خطأ في حفظ البيانات');
-    });
 
-    // Update unit condition grade
-    setUnits((prev) => {
-      let matchedUnit: UnitAsset | null = null;
-      const updatedUnits = prev.map((u) => {
-        if (u.code === existing.unitCode) {
-          matchedUnit = { ...u, conditionGrade: outcome.grade, lastUpdated: getServerIsoDateOnly() };
-          return matchedUnit;
-        }
-        return u;
-      });
-      safeSetItem('app_units', updatedUnits);
-      if (matchedUnit) {
-        api.updateUnit(matchedUnit).catch((err) => {
-          console.error('API updateUnit grade error:', err);
-          showToast(err.message || 'فشل تحديث درجة تقييم الوحدة في قاعدة البيانات المركزية', 'error', 'خطأ في حفظ البيانات');
-        });
-      }
-      return updatedUnits;
-    });
+    const unitToGrade = units.find((u) => u.code === existing.unitCode);
+    const matchedUnit: UnitAsset | null = unitToGrade
+      ? { ...unitToGrade, conditionGrade: outcome.grade, lastUpdated: getServerIsoDateOnly() }
+      : null;
 
-    // Auto schedule next inspection
-    let nextSchedules: PeriodicInspectionSchedule[] = [];
+    const nextSchedules: PeriodicInspectionSchedule[] = [];
     if (outcome.autoScheduleNext) {
       const nextDueDateStr = calculateNextDueDate(outcome.completionDate, existing.frequency, existing.customIntervalDays);
-
-      const newNextSchedule: PeriodicInspectionSchedule = {
+      nextSchedules.push({
         id: `INS-2026-${Math.floor(1000 + Math.random() * 9000)}`,
         unitCode: existing.unitCode,
         unitName: existing.unitName,
@@ -2243,14 +2152,32 @@ export function App() {
         status: 'scheduled',
         notes: `كشف دوري مجدول تلقائياً بعد توثيق كشف بتاريخ ${outcome.completionDate}`,
         createdAt: getServerIsoDateOnly(),
-      };
-      nextSchedules.push(newNextSchedule);
-      api.addPeriodicInspection(newNextSchedule).catch((err) => {
-        console.error('API addPeriodicInspection next schedule error:', err);
-        showToast(err.message || 'فشل جدولة الكشف القادم في قاعدة البيانات', 'error', 'خطأ في حفظ البيانات');
       });
     }
 
+    const saved = await saveFirst(async () => {
+      if (newReq) await api.addMaintenanceRequest(newReq);
+      await api.updatePeriodicInspection(updatedExisting);
+      if (matchedUnit) await api.updateUnit(matchedUnit);
+      for (const next of nextSchedules) await api.addPeriodicInspection(next);
+    }, 'فشل توثيق إنجاز الكشف الدوري في قاعدة البيانات');
+    if (!saved) return;
+
+    if (newReq) {
+      const createdReq = newReq;
+      setMaintenanceRequests((prev) => {
+        const updatedMaint = [createdReq, ...prev];
+        safeSetItem('app_maintenance_requests', updatedMaint);
+        return updatedMaint;
+      });
+    }
+    if (matchedUnit) {
+      setUnits((prev) => {
+        const updatedUnits = prev.map((u) => (u.code === existing.unitCode ? matchedUnit : u));
+        safeSetItem('app_units', updatedUnits);
+        return updatedUnits;
+      });
+    }
     setPeriodicInspections((prev) => {
       const updatedAll = [
         ...nextSchedules,
@@ -2261,27 +2188,22 @@ export function App() {
     });
   };
 
-  const handleUpdateMaintenanceRequest = (updatedReq: MaintenanceRequest) => {
+  const handleUpdateMaintenanceRequest = async (updatedReq: MaintenanceRequest): Promise<boolean> => {
+    if (!(await saveFirst(() => api.updateMaintenanceRequest(updatedReq), 'فشل تحديث أمر الصيانة في قاعدة البيانات المركزية'))) return false;
     setMaintenanceRequests((prev) => {
       const updated = prev.map((r) => (r.id === updatedReq.id ? updatedReq : r));
       safeSetItem('app_maintenance_requests', updated);
       return updated;
     });
-    api.updateMaintenanceRequest(updatedReq).catch((err) => {
-      console.error('API updateMaintenanceRequest error:', err);
-      showToast(err.message || 'فشل تحديث أمر الصيانة في قاعدة البيانات المركزية', 'error', 'خطأ في حفظ البيانات');
-    });
+    return true;
   };
 
-  const handleDeleteMaintenanceRequest = (id: string) => {
+  const handleDeleteMaintenanceRequest = async (id: string) => {
+    if (!(await saveFirst(() => api.deleteMaintenanceRequest(id), 'فشل حذف أمر الصيانة من قاعدة البيانات المركزية'))) return;
     setMaintenanceRequests((prev) => {
       const remaining = prev.filter((r) => r.id !== id);
       safeSetItem('app_maintenance_requests', remaining);
       return remaining;
-    });
-    api.deleteMaintenanceRequest(id).catch((err) => {
-      console.error('API deleteMaintenanceRequest error:', err);
-      showToast(err.message || 'فشل حذف أمر الصيانة من قاعدة البيانات المركزية', 'error', 'خطأ في حذف البيانات');
     });
   };
 
@@ -2325,6 +2247,17 @@ export function App() {
     >
       {/* شريط الحالة: الاتصال بالخادم، ساعة الخادم، آخر نسخة احتياطية */}
       <StatusBar />
+      {/* 5-ز: مؤشر انتظار رد الخادم. الشاشة لا تتغير قبل تأكيد الحفظ */}
+      {savingLabel && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="fixed bottom-4 inset-x-0 z-[210] mx-auto w-fit max-w-[92vw] rounded-xl border border-slate-200 bg-card text-slate-900 shadow-lg px-4 py-2.5 flex items-center gap-2.5"
+        >
+          <Loader2 className="w-4 h-4 shrink-0 text-brand-700 animate-spin" />
+          <span className="text-sm font-bold">{savingLabel}</span>
+        </div>
+      )}
       {saveError && (
         <div
           role="alert"

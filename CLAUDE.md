@@ -84,6 +84,14 @@
 - `slaDeadline` لطلب جديد يأتي من `maintenanceSlaDeadline` في `NewMaintenanceModal.tsx` وفي `App.tsx` (الطلب الصادر عن كشف دوري)، بدل المهل الثابتة السابقة (يومان / سبعة أيام) التي كانت تتجاهل الأولوية.
 - عمود حالة الطلب في `MaintenanceView.tsx` يعرض شارة حمراء بعدد أيام التأخير للطلبات المتأخرة غير المغلقة.
 
+## الحفظ على الخادم أولاً (5-ز)
+- `saveFirst` في App.tsx: دالة مساعدة `async (call, fallbackMessage, label?) => Promise<boolean>` تعرض spinner toast أسفل الشاشة أثناء الانتظار، وتُرجع `true` عند النجاح أو `false` عند الفشل (مع تعيين `saveError` لإظهار البانر الأحمر «لم يُحفظ التعديل»).
+- جميع معالجات الكتابة (إضافة/تعديل/حذف: وحدات، صيانة، كشف دوري، مستخدمون، هوية، هيكل تنظيمي...) تستدعي الخادم أولاً عبر `saveFirst` ولا تُحدّث حالة React إلا بعد نجاحه.
+- المكوّنات التي تنتظر نتيجة الحفظ قبل الإغلاق: `NewMaintenanceModal`، `UnitForm`، `MaintenanceView` — prop الحفظ فيها من نوع `(...) => void | boolean | Promise<void | boolean>`؛ إن أرجعت `false` تبقى النافذة/النموذج مفتوحاً.
+- `handleCompletePeriodicInspection`: يبني جميع السجلات (طلب صيانة + تحديث كشف + درجة وحدة + جدولة قادمة) ويحفظها بـ `saveFirst` واحد قبل أي تحديث للحالة (ذري).
+- Spinner toast: `savingLabel` state → `<div role="status" aria-live="polite">` ثابت `bottom-4` بـ `z-[210]` بأيقونة `Loader2` دوّارة.
+- `syncQueue` (صيانة وكشوف): `saveFirst` يغلّف عملية وضع الطلب في الطابور (تنجح دائماً أوف-لاين)؛ أخطاء الخادم الحقيقية تصل عبر `api.onApiError` كما كانت.
+
 ## البيانات المرجعية (3-هـ)
 - أنواع الوحدات والمحافظات والحقول وأنواع الغرف والمعدات وأقسام الصيانة **مصدرها الخادم** (`GET/POST /api/reference-data`، الكتابة للمدير). كانت في localStorage لكل متصفح فقط. App.tsx يقرأها بعد الدخول وعند حدث `reference_data_updated` (`loadReferenceDataFromServer`)، وتعديلات المدير تُحفظ بعد 600ms إن اختلفت عن `referenceServerSnapshot`. أول مدير يدخل وليس على الخادم بيانات مرجعية يرفع قوائمه الحالية مرة واحدة.
 - الخادم: رمز نوع الوحدة فريد؛ نوع مستخدم في وحدات لا يُحذف من القائمة (409 `REFERENCE_IN_USE`)؛ حفظ وحدة بنوع خارج القائمة يُرفض (400 `INVALID_UNIT_TYPE`) إلا إن كان نوعها القديم نفسه. `unitTypeCodeOf` يقابل الأسماء القديمة (building→BLD، caravan→CRV...).

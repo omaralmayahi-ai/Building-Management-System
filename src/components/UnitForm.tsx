@@ -97,7 +97,7 @@ interface UnitFormProps {
   onAddOilfield?: (field: OilfieldRef) => void;
   onAddUnitType?: (type: ReferenceUnitType) => void;
   unit: UnitAsset;
-  onSave: (updatedUnit: UnitAsset) => void;
+  onSave: (updatedUnit: UnitAsset) => void | boolean | Promise<void | boolean>;
   onClose: () => void;
   governorates?: RefItem[];
   oilfields?: RefItem[];
@@ -811,7 +811,9 @@ export const UnitForm: React.FC<UnitFormProps> = ({
     };
 
     if (!isCreate && !(await confirm({ title: 'تأكيد تعديل الوحدة', message: <>هل تريد حفظ التعديلات على الوحدة <strong className="font-mono">{unitCode}</strong>؟</> }))) return;
-    onSave(updated);
+    // 5-ز: النافذة لا تُغلق قبل تأكيد الخادم
+    const saved = await onSave(updated);
+    if (saved === false) return;
     if (!isCreate) onClose();
   };
 
