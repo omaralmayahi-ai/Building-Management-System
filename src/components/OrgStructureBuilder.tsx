@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { ConfirmDialog, useConfirm } from './ui';
+import { Button, ConfirmDialog, Input, Modal, PageHeader, Select, fieldLook, useConfirm } from './ui';
 import {
   Network,
   Building2,
@@ -1008,76 +1008,39 @@ export const OrgStructureBuilder: React.FC<OrgStructureBuilderProps> = ({
         </div>
       )}
 
-      {/* Header Banner */}
-      <div
-        className={`p-5 rounded-2xl border transition-all bg-card border-slate-200 shadow-sm`}
-      >
-        {/* Title and Description */}
-        <div className="flex items-start sm:items-center gap-3.5">
-          <div className="p-3 rounded-2xl bg-brand-50 text-brand-700 border border-brand-200 shrink-0">
-            <Network className="w-7 h-7" />
-          </div>
-          <div className="min-w-0">
-            <h2 className={`font-black text-lg sm:text-xl text-slate-900`}>
-              بناء الهيكل التنظيمي للمؤسسة
-            </h2>
-            <p className={`text-xs sm:text-sm mt-1 leading-relaxed text-slate-600`}>
-              إدارة التسلسل الهرمي للتشكيلات، التعديل والحذف الدائم، الاستيراد والتصدير عبر ملفات Excel و CSV المعتمدة
-            </p>
-          </div>
-        </div>
+      {/* الترويسة */}
+      <PageHeader
+        icon={Network}
+        title="الهيكل التنظيمي"
+        description="التسلسل الهرمي للتشكيلات، الإضافة والتعديل والحذف، والاستيراد من Excel"
+        actions={
+          <>
+            <Button variant="primary" icon={Plus} onClick={() => handleOpenCreateModal(null)}>
+              تشكيل رئيسي جديد
+            </Button>
+            <Button icon={Eye} onClick={() => setShowOrgChartModal(true)} title="عرض الهيكل التنظيمي المعتمد في نافذة تفاعلية">
+              عرض المخطط
+            </Button>
+            <Button icon={Download} onClick={handleDownloadTemplate} title="تحميل نموذج Excel مجهز بالأعمدة والأمثلة">
+              نموذج Excel
+            </Button>
+            <Button
+              icon={UploadCloud}
+              onClick={() => {
+                setShowImportModal(true);
+                setImportedFile(null);
+                setImportRows([]);
+                setImportEntities([]);
+              }}
+              title="استيراد هيكل تنظيمي من ملف Excel أو CSV"
+            >
+              استيراد
+            </Button>
+          </>
+        }
+      />
 
-        {/* Action Toolbar - Positioned below title and description in an organized single row */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 mt-4 pt-4 border-t border-slate-200/80 ">
-          {/* 1. Add Primary Entity */}
-          <button
-            type="button"
-            onClick={() => handleOpenCreateModal(null)}
-            className="w-full px-3 py-2.5 bg-brand-700 hover:bg-brand-800 text-on-brand font-black rounded-xl text-xs transition cursor-pointer shadow-md flex items-center justify-center gap-2 whitespace-nowrap"
-          >
-            <Plus className="w-4 h-4" />
-            <span>إضافة تشكيل رئيسي جديد</span>
-          </button>
-
-          {/* 2. View Org Chart Modal */}
-          <button
-            type="button"
-            onClick={() => setShowOrgChartModal(true)}
-            className={`w-full px-3 py-2.5 rounded-xl font-bold text-xs transition cursor-pointer flex items-center justify-center gap-2 border whitespace-nowrap shadow-2xs bg-brand-50 hover:bg-brand-100 border-brand-200 text-brand-800`}
-            title="عرض الهيكل التنظيمي المعتمد للشركة في نافذة تفاعلية مع إمكانية تصدير صورة عالية الدقة"
-          >
-            <Eye className="w-4 h-4 text-brand-700" />
-            <span>عرض الهيكل التنظيمي المعتمد (تصدير صورة)</span>
-          </button>
-
-          {/* 3. Download Excel Template */}
-          <button
-            type="button"
-            onClick={handleDownloadTemplate}
-            className={`w-full px-3 py-2.5 rounded-xl border text-xs font-bold transition cursor-pointer flex items-center justify-center gap-2 whitespace-nowrap bg-slate-100 hover:bg-slate-200 border-slate-300 text-slate-800`}
-            title="تحميل نموذج Excel تيمبلت مجهز بالأعمدة والأمثلة الإرشادية لملء الهيكل"
-          >
-            <Download className="w-4 h-4 text-sky-600" />
-            <span>تحميل نموذج Excel</span>
-          </button>
-
-          {/* 4. Import Excel / CSV */}
-          <button
-            type="button"
-            onClick={() => {
-              setShowImportModal(true);
-              setImportedFile(null);
-              setImportRows([]);
-              setImportEntities([]);
-            }}
-            className={`w-full px-3 py-2.5 rounded-xl border text-xs font-bold transition cursor-pointer flex items-center justify-center gap-2 whitespace-nowrap bg-emerald-50 hover:bg-emerald-100 border-emerald-200 text-emerald-900`}
-            title="استيراد وتفريغ هيكل تنظيمي من ملف Excel أو CSV"
-          >
-            <UploadCloud className="w-4 h-4 text-emerald-600" />
-            <span>استيراد من Excel / CSV</span>
-          </button>
-        </div>
-
+      <div className={`p-5 rounded-2xl border transition-all bg-card border-slate-200 shadow-sm`}>
         {/* Analytics Summary Bar */}
         <div
           className={`grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3.5 mt-5 pt-4 border-t border-slate-200`}
@@ -1203,23 +1166,19 @@ export const OrgStructureBuilder: React.FC<OrgStructureBuilderProps> = ({
       <div
         className={`p-4 rounded-2xl border flex flex-col md:flex-row items-center justify-between gap-3 bg-card border-slate-200`}
       >
-        <div className="flex items-center gap-2 w-full md:w-auto">
-          <div className="relative flex-1 md:w-72">
-            <Search className="w-4 h-4 absolute right-3 top-3 text-slate-500" />
-            <input
+        <div className="flex w-full items-center gap-2 md:w-auto">
+          <div className="relative min-w-0 flex-1">
+            <Search className="pointer-events-none absolute right-3 top-3 h-4 w-4 text-slate-500" aria-hidden />
+            <Input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="البحث باسم التشكيل، رمز التشكيل، أو بالمستوى التنظيمي..."
-              className={`w-full pr-9 pl-3 py-2 text-xs font-bold rounded-xl border outline-none transition bg-slate-50 border-slate-300 text-slate-900 focus:border-brand-600`}
+              placeholder="اسم التشكيل، رمزه، أو مستواه..."
+              className="pr-9"
             />
           </div>
-
-          <select
-            value={selectedLevelFilter}
-            onChange={(e) => setSelectedLevelFilter(e.target.value)}
-            className={`py-2 px-3 text-xs font-bold rounded-xl border outline-none transition cursor-pointer bg-slate-50 border-slate-300 text-slate-900`}
-          >
+          <div className="w-52 shrink-0">
+          <Select value={selectedLevelFilter} onChange={(e) => setSelectedLevelFilter(e.target.value)}>
             <option value="all">كافة المستويات التنظيمية</option>
             <option value="company">الشركة / المؤسسة</option>
             <option value="director_general">المدير العام</option>
@@ -1229,24 +1188,17 @@ export const OrgStructureBuilder: React.FC<OrgStructureBuilderProps> = ({
             <option value="department">قسم</option>
             <option value="section">شعبة</option>
             <option value="unit">وحدة</option>
-          </select>
+          </Select>
+          </div>
         </div>
 
         <div className="flex items-center gap-2 w-full md:w-auto justify-end">
-          <button
-            type="button"
-            onClick={handleExpandAll}
-            className={`px-3 py-1.5 rounded-xl border text-xs font-bold transition cursor-pointer bg-slate-100 border-slate-300 text-slate-700 hover:bg-slate-200`}
-          >
+          <Button size="sm" onClick={handleExpandAll}>
             توسيع كافة الفروع
-          </button>
-          <button
-            type="button"
-            onClick={handleCollapseAll}
-            className={`px-3 py-1.5 rounded-xl border text-xs font-bold transition cursor-pointer bg-slate-100 border-slate-300 text-slate-700 hover:bg-slate-200`}
-          >
+          </Button>
+          <Button size="sm" onClick={handleCollapseAll}>
             طي الكل
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -1354,36 +1306,23 @@ export const OrgStructureBuilder: React.FC<OrgStructureBuilderProps> = ({
       </div>
 
       {/* ==================== MODAL: Add or Edit Org Entity ==================== */}
-      {showModal && (
-        <div className="fixed inset-0 bg-card/80 backdrop-blur-sm flex items-center justify-center p-4 z-[100]">
-          <div
-            className={`max-w-lg w-full p-6 rounded-2xl border shadow-2xl transition-all bg-card border-slate-200 text-slate-900`}
-          >
-            <div
-              className={`flex items-center justify-between pb-3 border-b mb-4 border-slate-200`}
-            >
-              <div className="flex items-center gap-2">
-                <Network className="w-5 h-5 text-brand-700" />
-                <h3 className="font-extrabold text-base">
-                  {editingNode ? 'تعديل تشكيل تنظيمـي' : 'إضافة تشكيل جديد للهيكل التنظيمي'}
-                </h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowModal(false)}
-                className="text-slate-500 hover:text-slate-800 p-1 cursor-pointer"
-              >
-                ✕
-              </button>
-            </div>
-
-            {formError && (
-              <div className="mb-4 p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-600 text-xs font-bold">
-                ⚠️ {formError}
-              </div>
-            )}
-
-            <form onSubmit={handleSaveModal} className="space-y-4 text-xs">
+      <Modal
+        open={showModal}
+        staticBackdrop
+        icon={Network}
+        title={editingNode ? 'تعديل تشكيل تنظيمي' : 'إضافة تشكيل جديد'}
+        onClose={() => setShowModal(false)}
+        footer={
+          <>
+            <Button type="submit" form="org-entity-form" variant="primary" icon={Check}>
+              {editingNode ? 'حفظ التعديلات' : 'إضافة التشكيل'}
+            </Button>
+            <Button onClick={() => setShowModal(false)}>إلغاء</Button>
+          </>
+        }
+      >
+        {showModal && (
+        <form id="org-entity-form" onSubmit={handleSaveModal} className="space-y-4 text-xs">
               <div>
                 <label className="block font-bold mb-1">
                   اسم الجهة / التشكيل بالعربية <span className="text-rose-600">*</span>
@@ -1394,7 +1333,7 @@ export const OrgStructureBuilder: React.FC<OrgStructureBuilderProps> = ({
                   value={formNameAr}
                   onChange={(e) => setFormNameAr(e.target.value)}
                   placeholder="مثال: قسم إدارة حقول الغاز"
-                  className={`w-full border rounded-xl p-3 font-bold focus:border-brand-600 outline-none bg-slate-50 border-slate-300 text-slate-900`}
+                  className={`${fieldLook} w-full`}
                   autoFocus
                 />
               </div>
@@ -1406,7 +1345,7 @@ export const OrgStructureBuilder: React.FC<OrgStructureBuilderProps> = ({
                   value={formNameEn}
                   onChange={(e) => setFormNameEn(e.target.value)}
                   placeholder="Gas Fields Management Department"
-                  className={`w-full border rounded-xl p-2.5 font-bold focus:border-brand-600 outline-none bg-slate-50 border-slate-300 text-slate-900`}
+                  className={`${fieldLook} w-full`}
                 />
               </div>
 
@@ -1415,7 +1354,7 @@ export const OrgStructureBuilder: React.FC<OrgStructureBuilderProps> = ({
                 <select
                   value={formParentId || ''}
                   onChange={(e) => setFormParentId(e.target.value || null)}
-                  className={`w-full border rounded-xl p-3 font-bold focus:border-brand-600 outline-none cursor-pointer bg-slate-50 border-slate-300 text-slate-900`}
+                  className={`${fieldLook} w-full cursor-pointer`}
                 >
                   <option value="">بدون جهة أم (تشكيل أعلى/مقر رئيسي)</option>
                   {orgEntities
@@ -1434,7 +1373,7 @@ export const OrgStructureBuilder: React.FC<OrgStructureBuilderProps> = ({
                   <select
                     value={formLevel}
                     onChange={(e) => setFormLevel(e.target.value as OrgLevel)}
-                    className={`w-full border rounded-xl p-2.5 font-bold focus:border-brand-600 outline-none cursor-pointer bg-slate-50 border-slate-300 text-slate-900`}
+                    className={`${fieldLook} w-full cursor-pointer`}
                   >
                     <option value="company">الشركة / المؤسسة</option>
                     <option value="director_general">المدير العام</option>
@@ -1454,7 +1393,7 @@ export const OrgStructureBuilder: React.FC<OrgStructureBuilderProps> = ({
                     min="0"
                     value={formEmployeeCount}
                     onChange={(e) => setFormEmployeeCount(Math.max(0, parseInt(e.target.value) || 0))}
-                    className={`w-full border rounded-xl p-2.5 font-bold focus:border-brand-600 outline-none bg-slate-50 border-slate-300 text-slate-900`}
+                    className={`${fieldLook} w-full`}
                   />
                 </div>
               </div>
@@ -1466,58 +1405,34 @@ export const OrgStructureBuilder: React.FC<OrgStructureBuilderProps> = ({
                   value={formCode}
                   onChange={(e) => setFormCode(e.target.value)}
                   placeholder="مثال: DEP-GAS-01"
-                  className={`w-full border rounded-xl p-2.5 font-mono font-bold focus:border-brand-600 outline-none bg-slate-50 border-slate-300 text-slate-900`}
+                  className={`${fieldLook} w-full font-mono`}
                 />
               </div>
 
-              <div
-                className={`flex items-center justify-end gap-2 pt-3 border-t border-slate-200`}
-              >
-                <button
-                  type="button"
-                  onClick={() => setShowModal(false)}
-                  className={`px-4 py-2 rounded-xl font-bold cursor-pointer bg-slate-100 text-slate-700 hover:bg-slate-200`}
-                >
-                  إلغاء
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2 bg-brand-700 hover:bg-brand-800 text-on-brand font-black rounded-xl cursor-pointer shadow-lg "
-                >
-                  {editingNode ? 'حفظ التعديلات' : 'إضافة التشكيل'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+        </form>
+        )}
+      </Modal>
+
 
       {/* ==================== MODAL: Excel / CSV Import ==================== */}
-      {showImportModal && (
-        <div className="fixed inset-0 bg-card/80 backdrop-blur-sm flex items-center justify-center p-4 z-[100] overflow-y-auto">
-          <div
-            className={`max-w-3xl w-full p-6 rounded-2xl border shadow-2xl my-8 transition-all bg-card border-slate-200 text-slate-900`}
-          >
-            <div
-              className={`flex items-center justify-between pb-3 border-b mb-4 border-slate-200`}
-            >
-              <div className="flex items-center gap-2">
-                <FileSpreadsheet className="w-6 h-6 text-emerald-600" />
-                <div>
-                  <h3 className="font-extrabold text-base">استيراد ورفع الهيكل التنظيمي من ملف Excel / CSV</h3>
-                  <p className={`text-xs text-slate-500`}>
-                    قم برفع ملف الإكسل بعد تعبئته وفق النموذج المعتمد للمؤسسة
-                  </p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowImportModal(false)}
-                className="text-slate-500 hover:text-slate-800 p-1 cursor-pointer"
-              >
-                ✕
-              </button>
-            </div>
+      <Modal
+        open={showImportModal}
+        wide
+        staticBackdrop
+        icon={UploadCloud}
+        title="استيراد الهيكل التنظيمي من Excel / CSV"
+        onClose={() => setShowImportModal(false)}
+        footer={
+          <>
+            <Button variant="primary" icon={Check} disabled={importEntities.length === 0} onClick={handleCommitImport}>
+              اعتماد وحفظ الهيكل ({importEntities.length})
+            </Button>
+            <Button onClick={() => setShowImportModal(false)}>إلغاء</Button>
+          </>
+        }
+      >
+        {showImportModal && (
+        <div className="space-y-4 text-xs">
 
             {/* Drop Zone / Upload */}
             <div
@@ -1659,30 +1574,10 @@ export const OrgStructureBuilder: React.FC<OrgStructureBuilderProps> = ({
               </div>
             )}
 
-            {/* Actions */}
-            <div
-              className={`flex items-center justify-end gap-2 pt-4 mt-4 border-t border-slate-200`}
-            >
-              <button
-                type="button"
-                onClick={() => setShowImportModal(false)}
-                className={`px-4 py-2 rounded-xl font-bold text-xs cursor-pointer bg-slate-100 text-slate-700 hover:bg-slate-200`}
-              >
-                إلغاء
-              </button>
-              <button
-                type="button"
-                disabled={importEntities.length === 0}
-                onClick={handleCommitImport}
-                className="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-black rounded-xl text-xs cursor-pointer shadow-lg shadow-emerald-600/20 flex items-center gap-1.5"
-              >
-                <Check className="w-4 h-4" />
-                <span>اعتماد وحفظ الهيكل التنظيمي ({importEntities.length})</span>
-              </button>
-            </div>
-          </div>
         </div>
-      )}
+        )}
+      </Modal>
+
 
       {/* نافذة تأكيد الحذف الموحدة */}
       <ConfirmDialog

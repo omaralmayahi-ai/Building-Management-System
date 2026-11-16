@@ -1,7 +1,8 @@
 import AuditTrailPanel from './AuditTrailPanel';
-import { ConfirmDialog, Tabs, useConfirm } from './ui';
+import { Button, ConfirmDialog, Modal, PageHeader, Table, Tabs, Td, fieldLook, useConfirm } from './ui';
 import React, { useState, useRef, useEffect } from 'react';
 import {
+  Save,
   Settings,
   Plus,
   PlusCircle,
@@ -841,22 +842,12 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         </div>
       )}
 
-      {/* Header Banner */}
-      <div
-        className={`rounded-2xl p-5 shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4 border transition bg-card border-slate-200 shadow-slate-200/50`}
-      >
-        <div>
-          <h2
-            className={`text-lg font-bold flex items-center gap-2 text-slate-900`}
-          >
-            <Settings className="w-5 h-5 text-brand-700" />
-            <span>إعدادات النظام</span>
-          </h2>
-          <p className={`text-xs mt-0.5 text-slate-600`}>
-            تخصيص اسم النظام والشركة المالك، إدارة المستخدمين والمحافظات والحقول والدليل المرجعي الكامل مع التعديل والحذف
-          </p>
-        </div>
-      </div>
+      {/* الترويسة */}
+      <PageHeader
+        icon={Settings}
+        title="إعدادات النظام"
+        description="هوية النظام، المستخدمون، القوائم المرجعية، الهيكل التنظيمي، النسخ الاحتياطي وسجل النشاطات"
+      />
 
       {/* Top Horizontal Navigation Panel for Settings (Replaces sidebar, distributes buttons harmoniously) */}
       <div
@@ -1245,7 +1236,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       value={brandingForm.systemName}
                       onChange={(e) => setBrandingForm({ ...brandingForm, systemName: e.target.value })}
                       placeholder="السجل الرقمي الموحد للأصول الهندسية والإنشائية"
-                      className="w-full bg-card border border-slate-200 rounded-xl p-2.5 text-slate-800 font-bold focus:border-brand-600 transition"
+                      className={`${fieldLook} w-full`}
                     />
                   </div>
 
@@ -1261,7 +1252,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                         value={brandingForm.companyName}
                         onChange={(e) => setBrandingForm({ ...brandingForm, companyName: e.target.value })}
                         placeholder="شركة نفط الوسط"
-                        className="w-full bg-card border border-slate-200 rounded-xl p-2.5 text-slate-800 font-bold"
+                        className={`${fieldLook} w-full`}
                       />
                     </div>
 
@@ -1276,7 +1267,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                         value={brandingForm.ministryName}
                         onChange={(e) => setBrandingForm({ ...brandingForm, ministryName: e.target.value })}
                         placeholder="وزارة النفط العراقية"
-                        className="w-full bg-card border border-slate-200 rounded-xl p-2.5 text-slate-800 font-bold"
+                        className={`${fieldLook} w-full`}
                       />
                     </div>
                   </div>
@@ -1293,7 +1284,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                         value={brandingForm.countryName}
                         onChange={(e) => setBrandingForm({ ...brandingForm, countryName: e.target.value })}
                         placeholder="جمهورية العراق"
-                        className="w-full bg-card border border-slate-200 rounded-xl p-2.5 text-slate-800 font-bold"
+                        className={`${fieldLook} w-full`}
                       />
                     </div>
 
@@ -1307,7 +1298,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                         value={brandingForm.logoSubtext || ''}
                         onChange={(e) => setBrandingForm({ ...brandingForm, logoSubtext: e.target.value })}
                         placeholder="عراق"
-                        className="w-full bg-card border border-slate-200 rounded-xl p-2.5 text-brand-700 font-bold"
+                        className={`${fieldLook} w-full`}
                       />
                     </div>
                   </div>
@@ -1344,7 +1335,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                         <select
                           value={brandingForm.fontId || 'cairo'}
                           onChange={(e) => setBrandingForm({ ...brandingForm, fontId: e.target.value })}
-                          className="w-full bg-card border border-slate-200 rounded-xl p-2.5 text-slate-800 font-bold"
+                          className={`${fieldLook} w-full`}
                         >
                           {FONTS.map((f) => (
                             <option key={f.id} value={f.id}>
@@ -1360,7 +1351,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                           onChange={(e) =>
                             setBrandingForm({ ...brandingForm, sidebarStyle: e.target.value === 'light' ? 'light' : 'primary' })
                           }
-                          className="w-full bg-card border border-slate-200 rounded-xl p-2.5 text-slate-800 font-bold"
+                          className={`${fieldLook} w-full`}
                         >
                           <option value="primary">بلون الثيم</option>
                           <option value="light">فاتحة</option>
@@ -1380,7 +1371,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       value={brandingForm.copyrightText}
                       onChange={(e) => setBrandingForm({ ...brandingForm, copyrightText: e.target.value })}
                       placeholder="جميع الحقوق محفوظة © 2026 - شركة نفط الوسط"
-                      className="w-full bg-card border border-slate-200 rounded-xl p-2.5 text-slate-600"
+                      className={`${fieldLook} w-full h-auto min-h-20`}
                     />
                   </div>
 
@@ -1588,7 +1579,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                             value={userDisplayName}
                             onChange={(e) => setUserDisplayName(e.target.value)}
                             placeholder="مثال: م. علي حسن"
-                            className={`w-full rounded-xl px-3 py-2 text-xs focus:outline-none transition border bg-card border-slate-300 text-slate-900 placeholder:text-slate-400 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-500`}
+                            className={`${fieldLook} w-full`}
                           />
                         </div>
                       </div>
@@ -1607,7 +1598,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                             value={userAccountName}
                             onChange={(e) => setUserAccountName(e.target.value)}
                             placeholder="مثال: ali.hassan"
-                            className={`w-full rounded-xl px-3 py-2 text-xs font-mono font-bold focus:outline-none transition border bg-brand-50 border-brand-200 text-brand-800 placeholder:text-slate-400 focus:border-brand-600 focus:ring-1 focus:ring-brand-600`}
+                            className={`${fieldLook} w-full font-mono`}
                           />
                         </div>
                       </div>
@@ -1626,7 +1617,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                             value={userPassword}
                             onChange={(e) => setUserPassword(e.target.value)}
                             placeholder="••••••••"
-                            className={`w-full rounded-xl px-3 py-2 pl-8 text-xs font-mono focus:outline-none transition border bg-card border-slate-300 text-slate-900 placeholder:text-slate-400 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-500`}
+                            className={`${fieldLook} w-full pl-8 font-mono`}
                           />
                           <button
                             type="button"
@@ -1650,7 +1641,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                           required
                           value={userRole}
                           onChange={(e) => setUserRole(e.target.value as UserAccountRole)}
-                          className={`w-full rounded-xl px-2.5 py-2 text-xs font-bold focus:outline-none transition cursor-pointer border bg-card border-slate-300 text-slate-900 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-500`}
+                          className={`${fieldLook} w-full cursor-pointer`}
                         >
                           <option
                             value="مدير النظام"
@@ -1697,7 +1688,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                             required
                             value={userMaintDept}
                             onChange={(e) => setUserMaintDept(e.target.value)}
-                            className={`w-full rounded-xl px-2.5 py-2 text-xs font-bold focus:outline-none transition cursor-pointer border bg-brand-50 border-brand-200 text-brand-800 focus:border-brand-600 focus:ring-1 focus:ring-brand-600`}
+                            className={`${fieldLook} w-full cursor-pointer`}
                           >
                             {maintenanceDepartments.map((dept) => (
                               <option
@@ -1727,7 +1718,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                           value={userPhone}
                           onChange={(e) => setUserPhone(e.target.value)}
                           placeholder="0770xxxxxxx"
-                          className={`w-full rounded-xl px-3 py-2 text-xs font-mono focus:outline-none transition border bg-card border-slate-300 text-slate-900 placeholder:text-slate-400 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-500`}
+                          className={`${fieldLook} w-full font-mono`}
                         />
                       </div>
 
@@ -1799,226 +1790,18 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 </div>
               )}
 
-              {/* Users Mobile Card View (md:hidden) */}
-              <div className="md:hidden space-y-3">
-                {users.map((usr) => {
-                  const isAdm = usr.role === 'مدير النظام' || usr.role === 'admin';
-                  const isOp = usr.role === 'مشغل النظام' || usr.role === 'operator';
-                  const isEditingThis = userFormEditingId === usr.id && showUserInlineForm;
-                  const isPrimaryAdmin = usr.id === 'USR-101' || usr.username === 'admin';
-                  const isCurrentAdmin = currentUser?.id === 'USR-101' || currentUser?.username === 'admin';
-
-                  return (
-                    <div
-                      key={usr.id}
-                      className={`p-3.5 rounded-2xl border transition shadow-sm space-y-3 ${
-                        isEditingThis
-                          ? 'bg-emerald-50/70 border-emerald-200 ring-2 ring-emerald-500/20'
-                          : 'bg-card border-slate-200 shadow-slate-200/50'
-                      }`}
-                    >
-                      {/* Top Header: Avatar + Name + Badges */}
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          <div
-                            className={`w-10 h-10 rounded-full font-bold flex items-center justify-center text-xs shrink-0 shadow-inner border bg-brand-50 border-brand-200 text-brand-800`}
-                          >
-                            {usr.name ? usr.name.slice(0, 2) : 'US'}
-                          </div>
-                          <div className="min-w-0">
-                            <div className="flex items-center gap-1.5 flex-wrap">
-                              <span className={`font-bold text-sm truncate text-slate-900`}>
-                                {usr.name}
-                              </span>
-                              {isPrimaryAdmin && (
-                                <span
-                                  className={`text-[9px] px-1.5 py-0.5 rounded-full border font-bold flex items-center gap-0.5 shrink-0 bg-brand-100 text-brand-800 border-brand-200`}
-                                  title="حساب مدير النظام الأساسي - محمي"
-                                >
-                                  <Lock className="w-2.5 h-2.5" />
-                                  <span>محمي</span>
-                                </span>
-                              )}
-                              {isEditingThis && (
-                                <span
-                                  className={`text-[9px] px-1.5 py-0.5 rounded border font-mono font-bold shrink-0 bg-emerald-100 text-emerald-900 border-emerald-200`}
-                                >
-                                  قيد التعديل
-                                </span>
-                              )}
-                            </div>
-                            <div className="flex items-center gap-1.5 text-[11px] text-slate-500 mt-0.5">
-                              <Clock className="w-3 h-3 shrink-0" />
-                              <span>آخر تواجد: {usr.lastActive || 'الآن'}</span>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Role Badge */}
-                        <div className="shrink-0 flex flex-col items-end gap-1">
-                          <span
-                            className={`px-2.5 py-1 rounded-full font-bold text-[10px] border inline-flex items-center gap-1 ${
-                              isAdm
-                                ? 'bg-brand-100 text-brand-800 border-brand-200'
-                                : isOp
-                                ? 'bg-sky-100 text-sky-900 border-sky-200'
-                                : usr.role === 'موظف الصيانة'
-                                ? 'bg-brand-100 text-brand-800 border-brand-200'
-                                : usr.role === 'موظف الكشف والصيانة'
-                                ? 'bg-orange-100 text-orange-900 border-orange-200'
-                                : 'bg-emerald-100 text-emerald-900 border-emerald-200'
-                            }`}
-                          >
-                            <ShieldCheck className="w-3 h-3" />
-                            <span>{usr.role}</span>
-                          </span>
-                          {usr.role === 'موظف الصيانة' && usr.maintenanceDepartment && (
-                            <span
-                              className={`text-[9px] px-2 py-0.5 rounded-md border font-semibold flex items-center gap-1 bg-slate-100 text-brand-800 border-brand-200`}
-                            >
-                              <Wrench className="w-2.5 h-2.5" />
-                              <span>{usr.maintenanceDepartment}</span>
-                            </span>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Info Grid (Username, Password, Phone) */}
-                      <div className={`grid grid-cols-2 gap-2 p-2.5 rounded-xl text-xs border bg-slate-50 border-slate-200/80`}>
-                        <div>
-                          <span className="text-[10px] text-slate-500 block mb-0.5">اسم الحساب (Login):</span>
-                          <span className={`font-mono font-bold px-1.5 py-0.5 rounded border inline-block text-[11px] bg-brand-50 text-brand-800 border-brand-200`}>
-                            {usr.username || usr.email?.split('@')[0] || 'user'}
-                          </span>
-                        </div>
-                        <div>
-                          <span className="text-[10px] text-slate-500 block mb-0.5">كلمة المرور:</span>
-                          {isPrimaryAdmin && !isCurrentAdmin ? (
-                            <span className="font-mono text-[11px] text-brand-700 flex items-center gap-1 font-bold">
-                              <Lock className="w-3 h-3" />
-                              <span>محمية</span>
-                            </span>
-                          ) : showPasswordsTable ? (
-                            <span className={`font-mono font-bold px-1.5 py-0.5 rounded border inline-block text-[11px] bg-brand-100 text-brand-800 border-brand-200`}>
-                              {'••••••'}
-                            </span>
-                          ) : (
-                            <span className="font-mono text-slate-500 font-bold tracking-widest text-[11px]">
-                              ••••••
-                            </span>
-                          )}
-                        </div>
-                        <div className="col-span-2 flex items-center justify-between pt-1 border-t border-slate-200/60 ">
-                          <span className="text-[10px] text-slate-500 flex items-center gap-1">
-                            <Phone className="w-3 h-3 text-slate-500" />
-                            <span>رقم الهاتف:</span>
-                          </span>
-                          <span className={`font-mono font-bold text-xs ${usr.phone ? ('text-slate-800') : 'text-slate-500'}`}>
-                            {usr.phone || 'غير مسجل'}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Action buttons */}
-                      <div className="flex items-center gap-2 pt-1 border-t border-slate-200/80 ">
-                        {isPrimaryAdmin ? (
-                          <div
-                            className={`flex-1 min-h-[38px] px-3 py-1.5 rounded-xl font-bold text-xs border inline-flex items-center justify-center gap-1.5 opacity-90 bg-emerald-100 text-emerald-900 border-emerald-200`}
-                          >
-                            <Lock className={`w-3.5 h-3.5 text-emerald-700`} />
-                            <span>نشط دائم (محمي)</span>
-                          </div>
-                        ) : (
-                          <button
-                            onClick={() => onToggleUserStatus(usr.id)}
-                            className={`flex-1 min-h-[38px] px-3 py-1.5 rounded-xl font-bold text-xs border inline-flex items-center justify-center gap-1.5 transition cursor-pointer shadow-xs ${
-                              usr.status === 'active'
-                                ? 'bg-emerald-100 text-emerald-900 border-emerald-200 hover:bg-emerald-200/80'
-                                : 'bg-rose-100 text-rose-900 border-rose-200 hover:bg-rose-200/80'
-                            }`}
-                          >
-                            {usr.status === 'active' ? (
-                              <>
-                                <ToggleRight className={`w-4 h-4 text-emerald-700`} />
-                                <span>الحساب نشط</span>
-                              </>
-                            ) : (
-                              <>
-                                <ToggleLeft className={`w-4 h-4 text-rose-700`} />
-                                <span>معطل وموقوف</span>
-                              </>
-                            )}
-                          </button>
-                        )}
-
-                        {isPrimaryAdmin && !isCurrentAdmin ? (
-                          <button
-                            disabled
-                            className={`min-h-[38px] px-3 py-1.5 rounded-xl border transition cursor-not-allowed opacity-50 flex items-center gap-1.5 text-xs bg-slate-100 text-slate-400 border-slate-200`}
-                          >
-                            <Lock className="w-3.5 h-3.5" />
-                            <span>تعديل</span>
-                          </button>
-                        ) : (
-                          <button
-                            onClick={() => handleOpenEditUserInline(usr)}
-                            className={`min-h-[38px] px-3.5 py-1.5 rounded-xl border font-bold text-xs transition cursor-pointer flex items-center gap-1.5 bg-slate-100 hover:bg-brand-100 text-slate-700 hover:text-brand-800 border-slate-300 hover:border-brand-200`}
-                          >
-                            <Edit2 className="w-3.5 h-3.5" />
-                            <span>تعديل</span>
-                          </button>
-                        )}
-
-                        {isPrimaryAdmin ? (
-                          <button
-                            disabled
-                            className={`min-h-[38px] px-3 py-1.5 rounded-xl border transition cursor-not-allowed opacity-40 flex items-center gap-1.5 text-xs bg-slate-100 text-slate-400 border-slate-200`}
-                          >
-                            <Lock className="w-3.5 h-3.5" />
-                            <span>حذف</span>
-                          </button>
-                        ) : (
-                          <button
-                            onClick={() =>
-                              setDeleteConfirm({
-                                type: 'user',
-                                id: usr.id,
-                                name: usr.name,
-                              })
-                            }
-                            className={`min-h-[38px] px-3.5 py-1.5 rounded-xl border font-bold text-xs transition cursor-pointer flex items-center gap-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 hover:text-rose-900 border-rose-200 hover:border-rose-200`}
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                            <span>حذف</span>
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Desktop Users Data Table */}
-              <div
-                className={`hidden md:block overflow-x-auto rounded-2xl border shadow-lg bg-card border-slate-200 shadow-slate-200/50`}
+              <Table
+                head={[
+                  'المستخدم والاسم الكامل',
+                  'اسم الحساب (Login)',
+                  'كلمة المرور',
+                  'نوع الحساب / الصلاحية',
+                  'رقم الهاتف',
+                  'حالة الحساب',
+                  'إجراءات',
+                ]}
               >
-                <table className="w-full text-right text-xs">
-                  <thead>
-                    <tr
-                      className={`border-b bg-slate-50 text-slate-700 border-slate-200 font-bold`}
-                    >
-                      <th className="p-3 font-bold">المستخدم والاسم الكامل</th>
-                      <th className="p-3 font-bold">اسم الحساب (Login)</th>
-                      <th className="p-3 font-bold">كلمة المرور</th>
-                      <th className="p-3 font-bold">نوع الحساب / الصلاحية</th>
-                      <th className="p-3 font-bold">رقم الهاتف</th>
-                      <th className="p-3 font-bold text-center">حالة الحساب</th>
-                      <th className="p-3 font-bold text-center">إجراءات</th>
-                    </tr>
-                  </thead>
-                  <tbody
-                    className={`divide-y divide-slate-200 text-slate-800`}
-                  >
+
                     {users.map((usr) => {
                       const isAdm = usr.role === 'مدير النظام' || usr.role === 'admin';
                       const isOp = usr.role === 'مشغل النظام' || usr.role === 'operator';
@@ -2036,7 +1819,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                           }`}
                         >
                           {/* 1. Display Name */}
-                          <td className="p-3">
+                          <Td>
                             <div className="flex items-center gap-2.5">
                               <div
                                 className={`w-8 h-8 rounded-full font-bold flex items-center justify-center text-xs shrink-0 shadow-inner border bg-brand-50 border-brand-200 text-brand-800`}
@@ -2072,19 +1855,19 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                                 </div>
                               </div>
                             </div>
-                          </td>
+                          </Td>
 
                           {/* 2. Login Username */}
-                          <td className="p-3">
+                          <Td>
                             <span
                               className={`font-mono font-bold px-2 py-1 rounded-lg border bg-brand-50 text-brand-800 border-brand-200`}
                             >
                               {usr.username || usr.email?.split('@')[0] || 'user'}
                             </span>
-                          </td>
+                          </Td>
 
                           {/* 3. Password */}
-                          <td className="p-3 font-mono">
+                          <Td className="font-mono">
                             {isPrimaryAdmin && !isCurrentAdmin ? (
                               <span
                                 className={`text-[11px] font-bold px-2 py-0.5 rounded border inline-flex items-center gap-1 opacity-80 text-brand-800 bg-brand-50 border-brand-200`}
@@ -2106,10 +1889,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                                 ••••••
                               </span>
                             )}
-                          </td>
+                          </Td>
 
                           {/* 4. Role */}
-                          <td className="p-3">
+                          <Td>
                             <div className="flex flex-col gap-1 items-start">
                               <span
                                 className={`px-2.5 py-1 rounded-full font-bold text-[10px] border inline-flex items-center gap-1 ${
@@ -2136,10 +1919,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                                 </span>
                               )}
                             </div>
-                          </td>
+                          </Td>
 
                           {/* 5. Phone */}
-                          <td className="p-3 font-mono text-xs">
+                          <Td className="font-mono text-xs">
                             {usr.phone ? (
                               <span className={'text-slate-800 font-bold'}>
                                 {usr.phone}
@@ -2147,10 +1930,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                             ) : (
                               <span className={'text-slate-400'}>--</span>
                             )}
-                          </td>
+                          </Td>
 
                           {/* 6. Status & Activation Toggle */}
-                          <td className="p-3 text-center">
+                          <Td className="text-center">
                             {isPrimaryAdmin ? (
                               <span
                                 className={`px-2.5 py-1 rounded-xl font-bold text-[11px] border inline-flex items-center gap-1.5 opacity-90 bg-emerald-100 text-emerald-900 border-emerald-200`}
@@ -2186,10 +1969,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                                 )}
                               </button>
                             )}
-                          </td>
+                          </Td>
 
                           {/* 7. Actions: Edit and Delete only */}
-                          <td className="p-3 text-center">
+                          <Td className="text-center">
                             <div className="flex items-center justify-center gap-1.5">
                               {isPrimaryAdmin && !isCurrentAdmin ? (
                                 <button
@@ -2233,13 +2016,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                                 </button>
                               )}
                             </div>
-                          </td>
+                          </Td>
                         </tr>
                       );
                     })}
-                  </tbody>
-                </table>
-              </div>
+              </Table>
             </div>
           )}
 
@@ -2272,113 +2053,22 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 </button>
               </div>
 
-              {/* Mobile Card View (md:hidden) */}
-              <div className="md:hidden space-y-2.5">
-                {governorates.map((gov) => (
-                  <div
-                    key={gov.id}
-                    className={`p-3.5 rounded-2xl border transition shadow-sm space-y-3 bg-card border-slate-200 shadow-slate-200/50`}
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="space-y-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className={`font-mono font-bold text-xs px-2 py-0.5 rounded border bg-sky-50 text-sky-800 border-sky-200`}>
-                            {gov.code}
-                          </span>
-                          <h4 className={`font-bold text-sm text-slate-900`}>
-                            {gov.nameAr}
-                          </h4>
-                        </div>
-                        {gov.nameEn && (
-                          <div className={`font-mono text-xs text-slate-500`}>
-                            {gov.nameEn}
-                          </div>
-                        )}
-                      </div>
-                      <span
-                        className={`px-2.5 py-1 rounded-full text-[10px] font-bold shrink-0 border ${
-                          gov.status === 'active'
-                            ? 'bg-emerald-100 text-emerald-900 border-emerald-200'
-                            : 'bg-slate-100 text-slate-600 border-slate-200'
-                        }`}
-                      >
-                        {gov.status === 'active' ? 'نشط' : 'معطل'}
-                      </span>
-                    </div>
+              <Table
+                head={[
+                  'الكود',
+                  'اسم المحافظة (عربي)',
+                  'اسم المحافظة (إنجليزي)',
+                  'الحالة',
+                  'إجراءات',
+                ]}
+              >
 
-                    {/* Actions row with touch targets */}
-                    <div className="flex items-center gap-2 pt-2 border-t border-slate-200/80 ">
-                      <button
-                        onClick={() => onToggleStatus('governorate', gov.id)}
-                        className={`flex-1 min-h-[38px] px-3 py-1.5 rounded-xl font-bold text-xs border inline-flex items-center justify-center gap-1.5 transition cursor-pointer shadow-xs ${
-                          gov.status === 'active'
-                            ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-200'
-                            : 'bg-slate-100 hover:bg-slate-200 text-slate-600 border-slate-200'
-                        }`}
-                      >
-                        {gov.status === 'active' ? (
-                          <>
-                            <ToggleRight className="w-4 h-4 text-emerald-600" />
-                            <span>تعطيل</span>
-                          </>
-                        ) : (
-                          <>
-                            <ToggleLeft className="w-4 h-4 text-slate-500" />
-                            <span>تنشيط</span>
-                          </>
-                        )}
-                      </button>
-
-                      <button
-                        onClick={() => handleOpenEditModal(gov)}
-                        className={`min-h-[38px] px-3.5 py-1.5 rounded-xl font-bold text-xs border transition cursor-pointer flex items-center gap-1.5 bg-slate-100 hover:bg-brand-100 text-slate-700 hover:text-brand-800 border-slate-300 hover:border-brand-200`}
-                      >
-                        <Edit2 className="w-3.5 h-3.5" />
-                        <span>تعديل</span>
-                      </button>
-
-                      <button
-                        onClick={() =>
-                          setDeleteConfirm({
-                            type: 'governorate',
-                            id: gov.id,
-                            name: gov.nameAr,
-                          })
-                        }
-                        className={`min-h-[38px] px-3.5 py-1.5 rounded-xl font-bold text-xs border transition cursor-pointer flex items-center gap-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 hover:text-rose-900 border-rose-200 hover:border-rose-200`}
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                        <span>حذف</span>
-                      </button>
-                    </div>
-                  </div>
-                ))}
-                {governorates.length === 0 && (
-                  <div className={`p-6 rounded-2xl border text-center text-xs bg-slate-50 border-slate-200 text-slate-500`}>
-                    لا توجد محافظات مسجلة حالياً. اضغط على «إضافة محافظة جديدة».
-                  </div>
-                )}
-              </div>
-
-              {/* Desktop Table */}
-              <div className={`hidden md:block overflow-x-auto rounded-2xl border shadow-lg bg-card border-slate-200 shadow-slate-200/50`}>
-                <table className="w-full text-right text-xs">
-                  <thead>
-                    <tr className={`border-b bg-slate-50 text-slate-700 border-slate-200 font-bold`}>
-                      <th className="p-3 font-semibold">الكود</th>
-                      <th className="p-3 font-semibold">اسم المحافظة (عربي)</th>
-                      <th className="p-3 font-semibold">اسم المحافظة (إنجليزي)</th>
-                      <th className="p-3 font-semibold text-center">الحالة</th>
-                      <th className="p-3 font-semibold text-center">إجراءات</th>
-                    </tr>
-                  </thead>
-                  <tbody className={`divide-y divide-slate-200 text-slate-800`}>
                     {governorates.map((gov) => (
                       <tr key={gov.id} className={`transition hover:bg-slate-50`}>
-                        <td className="p-3 font-mono font-bold text-brand-700">{gov.code}</td>
-                        <td className={`p-3 font-bold text-slate-900`}>{gov.nameAr}</td>
-                        <td className="p-3 font-mono text-slate-500">{gov.nameEn || '--'}</td>
-                        <td className="p-3 text-center">
+                        <Td className="font-mono font-bold text-brand-700">{gov.code}</Td>
+                        <Td className="font-bold text-slate-900">{gov.nameAr}</Td>
+                        <Td className="font-mono text-slate-500">{gov.nameEn || '--'}</Td>
+                        <Td className="text-center">
                           <span
                             className={`px-2.5 py-0.5 rounded font-bold ${
                               gov.status === 'active'
@@ -2388,8 +2078,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                           >
                             {gov.status === 'active' ? 'نشط' : 'معطل'}
                           </span>
-                        </td>
-                        <td className="p-3 text-center">
+                        </Td>
+                        <Td className="text-center">
                           <div className="flex items-center justify-center gap-2">
                             <button
                               onClick={() => onToggleStatus('governorate', gov.id)}
@@ -2423,12 +2113,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                               <Trash2 className="w-4 h-4" />
                             </button>
                           </div>
-                        </td>
+                        </Td>
                       </tr>
                     ))}
-                  </tbody>
-                </table>
-              </div>
+              </Table>
             </div>
           )}
 
@@ -2462,119 +2150,24 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 </button>
               </div>
 
-              {/* Mobile Card View (md:hidden) */}
-              <div className="md:hidden space-y-2.5">
-                {oilfields.map((fld) => {
-                  const parentGov = governorates.find((g) => g.id === fld.governorateId);
-                  return (
-                    <div
-                      key={fld.id}
-                      className={`p-3.5 rounded-2xl border transition shadow-sm space-y-3 bg-card border-slate-200 shadow-slate-200/50`}
-                    >
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="space-y-1 min-w-0">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span className={`font-mono font-bold text-xs px-2 py-0.5 rounded border bg-brand-50 text-brand-800 border-brand-200`}>
-                              {fld.code}
-                            </span>
-                            <h4 className={`font-bold text-sm text-slate-900`}>
-                              {fld.nameAr}
-                            </h4>
-                          </div>
-                          <div className="flex items-center gap-1.5 text-xs text-slate-500">
-                            <MapPin className="w-3.5 h-3.5 text-sky-600 shrink-0" />
-                            <span className={'text-slate-700'}>
-                              {parentGov?.nameAr || 'غير محدد'}
-                            </span>
-                          </div>
-                        </div>
-                        <span
-                          className={`px-2.5 py-1 rounded-full text-[10px] font-bold shrink-0 border ${
-                            fld.status === 'active'
-                              ? 'bg-emerald-100 text-emerald-900 border-emerald-200'
-                              : 'bg-slate-100 text-slate-600 border-slate-200'
-                          }`}
-                        >
-                          {fld.status === 'active' ? 'نشط' : 'معطل'}
-                        </span>
-                      </div>
+              <Table
+                head={[
+                  'الكود',
+                  'اسم الحقل النفطي',
+                  'المحافظة التابع لها',
+                  'الحالة',
+                  'إجراءات',
+                ]}
+              >
 
-                      {/* Actions row with touch targets */}
-                      <div className="flex items-center gap-2 pt-2 border-t border-slate-200/80 ">
-                        <button
-                          onClick={() => onToggleStatus('oilfield', fld.id)}
-                          className={`flex-1 min-h-[38px] px-3 py-1.5 rounded-xl font-bold text-xs border inline-flex items-center justify-center gap-1.5 transition cursor-pointer shadow-xs ${
-                            fld.status === 'active'
-                              ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-200'
-                              : 'bg-slate-100 hover:bg-slate-200 text-slate-600 border-slate-200'
-                          }`}
-                        >
-                          {fld.status === 'active' ? (
-                            <>
-                              <ToggleRight className="w-4 h-4 text-emerald-600" />
-                              <span>تعطيل</span>
-                            </>
-                          ) : (
-                            <>
-                              <ToggleLeft className="w-4 h-4 text-slate-500" />
-                              <span>تنشيط</span>
-                            </>
-                          )}
-                        </button>
-
-                        <button
-                          onClick={() => handleOpenEditModal(fld)}
-                          className={`min-h-[38px] px-3.5 py-1.5 rounded-xl font-bold text-xs border transition cursor-pointer flex items-center gap-1.5 bg-slate-100 hover:bg-brand-100 text-slate-700 hover:text-brand-800 border-slate-300 hover:border-brand-200`}
-                        >
-                          <Edit2 className="w-3.5 h-3.5" />
-                          <span>تعديل</span>
-                        </button>
-
-                        <button
-                          onClick={() =>
-                            setDeleteConfirm({
-                              type: 'oilfield',
-                              id: fld.id,
-                              name: fld.nameAr,
-                            })
-                          }
-                          className={`min-h-[38px] px-3.5 py-1.5 rounded-xl font-bold text-xs border transition cursor-pointer flex items-center gap-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 hover:text-rose-900 border-rose-200 hover:border-rose-200`}
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                          <span>حذف</span>
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
-                {oilfields.length === 0 && (
-                  <div className={`p-6 rounded-2xl border text-center text-xs bg-slate-50 border-slate-200 text-slate-500`}>
-                    لا توجد حقول نفطية مسجلة حالياً. اضغط على «إضافة حقل نفطي جديد».
-                  </div>
-                )}
-              </div>
-
-              {/* Desktop Table */}
-              <div className={`hidden md:block overflow-x-auto rounded-2xl border shadow-lg bg-card border-slate-200 shadow-slate-200/50`}>
-                <table className="w-full text-right text-xs">
-                  <thead>
-                    <tr className={`border-b bg-slate-50 text-slate-700 border-slate-200 font-bold`}>
-                      <th className="p-3 font-semibold">الكود</th>
-                      <th className="p-3 font-semibold">اسم الحقل النفطي</th>
-                      <th className="p-3 font-semibold">المحافظة التابع لها</th>
-                      <th className="p-3 font-semibold text-center">الحالة</th>
-                      <th className="p-3 font-semibold text-center">إجراءات</th>
-                    </tr>
-                  </thead>
-                  <tbody className={`divide-y divide-slate-200 text-slate-800`}>
                     {oilfields.map((fld) => {
                       const parentGov = governorates.find((g) => g.id === fld.governorateId);
                       return (
                         <tr key={fld.id} className={`transition hover:bg-slate-50`}>
-                          <td className="p-3 font-mono font-bold text-brand-700">{fld.code}</td>
-                          <td className={`p-3 font-bold text-slate-900`}>{fld.nameAr}</td>
-                          <td className="p-3 text-slate-500">{parentGov?.nameAr || 'غير محدد'}</td>
-                          <td className="p-3 text-center">
+                          <Td className="font-mono font-bold text-brand-700">{fld.code}</Td>
+                          <Td className="font-bold text-slate-900">{fld.nameAr}</Td>
+                          <Td className="text-slate-500">{parentGov?.nameAr || 'غير محدد'}</Td>
+                          <Td className="text-center">
                             <span
                               className={`px-2.5 py-0.5 rounded font-bold ${
                                 fld.status === 'active'
@@ -2584,8 +2177,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                             >
                               {fld.status === 'active' ? 'نشط' : 'معطل'}
                             </span>
-                          </td>
-                          <td className="p-3 text-center">
+                          </Td>
+                          <Td className="text-center">
                             <div className="flex items-center justify-center gap-2">
                               <button
                                 onClick={() => onToggleStatus('oilfield', fld.id)}
@@ -2616,13 +2209,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                                 <Trash2 className="w-4 h-4" />
                               </button>
                             </div>
-                          </td>
+                          </Td>
                         </tr>
                       );
                     })}
-                  </tbody>
-                </table>
-              </div>
+              </Table>
             </div>
           )}
 
@@ -2657,137 +2248,26 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 </button>
               </div>
 
-              {/* Mobile Card View (md:hidden) */}
-              <div className="md:hidden space-y-2.5">
-                {unitTypes.map((ut) => (
-                  <div
-                    key={ut.code}
-                    className={`p-3.5 rounded-2xl border transition shadow-sm space-y-3 bg-card border-slate-200 shadow-slate-200/50`}
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="space-y-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className={`font-mono font-bold text-xs px-2 py-0.5 rounded border bg-purple-50 text-purple-800 border-purple-200`}>
-                            {ut.code}
-                          </span>
-                          <h4 className={`font-bold text-sm text-slate-900`}>
-                            {ut.nameAr}
-                          </h4>
-                        </div>
-                        {ut.nameEn && (
-                          <div className={`font-mono text-xs text-slate-500`}>
-                            {ut.nameEn}
-                          </div>
-                        )}
-                      </div>
-                      <span
-                        className={`px-2.5 py-1 rounded-full text-[10px] font-bold shrink-0 border ${
-                          ut.status === 'active'
-                            ? 'bg-emerald-100 text-emerald-900 border-emerald-200'
-                            : 'bg-slate-100 text-slate-600 border-slate-200'
-                        }`}
-                      >
-                        {ut.status === 'active' ? 'نشط' : 'معطل'}
-                      </span>
-                    </div>
+              <Table
+                head={[
+                  'رمز الفئة',
+                  'نوع الوحدة بالعربية',
+                  'الاسم بالإنجليزي',
+                  'متعدد الطوابق',
+                  'العزل السطحي',
+                  'الحالة',
+                  'إجراءات',
+                ]}
+              >
 
-                    {/* Multi-story & Roof badges */}
-                    <div className={`flex items-center justify-between gap-2 p-2 rounded-xl text-xs border bg-slate-50 border-slate-200/80`}>
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-[10px] text-slate-500">الطوابق:</span>
-                        <span className={`font-bold text-[11px] px-1.5 py-0.5 rounded ${
-                          ut.multiStory
-                            ? 'bg-emerald-100 text-emerald-800'
-                            : 'bg-slate-200 text-slate-700'
-                        }`}>
-                          {ut.multiStory ? 'متعدد الطوابق' : 'طابق واحد'}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-[10px] text-slate-500">العزل:</span>
-                        <span className={`font-medium text-[11px] text-slate-700`}>
-                          {ut.defaultRoof}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Actions row */}
-                    <div className="flex items-center gap-2 pt-2 border-t border-slate-200/80 ">
-                      <button
-                        onClick={() => onToggleStatus('unitType', ut.code)}
-                        className={`flex-1 min-h-[38px] px-3 py-1.5 rounded-xl font-bold text-xs border inline-flex items-center justify-center gap-1.5 transition cursor-pointer shadow-xs ${
-                          ut.status === 'active'
-                            ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-200'
-                            : 'bg-slate-100 hover:bg-slate-200 text-slate-600 border-slate-200'
-                        }`}
-                      >
-                        {ut.status === 'active' ? (
-                          <>
-                            <ToggleRight className="w-4 h-4 text-emerald-600" />
-                            <span>تعطيل</span>
-                          </>
-                        ) : (
-                          <>
-                            <ToggleLeft className="w-4 h-4 text-slate-500" />
-                            <span>تنشيط</span>
-                          </>
-                        )}
-                      </button>
-
-                      <button
-                        onClick={() => handleOpenEditModal(ut)}
-                        className={`min-h-[38px] px-3.5 py-1.5 rounded-xl font-bold text-xs border transition cursor-pointer flex items-center gap-1.5 bg-slate-100 hover:bg-brand-100 text-slate-700 hover:text-brand-800 border-slate-300 hover:border-brand-200`}
-                      >
-                        <Edit2 className="w-3.5 h-3.5" />
-                        <span>تعديل</span>
-                      </button>
-
-                      <button
-                        onClick={() =>
-                          setDeleteConfirm({
-                            type: 'unitType',
-                            id: ut.code,
-                            name: ut.nameAr,
-                          })
-                        }
-                        className={`min-h-[38px] px-3.5 py-1.5 rounded-xl font-bold text-xs border transition cursor-pointer flex items-center gap-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 hover:text-rose-900 border-rose-200 hover:border-rose-200`}
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                        <span>حذف</span>
-                      </button>
-                    </div>
-                  </div>
-                ))}
-                {unitTypes.length === 0 && (
-                  <div className={`p-6 rounded-2xl border text-center text-xs bg-slate-50 border-slate-200 text-slate-500`}>
-                    لا توجد أنواع مباني مسجلة حالياً. اضغط على «إضافة نوع مبنى جديد».
-                  </div>
-                )}
-              </div>
-
-              {/* Desktop Table */}
-              <div className={`hidden md:block overflow-x-auto rounded-2xl border shadow-lg bg-card border-slate-200 shadow-slate-200/50`}>
-                <table className="w-full text-right text-xs">
-                  <thead>
-                    <tr className={`border-b bg-slate-50 text-slate-700 border-slate-200 font-bold`}>
-                      <th className="p-3 font-semibold">رمز الفئة</th>
-                      <th className="p-3 font-semibold">نوع الوحدة بالعربية</th>
-                      <th className="p-3 font-semibold">الاسم بالإنجليزي</th>
-                      <th className="p-3 font-semibold">متعدد الطوابق</th>
-                      <th className="p-3 font-semibold">العزل السطحي</th>
-                      <th className="p-3 font-semibold text-center">الحالة</th>
-                      <th className="p-3 font-semibold text-center">إجراءات</th>
-                    </tr>
-                  </thead>
-                  <tbody className={`divide-y divide-slate-200 text-slate-800`}>
                     {unitTypes.map((ut) => (
                       <tr key={ut.code} className={`transition hover:bg-slate-50`}>
-                        <td className="p-3 font-mono font-bold text-brand-700">{ut.code}</td>
-                        <td className={`p-3 font-bold text-slate-900`}>{ut.nameAr}</td>
-                        <td className="p-3 font-mono text-slate-500">{ut.nameEn || '--'}</td>
-                        <td className="p-3">{ut.multiStory ? 'نعم (متعدد)' : 'لا (طابق واحد)'}</td>
-                        <td className="p-3 text-slate-500">{ut.defaultRoof}</td>
-                        <td className="p-3 text-center">
+                        <Td className="font-mono font-bold text-brand-700">{ut.code}</Td>
+                        <Td className="font-bold text-slate-900">{ut.nameAr}</Td>
+                        <Td className="font-mono text-slate-500">{ut.nameEn || '--'}</Td>
+                        <Td>{ut.multiStory ? 'نعم (متعدد)' : 'لا (طابق واحد)'}</Td>
+                        <Td className="text-slate-500">{ut.defaultRoof}</Td>
+                        <Td className="text-center">
                           <span
                             className={`px-2.5 py-0.5 rounded font-bold ${
                               ut.status === 'active'
@@ -2797,8 +2277,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                           >
                             {ut.status === 'active' ? 'نشط' : 'معطل'}
                           </span>
-                        </td>
-                        <td className="p-3 text-center">
+                        </Td>
+                        <Td className="text-center">
                           <div className="flex items-center justify-center gap-2">
                             <button
                               onClick={() => onToggleStatus('unitType', ut.code)}
@@ -2829,12 +2309,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                               <Trash2 className="w-4 h-4" />
                             </button>
                           </div>
-                        </td>
+                        </Td>
                       </tr>
                     ))}
-                  </tbody>
-                </table>
-              </div>
+              </Table>
             </div>
           )}
 
@@ -2867,121 +2345,21 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 </button>
               </div>
 
-              {/* Mobile Card View (md:hidden) */}
-              <div className="md:hidden space-y-2.5">
-                {roomTypes.map((rt) => (
-                  <div
-                    key={rt.id}
-                    className={`p-3.5 rounded-2xl border transition shadow-sm space-y-3 bg-card border-slate-200 shadow-slate-200/50`}
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="space-y-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className={`font-mono font-bold text-xs px-2 py-0.5 rounded border bg-pink-50 text-pink-800 border-pink-200`}>
-                            {rt.code}
-                          </span>
-                          <h4 className={`font-bold text-sm text-slate-900`}>
-                            {rt.nameAr}
-                          </h4>
-                        </div>
-                      </div>
-                      <span
-                        className={`px-2.5 py-1 rounded-full text-[10px] font-bold shrink-0 border ${
-                          rt.status === 'active'
-                            ? 'bg-emerald-100 text-emerald-900 border-emerald-200'
-                            : 'bg-slate-100 text-slate-600 border-slate-200'
-                        }`}
-                      >
-                        {rt.status === 'active' ? 'نشط' : 'معطل'}
-                      </span>
-                    </div>
+              <Table
+                head={[
+                  'الكود',
+                  'تصنيف الغرفة/القاعة',
+                  'الرمز اللوني 3D',
+                  'الحالة',
+                  'إجراءات',
+                ]}
+              >
 
-                    {/* Color badge */}
-                    <div className={`flex items-center gap-2.5 p-2 rounded-xl text-xs border bg-slate-50 border-slate-200/80`}>
-                      <span className="text-[10px] text-slate-500">الرمز اللوني 3D:</span>
-                      <div className="flex items-center gap-2">
-                        <span
-                          className="w-4 h-4 rounded-full border border-slate-200 shadow-xs"
-                          style={{ backgroundColor: rt.colorHex }}
-                        />
-                        <span className={`font-mono font-bold text-xs text-slate-700`}>
-                          {rt.colorHex}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Actions row */}
-                    <div className="flex items-center gap-2 pt-2 border-t border-slate-200/80 ">
-                      <button
-                        onClick={() => onToggleStatus('roomType', rt.id)}
-                        className={`flex-1 min-h-[38px] px-3 py-1.5 rounded-xl font-bold text-xs border inline-flex items-center justify-center gap-1.5 transition cursor-pointer shadow-xs ${
-                          rt.status === 'active'
-                            ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-200'
-                            : 'bg-slate-100 hover:bg-slate-200 text-slate-600 border-slate-200'
-                        }`}
-                      >
-                        {rt.status === 'active' ? (
-                          <>
-                            <ToggleRight className="w-4 h-4 text-emerald-600" />
-                            <span>تعطيل</span>
-                          </>
-                        ) : (
-                          <>
-                            <ToggleLeft className="w-4 h-4 text-slate-500" />
-                            <span>تنشيط</span>
-                          </>
-                        )}
-                      </button>
-
-                      <button
-                        onClick={() => handleOpenEditModal(rt)}
-                        className={`min-h-[38px] px-3.5 py-1.5 rounded-xl font-bold text-xs border transition cursor-pointer flex items-center gap-1.5 bg-slate-100 hover:bg-brand-100 text-slate-700 hover:text-brand-800 border-slate-300 hover:border-brand-200`}
-                      >
-                        <Edit2 className="w-3.5 h-3.5" />
-                        <span>تعديل</span>
-                      </button>
-
-                      <button
-                        onClick={() =>
-                          setDeleteConfirm({
-                            type: 'roomType',
-                            id: rt.id,
-                            name: rt.nameAr,
-                          })
-                        }
-                        className={`min-h-[38px] px-3.5 py-1.5 rounded-xl font-bold text-xs border transition cursor-pointer flex items-center gap-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 hover:text-rose-900 border-rose-200 hover:border-rose-200`}
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                        <span>حذف</span>
-                      </button>
-                    </div>
-                  </div>
-                ))}
-                {roomTypes.length === 0 && (
-                  <div className={`p-6 rounded-2xl border text-center text-xs bg-slate-50 border-slate-200 text-slate-500`}>
-                    لا توجد تصنيفات غرف مسجلة حالياً. اضغط على «إضافة تصنيف قاعة / غرفة».
-                  </div>
-                )}
-              </div>
-
-              {/* Desktop Table */}
-              <div className={`hidden md:block overflow-x-auto rounded-2xl border shadow-lg bg-card border-slate-200 shadow-slate-200/50`}>
-                <table className="w-full text-right text-xs">
-                  <thead>
-                    <tr className={`border-b bg-slate-50 text-slate-700 border-slate-200 font-bold`}>
-                      <th className="p-3 font-semibold">الكود</th>
-                      <th className="p-3 font-semibold">تصنيف الغرفة/القاعة</th>
-                      <th className="p-3 font-semibold">الرمز اللوني 3D</th>
-                      <th className="p-3 font-semibold text-center">الحالة</th>
-                      <th className="p-3 font-semibold text-center">إجراءات</th>
-                    </tr>
-                  </thead>
-                  <tbody className={`divide-y divide-slate-200 text-slate-800`}>
                     {roomTypes.map((rt) => (
                       <tr key={rt.id} className={`transition hover:bg-slate-50`}>
-                        <td className="p-3 font-mono font-bold text-brand-700">{rt.code}</td>
-                        <td className={`p-3 font-bold text-slate-900`}>{rt.nameAr}</td>
-                        <td className="p-3">
+                        <Td className="font-mono font-bold text-brand-700">{rt.code}</Td>
+                        <Td className="font-bold text-slate-900">{rt.nameAr}</Td>
+                        <Td>
                           <div className="flex items-center gap-2">
                             <span
                               className="w-4 h-4 rounded-full border border-slate-200 shadow-xs"
@@ -2989,8 +2367,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                             ></span>
                             <span className="font-mono text-slate-500">{rt.colorHex}</span>
                           </div>
-                        </td>
-                        <td className="p-3 text-center">
+                        </Td>
+                        <Td className="text-center">
                           <span
                             className={`px-2.5 py-0.5 rounded font-bold ${
                               rt.status === 'active'
@@ -3000,8 +2378,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                           >
                             {rt.status === 'active' ? 'نشط' : 'معطل'}
                           </span>
-                        </td>
-                        <td className="p-3 text-center">
+                        </Td>
+                        <Td className="text-center">
                           <div className="flex items-center justify-center gap-2">
                             <button
                               onClick={() => onToggleStatus('roomType', rt.id)}
@@ -3032,12 +2410,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                               <Trash2 className="w-4 h-4" />
                             </button>
                           </div>
-                        </td>
+                        </Td>
                       </tr>
                     ))}
-                  </tbody>
-                </table>
-              </div>
+              </Table>
             </div>
           )}
 
@@ -3067,136 +2443,32 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 </button>
               </div>
 
-              {/* Mobile Card View (md:hidden) */}
-              <div className="md:hidden space-y-2.5">
-                {maintenanceDepartments.map((dept) => (
-                  <div
-                    key={dept.id}
-                    className={`p-3.5 rounded-2xl border transition shadow-sm space-y-3 bg-card border-slate-200 shadow-slate-200/50`}
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="space-y-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-mono font-bold text-xs px-2 py-0.5 rounded border bg-brand-50 text-brand-700 border-brand-200">
-                            {dept.code}
-                          </span>
-                          <h4 className={`font-bold text-sm flex items-center gap-1.5 text-slate-900`}>
-                            <Wrench className={`w-3.5 h-3.5 text-brand-700`} />
-                            <span>{dept.nameAr}</span>
-                          </h4>
-                        </div>
-                        {dept.nameEn && (
-                          <div className="font-mono text-xs text-slate-500">
-                            {dept.nameEn}
-                          </div>
-                        )}
-                      </div>
-                      <span
-                        className={`px-2.5 py-1 rounded-full text-[10px] font-bold shrink-0 border ${
-                          dept.status === 'active'
-                            ? 'bg-emerald-100 text-emerald-900 border-emerald-200'
-                            : 'bg-slate-100 text-slate-600 border-slate-200'
-                        }`}
-                      >
-                        {dept.status === 'active' ? 'نشط' : 'معطل'}
-                      </span>
-                    </div>
-
-                    {dept.description && (
-                      <p className={`text-xs p-2 rounded-xl border leading-relaxed bg-slate-50 text-slate-600 border-slate-200/70`}>
-                        {dept.description}
-                      </p>
-                    )}
-
-                    {/* Actions row */}
-                    <div className="flex items-center gap-2 pt-2 border-t border-slate-200/80 ">
-                      <button
-                        onClick={() => onToggleMaintenanceDepartmentStatus?.(dept.id)}
-                        className={`flex-1 min-h-[38px] px-3 py-1.5 rounded-xl font-bold text-xs border inline-flex items-center justify-center gap-1.5 transition cursor-pointer shadow-xs ${
-                          dept.status === 'active'
-                            ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-200'
-                            : 'bg-slate-100 hover:bg-slate-200 text-slate-600 border-slate-200'
-                        }`}
-                      >
-                        {dept.status === 'active' ? (
-                          <>
-                            <ToggleRight className="w-4 h-4 text-emerald-600" />
-                            <span>تعطيل</span>
-                          </>
-                        ) : (
-                          <>
-                            <ToggleLeft className="w-4 h-4 text-slate-500" />
-                            <span>تنشيط</span>
-                          </>
-                        )}
-                      </button>
-
-                      <button
-                        onClick={() => handleOpenEditModal(dept)}
-                        className={`min-h-[38px] px-3.5 py-1.5 rounded-xl font-bold text-xs border transition cursor-pointer flex items-center gap-1.5 bg-slate-100 hover:bg-brand-100 text-slate-700 hover:text-brand-800 border-slate-300 hover:border-brand-200`}
-                      >
-                        <Edit2 className="w-3.5 h-3.5" />
-                        <span>تعديل</span>
-                      </button>
-
-                      <button
-                        onClick={() =>
-                          setDeleteConfirm({
-                            type: 'maintenanceDepartment',
-                            id: dept.id,
-                            name: dept.nameAr,
-                          })
-                        }
-                        className={`min-h-[38px] px-3.5 py-1.5 rounded-xl font-bold text-xs border transition cursor-pointer flex items-center gap-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 hover:text-rose-900 border-rose-200 hover:border-rose-200`}
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                        <span>حذف</span>
-                      </button>
-                    </div>
-                  </div>
-                ))}
-                {maintenanceDepartments.length === 0 && (
-                  <div className={`p-6 rounded-2xl border text-center text-xs bg-slate-50 border-slate-200 text-slate-500`}>
-                    لا توجد جهات صيانة مسجلة حالياً. اضغط على «إضافة جهة صيانة جديدة» لإضافة أقسام الصيانة.
-                  </div>
-                )}
-              </div>
-
-              {/* Desktop Table */}
-              <div
-                className={`hidden md:block overflow-x-auto rounded-2xl border shadow-lg bg-card border-slate-200 shadow-slate-200/50`}
+              <Table
+                head={[
+                  'كود الجهة',
+                  'اسم جهة / قسم الصيانة',
+                  'الاسم بالإنجليزية',
+                  'الوصف والتخصص',
+                  'الحالة',
+                  'إجراءات',
+                ]}
               >
-                <table className="w-full text-right text-xs">
-                  <thead>
-                    <tr
-                      className={`border-b bg-slate-50 text-slate-700 border-slate-200 font-bold`}
-                    >
-                      <th className="p-3 font-bold">كود الجهة</th>
-                      <th className="p-3 font-bold">اسم جهة / قسم الصيانة</th>
-                      <th className="p-3 font-bold">الاسم بالإنجليزية</th>
-                      <th className="p-3 font-bold">الوصف والتخصص</th>
-                      <th className="p-3 font-bold text-center">الحالة</th>
-                      <th className="p-3 font-bold text-center">إجراءات</th>
-                    </tr>
-                  </thead>
-                  <tbody
-                    className={`divide-y divide-slate-200 text-slate-800`}
-                  >
+
                     {maintenanceDepartments.map((dept) => (
                       <tr
                         key={dept.id}
                         className={`transition hover:bg-slate-50`}
                       >
-                        <td className="p-3 font-mono font-bold text-brand-700">{dept.code}</td>
-                        <td className="p-3 font-bold">
+                        <Td className="font-mono font-bold text-brand-700">{dept.code}</Td>
+                        <Td className="font-bold">
                           <div className="flex items-center gap-2">
                             <Wrench className={`w-3.5 h-3.5 text-brand-700`} />
                             <span className={'text-slate-900'}>{dept.nameAr}</span>
                           </div>
-                        </td>
-                        <td className="p-3 font-mono text-slate-500">{dept.nameEn || dept.nameAr}</td>
-                        <td className="p-3 text-slate-500">{dept.description || '--'}</td>
-                        <td className="p-3 text-center">
+                        </Td>
+                        <Td className="font-mono text-slate-500">{dept.nameEn || dept.nameAr}</Td>
+                        <Td className="text-slate-500">{dept.description || '--'}</Td>
+                        <Td className="text-center">
                           <span
                             className={`px-2.5 py-0.5 rounded font-bold ${
                               dept.status === 'active'
@@ -3206,8 +2478,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                           >
                             {dept.status === 'active' ? 'نشط' : 'معطل'}
                           </span>
-                        </td>
-                        <td className="p-3 text-center">
+                        </Td>
+                        <Td className="text-center">
                           <div className="flex items-center justify-center gap-2">
                             <button
                               onClick={() => onToggleMaintenanceDepartmentStatus?.(dept.id)}
@@ -3241,19 +2513,17 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                               <Trash2 className="w-4 h-4" />
                             </button>
                           </div>
-                        </td>
+                        </Td>
                       </tr>
                     ))}
                     {maintenanceDepartments.length === 0 && (
                       <tr>
-                        <td colSpan={6} className="p-8 text-center text-slate-500">
+                        <Td colSpan={6} className="p-8 text-center text-slate-500">
                           لا توجد جهات صيانة مسجلة حالياً. اضغط على «إضافة جهة صيانة جديدة» لإضافة أقسام الصيانة.
-                        </td>
+                        </Td>
                       </tr>
                     )}
-                  </tbody>
-                </table>
-              </div>
+              </Table>
             </div>
           )}
 
@@ -3308,115 +2578,45 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   value={auditSearch}
                   onChange={(e) => setAuditSearch(e.target.value)}
                   placeholder="فلترة بالاسم، نوع الإجراء، أو رمز الأصل..."
-                  className={`w-full border rounded-xl pr-9 pl-3 py-2.5 text-xs transition bg-card border-slate-200 text-slate-900 placeholder:text-slate-400 focus:border-teal-500 focus:ring-1 focus:ring-teal-500`}
+                  className={`${fieldLook} w-full pr-9 pl-3`}
                 />
               </div>
 
-              {/* Mobile Card View (md:hidden) */}
-              <div className="md:hidden space-y-2.5">
-                {filteredAuditLogs.map((log) => (
-                  <div
-                    key={log.id}
-                    className={`p-3.5 rounded-2xl border transition shadow-sm space-y-2.5 bg-card border-slate-200 shadow-slate-200/50`}
-                  >
-                    {/* Header: Action badge & Timestamp */}
-                    <div className="flex items-center justify-between gap-2">
-                      <span className={`px-2.5 py-1 rounded-lg font-bold text-xs border bg-brand-100 text-brand-800 border-brand-200`}>
-                        {log.action}
-                      </span>
-                      <span className="font-mono text-slate-500 text-[11px] flex items-center gap-1">
-                        <Clock className="w-3 h-3" />
-                        <span>{log.timestamp}</span>
-                      </span>
-                    </div>
+              <Table
+                head={[
+                  'الطابع الزمني',
+                  'المستخدم',
+                  'نوع الإجراء',
+                  'رمز الوحدة/المكون',
+                  'الحقل المتأثر',
+                  'القيمة السابقة / الجديدة',
+                ]}
+              >
 
-                    {/* User and Unit Code */}
-                    <div className="flex items-center justify-between gap-2 pt-1">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <span className="w-6 h-6 rounded-full bg-brand-100 text-brand-700 border border-brand-200 font-bold flex items-center justify-center text-[10px] shrink-0">
-                          {log.userInitials}
-                        </span>
-                        <span className={`font-bold text-xs truncate text-slate-800`}>
-                          {log.user}
-                        </span>
-                      </div>
-                      {log.unitCode && (
-                        <span className={`font-mono font-bold text-[11px] px-2 py-0.5 rounded border shrink-0 bg-slate-100 text-slate-700 border-slate-200`}>
-                          {log.unitCode}
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Field & Diff values */}
-                    {(log.affectedField || log.previousValue || log.newValue) && (
-                      <div className={`p-2.5 rounded-xl border text-xs space-y-1 bg-slate-50 border-slate-200/80`}>
-                        {log.affectedField && (
-                          <div className="text-[10px] text-slate-500 font-bold">
-                            الحقل: {log.affectedField}
-                          </div>
-                        )}
-                        <div className="flex items-center gap-1.5 font-mono text-[11px] flex-wrap">
-                          {log.previousValue && (
-                            <span className="text-slate-500 line-through">{log.previousValue}</span>
-                          )}
-                          {log.previousValue && log.newValue && (
-                            <span className="text-slate-500">←</span>
-                          )}
-                          {log.newValue && (
-                            <span className="text-emerald-600 font-bold">{log.newValue}</span>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ))}
-                {filteredAuditLogs.length === 0 && (
-                  <div className={`p-6 rounded-2xl border text-center text-xs bg-slate-50 border-slate-200 text-slate-500`}>
-                    لا توجد سجلات نشاط مطابقة للبحث.
-                  </div>
-                )}
-              </div>
-
-              {/* Desktop Table */}
-              <div className={`hidden md:block overflow-x-auto rounded-2xl border shadow-lg bg-card border-slate-200 shadow-slate-200/50`}>
-                <table className="w-full text-right text-xs">
-                  <thead>
-                    <tr className={`border-b bg-slate-50 text-slate-700 border-slate-200 font-bold`}>
-                      <th className="p-3 font-semibold">الطابع الزمني</th>
-                      <th className="p-3 font-semibold">المستخدم</th>
-                      <th className="p-3 font-semibold">نوع الإجراء</th>
-                      <th className="p-3 font-semibold">رمز الوحدة/المكون</th>
-                      <th className="p-3 font-semibold">الحقل المتأثر</th>
-                      <th className="p-3 font-semibold">القيمة السابقة / الجديدة</th>
-                    </tr>
-                  </thead>
-                  <tbody className={`divide-y divide-slate-200 text-slate-800`}>
                     {filteredAuditLogs.map((log) => (
                       <tr key={log.id} className={`transition hover:bg-slate-50`}>
-                        <td className="p-3 font-mono text-slate-500 text-[11px]">{log.timestamp}</td>
-                        <td className="p-3">
+                        <Td className="font-mono text-slate-500 text-[11px]">{log.timestamp}</Td>
+                        <Td>
                           <div className="flex items-center gap-2">
                             <span className="w-6 h-6 rounded-full bg-brand-100 text-brand-700 border border-brand-200 font-bold flex items-center justify-center text-[10px]">
                               {log.userInitials}
                             </span>
                             <span className={`font-bold text-slate-900`}>{log.user}</span>
                           </div>
-                        </td>
-                        <td className="p-3 font-bold text-brand-700">{log.action}</td>
-                        <td className="p-3 font-mono text-slate-500">{log.unitCode}</td>
-                        <td className="p-3 text-slate-500">{log.affectedField}</td>
-                        <td className="p-3">
+                        </Td>
+                        <Td className="font-bold text-brand-700">{log.action}</Td>
+                        <Td className="font-mono text-slate-500">{log.unitCode}</Td>
+                        <Td className="text-slate-500">{log.affectedField}</Td>
+                        <Td>
                           <div className="flex items-center gap-1.5 font-mono text-[11px]">
                             <span className="text-slate-500 line-through">{log.previousValue}</span>
                             <span className="text-slate-500">←</span>
                             <span className="text-emerald-600 font-bold">{log.newValue}</span>
                           </div>
-                        </td>
+                        </Td>
                       </tr>
                     ))}
-                  </tbody>
-                </table>
-              </div>
+              </Table>
             </div>
           )}
 
@@ -4013,19 +3213,23 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         </div>
 
       {/* ==================== MODAL: Universal Create / Edit ==================== */}
-      {showModal && (
-        <div className="fixed inset-0 z-50 bg-card/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-          <div className="bg-card border border-slate-200 rounded-2xl max-w-md w-full p-4 sm:p-6 space-y-4 text-xs shadow-2xl max-h-[92vh] flex flex-col">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-200 shrink-0">
-              <h3 className="font-bold text-slate-800 text-sm">
-                {editingItem ? 'تعديل بيانات العنصر' : 'إضافة عنصر جديد'}
-              </h3>
-              <button onClick={() => setShowModal(false)} className="text-slate-500 hover:text-slate-900 cursor-pointer p-1 rounded-lg hover:bg-slate-100">
-                ✕
-              </button>
-            </div>
-
-            <form onSubmit={handleSubmitForm} className="space-y-3 overflow-y-auto flex-1 pr-1">
+      <Modal
+        open={!!showModal}
+        staticBackdrop
+        icon={Plus}
+        title={editingItem ? 'تعديل بيانات العنصر' : 'إضافة عنصر جديد'}
+        onClose={() => setShowModal(false)}
+        footer={
+          <>
+            <Button type="submit" form="reference-item-form" variant="primary" icon={Save}>
+              حفظ البيانات
+            </Button>
+            <Button onClick={() => setShowModal(false)}>إلغاء</Button>
+          </>
+        }
+      >
+        {showModal && (
+        <form id="reference-item-form" onSubmit={handleSubmitForm} className="space-y-3 text-xs">
               {/* Governorates Inputs */}
               {activeTab === 'governorates' && (
                 <>
@@ -4037,7 +3241,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       value={govNameAr}
                       onChange={(e) => setGovNameAr(e.target.value)}
                       placeholder="مثال: محافظة البصرة"
-                      className="w-full bg-card border border-slate-200 rounded-xl p-2.5 text-slate-800"
+                      className={`${fieldLook} w-full`}
                     />
                   </div>
                   <div>
@@ -4047,7 +3251,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       value={govNameEn}
                       onChange={(e) => setGovNameEn(e.target.value)}
                       placeholder="Basra Governorate"
-                      className="w-full bg-card border border-slate-200 rounded-xl p-2.5 font-mono text-slate-600"
+                      className={`${fieldLook} w-full font-mono`}
                     />
                   </div>
                   <div>
@@ -4057,7 +3261,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       value={govCode}
                       onChange={(e) => setGovCode(e.target.value)}
                       placeholder="BSR"
-                      className="w-full bg-card border border-slate-200 rounded-xl p-2.5 font-mono text-brand-700 font-bold"
+                      className={`${fieldLook} w-full font-mono`}
                     />
                   </div>
                 </>
@@ -4072,7 +3276,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       required
                       value={fldGovId}
                       onChange={(e) => setFldGovId(e.target.value)}
-                      className="w-full bg-card border border-slate-200 rounded-xl p-2.5 text-slate-800"
+                      className={`${fieldLook} w-full`}
                     >
                       <option value="">-- اختر المحافظة --</option>
                       {governorates.map((g) => (
@@ -4090,7 +3294,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       value={fldNameAr}
                       onChange={(e) => setFldNameAr(e.target.value)}
                       placeholder="مثال: حقل مجنون النفطي"
-                      className="w-full bg-card border border-slate-200 rounded-xl p-2.5 text-slate-800"
+                      className={`${fieldLook} w-full`}
                     />
                   </div>
                   <div>
@@ -4100,7 +3304,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       value={fldCode}
                       onChange={(e) => setFldCode(e.target.value)}
                       placeholder="MJN"
-                      className="w-full bg-card border border-slate-200 rounded-xl p-2.5 font-mono text-brand-700 font-bold"
+                      className={`${fieldLook} w-full font-mono`}
                     />
                   </div>
                 </>
@@ -4118,7 +3322,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       value={utCode}
                       onChange={(e) => setUtCode(e.target.value)}
                       placeholder="CTRL / PMP / GRD"
-                      className="w-full bg-card border border-slate-200 rounded-xl p-2.5 font-mono text-brand-700 font-bold"
+                      className={`${fieldLook} w-full font-mono`}
                     />
                   </div>
                   <div>
@@ -4129,7 +3333,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       value={utNameAr}
                       onChange={(e) => setUtNameAr(e.target.value)}
                       placeholder="مركز سيطرة وتحكم آبار"
-                      className="w-full bg-card border border-slate-200 rounded-xl p-2.5 text-slate-800"
+                      className={`${fieldLook} w-full`}
                     />
                   </div>
                   <div className="flex items-center gap-2 pt-2">
@@ -4157,7 +3361,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       value={rtNameAr}
                       onChange={(e) => setRtNameAr(e.target.value)}
                       placeholder="مختبر فحص الجودة الميداني"
-                      className="w-full bg-card border border-slate-200 rounded-xl p-2.5 text-slate-800"
+                      className={`${fieldLook} w-full`}
                     />
                   </div>
                   <div>
@@ -4173,7 +3377,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                         type="text"
                         value={rtColorHex}
                         onChange={(e) => setRtColorHex(e.target.value)}
-                        className="w-full bg-card border border-slate-200 rounded-xl p-2 font-mono text-brand-700"
+                        className={`${fieldLook} w-full font-mono`}
                       />
                     </div>
                   </div>
@@ -4191,7 +3395,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       value={mdeptCode}
                       onChange={(e) => setMdeptCode(e.target.value)}
                       placeholder="ELEC-MAINT / MECH-MAINT"
-                      className="w-full bg-card border border-slate-200 rounded-xl p-2.5 font-mono text-brand-700 font-bold"
+                      className={`${fieldLook} w-full font-mono`}
                     />
                   </div>
                   <div>
@@ -4202,7 +3406,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       value={mdeptNameAr}
                       onChange={(e) => setMdeptNameAr(e.target.value)}
                       placeholder="الصيانة الكهربائية / الصيانة الميكانيكية / الصيانة الإنشائية"
-                      className="w-full bg-card border border-slate-200 rounded-xl p-2.5 text-slate-800"
+                      className={`${fieldLook} w-full`}
                     />
                   </div>
                   <div>
@@ -4212,7 +3416,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       value={mdeptNameEn}
                       onChange={(e) => setMdeptNameEn(e.target.value)}
                       placeholder="Electrical Maintenance Department"
-                      className="w-full bg-card border border-slate-200 rounded-xl p-2.5 font-mono text-slate-600"
+                      className={`${fieldLook} w-full font-mono`}
                     />
                   </div>
                   <div>
@@ -4222,31 +3426,16 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       onChange={(e) => setMdeptDescription(e.target.value)}
                       placeholder="صيانة القواطع الكهربائية والمولدات ولوحات التوزيع والإنارة"
                       rows={2}
-                      className="w-full bg-card border border-slate-200 rounded-xl p-2.5 text-slate-800 resize-none"
+                      className={`${fieldLook} w-full resize-none h-auto min-h-20`}
                     />
                   </div>
                 </>
               )}
 
-              <div className="flex justify-end gap-2 pt-4 border-t border-slate-200">
-                <button
-                  type="button"
-                  onClick={() => setShowModal(false)}
-                  className="px-4 py-2 bg-slate-100 text-slate-600 rounded-xl hover:bg-slate-100 cursor-pointer"
-                >
-                  إلغاء
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2 bg-brand-700 text-on-brand font-bold rounded-xl shadow-lg hover:bg-brand-800 cursor-pointer"
-                >
-                  حفظ البيانات
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+        </form>
+        )}
+      </Modal>
+
 
       {/* نوافذ التأكيد الموحدة: الحذف، ضبط المصنع، إعادة ضبط قسم */}
       <ConfirmDialog
@@ -4282,17 +3471,23 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       />
 
       {/* ==================== MODAL: Add Manual Audit Log ==================== */}
-      {showAddLogModal && (
-        <div className="fixed inset-0 z-50 bg-card/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-          <div className="bg-card border border-slate-200 rounded-2xl max-w-md w-full p-4 sm:p-6 space-y-4 text-xs shadow-2xl max-h-[90vh] flex flex-col overflow-y-auto">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-200 shrink-0">
-              <h3 className="font-bold text-slate-800 text-sm">تسجيل حدث / نشاط إداري يدوي</h3>
-              <button onClick={() => setShowAddLogModal(false)} className="text-slate-500 hover:text-slate-900 cursor-pointer p-1 rounded-lg hover:bg-slate-100">
-                ✕
-              </button>
-            </div>
-
-            <form onSubmit={handleAddManualLog} className="space-y-3">
+      <Modal
+        open={!!showAddLogModal}
+        staticBackdrop
+        icon={FileText}
+        title="تسجيل حدث / نشاط إداري يدوي"
+        onClose={() => setShowAddLogModal(false)}
+        footer={
+          <>
+            <Button type="submit" form="manual-log-form" variant="primary" icon={Save}>
+              حفظ السجل
+            </Button>
+            <Button onClick={() => setShowAddLogModal(false)}>إلغاء</Button>
+          </>
+        }
+      >
+        {showAddLogModal && (
+        <form id="manual-log-form" onSubmit={handleAddManualLog} className="space-y-3 text-xs">
               <div>
                 <label className="block text-slate-600 font-bold mb-1">اسم المسؤول / المستخدم:</label>
                 <input
@@ -4300,7 +3495,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   required
                   value={newLogUser}
                   onChange={(e) => setNewLogUser(e.target.value)}
-                  className="w-full bg-card border border-slate-200 rounded-xl p-2.5 text-slate-800"
+                  className={`${fieldLook} w-full`}
                 />
               </div>
 
@@ -4312,7 +3507,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   value={newLogAction}
                   onChange={(e) => setNewLogAction(e.target.value)}
                   placeholder="مثال: إجراء فحص دوري للمنظومة التبريد"
-                  className="w-full bg-card border border-slate-200 rounded-xl p-2.5 text-slate-800"
+                  className={`${fieldLook} w-full`}
                 />
               </div>
 
@@ -4322,29 +3517,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   type="text"
                   value={newLogField}
                   onChange={(e) => setNewLogField(e.target.value)}
-                  className="w-full bg-card border border-slate-200 rounded-xl p-2.5 text-slate-800"
+                  className={`${fieldLook} w-full`}
                 />
               </div>
 
-              <div className="flex justify-end gap-2 pt-3 border-t border-slate-200">
-                <button
-                  type="button"
-                  onClick={() => setShowAddLogModal(false)}
-                  className="px-4 py-2 bg-slate-100 text-slate-600 rounded-xl"
-                >
-                  إلغاء
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2 bg-brand-700 text-on-brand font-bold rounded-xl shadow"
-                >
-                  تأكيد الإضافة
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+        </form>
+        )}
+      </Modal>
+
     </div>
   );
 };
