@@ -530,6 +530,73 @@ async function startServer() {
     }
   }, 25000);
 
+  // ─── النسخ الاحتياطي التلقائي المجدول داخل الخادم ───────────────────────────
+  // يعمل كل BMS_AUTO_BACKUP_INTERVAL_MS (افتراضي 6 ساعات) ويُكمل النسخ المجدول
+  // عبر Windows Task Scheduler في لوحة التحكم — كلاهما مستقل.
+  const AUTO_BACKUP_INTERVAL_MS =
+    Math.max(60_000, Number(process.env.BMS_AUTO_BACKUP_INTERVAL_MS) || 6 * 60 * 60 * 1000);
+
+  let autoBackupState: {
+    lastAt: string | null;
+    status: 'idle' | 'running' | 'ok' | 'error';
+    error?: string;
+  } = { lastAt: null, status: 'idle' };
+
+  async function runAutoBackup(): Promise<void> {
+    if (autoBackupState.status === 'running') return;
+    autoBackupState = { lastAt: autoBackupState.lastAt, status: 'running' };
+    try {
+      const { spawn } = await import('child_process');
+      const backupsDir = path.join(process.cwd(), 'backups');
+      const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 16) + '_auto';
+      const folder = path.join(backupsDir, stamp);
+      fs.mkdirSync(folder, { recursive: true });
+
+      await new Promise<void>((resolve, reject) => {
+        const child = spawn(
+          process.execPath,
+          [path.join(process.cwd(), 'script', 'backup-db.mjs'), process.cwd(), folder],
+          { stdio: 'pipe', shell: false }
+        );
+        child.on('close', (code) => {
+          if (code === 0) resolve();
+          else reject(new Error(`backup-db.mjs exited with code ${code}`));
+        });
+        child.on('error', reject);
+      });
+
+      // كتابة ملف backup-info.json بنوع 'auto' (نفس صيغة النسخة اليدوية)
+      const infoAt = new Date().toISOString();
+      const info = JSON.stringify({ at: infoAt, type: 'auto', machine: process.env.COMPUTERNAME || '' });
+      fs.writeFileSync(path.join(folder, 'backup-info.json'), info, 'utf-8');
+
+      // إبطال ذاكرة readLastBackup لتظهر النسخة الجديدة فور الطلب التالي
+      backupInfoCache = null;
+
+      autoBackupState = { lastAt: infoAt, status: 'ok' };
+      console.log(`[auto-backup] ✔ نسخة احتياطية تلقائية: ${folder}`);
+    } catch (err: any) {
+      autoBackupState = {
+        lastAt: autoBackupState.lastAt,
+        status: 'error',
+        error: String(err?.message || err),
+      };
+      console.error('[auto-backup] ✖ فشل النسخ التلقائي:', err?.message || err);
+    }
+  }
+
+  // التنفيذ الأول بعد دقيقتين من الإقلاع (لا يُعقِّد بدء التشغيل)
+  const autoBackupFirstDelay = setTimeout(() => {
+    void runAutoBackup();
+  }, 2 * 60 * 1000);
+  autoBackupFirstDelay.unref?.();
+
+  const autoBackupTimer = setInterval(() => {
+    void runAutoBackup();
+  }, AUTO_BACKUP_INTERVAL_MS);
+  autoBackupTimer.unref?.();
+  // ─────────────────────────────────────────────────────────────────────────────
+
   // Attach server time header to all API responses for client synchronization
   app.use('/api', (req, res, next) => {
     res.setHeader('X-Server-Time', Date.now().toString());
@@ -749,6 +816,7 @@ async function startServer() {
       serverUtcOffset: -now.getTimezoneOffset(),
       clientIp: (req.ip || '').replace(/^::ffff:/, ''),
       backup: session && isAdminRole(session.role) ? readLastBackup() : null,
+      autoBackup: { lastAt: autoBackupState.lastAt, status: autoBackupState.status },
       storage: { mode: storage.mode, healthy: dbHealthy },
       mirror: session && isAdminRole(session.role) ? mirror.status() : null,
     });

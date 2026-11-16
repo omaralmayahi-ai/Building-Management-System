@@ -9,6 +9,8 @@ interface StatusResponse {
   clientIp: string;
   // null عندما لا يملك الحساب صلاحية عرض حالة النسخ الاحتياطي
   backup: { last: { at: string; type: string; name: string } | null } | null;
+  // حالة النسخ التلقائي المجدول داخل الخادم (مرئية لجميع الأدوار)
+  autoBackup?: { lastAt: string | null; status: 'idle' | 'running' | 'ok' | 'error' };
   // مصدر البيانات المعتمد وحالته
   storage?: { mode: 'postgres' | 'file'; healthy: boolean };
   // مزامنة Firestore (للمدير فقط)
@@ -24,6 +26,7 @@ const WEAK_MS = 600;
 const BACKUP_TYPE_LABEL: Record<string, string> = {
   manual: 'يدوية',
   scheduled: 'مجدولة',
+  auto: 'تلقائية',
   export: 'مصدَّرة',
   'pre-restore': 'قبل استعادة',
   'pre-update': 'قبل تحديث',
@@ -195,6 +198,34 @@ export const StatusBar: React.FC = () => {
         >
           <CloudUpload className="h-3.5 w-3.5" aria-hidden />
           <span>{data.mirror.pending > 0 ? `Firestore: بانتظار ${data.mirror.pending}` : 'Firestore: مُزامَن'}</span>
+        </span>
+      )}
+
+      {data?.autoBackup && (
+        <span
+          className={cx(
+            'hidden items-center gap-1.5 lg:flex',
+            data.autoBackup.status === 'error' && 'font-semibold text-rose-700 dark:text-rose-300',
+            data.autoBackup.status === 'running' && 'text-amber-700 dark:text-amber-300'
+          )}
+          title={
+            data.autoBackup.status === 'error'
+              ? 'فشل آخر نسخ احتياطي تلقائي — يتم إعادة المحاولة عند الموعد القادم'
+              : data.autoBackup.status === 'running'
+              ? 'جارٍ أخذ نسخة احتياطية تلقائية...'
+              : 'نسخ احتياطي تلقائي يعمل داخل الخادم كل 6 ساعات'
+          }
+        >
+          <DatabaseBackup className="h-3.5 w-3.5" aria-hidden />
+          <span>
+            {data.autoBackup.status === 'running'
+              ? 'نسخ تلقائي جارٍ...'
+              : data.autoBackup.status === 'error'
+              ? 'فشل النسخ التلقائي'
+              : data.autoBackup.lastAt
+              ? <>آخر نسخ تلقائي: <span className="font-semibold">{formatBackup(data.autoBackup.lastAt, offset)}</span></>
+              : 'النسخ التلقائي سيبدأ قريباً'}
+          </span>
         </span>
       )}
 
