@@ -169,8 +169,22 @@ export const UnitForm: React.FC<UnitFormProps> = ({
   const [name, setName] = useState<string>(unit.name);
   const [fixedAssetCode, setFixedAssetCode] = useState<string>(unit.fixedAssetCode || '');
   const [type, setType] = useState<UnitType>(initialType);
-  const [field, setField] = useState<string>(unit.field);
-  const [governorate, setGovernorate] = useState<string>(unit.governorate);
+  // 6-ج: تخزين المعرّفات بدل الأسماء في حالة القوائم المنسدلة
+  // نبحث عن المعرّف المقابل للاسم المخزّن في السجل عند التهيئة
+  const [governorateId, setGovernorateId] = useState<string>(() => {
+    const match = governorates.find((g) => g.nameAr === unit.governorate);
+    return match?.id || unit.governorateId || unit.governorate;
+  });
+  const [fieldId, setFieldId] = useState<string>(() => {
+    const match = oilfields.find((f) => f.nameAr === unit.field);
+    return match?.id || unit.fieldId || unit.field;
+  });
+  // اشتقاق الاسم من المعرّف للعرض والحفظ
+  const selectedGovRef = governorates.find((g) => g.id === governorateId) || governorates.find((g) => g.nameAr === governorateId);
+  const selectedFieldRef = oilfields.find((f) => f.id === fieldId) || oilfields.find((f) => f.nameAr === fieldId);
+  const governorate = selectedGovRef?.nameAr || governorateId;
+  const field = selectedFieldRef?.nameAr || fieldId;
+
   const [conditionGrade, setConditionGrade] = useState<ConditionGrade>(unit.conditionGrade);
   const [constructionYear, setConstructionYear] = useState<number>(unit.constructionYear);
   const [department, setDepartment] = useState<string>(unit.department);
@@ -178,19 +192,18 @@ export const UnitForm: React.FC<UnitFormProps> = ({
   const [codeSuffix] = useState<string>(() => generateUnitCode('X', 'X', 'X', existingUnits).split('-').pop() || 'AAAA');
   const typeCodeOf = (t: string) => (t === 'caravan' ? 'CRV' : t === 'building' ? 'BLD' : t === 'warehouse' ? 'WHS' : t === 'equipment' ? 'EQP' : t);
   const cleanCodePart = (v: string | undefined, fallback: string) => (v || fallback).toUpperCase().replace(/[^A-Z0-9]/g, '') || fallback;
-  const selectedGovRef = governorates.find((g) => g.nameAr === governorate);
-  const selectedFieldRef = oilfields.find((f) => f.nameAr === field);
   const unitCode = isCreate
     ? `${cleanCodePart(selectedGovRef?.code, 'EBD')}-${cleanCodePart(selectedFieldRef?.code, 'EBD')}-${cleanCodePart(typeCodeOf(type), 'BLD')}-${codeSuffix}`
     : unit.code;
   const assetCodeType = isCreate ? undefined : unit.type;
-  // الحقول التابعة للمحافظة المختارة (إن كانت القوائم تحمل المعرّفات)
   const visibleOilfields = oilfields.filter((f) => !f.governorateId || !selectedGovRef?.id || f.governorateId === selectedGovRef.id);
   const handleGovernorateChange = (value: string) => {
-    setGovernorate(value);
-    const gov = governorates.find((g) => g.nameAr === value);
+    setGovernorateId(value);
+    const gov = governorates.find((g) => g.id === value) || governorates.find((g) => g.nameAr === value);
     const inGov = oilfields.filter((f) => !f.governorateId || !gov?.id || f.governorateId === gov.id);
-    if (!inGov.some((f) => f.nameAr === field)) setField(inGov[0]?.nameAr || '');
+    if (!inGov.some((f) => f.id === fieldId || f.nameAr === fieldId)) {
+      setFieldId(inGov[0]?.id || inGov[0]?.nameAr || '');
+    }
   };
 
   // إضافة محافظة / حقل / نوع وحدة من داخل النموذج (للمدير)
@@ -219,12 +232,14 @@ export const UnitForm: React.FC<UnitFormProps> = ({
       return;
     }
     if (showAddGovModal) {
-      onAddGovernorate?.({ id: `GOV-${code}`, nameAr, code, status: 'active' } as GovernorateRef);
-      setGovernorate(nameAr);
-      setField('');
+      const newId = `GOV-${code}`;
+      onAddGovernorate?.({ id: newId, nameAr, code, status: 'active' } as GovernorateRef);
+      setGovernorateId(newId);
+      setFieldId('');
     } else if (showAddFieldModal) {
-      onAddOilfield?.({ id: `FLD-${code}`, governorateId: selectedGovRef?.id || '', nameAr, code, status: 'active' } as OilfieldRef);
-      setField(nameAr);
+      const newId = `FLD-${code}`;
+      onAddOilfield?.({ id: newId, governorateId: selectedGovRef?.id || '', nameAr, code, status: 'active' } as OilfieldRef);
+      setFieldId(newId);
     } else if (showAddUnitTypeModal) {
       onAddUnitType?.({ code, nameAr, multiStory: false, defaultRoof: 'كونكريت', status: 'active' } as unknown as ReferenceUnitType);
       setType(code as UnitType);
@@ -790,6 +805,8 @@ export const UnitForm: React.FC<UnitFormProps> = ({
       unitTypeCode: type === 'caravan' ? 'CRV' : type === 'building' ? 'BLD' : type === 'warehouse' ? 'WHS' : type,
       field,
       governorate,
+      governorateId: selectedGovRef?.id || unit.governorateId,
+      fieldId: selectedFieldRef?.id || unit.fieldId,
       conditionGrade,
       constructionYear: Number(constructionYear) || unit.constructionYear,
       department: finalDept,
@@ -941,13 +958,13 @@ export const UnitForm: React.FC<UnitFormProps> = ({
                     )}
                   </div>
                   <select
-                    value={governorate}
+                    value={governorateId}
                     onChange={(e) => handleGovernorateChange(e.target.value)}
                     className={`${fieldLook} w-full cursor-pointer`}
                   >
                     {governorates.length > 0 ? (
                       governorates.map((g) => (
-                        <option key={g.nameAr} value={g.nameAr}>
+                        <option key={g.id || g.nameAr} value={g.id || g.nameAr}>
                           {g.nameAr}
                         </option>
                       ))
@@ -959,7 +976,7 @@ export const UnitForm: React.FC<UnitFormProps> = ({
                       ))
                     )}
                     {governorate && !governorates.some((g) => g.nameAr === governorate) && !defaultGovernorates.includes(governorate) && (
-                      <option value={governorate}>{governorate}</option>
+                      <option value={governorateId}>{governorate}</option>
                     )}
                   </select>
                 </div>
@@ -975,14 +992,14 @@ export const UnitForm: React.FC<UnitFormProps> = ({
                     )}
                   </div>
                   <select
-                    value={field}
-                    onChange={(e) => setField(e.target.value)}
+                    value={fieldId}
+                    onChange={(e) => setFieldId(e.target.value)}
                     className={`${fieldLook} w-full cursor-pointer`}
                   >
-                    {isCreate && !field && <option value="">-- اختر الحقل --</option>}
+                    {isCreate && !fieldId && <option value="">-- اختر الحقل --</option>}
                     {oilfields.length > 0 ? (
                       visibleOilfields.map((f) => (
-                        <option key={f.nameAr} value={f.nameAr}>
+                        <option key={f.id || f.nameAr} value={f.id || f.nameAr}>
                           {f.nameAr}
                         </option>
                       ))
@@ -994,7 +1011,7 @@ export const UnitForm: React.FC<UnitFormProps> = ({
                       ))
                     )}
                     {field && !visibleOilfields.some((f) => f.nameAr === field) && !(oilfields.length === 0 && defaultOilfields.includes(field)) && (
-                      <option value={field}>{field}</option>
+                      <option value={fieldId}>{field}</option>
                     )}
                   </select>
                 </div>
