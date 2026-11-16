@@ -66,6 +66,46 @@ const MIGRATIONS: Array<{ id: string; sql: string }> = [
       );
       CREATE INDEX IF NOT EXISTS bms_audit_at_idx ON bms_audit (at DESC);`,
   },
+  {
+    id: '003_rooms',
+    sql: `
+      CREATE TABLE IF NOT EXISTS bms_rooms (
+        unit_id TEXT NOT NULL,
+        id TEXT NOT NULL,
+        data JSONB NOT NULL,
+        PRIMARY KEY (unit_id, id)
+      );
+      CREATE INDEX IF NOT EXISTS bms_rooms_unit_idx ON bms_rooms (unit_id);
+      INSERT INTO bms_rooms (unit_id, id, data)
+        SELECT r.id, room->>'id', room
+        FROM bms_records r,
+             jsonb_array_elements(r.data->'rooms') AS room
+        WHERE r.collection = 'units'
+          AND r.data ? 'rooms'
+          AND jsonb_array_length(r.data->'rooms') > 0
+          AND (room->>'id') IS NOT NULL
+      ON CONFLICT DO NOTHING;`,
+  },
+  {
+    id: '004_equipment',
+    sql: `
+      CREATE TABLE IF NOT EXISTS bms_equipment (
+        unit_id TEXT NOT NULL,
+        id TEXT NOT NULL,
+        data JSONB NOT NULL,
+        PRIMARY KEY (unit_id, id)
+      );
+      CREATE INDEX IF NOT EXISTS bms_equipment_unit_idx ON bms_equipment (unit_id);
+      INSERT INTO bms_equipment (unit_id, id, data)
+        SELECT r.id, eq->>'id', eq
+        FROM bms_records r,
+             jsonb_array_elements(r.data->'equipment') AS eq
+        WHERE r.collection = 'units'
+          AND r.data ? 'equipment'
+          AND jsonb_array_length(r.data->'equipment') > 0
+          AND (eq->>'id') IS NOT NULL
+      ON CONFLICT DO NOTHING;`,
+  },
 ];
 
 function createPostgresStorage(): Storage {
@@ -101,6 +141,30 @@ function createPostgresStorage(): Storage {
       for (const row of res.rows) {
         (out[row.collection] = out[row.collection] || []).push({ id: row.id, data: row.data });
       }
+      // حقن الغرف والمعدات من الجداول المستقلة في سجلات الوحدات
+      const [roomsRes, equipRes] = await Promise.all([
+        pool.query<{ unit_id: string; id: string; data: any }>(
+          'SELECT unit_id, id, data FROM bms_rooms'
+        ),
+        pool.query<{ unit_id: string; id: string; data: any }>(
+          'SELECT unit_id, id, data FROM bms_equipment'
+        ),
+      ]);
+      const roomsByUnit: Record<string, any[]> = {};
+      for (const r of roomsRes.rows) {
+        (roomsByUnit[r.unit_id] = roomsByUnit[r.unit_id] || []).push(r.data);
+      }
+      const equipByUnit: Record<string, any[]> = {};
+      for (const r of equipRes.rows) {
+        (equipByUnit[r.unit_id] = equipByUnit[r.unit_id] || []).push(r.data);
+      }
+      for (const rec of out['units'] || []) {
+        rec.data = {
+          ...rec.data,
+          rooms: roomsByUnit[rec.id] || [],
+          equipment: equipByUnit[rec.id] || [],
+        };
+      }
       return out;
     },
     async apply(ops) {
@@ -116,6 +180,65 @@ function createPostgresStorage(): Storage {
              WHERE r.collection = d.collection AND r.id = d.id`,
             [dels.map((o) => o.c), dels.map((o) => o.id)]
           );
+          // حذف الغرف والمعدات للوحدات المحذوفة
+          const unitDels = dels.filter((o) => o.c === 'units');
+          if (unitDels.length > 0) {
+            const unitIds = unitDels.map((o) => o.id);
+            await client.query(
+              `DELETE FROM bms_rooms WHERE unit_id = ANY($1::text[])`,
+              [unitIds]
+            );
+            await client.query(
+              `DELETE FROM bms_equipment WHERE unit_id = ANY($1::text[])`,
+              [unitIds]
+            );
+          }
+        }
+        // استخراج الغرف والمعدات من سجلات الوحدات قبل الحفظ
+        const unitPuts = puts.filter((o) => o.c === 'units');
+        for (const op of unitPuts) {
+          const rooms: any[] = op.data.rooms || [];
+          const equipment: any[] = op.data.equipment || [];
+          // حفظ الغرف في الجدول المستقل
+          if (rooms.length > 0) {
+            await client.query(
+              `DELETE FROM bms_rooms WHERE unit_id = $1`,
+              [op.id]
+            );
+            for (let i = 0; i < rooms.length; i += 200) {
+              const chunk = rooms.slice(i, i + 200);
+              await client.query(
+                `INSERT INTO bms_rooms (unit_id, id, data)
+                 SELECT $1, r->>'id', r FROM unnest($2::jsonb[]) AS r
+                 WHERE r->>'id' IS NOT NULL`,
+                [op.id, chunk.map((r) => JSON.stringify(r))]
+              );
+            }
+          } else {
+            await client.query(`DELETE FROM bms_rooms WHERE unit_id = $1`, [op.id]);
+          }
+          // حفظ المعدات في الجدول المستقل
+          if (equipment.length > 0) {
+            await client.query(
+              `DELETE FROM bms_equipment WHERE unit_id = $1`,
+              [op.id]
+            );
+            for (let i = 0; i < equipment.length; i += 200) {
+              const chunk = equipment.slice(i, i + 200);
+              await client.query(
+                `INSERT INTO bms_equipment (unit_id, id, data)
+                 SELECT $1, e->>'id', e FROM unnest($2::jsonb[]) AS e
+                 WHERE e->>'id' IS NOT NULL`,
+                [op.id, chunk.map((e) => JSON.stringify(e))]
+              );
+            }
+          } else {
+            await client.query(`DELETE FROM bms_equipment WHERE unit_id = $1`, [op.id]);
+          }
+          // حذف الغرف والمعدات من JSONB قبل الحفظ في bms_records
+          op.data = { ...op.data };
+          delete op.data.rooms;
+          delete op.data.equipment;
         }
         // على دفعات حتى لا يكبر الاستعلام الواحد مع المرفقات
         for (let i = 0; i < puts.length; i += 200) {

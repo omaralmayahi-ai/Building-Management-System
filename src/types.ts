@@ -26,6 +26,7 @@ export interface Room {
 
 export interface EquipmentItem {
   id: string;
+  code?: string; // رمز المعدة (اختياري، فريد داخل الوحدة)
   name: string;
   type: string;
   capacity?: string;
