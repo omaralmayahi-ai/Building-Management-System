@@ -351,19 +351,87 @@ async function startServer() {
     return p;
   }
 
-  async function loadFromStorage(): Promise<boolean> {
-    const snapshot = await storage.loadAll();
-    const hasData = Object.values(snapshot).some((rows) => rows.length > 0);
-    if (!hasData) return false;
-    for (const [key, def] of Object.entries(COLLECTIONS)) {
-      const rows = (snapshot[key] || []).map((r) => r.data);
-      if (key === 'orgEntities') rows.sort((a: any, b: any) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
-      def.set(rows);
-      const map = new Map<string, string>();
-      for (const row of rows) map.set(def.idOf(row), JSON.stringify(row));
-      persisted.set(key, map);
+  // المجموعات الكبيرة تُحمَّل كسولاً (عند الطلب الأول) بدلاً من تحميلها كلها عند الإقلاع.
+  // المجموعات الصغيرة الضرورية للمصادقة وإعدادات النظام تُحمَّل فور الإقلاع.
+  const LAZY_COLLECTIONS = new Set(['units', 'maintenance', 'occupancy', 'inspections', 'auditLogs']);
+  const lazyLoaded = new Set<string>();
+  // طابور تحميل كسول: يمنع طلبين متزامنين من تحميل نفس المجموعة مرتين
+  const lazyLoadingChain = new Map<string, Promise<void>>();
+
+  async function loadCollectionFromStorage(key: string): Promise<void> {
+    const def = COLLECTIONS[key];
+    if (!def) return;
+    const rows = (await storage.readCollection(key)).map((r) => r.data);
+    if (key === 'orgEntities') rows.sort((a: any, b: any) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+    def.set(rows);
+    const map = new Map<string, string>();
+    for (const row of rows) map.set(def.idOf(row), JSON.stringify(row));
+    persisted.set(key, map);
+    if (FILE_COLLECTIONS.includes(key)) {
+      def.set(fileStore.externalize(def.get()));
+      def.set(def.get().map((r) => normalizeRecordDates(key, r, { lenient: true }).record));
     }
-    return true;
+    lazyLoaded.add(key);
+  }
+
+  async function ensureLoaded(key: string): Promise<void> {
+    if (!LAZY_COLLECTIONS.has(key) || lazyLoaded.has(key) || storage.mode !== 'postgres') return;
+    if (!lazyLoadingChain.has(key)) {
+      const p = loadCollectionFromStorage(key)
+        .catch((err) => {
+          console.error(`[lazy-load] فشل تحميل ${key}:`, err?.message || err);
+          lazyLoadingChain.delete(key);
+          throw err;
+        })
+        .finally(() => lazyLoadingChain.delete(key));
+      lazyLoadingChain.set(key, p);
+    }
+    return lazyLoadingChain.get(key);
+  }
+
+  async function loadFromStorage(): Promise<boolean> {
+    if (storage.mode !== 'postgres') {
+      const snapshot = await storage.loadAll();
+      const hasData = Object.values(snapshot).some((rows) => rows.length > 0);
+      if (!hasData) return false;
+      for (const [key, def] of Object.entries(COLLECTIONS)) {
+        const rows = (snapshot[key] || []).map((r) => r.data);
+        if (key === 'orgEntities') rows.sort((a: any, b: any) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+        def.set(rows);
+        const map = new Map<string, string>();
+        for (const row of rows) map.set(def.idOf(row), JSON.stringify(row));
+        persisted.set(key, map);
+      }
+      return true;
+    }
+    // وضع PostgreSQL: نحمّل فقط المجموعات الصغيرة الضرورية الآن
+    const eagerKeys = Object.keys(COLLECTIONS).filter((k) => !LAZY_COLLECTIONS.has(k));
+    let hasData = false;
+    await Promise.all(
+      eagerKeys.map(async (key) => {
+        const rows = await storage.readCollection(key);
+        if (rows.length > 0) hasData = true;
+        const def = COLLECTIONS[key];
+        const data = rows.map((r) => r.data);
+        if (key === 'orgEntities') data.sort((a: any, b: any) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+        def.set(data);
+        const map = new Map<string, string>();
+        for (const row of data) map.set(def.idOf(row), JSON.stringify(row));
+        persisted.set(key, map);
+      })
+    );
+    if (!hasData) {
+      // تحقق من وجود أي بيانات (حتى في المجموعات الكسولة)
+      const anyRow = await storage.readCollection('units');
+      if (anyRow.length > 0) hasData = true;
+    }
+    return hasData;
+  }
+
+  async function reloadLazyCollections(): Promise<void> {
+    for (const key of LAZY_COLLECTIONS) {
+      lazyLoaded.delete(key); // يُعيد التحميل في الطلب القادم
+    }
   }
 
   let importedFromFile = false;
@@ -421,10 +489,14 @@ async function startServer() {
     }
   }
 
-  // المرفقات المضمّنة في سجلات قديمة تُخرج إلى ملفات مرة واحدة، ثم تُزال الملفات اليتيمة
-  for (const key of FILE_COLLECTIONS) COLLECTIONS[key].set(fileStore.externalize(COLLECTIONS[key].get()));
+  // المرفقات المضمّنة في سجلات قديمة تُخرج إلى ملفات مرة واحدة (المجموعات الكسولة تعالج عند التحميل)
+  for (const key of FILE_COLLECTIONS) {
+    if (LAZY_COLLECTIONS.has(key)) continue; // ستعالج عند التحميل الكسول
+    COLLECTIONS[key].set(fileStore.externalize(COLLECTIONS[key].get()));
+  }
   // توحيد صيغ التواريخ في السجلات المخزنة سابقاً (ما لا يُفهم يبقى كما هو)
   for (const key of FILE_COLLECTIONS) {
+    if (LAZY_COLLECTIONS.has(key)) continue;
     COLLECTIONS[key].set(COLLECTIONS[key].get().map((r) => normalizeRecordDates(key, r, { lenient: true }).record));
   }
 
@@ -450,6 +522,7 @@ async function startServer() {
       if (ok && !dbHealthy) {
         try {
           await loadFromStorage();
+          await reloadLazyCollections();
           dbHealthy = true;
           notifySyncChange('all_updated', { reason: 'db-recovered' });
         } catch {}
@@ -843,6 +916,7 @@ async function startServer() {
   });
 
   app.get('/api/sync/all', async (req, res) => {
+    await Promise.all(Array.from(LAZY_COLLECTIONS).map((k) => ensureLoaded(k)));
     res.json({
       units: memStore.units,
       maintenance: memStore.maintenance,
@@ -1121,9 +1195,13 @@ async function startServer() {
     };
     const remove = (id: string) => def.set(list().filter((r) => def.idOf(r) !== id));
 
-    app.get(`/api/${o.route}`, (req, res) => res.json(list()));
+    app.get(`/api/${o.route}`, async (req, res) => {
+      await ensureLoaded(o.key);
+      res.json(list());
+    });
 
     app.post(`/api/${o.route}`, async (req, res) => {
+      await ensureLoaded(o.key);
       const id = def.idOf(req.body);
       const existing = find(id);
       if (o.appendOnly && existing) return res.json({ success: true, [o.single]: existing });
@@ -1154,6 +1232,7 @@ async function startServer() {
 
     if (!o.appendOnly) {
       app.put(`/api/${o.route}/:id`, async (req, res) => {
+        await ensureLoaded(o.key);
         const paramId = req.params.id;
         const existing = find(paramId);
         if (isVersionConflict(req.body, existing)) {
@@ -1182,6 +1261,8 @@ async function startServer() {
       });
 
       app.delete(`/api/${o.route}/:id`, async (req, res) => {
+        await ensureLoaded(o.key);
+        if (o.key === 'units') await Promise.all(['maintenance', 'inspections', 'occupancy'].map((k) => ensureLoaded(k)));
         if (o.key === 'units' && unitHasHistory(req.params.id)) return res.status(409).json(UNIT_HISTORY_ERROR);
         if (o.key === 'orgEntities') {
           const inUse = orgDeleteError(req.params.id);
@@ -1200,6 +1281,8 @@ async function startServer() {
 
     // دفعة عمليات على سجلات محددة: إمّا تُطبَّق كلها أو لا يُطبَّق شيء
     app.post(`/api/${o.route}/batch`, async (req, res) => {
+      await ensureLoaded(o.key);
+      if (o.key === 'units') await Promise.all(['maintenance', 'inspections', 'occupancy'].map((k) => ensureLoaded(k)));
       const kind = roleKind(((req as any).session as ActiveSession).role);
       const upserts: any[] = Array.isArray(req.body?.upserts) ? [...req.body.upserts] : [];
       for (let i = 0; i < upserts.length; i++) {
@@ -1277,6 +1360,7 @@ async function startServer() {
 
     // استيراد جماعي (للمدير): يضيف ويحدّث فقط، ولا يحذف ما ليس في القائمة
     app.post(`/api/${o.route}/bulk`, async (req, res) => {
+      await ensureLoaded(o.key);
       const items: any[] = [...((Object.values(req.body || {}).find((v) => Array.isArray(v)) as any[]) || [])];
       for (let i = 0; i < items.length; i++) {
         const dated = normalizeRecordDates(o.key, items[i]);

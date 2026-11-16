@@ -31,6 +31,8 @@ export interface Storage {
   init(): Promise<void>;
   /** كل السجلات المخزنة: collection → [{id, data}] (فارغ في وضع الملف؛ الخادم يقرأ الملف بنفسه) */
   loadAll(): Promise<Record<string, Array<{ id: string; data: any }>>>;
+  /** قراءة مجموعة واحدة من القاعدة (للتحميل الكسول) */
+  readCollection(name: string): Promise<Array<{ id: string; data: any }>>;
   apply(ops: StorageOp[]): Promise<void>;
   appendAudit(entry: AuditEntry): Promise<void>;
   readAudit(limit: number): Promise<AuditEntry[]>;
@@ -166,6 +168,30 @@ function createPostgresStorage(): Storage {
         };
       }
       return out;
+    },
+    async readCollection(name) {
+      const res = await pool.query<{ id: string; data: any }>(
+        'SELECT id, data FROM bms_records WHERE collection = $1 ORDER BY updated_at DESC',
+        [name]
+      );
+      const rows = res.rows.map((r) => ({ id: r.id, data: r.data }));
+      if (name === 'units' && rows.length > 0) {
+        const unitIds = rows.map((r) => r.id);
+        const [roomsRes, equipRes] = await Promise.all([
+          pool.query<{ unit_id: string; id: string; data: any }>(
+            'SELECT unit_id, id, data FROM bms_rooms WHERE unit_id = ANY($1::text[])', [unitIds]),
+          pool.query<{ unit_id: string; id: string; data: any }>(
+            'SELECT unit_id, id, data FROM bms_equipment WHERE unit_id = ANY($1::text[])', [unitIds]),
+        ]);
+        const roomsByUnit: Record<string, any[]> = {};
+        for (const r of roomsRes.rows) (roomsByUnit[r.unit_id] = roomsByUnit[r.unit_id] || []).push(r.data);
+        const equipByUnit: Record<string, any[]> = {};
+        for (const r of equipRes.rows) (equipByUnit[r.unit_id] = equipByUnit[r.unit_id] || []).push(r.data);
+        for (const rec of rows) {
+          rec.data = { ...rec.data, rooms: roomsByUnit[rec.id] || [], equipment: equipByUnit[rec.id] || [] };
+        }
+      }
+      return rows;
     },
     async apply(ops) {
       if (ops.length === 0) return;
@@ -303,6 +329,9 @@ function createFileStorage(dataDir: string, dump: () => string): Storage {
     },
     async loadAll() {
       return {};
+    },
+    async readCollection(_name) {
+      return [];
     },
     async apply() {
       // كتابة ذرّية: ملف مؤقت ثم إعادة تسمية، حتى لا يتلف الملف عند انقطاع مفاجئ
