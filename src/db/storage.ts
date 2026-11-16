@@ -106,41 +106,6 @@ const MIGRATIONS: Array<{ id: string; sql: string }> = [
           AND (eq->>'id') IS NOT NULL
       ON CONFLICT DO NOTHING;`,
   },
-  {
-    id: '005_date_columns',
-    sql: `
-      -- أعمدة DATE مستخرجة من JSONB لتمكين الفرز والتصفية الصحيحين في PostgreSQL
-      ALTER TABLE bms_records
-        ADD COLUMN IF NOT EXISTS d_created_at   DATE,
-        ADD COLUMN IF NOT EXISTS d_next_due     DATE,
-        ADD COLUMN IF NOT EXISTS d_start_date   DATE;
-
-      CREATE INDEX IF NOT EXISTS bms_records_d_created_at  ON bms_records (d_created_at)  WHERE d_created_at  IS NOT NULL;
-      CREATE INDEX IF NOT EXISTS bms_records_d_next_due    ON bms_records (d_next_due)    WHERE d_next_due    IS NOT NULL;
-      CREATE INDEX IF NOT EXISTS bms_records_d_start_date  ON bms_records (d_start_date)  WHERE d_start_date  IS NOT NULL;
-
-      -- استخراج القيم من السجلات الموجودة (التواريخ مخزنة بصيغة YYYY-MM-DD)
-      UPDATE bms_records
-        SET d_created_at = CASE
-              WHEN collection IN ('maintenance','inspections')
-                   AND (data->>'createdAt') ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$'
-              THEN (data->>'createdAt')::date
-              ELSE NULL
-            END,
-            d_next_due = CASE
-              WHEN collection = 'inspections'
-                   AND (data->>'nextDueDate') ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$'
-              THEN (data->>'nextDueDate')::date
-              ELSE NULL
-            END,
-            d_start_date = CASE
-              WHEN collection = 'occupancy'
-                   AND (data->>'startDate') ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$'
-              THEN (data->>'startDate')::date
-              ELSE NULL
-            END
-      WHERE collection IN ('maintenance','inspections','occupancy');`,
-  },
 ];
 
 function createPostgresStorage(): Storage {
@@ -275,44 +240,15 @@ function createPostgresStorage(): Storage {
           delete op.data.rooms;
           delete op.data.equipment;
         }
-        // دالة مساعدة: تستخرج قيمة DATE من JSONB للأعمدة المستقلة
-        const extractDate = (data: any, field: string): string | null => {
-          const v = data?.[field];
-          if (typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v)) return v;
-          return null;
-        };
-
         // على دفعات حتى لا يكبر الاستعلام الواحد مع المرفقات
         for (let i = 0; i < puts.length; i += 200) {
           const chunk = puts.slice(i, i + 200);
           await client.query(
-            `INSERT INTO bms_records (collection, id, data, d_created_at, d_next_due, d_start_date)
-             SELECT c, i, d::jsonb, da::date, nd::date, sd::date
-             FROM unnest($1::text[], $2::text[], $3::text[], $4::text[], $5::text[], $6::text[]) AS t(c, i, d, da, nd, sd)
+            `INSERT INTO bms_records (collection, id, data)
+             SELECT c, i, d::jsonb FROM unnest($1::text[], $2::text[], $3::text[]) AS t(c, i, d)
              ON CONFLICT (collection, id) DO UPDATE
-               SET data        = EXCLUDED.data,
-                   version     = bms_records.version + 1,
-                   updated_at  = now(),
-                   d_created_at = EXCLUDED.d_created_at,
-                   d_next_due   = EXCLUDED.d_next_due,
-                   d_start_date = EXCLUDED.d_start_date`,
-            [
-              chunk.map((o) => o.c),
-              chunk.map((o) => o.id),
-              chunk.map((o) => JSON.stringify(o.data)),
-              chunk.map((o) => {
-                if (o.c === 'maintenance' || o.c === 'inspections') return extractDate(o.data, 'createdAt');
-                return null;
-              }),
-              chunk.map((o) => {
-                if (o.c === 'inspections') return extractDate(o.data, 'nextDueDate');
-                return null;
-              }),
-              chunk.map((o) => {
-                if (o.c === 'occupancy') return extractDate(o.data, 'startDate');
-                return null;
-              }),
-            ]
+               SET data = EXCLUDED.data, version = bms_records.version + 1, updated_at = now()`,
+            [chunk.map((o) => o.c), chunk.map((o) => o.id), chunk.map((o) => JSON.stringify(o.data))]
           );
         }
         await client.query('COMMIT');
