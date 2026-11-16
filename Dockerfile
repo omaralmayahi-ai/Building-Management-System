@@ -9,6 +9,7 @@ RUN npm install
 COPY . .
 RUN npm run build
 
+# ---- runner stage ----
 FROM node:20-alpine AS runner
 
 WORKDIR /app
@@ -16,12 +17,17 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3000
 
+# install production deps only
 COPY package*.json ./
 RUN npm install --omit=dev
 
+# dist/server.cjs is self-contained — no need to copy server.ts or src/db
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/server.ts ./server.ts
-COPY --from=builder /app/src/db ./src/db
+
+# writable data directory (mounted as a volume in production)
+RUN mkdir -p .data/files && chown -R node:node .data
+
+USER node
 
 EXPOSE 3000
 

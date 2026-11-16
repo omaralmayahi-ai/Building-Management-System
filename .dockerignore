@@ -1,0 +1,29 @@
+# بيانات وأسرار — لا تُضمَّن في الصورة أبداً
+.env
+.env.*
+.data/
+backups/
+logs/
+_safety/
+
+# ملف مفتاح Firestore
+*.json
+!package.json
+!package-lock.json
+
+# ملفات التطوير
+node_modules/
+dist/
+*.local
+
+# Git وتوثيق
+.git/
+.github/
+*.md
+docs/
+
+# أدوات ويندوز
+tools/
+script/
+control-app.bat
+scripts/
