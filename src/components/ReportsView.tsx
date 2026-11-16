@@ -1,6 +1,6 @@
 import { getServerIsoDateOnly } from '../services/serverTime';
 import { Badge, Button, Card, EmptyState, PageHeader, Table, Tabs, Td, fieldLookSm } from './ui';
-import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import React, { useState, useMemo, useCallback, useEffect, lazy, Suspense } from 'react';
 import {
   FileText,
   Printer,
@@ -47,7 +47,6 @@ import {
   SystemUser,
   ReportAttachment,
 } from '../types';
-import { AttachmentViewerModal } from './AttachmentViewerModal';
 import {
   INITIAL_GOVERNORATES,
   INITIAL_OILFIELDS,
@@ -56,6 +55,7 @@ import {
 } from '../data/mockData';
 import { OrgEntityPickerModal } from './OrgEntityPickerModal';
 import {
+
   toArabicDigits,
   formatDateOnly,
   getCompletionOrCancellationDate,
@@ -64,6 +64,15 @@ import {
   getServerDateFormatted,
   getServerDateTimeFormatted,
 } from '../utils/arabicUtils';
+
+// تُحمَّل عند الطلب (4-ل)
+const AttachmentViewerModalLazy = lazy(() => import('./AttachmentViewerModal').then((m) => ({ default: m.AttachmentViewerModal })));
+const AttachmentViewerModal = (props: React.ComponentProps<typeof AttachmentViewerModalLazy>) => (
+  <Suspense fallback={null}>
+    <AttachmentViewerModalLazy {...props} />
+  </Suspense>
+);
+
 
 // Arabic Translation & Format Helpers for Reports & Export/Print Tables
 const GOVERNORATE_ARABIC_MAP: Record<string, string> = {

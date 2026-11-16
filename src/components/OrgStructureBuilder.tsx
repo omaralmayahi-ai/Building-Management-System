@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useEffect, useRef, lazy, Suspense } from 'react';
 import { Button, ConfirmDialog, Input, Modal, PageHeader, Select, fieldLook, useConfirm } from './ui';
 import {
   Network,
@@ -34,6 +34,7 @@ import {
 import { OrgEntity, OrgLevel, UnitAsset, SystemBranding } from '../types';
 import { toArabicDigits } from '../utils/arabicUtils';
 import {
+
   generateOrgStructureCsvTemplate,
   downloadFile,
   parseCsvText,
@@ -41,7 +42,15 @@ import {
   OrgImportRow,
   ORG_LEVEL_LABELS,
 } from '../utils/orgExcelUtils';
-import { OrgChartModal } from './OrgChartModal';
+
+// تُحمَّل عند الطلب (4-ل)
+const OrgChartModalLazy = lazy(() => import('./OrgChartModal').then((m) => ({ default: m.OrgChartModal })));
+const OrgChartModal = (props: React.ComponentProps<typeof OrgChartModalLazy>) => (
+  <Suspense fallback={null}>
+    <OrgChartModalLazy {...props} />
+  </Suspense>
+);
+
 
 interface OrgStructureBuilderProps {
   isLight?: boolean;

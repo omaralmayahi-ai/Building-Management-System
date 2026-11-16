@@ -1,6 +1,6 @@
 import { getServerIsoDateOnly } from '../services/serverTime';
 import { Button, ConfirmDialog, EmptyState, Field, Input, Modal, PageHeader, Select, Textarea, useConfirm } from './ui';
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, lazy, Suspense } from 'react';
 import {
   Wrench,
   Clock,
@@ -41,7 +41,15 @@ import {
   getCompletionOrCancellationDate,
   calculateMaintenanceDurationDays,
 } from '../utils/arabicUtils';
-import { AttachmentViewerModal, AttachmentViewerItem } from './AttachmentViewerModal';
+import type { AttachmentViewerItem } from './AttachmentViewerModal';
+
+// تُحمَّل عند الطلب (4-ل)
+const AttachmentViewerModalLazy = lazy(() => import('./AttachmentViewerModal').then((m) => ({ default: m.AttachmentViewerModal })));
+const AttachmentViewerModal = (props: React.ComponentProps<typeof AttachmentViewerModalLazy>) => (
+  <Suspense fallback={null}>
+    <AttachmentViewerModalLazy {...props} />
+  </Suspense>
+);
 
 interface MaintenanceViewProps {
   requests: MaintenanceRequest[];

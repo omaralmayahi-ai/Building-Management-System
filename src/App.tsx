@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, lazy, Suspense } from 'react';
 import { calculateNextDueDate, todayDateString, withEffectiveStatuses } from './utils/inspectionSchedule';
 import {
   LayoutDashboard,
@@ -18,24 +18,10 @@ import {
 } from 'lucide-react';
 import { Header } from './components/Header';
 import { Sidebar, NavTab } from './components/Sidebar';
-import { DashboardView } from './components/DashboardView';
-import { UnitManagementView } from './components/UnitManagementView';
-import { NewUnitWizard } from './components/NewUnitWizard';
-import { PeriodicInspectionView } from './components/PeriodicInspectionView';
-import { MaintenanceView } from './components/MaintenanceView';
-import { ReportsView } from './components/ReportsView';
-import { SettingsView } from './components/SettingsView';
-import { FieldInspectionView } from './components/FieldInspectionView';
-import { NewMaintenanceModal } from './components/NewMaintenanceModal';
-import { ExportDossierModal } from './components/ExportDossierModal';
 import { LoginView } from './components/LoginView';
-import { InAppQrScannerModal } from './components/InAppQrScannerModal';
 import { UnitScanChoiceModal } from './components/UnitScanChoiceModal';
-import { UnitLocationMapModal } from './components/UnitLocationMapModal';
-import { GISMapView } from './components/GISMapView';
 import { ScannedQrPayload } from './utils/qrReader';
 import { PWAInstallPrompt } from './components/PWAInstallPrompt';
-import { DownloadOptionsModal } from './components/DownloadOptionsModal';
 
 import {
   INITIAL_UNITS,
@@ -94,6 +80,24 @@ import { applyAppearance, normalizeAppearance } from './lib/theme';
 import { StatusBar } from './components/StatusBar';
 import { AppearanceMenu } from './components/AppearanceMenu';
 
+// التحميل عند الطلب: كل شاشة في حزمة مستقلة لا تُنزَّل إلا عند فتحها (4-ل)
+const DashboardView = lazy(() => import('./components/DashboardView').then((m) => ({ default: m.DashboardView })));
+const UnitManagementView = lazy(() => import('./components/UnitManagementView').then((m) => ({ default: m.UnitManagementView })));
+const NewUnitWizard = lazy(() => import('./components/NewUnitWizard').then((m) => ({ default: m.NewUnitWizard })));
+const PeriodicInspectionView = lazy(() => import('./components/PeriodicInspectionView').then((m) => ({ default: m.PeriodicInspectionView })));
+const MaintenanceView = lazy(() => import('./components/MaintenanceView').then((m) => ({ default: m.MaintenanceView })));
+const ReportsView = lazy(() => import('./components/ReportsView').then((m) => ({ default: m.ReportsView })));
+const SettingsView = lazy(() => import('./components/SettingsView').then((m) => ({ default: m.SettingsView })));
+const FieldInspectionView = lazy(() => import('./components/FieldInspectionView').then((m) => ({ default: m.FieldInspectionView })));
+const GISMapView = lazy(() => import('./components/GISMapView').then((m) => ({ default: m.GISMapView })));
+const NewMaintenanceModal = lazy(() => import('./components/NewMaintenanceModal').then((m) => ({ default: m.NewMaintenanceModal })));
+const ExportDossierModal = lazy(() => import('./components/ExportDossierModal').then((m) => ({ default: m.ExportDossierModal })));
+const InAppQrScannerModal = lazy(() => import('./components/InAppQrScannerModal').then((m) => ({ default: m.InAppQrScannerModal })));
+const UnitLocationMapModal = lazy(() => import('./components/UnitLocationMapModal').then((m) => ({ default: m.UnitLocationMapModal })));
+const DownloadOptionsModal = lazy(() => import('./components/DownloadOptionsModal').then((m) => ({ default: m.DownloadOptionsModal })));
+
+
+
 // ---- التنقل بعناوين الصفحات: كل تبويب له مسار (/dashboard، /units، ...) فيعمل زر الرجوع والروابط المباشرة ----
 const ALL_NAV_TABS: NavTab[] = [
   'dashboard',
@@ -127,6 +131,16 @@ function pathForTab(tab: NavTab): string {
 
 // Flag to control initial demo dataset seeding on empty storage
 const SEED_WITH_DEMO_DATA = false;
+
+// مؤشر تحميل الشاشة أثناء تنزيل حزمتها
+const ScreenLoading: React.FC = () => (
+  <div className="flex min-h-[50vh] items-center justify-center" role="status" aria-live="polite">
+    <div className="flex flex-col items-center gap-3 text-slate-500">
+      <span className="h-9 w-9 animate-spin rounded-full border-2 border-slate-200 border-t-brand-700" aria-hidden />
+      <span className="text-xs font-bold">جارٍ تحميل الشاشة...</span>
+    </div>
+  </div>
+);
 
 export function App() {
   const [currentUser, setCurrentUser] = useState<SystemUser | null>(() =>
@@ -2378,6 +2392,7 @@ export function App() {
 
         <main className="flex-1 p-2 sm:p-3 md:p-5 pb-6 sm:pb-8 md:pb-5 min-w-0 max-w-full overflow-x-clip space-y-3.5 sm:space-y-4 md:space-y-5">
           {/* Active View Router */}
+          <Suspense fallback={<ScreenLoading />}>
           {activeTab === 'field_inspection' && (
             <FieldInspectionView
               units={units}
@@ -2601,6 +2616,7 @@ export function App() {
               theme={theme}
             />
           )}
+          </Suspense>
         </main>
       </div>
 

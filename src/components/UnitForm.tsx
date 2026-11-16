@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, lazy, Suspense } from 'react';
 import { generateUnitCode } from '../utils/unitAndRoomCodeUtils';
 import { Button, Field, Input, Modal, Tabs, fieldLook, fieldLookSm, useConfirm } from './ui';
 import {
@@ -36,11 +36,7 @@ import { UnitAsset, ConditionGrade, UnitType, Room, EquipmentItem, ReferenceUnit
 import { BUILDING_SHAPE_OPTIONS, getShapeFactor, calculateUnitArea } from '../utils/buildingShapes';
 import { toArabicDigits, getServerDateFormatted, getServerIsoDateOnly } from '../utils/arabicUtils';
 import { safeSetItem } from '../utils/storageUtils';
-import { LocationPickerMap } from './LocationPickerMap';
-import { AttachmentViewerModal } from './AttachmentViewerModal';
 import { QuickAddOrgEntityModal } from './QuickAddOrgEntityModal';
-import { RoomQrCardModal } from './RoomQrCardModal';
-import { OrgChartModal } from './OrgChartModal';
 import {
   generateRoomCode,
   getRoomTypeCode,
@@ -55,12 +51,40 @@ import {
   calculateRoomSequenceNumber,
 } from '../utils/unitAndRoomCodeUtils';
 import {
+
   cleanFixedAssetCodeInput,
   validateFixedAssetCodeFormat,
   checkFixedAssetCodeUniqueness,
   formatToCaravanDottedCode,
   formatToBuildingContinuousCode,
 } from '../utils/assetCodeUtils';
+
+// تُحمَّل عند الطلب (4-ل)
+const LocationPickerMapLazy = lazy(() => import('./LocationPickerMap').then((m) => ({ default: m.LocationPickerMap })));
+const LocationPickerMap = (props: React.ComponentProps<typeof LocationPickerMapLazy>) => (
+  <Suspense fallback={null}>
+    <LocationPickerMapLazy {...props} />
+  </Suspense>
+);
+const AttachmentViewerModalLazy = lazy(() => import('./AttachmentViewerModal').then((m) => ({ default: m.AttachmentViewerModal })));
+const AttachmentViewerModal = (props: React.ComponentProps<typeof AttachmentViewerModalLazy>) => (
+  <Suspense fallback={null}>
+    <AttachmentViewerModalLazy {...props} />
+  </Suspense>
+);
+const RoomQrCardModalLazy = lazy(() => import('./RoomQrCardModal').then((m) => ({ default: m.RoomQrCardModal })));
+const RoomQrCardModal = (props: React.ComponentProps<typeof RoomQrCardModalLazy>) => (
+  <Suspense fallback={null}>
+    <RoomQrCardModalLazy {...props} />
+  </Suspense>
+);
+const OrgChartModalLazy = lazy(() => import('./OrgChartModal').then((m) => ({ default: m.OrgChartModal })));
+const OrgChartModal = (props: React.ComponentProps<typeof OrgChartModalLazy>) => (
+  <Suspense fallback={null}>
+    <OrgChartModalLazy {...props} />
+  </Suspense>
+);
+
 
 type RefItem = { id?: string; code?: string; nameAr: string; governorateId?: string; status?: string };
 

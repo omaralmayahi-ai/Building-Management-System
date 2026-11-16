@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, lazy, Suspense } from 'react';
 import { Badge, Button, Card, ConfirmDialog, EmptyState, PageHeader, Pagination, Table, Tabs, Td, fieldLookSm } from './ui';
 import {
   Search,
@@ -43,12 +43,8 @@ import {
   DoorOpen,
 } from 'lucide-react';
 import { UnitAsset, ConditionGrade, ReferenceUnitType, UnitAttachment, OrgEntity, GovernorateRef, OilfieldRef, Room, SystemBranding } from '../types';
-import { ThreeBuildingCanvas } from './ThreeBuildingCanvas';
 import { EditUnitModal } from './EditUnitModal';
-import { AttachmentViewerModal } from './AttachmentViewerModal';
-import { UnitQrCodeModal } from './UnitQrCodeModal';
 import { UnitLocationMapModal } from './UnitLocationMapModal';
-import { RoomQrCardModal } from './RoomQrCardModal';
 import {
   generateRoomCode,
   getStandardRoomCode,
@@ -61,6 +57,33 @@ import { BUILDING_SHAPE_OPTIONS } from '../utils/buildingShapes';
 import { toArabicDigits } from '../utils/arabicUtils';
 import { INITIAL_GOVERNORATES, INITIAL_OILFIELDS, INITIAL_ORG_ENTITIES, INITIAL_REFERENCE_UNIT_TYPES } from '../data/mockData';
 import { OrgEntityPickerModal } from './OrgEntityPickerModal';
+
+// تُحمَّل عند الطلب (4-ل)
+const ThreeBuildingCanvasLazy = lazy(() => import('./ThreeBuildingCanvas').then((m) => ({ default: m.ThreeBuildingCanvas })));
+const ThreeBuildingCanvas = (props: React.ComponentProps<typeof ThreeBuildingCanvasLazy>) => (
+  <Suspense fallback={null}>
+    <ThreeBuildingCanvasLazy {...props} />
+  </Suspense>
+);
+const AttachmentViewerModalLazy = lazy(() => import('./AttachmentViewerModal').then((m) => ({ default: m.AttachmentViewerModal })));
+const AttachmentViewerModal = (props: React.ComponentProps<typeof AttachmentViewerModalLazy>) => (
+  <Suspense fallback={null}>
+    <AttachmentViewerModalLazy {...props} />
+  </Suspense>
+);
+const UnitQrCodeModalLazy = lazy(() => import('./UnitQrCodeModal').then((m) => ({ default: m.UnitQrCodeModal })));
+const UnitQrCodeModal = (props: React.ComponentProps<typeof UnitQrCodeModalLazy>) => (
+  <Suspense fallback={null}>
+    <UnitQrCodeModalLazy {...props} />
+  </Suspense>
+);
+const RoomQrCardModalLazy = lazy(() => import('./RoomQrCardModal').then((m) => ({ default: m.RoomQrCardModal })));
+const RoomQrCardModal = (props: React.ComponentProps<typeof RoomQrCardModalLazy>) => (
+  <Suspense fallback={null}>
+    <RoomQrCardModalLazy {...props} />
+  </Suspense>
+);
+
 
 interface UnitManagementViewProps {
   units: UnitAsset[];

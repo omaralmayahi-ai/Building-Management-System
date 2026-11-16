@@ -1,7 +1,7 @@
 import { getServerIsoDateOnly } from '../services/serverTime';
 import { Button, Card, CardHeader, ConfirmDialog, EmptyState, Field, Input, Modal, PageHeader, Select, Table, Tabs, Td, fieldLook, useConfirm } from './ui';
 import { calculateNextDueDate } from '../utils/inspectionSchedule';
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, lazy, Suspense } from 'react';
 import {
   CalendarCheck,
   Calendar,
@@ -45,7 +45,6 @@ import {
   LayoutGrid,
   RefreshCw,
 } from 'lucide-react';
-import { AttachmentViewerModal } from './AttachmentViewerModal';
 import { compressImageFile } from '../utils/imageCompressor';
 import { INITIAL_GOVERNORATES, INITIAL_OILFIELDS, INITIAL_USERS } from '../data/mockData';
 import {
@@ -64,11 +63,21 @@ import {
   SystemUser,
 } from '../types';
 import {
+
   toArabicDigits,
   formatDateOnly,
   getCompletionOrCancellationDate,
   calculateMaintenanceDurationDays,
 } from '../utils/arabicUtils';
+
+// تُحمَّل عند الطلب (4-ل)
+const AttachmentViewerModalLazy = lazy(() => import('./AttachmentViewerModal').then((m) => ({ default: m.AttachmentViewerModal })));
+const AttachmentViewerModal = (props: React.ComponentProps<typeof AttachmentViewerModalLazy>) => (
+  <Suspense fallback={null}>
+    <AttachmentViewerModalLazy {...props} />
+  </Suspense>
+);
+
 
 // Helper to determine role label and accredited user display
 export const getPerformerDisplay = (
