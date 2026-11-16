@@ -75,6 +75,15 @@
 - `src/utils/inspectionSchedule.ts` هو المكان الوحيد لحساب موعد الكشف القادم والتأخير (`calculateNextDueDate`، `daysOverdue`، `effectiveInspectionStatus`)؛ الحساب على التاريخ فقط دون توقيت. لا تكتب `new Date(...).toISOString().split('T')[0]` لتاريخ اليوم (يرجع يوماً قبل الثالثة فجراً في بغداد)؛ استخدم `todayDateString()`.
 - حالة «متأخر» مشتقة للعرض في App.tsx (`periodicInspections` من `storedInspections` عبر `withEffectiveStatuses`)، ولا تُكتب في القاعدة إلا إن حُفظ السجل لسبب آخر.
 
+
+## تأخير طلبات الصيانة (5-و)
+- `src/utils/maintenanceSla.ts` هو المكان الوحيد لمهلة الإنجاز وأيام التأخير: `SLA_DAYS_BY_PRIORITY` (حرج جداً 1، عادي 3، منخفض 7 أيام — قابلة للتعديل)، `maintenanceSlaDeadline`، `maintenanceDaysOverdue`، `effectiveMaintenanceStatus`، `withMaintenanceOverdue`. الحساب على التاريخ فقط ويعيد استخدام `addDaysToDate` و`daysOverdue` من `inspectionSchedule.ts`.
+- `slaDeadline` المخزّن هو المعتمد؛ عند غيابه أو فساده يُحسب من `createdAt` + مهلة الأولوية. الطلبات المكتملة والملغاة والمرفوضة بلا تأخير. يوم الاستحقاق نفسه ليس تأخيراً.
+- الحالة الفعلية: المفتوح والمحال المتأخر يصيران `overdue`؛ **`in_progress` يبقى كما هو** ويظهر تأخيره بعدد الأيام لا بتغيير حالته؛ `overdue` الذي لم يعد متأخراً يعود `open`.
+- مشتقة للعرض في App.tsx (`maintenanceRequests` من `storedMaintenance` عبر `withMaintenanceOverdue`) ولا تُكتب في القاعدة إلا إن حُفظ السجل لسبب آخر — نفس نمط الكشف الدوري. كل الكتابات تستعمل `setMaintenanceRequests((prev) => ...)` فلا تُحفظ القيم المشتقة من تلقائها.
+- `slaDeadline` لطلب جديد يأتي من `maintenanceSlaDeadline` في `NewMaintenanceModal.tsx` وفي `App.tsx` (الطلب الصادر عن كشف دوري)، بدل المهل الثابتة السابقة (يومان / سبعة أيام) التي كانت تتجاهل الأولوية.
+- عمود حالة الطلب في `MaintenanceView.tsx` يعرض شارة حمراء بعدد أيام التأخير للطلبات المتأخرة غير المغلقة.
+
 ## البيانات المرجعية (3-هـ)
 - أنواع الوحدات والمحافظات والحقول وأنواع الغرف والمعدات وأقسام الصيانة **مصدرها الخادم** (`GET/POST /api/reference-data`، الكتابة للمدير). كانت في localStorage لكل متصفح فقط. App.tsx يقرأها بعد الدخول وعند حدث `reference_data_updated` (`loadReferenceDataFromServer`)، وتعديلات المدير تُحفظ بعد 600ms إن اختلفت عن `referenceServerSnapshot`. أول مدير يدخل وليس على الخادم بيانات مرجعية يرفع قوائمه الحالية مرة واحدة.
 - الخادم: رمز نوع الوحدة فريد؛ نوع مستخدم في وحدات لا يُحذف من القائمة (409 `REFERENCE_IN_USE`)؛ حفظ وحدة بنوع خارج القائمة يُرفض (400 `INVALID_UNIT_TYPE`) إلا إن كان نوعها القديم نفسه. `unitTypeCodeOf` يقابل الأسماء القديمة (building→BLD، caravan→CRV...).
@@ -95,4 +104,3 @@
 - `memStore` يحمّل كل البيانات في ذاكرة الخادم؛ مناسب لحجم الشعبة الحالي لا لعشرات آلاف الوحدات بمرفقاتها.
 - قواعد Firestore المنشورة ترفض القراءة المجهولة (403)، خلافاً لملف firestore.rules المحلي.
 - docker-compose.yml يشير إلى database/init.sql القديم: المرحلة 5.
-- `daysOverdue` لطلبات الصيانة لا يحسبه أي كود (يبقى كما أُدخل).

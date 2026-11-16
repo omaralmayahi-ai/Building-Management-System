@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo, lazy, Suspense } from 'react';
 import { calculateNextDueDate, todayDateString, withEffectiveStatuses } from './utils/inspectionSchedule';
+import { maintenanceSlaDeadline, withMaintenanceOverdue } from './utils/maintenanceSla';
 import {
   LayoutDashboard,
   Box,
@@ -406,7 +407,7 @@ export function App() {
       }
     }
   }, [currentUser, pendingDeepLink, units]);
-  const [maintenanceRequests, setMaintenanceRequests] = useState<MaintenanceRequest[]>(() =>
+  const [storedMaintenance, setMaintenanceRequests] = useState<MaintenanceRequest[]>(() =>
     safeParse('app_maintenance_requests', SEED_WITH_DEMO_DATA ? INITIAL_MAINTENANCE_REQUESTS : [])
   );
 
@@ -429,6 +430,12 @@ export function App() {
   const periodicInspections = useMemo(
     () => withEffectiveStatuses(storedInspections, todayKey),
     [storedInspections, todayKey]
+  );
+
+  // أيام التأخير والحالة المعروضة لطلبات الصيانة مشتقة من موعد الإنجاز وتاريخ اليوم (src/utils/maintenanceSla.ts)
+  const maintenanceRequests = useMemo(
+    () => withMaintenanceOverdue(storedMaintenance, todayKey),
+    [storedMaintenance, todayKey]
   );
 
   const [auditLogs, setAuditLogs] = useState<AuditLogItem[]>(() =>
@@ -2153,7 +2160,11 @@ export function App() {
         field: existing.field,
         issue: outcome.maintenanceIssue || `صيانة إثر الكشف الدوري (${existing.title})`,
         priority: outcome.maintenancePriority || 'normal',
-        slaDeadline: new Date(Date.now() + 86400000 * 7).toISOString().split('T')[0],
+        slaDeadline: maintenanceSlaDeadline(
+          outcome.maintenanceDate || outcome.completionDate,
+          outcome.maintenancePriority || 'normal',
+          todayKey
+        ),
         maintenanceDepartment: outcome.maintenanceDepartment || 'الصيانة العامة',
         status: 'open',
         createdAt: outcome.maintenanceDate || outcome.completionDate,

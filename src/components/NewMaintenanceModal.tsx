@@ -1,4 +1,5 @@
 import { getServerIsoDateOnly } from '../services/serverTime';
+import { maintenanceSlaDeadline } from '../utils/maintenanceSla';
 import { Button, Modal } from './ui';
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import {
@@ -416,7 +417,7 @@ export const NewMaintenanceModal: React.FC<NewMaintenanceModalProps> = ({
       field: selectedAsset.field,
       issue: issue.trim(),
       priority,
-      slaDeadline: new Date(Date.now() + 86400000 * 2).toISOString(),
+      slaDeadline: maintenanceSlaDeadline(requestDate || getServerIsoDateOnly(), priority),
       maintenanceDepartment: maintenanceDepartment || 'الصيانة الكهربائية',
       status: 'open',
       createdAt: requestDate || getServerIsoDateOnly(),

@@ -649,6 +649,14 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
                         >
                           <XCircle className="w-3.5 h-3.5 shrink-0" />
                         </span>
+                      ) : (req.daysOverdue || 0) > 0 ? (
+                        <span
+                          className="bg-rose-500/15 text-rose-600 border border-rose-500/30 px-1.5 py-1 rounded-lg inline-flex items-center justify-center gap-1 transition"
+                          title={`متأخر عن موعد الإنجاز بـ ${req.daysOverdue} يوم`}
+                        >
+                          <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                          <span className="font-bold text-[10px] leading-none">{req.daysOverdue}</span>
+                        </span>
                       ) : (
                         <span
                           className="bg-brand-100 text-brand-700 border border-brand-200 p-1.5 rounded-lg inline-flex items-center justify-center transition"

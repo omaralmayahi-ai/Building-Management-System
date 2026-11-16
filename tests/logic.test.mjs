@@ -8,6 +8,7 @@ import assert from 'node:assert/strict';
 const codes = await import('../src/utils/unitAndRoomCodeUtils.ts');
 const sched = await import('../src/utils/inspectionSchedule.ts');
 const dates = await import('../src/utils/dateFormat.ts');
+const sla = await import('../src/utils/maintenanceSla.ts');
 
 describe('رمز الوحدة', () => {
   test('أربعة مقاطع: المحافظة-الحقل-النوع-أربعة حروف', () => {
@@ -219,5 +220,52 @@ describe('توحيد صيغة التواريخ', () => {
     assert.equal(dates.normalizeRecordDates('maintenance', same).record, same, 'سجل سليم يعود هو نفسه');
     assert.equal(dates.normalizeRecordDates('maintenance', { id: 'M', createdAt: 'x' }, { lenient: true }).error, null);
     assert.equal(dates.normalizeRecordDates('orgEntities', { id: 'o', createdAt: 'x' }).error, null, 'مجموعة بلا حقول تاريخ');
+  });
+});
+
+describe('تأخير طلبات الصيانة (5-و)', () => {
+  const req = (over) => ({ status: 'open', priority: 'normal', createdAt: '2026-11-01', ...over });
+
+  test('موعد الإنجاز من الأولوية', () => {
+    assert.equal(sla.maintenanceSlaDeadline('2026-11-01', 'critical'), '2026-11-02');
+    assert.equal(sla.maintenanceSlaDeadline('2026-11-01', 'normal'), '2026-11-04');
+    assert.equal(sla.maintenanceSlaDeadline('2026-11-01', 'low'), '2026-11-08');
+    assert.equal(sla.maintenanceSlaDeadline('2026-11-01', undefined), '2026-11-04', 'بلا أولوية = عادي');
+  });
+
+  test('عدد أيام التأخير يُحسب من الموعد المخزّن', () => {
+    const r = req({ slaDeadline: '2026-11-10' });
+    assert.equal(sla.maintenanceDaysOverdue(r, '2026-11-10'), 0, 'يوم الاستحقاق ليس تأخيراً');
+    assert.equal(sla.maintenanceDaysOverdue(r, '2026-11-13'), 3);
+    assert.equal(sla.maintenanceDaysOverdue(r, '2026-11-01'), 0);
+  });
+
+  test('بلا موعد مخزّن يُحسب من تاريخ الطلب وأولويته', () => {
+    assert.equal(sla.maintenanceDaysOverdue(req({ priority: 'critical' }), '2026-11-05'), 3);
+    assert.equal(sla.maintenanceDaysOverdue(req({ slaDeadline: 'غداً' }), '2026-11-05'), 1, 'موعد غير صالح يُتجاهل');
+  });
+
+  test('الطلبات المغلقة بلا تأخير', () => {
+    for (const status of ['completed', 'cancelled', 'rejected']) {
+      assert.equal(sla.maintenanceDaysOverdue(req({ status, slaDeadline: '2026-01-01' }), '2026-11-13'), 0, status);
+      assert.equal(sla.effectiveMaintenanceStatus(req({ status, slaDeadline: '2026-01-01' }), '2026-11-13'), status);
+    }
+  });
+
+  test('الحالة الفعلية', () => {
+    const late = { slaDeadline: '2026-11-10' };
+    assert.equal(sla.effectiveMaintenanceStatus(req(late), '2026-11-13'), 'overdue');
+    assert.equal(sla.effectiveMaintenanceStatus(req({ ...late, status: 'assigned' }), '2026-11-13'), 'overdue');
+    assert.equal(sla.effectiveMaintenanceStatus(req({ ...late, status: 'in_progress' }), '2026-11-13'), 'in_progress', 'العمل الجاري لا تتغير حالته');
+    assert.equal(sla.effectiveMaintenanceStatus(req({ ...late, status: 'overdue' }), '2026-11-01'), 'open', 'لم يعد متأخراً');
+  });
+
+  test('withMaintenanceOverdue يضيف الأيام ولا ينسخ السجل بلا داع', () => {
+    const list = [req({ id: 'A', slaDeadline: '2026-11-10' }), req({ id: 'B', slaDeadline: '2026-12-30', daysOverdue: 0 })];
+    const out = sla.withMaintenanceOverdue(list, '2026-11-13');
+    assert.equal(out[0].daysOverdue, 3);
+    assert.equal(out[0].status, 'overdue');
+    assert.equal(out[1], list[1], 'ما لم يتغير يبقى هو نفسه');
+    assert.equal(list[0].daysOverdue, undefined, 'الأصل لا يُعدَّل');
   });
 });
