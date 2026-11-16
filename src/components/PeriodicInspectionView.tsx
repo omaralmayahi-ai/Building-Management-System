@@ -1,5 +1,5 @@
 import { getServerIsoDateOnly } from '../services/serverTime';
-import { ConfirmDialog, useConfirm } from './ui';
+import { Button, Card, CardHeader, ConfirmDialog, EmptyState, Field, Input, Modal, PageHeader, Select, Table, Tabs, Td, fieldLook, useConfirm } from './ui';
 import { calculateNextDueDate } from '../utils/inspectionSchedule';
 import React, { useState, useMemo, useEffect } from 'react';
 import {
@@ -646,6 +646,16 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
   };
 
   // Submit Edit Schedule
+  const hasActiveFilters =
+    Boolean(searchTerm) || selectedGovernorate !== 'all' || selectedOilfield !== 'all' || selectedStatus !== 'all' || selectedFrequency !== 'all';
+  const resetFilters = () => {
+    setSearchTerm('');
+    setSelectedGovernorate('all');
+    setSelectedOilfield('all');
+    setSelectedStatus('all');
+    setSelectedFrequency('all');
+  };
+
   const handleOpenEdit = (sch: PeriodicInspectionSchedule) => {
     setShowEditModal(sch);
     setEditTitle(sch.title || 'كشف دوري');
@@ -862,66 +872,26 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Top Banner Header */}
-      <div className={`rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-md relative overflow-hidden transition-colors bg-card border border-slate-200`}>
-        <div className="absolute top-0 left-0 w-96 h-96 bg-brand-50 rounded-full blur-3xl -ml-20 -mt-20 pointer-events-none" />
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
-          <div className="flex items-center gap-3 sm:gap-4">
-            <div className={`w-11 h-11 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl flex items-center justify-center font-bold shrink-0 shadow-inner bg-brand-100 border border-brand-200 text-brand-700`}>
-              <CalendarCheck className="w-6 h-6 sm:w-8 sm:h-8" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2 flex-wrap">
-                <h1 className={`text-lg sm:text-xl font-black text-slate-900`}>
-                  سجل الكشوفات الدورية
-                </h1>
-                <span className={`px-2.5 py-0.5 rounded-full text-[11px] sm:text-xs font-bold border bg-brand-100 text-brand-800 border-brand-200`}>
-                  شركة نفط الوسط
-                </span>
-              </div>
-              <p className={`text-[11px] sm:text-xs mt-1 leading-relaxed text-slate-600`}>
-                متابعة وحدات الحقول والمحافظات، تحديد تواريخ وتكرار الكشف الدوري، إنجاز المعاينات وترفيع التقارير، وتوثيق طلبات الصيانة في أرشيف الأصل
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
-            <button
-              onClick={() => setShowAddModal(true)}
-              className="w-full sm:w-auto px-4 py-2.5 bg-brand-700 hover:bg-brand-800 text-on-brand font-black rounded-xl text-xs flex items-center justify-center gap-2 shadow-md transition cursor-pointer min-h-[42px]"
-            >
-              <Plus className="w-4 h-4" />
-              <span>جدولة كشف جديد</span>
-            </button>
-          </div>
-        </div>
-
-        {/* View Toggle Tabs */}
-        <div className="flex items-center gap-2 mt-4 sm:mt-5 border-t border-slate-200 pt-3 sm:pt-4 overflow-x-auto scrollbar-none flex-nowrap sm:flex-wrap">
-          <button
-            onClick={() => setActiveSubTab('schedules')}
-            className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer shrink-0 min-h-[38px] ${
-              activeSubTab === 'schedules'
-                ? 'bg-brand-700 text-on-brand shadow-md font-black'
-                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-            }`}
-          >
-            <Calendar className="w-4 h-4" />
-            <span>جدول مواعيد الكشوفات الدورية ({toArabicDigits(filteredSchedules.length)})</span>
-          </button>
-
-          <button
-            onClick={() => setActiveSubTab('hierarchy')}
-            className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer shrink-0 min-h-[38px] ${
-              activeSubTab === 'hierarchy'
-                ? 'bg-brand-700 text-on-brand shadow-md font-black'
-                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-            }`}
-          >
-            <Layers className="w-4 h-4" />
-            <span>عرض الوحدات حسب المحافظات والحقول ({toArabicDigits(units.length)} منشأة)</span>
-          </button>
-        </div>
+      {/* الترويسة والتبويبات */}
+      <div className="space-y-3">
+        <PageHeader
+          icon={CalendarCheck}
+          title="سجل الكشوفات الدورية"
+          description="مواعيد الكشف وتكراره للوحدات، إنجاز المعاينات وترفيع التقارير"
+          actions={
+            <Button variant="primary" icon={Plus} onClick={() => setShowAddModal(true)}>
+              جدولة كشف جديد
+            </Button>
+          }
+        />
+        <Tabs
+          value={activeSubTab}
+          onChange={setActiveSubTab}
+          tabs={[
+            { key: 'schedules', label: 'جدول مواعيد الكشوفات', icon: Calendar, count: filteredSchedules.length },
+            { key: 'hierarchy', label: 'الوحدات حسب المحافظات والحقول', icon: Layers, count: units.length },
+          ]}
+        />
       </div>
 
       {/* KPI Cards Grid */}
@@ -971,28 +941,17 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
         </div>
       </div>
 
-      {/* Filter and Search Bar */}
-      <div className={`rounded-2xl p-3.5 sm:p-4 space-y-3 transition-colors bg-card border border-slate-200 shadow-sm`}>
-        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-6 gap-2.5 sm:gap-3 text-xs">
-          {/* Search Input */}
-          <div className="relative col-span-2 sm:col-span-2 lg:col-span-2">
-            <Search className={`w-4 h-4 absolute right-3 top-3 text-slate-400`} />
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="بحث باسم المبنى، الرمز، الفريق، المفتش..."
-              className={`w-full rounded-xl pr-9 pl-3 py-2.5 outline-none font-medium transition min-h-[42px] bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 focus:border-brand-600`}
-            />
-          </div>
-
-          {/* Governorate Filter */}
-          <div>
-            <select
-              value={selectedGovernorate}
-              onChange={(e) => handleGovernorateChange(e.target.value)}
-              className={`w-full rounded-xl p-2.5 font-bold outline-none cursor-pointer transition min-h-[42px] bg-slate-50 border border-slate-200 text-slate-800 focus:border-brand-600`}
-            >
+      {/* شريط الفلاتر */}
+      <Card className="p-3.5 sm:p-4">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-6">
+          <Field label="بحث" className="sm:col-span-2">
+            <div className="relative">
+              <Search className="pointer-events-none absolute right-3 top-3 h-4 w-4 text-slate-500" aria-hidden />
+              <Input type="text" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="اسم المبنى، الرمز، المفتش..." className="pr-9" />
+            </div>
+          </Field>
+          <Field label="المحافظة">
+            <Select value={selectedGovernorate} onChange={(e) => handleGovernorateChange(e.target.value)}>
               <option value="all">جميع المحافظات</option>
               {effectiveGovernorates
                 .filter((g) => g.status !== 'disabled')
@@ -1001,312 +960,90 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                     {g.nameAr}
                   </option>
                 ))}
-            </select>
-          </div>
-
-          {/* Field Filter */}
-          <div>
-            <select
-              value={selectedOilfield}
-              onChange={(e) => setSelectedOilfield(e.target.value)}
-              className={`w-full rounded-xl p-2.5 font-bold outline-none cursor-pointer transition min-h-[42px] bg-slate-50 border border-slate-200 text-slate-800 focus:border-brand-600`}
-            >
+            </Select>
+          </Field>
+          <Field label="الحقل">
+            <Select value={selectedOilfield} onChange={(e) => setSelectedOilfield(e.target.value)}>
               <option value="all">جميع الحقول والقطاعات</option>
               {availableOilfieldOptions.map((f) => (
                 <option key={f.id} value={f.nameAr}>
                   {f.nameAr}
                 </option>
               ))}
-            </select>
-          </div>
-
-          {/* Status Filter */}
-          <div>
-            <select
-              value={selectedStatus}
-              onChange={(e) => setSelectedStatus(e.target.value)}
-              className={`w-full rounded-xl p-2.5 font-bold outline-none cursor-pointer transition min-h-[42px] bg-slate-50 border border-slate-200 text-slate-800 focus:border-brand-600`}
-            >
+            </Select>
+          </Field>
+          <Field label="حالة الكشف">
+            <Select value={selectedStatus} onChange={(e) => setSelectedStatus(e.target.value)}>
               <option value="all">جميع الحالات</option>
               <option value="scheduled">غير مكتمل (مجدول)</option>
               <option value="overdue">غير مكتمل (مستحق فوراً)</option>
               <option value="in_progress">قيد الكشف والمعاينة</option>
               <option value="completed">مكتمل وموثق</option>
-            </select>
-          </div>
-
-          {/* Frequency Filter */}
-          <div>
-            <select
-              value={selectedFrequency}
-              onChange={(e) => setSelectedFrequency(e.target.value)}
-              className={`w-full rounded-xl p-2.5 font-bold outline-none cursor-pointer transition min-h-[42px] bg-slate-50 border border-slate-200 text-slate-800 focus:border-brand-600`}
-            >
+            </Select>
+          </Field>
+          <Field label="التكرار">
+            <Select value={selectedFrequency} onChange={(e) => setSelectedFrequency(e.target.value)}>
               <option value="all">جميع التكرارات</option>
               <option value="monthly">1 شهر (شهري)</option>
               <option value="quarterly">3 أشهر (ربع سنوي)</option>
               <option value="semi_annual">6 أشهر (نصف سنوي)</option>
               <option value="annual">12 شهر (سنوي)</option>
               <option value="custom">تكرار مخصص</option>
-            </select>
-          </div>
+            </Select>
+          </Field>
+          {hasActiveFilters && (
+            <div className="flex items-end">
+              <Button size="sm" icon={RotateCcw} onClick={resetFilters} className="w-full sm:w-auto">
+                إعادة ضبط الفلاتر
+              </Button>
+            </div>
+          )}
         </div>
-
-        {/* Active Filters Clear Indicator */}
-        {(searchTerm || selectedGovernorate !== 'all' || selectedOilfield !== 'all' || selectedStatus !== 'all' || selectedFrequency !== 'all') && (
-          <div className="flex items-center justify-between pt-1 border-t border-slate-200/60 text-xs">
-            <span className="text-[11px] text-brand-700 font-bold">
-              يتم تطبيق معايير التصفية والبحث
-            </span>
-            <button
-              onClick={() => {
-                setSearchTerm('');
-                setSelectedGovernorate('all');
-                setSelectedOilfield('all');
-                setSelectedStatus('all');
-                setSelectedFrequency('all');
-              }}
-              className={`text-[11px] font-bold underline transition cursor-pointer text-slate-600 hover:text-slate-900`}
-            >
-              إلغاء وإعادة ضبط الفلاتر
-            </button>
-          </div>
-        )}
-      </div>
+      </Card>
 
       {/* Main Content Areas */}
       {activeSubTab === 'schedules' ? (
         /* 1. SCHEDULES TABLE */
         <div className={`rounded-2xl overflow-hidden shadow-md border transition-colors bg-card border-slate-200`}>
-          <div className={`p-4 border-b flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50 border-slate-200`}>
-            <div className="flex items-center gap-2">
-              <CalendarCheck className={`w-5 h-5 text-brand-700`} />
-              <h3 className={`font-bold text-sm text-slate-900`}>
-                جدول الكشوفات والمعاينات الدوريّة ({toArabicDigits(filteredSchedules.length)} سجل)
-              </h3>
-            </div>
-            <span className={`text-xs text-slate-500`}>
-              سجل مواعيد الكشوفات الدورية للوحدات الميدانية
-            </span>
-          </div>
+          <CardHeader
+            icon={CalendarCheck}
+            title={`جدول الكشوفات والمعاينات الدوريّة (${toArabicDigits(filteredSchedules.length)} سجل)`}
+          />
 
           {filteredSchedules.length === 0 ? (
-            <div className="p-12 text-center text-slate-500 space-y-4">
-              <Info className={`w-12 h-12 mx-auto text-slate-400`} />
+            <EmptyState
+              icon={Info}
+              text={
+                schedules.length === 0
+                  ? 'لا توجد مواعيد كشوفات مسجلة. يمكنك جدولة كشف جديد للوحدات المتاحة.'
+                  : 'لا توجد سجلات كشف تطابق خيارات البحث والتصفية.'
+              }
+            >
               {schedules.length === 0 ? (
-                <>
-                  <p className={`text-sm font-bold text-slate-800`}>
-                    لا توجد مواعيد كشوفات مسجلة حالياً. يمكنك إدراج وجدولة كشف جديد للوحدات المتاحة.
-                  </p>
-                  <div className="flex items-center justify-center pt-2">
-                    <button
-                      onClick={() => setShowAddModal(true)}
-                      className="px-5 py-2.5 bg-brand-700 text-on-brand font-black rounded-xl text-xs flex items-center gap-2 hover:bg-brand-800 transition cursor-pointer shadow-md"
-                    >
-                      <Plus className="w-4 h-4" />
-                      <span>جدولة كشف دوري جديد</span>
-                    </button>
-                  </div>
-                </>
+                <Button variant="primary" icon={Plus} onClick={() => setShowAddModal(true)}>
+                  جدولة كشف دوري جديد
+                </Button>
               ) : (
-                <>
-                  <p className="text-sm font-bold">لا توجد سجلات كشف تطابق خيارات البحث والتصفية المحددة.</p>
-                  <button
-                    onClick={() => {
-                      setSearchTerm('');
-                      setSelectedGovernorate('all');
-                      setSelectedOilfield('all');
-                      setSelectedStatus('all');
-                      setSelectedFrequency('all');
-                    }}
-                    className={`px-4 py-2 rounded-xl text-xs font-bold transition bg-slate-100 text-brand-700 hover:bg-slate-200`}
-                  >
-                    إعادة ضبط الفلاتر
-                  </button>
-                </>
+                <Button size="sm" icon={RotateCcw} onClick={resetFilters}>
+                  إعادة ضبط الفلاتر
+                </Button>
               )}
-            </div>
+            </EmptyState>
           ) : (
             <div>
-              {/* Mobile Stacked Schedules Cards (md:hidden) */}
-              <div className="md:hidden p-3 space-y-3">
-                {filteredSchedules.map((sch) => {
-                  const matchedUnit = units.find((u) => u.code === sch.unitCode);
-                  const occupyingEntity = matchedUnit
-                    ? (matchedUnit.departments && matchedUnit.departments.length > 0
-                        ? Array.from(new Set(matchedUnit.departments.filter(Boolean))).join(' ، ')
-                        : matchedUnit.department ||
-                          (matchedUnit.rooms && matchedUnit.rooms.length > 0
-                            ? Array.from(new Set(matchedUnit.rooms.map((r) => r.occupiedBy).filter(Boolean))).join(' ، ')
-                            : '')) || 'عام / غير محدد'
-                    : 'عام / غير محدد';
-
-                  const p = (sch.performedByName || (sch.status === 'completed' && sch.inspectorName))
-                    ? getPerformerDisplay(sch.performedByName, sch.inspectorName, users, sch.status === 'completed')
-                    : null;
-
-                  return (
-                    <div
-                      key={sch.id}
-                      className={`p-3.5 rounded-2xl border space-y-2.5 transition bg-slate-50 border-slate-200 shadow-xs`}
-                    >
-                      {/* Top: Code, Grade & Status */}
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-1.5">
-                          <span className={`font-mono font-black text-xs px-2 py-0.5 rounded-lg border bg-brand-100 text-brand-800 border-brand-200`}>
-                            {toArabicDigits(sch.unitCode)}
-                          </span>
-                          {matchedUnit && getConditionGradeBadge(sch.conditionGradeGiven || matchedUnit.conditionGrade)}
-                        </div>
-                        <div>{getStatusBadge(sch.status)}</div>
-                      </div>
-
-                      {/* Title & Facility */}
-                      <div>
-                        <h4 className={`font-extrabold text-sm text-slate-900`}>
-                          {sch.title}
-                        </h4>
-                        <p className={`text-xs mt-0.5 font-bold text-slate-700`}>
-                          {occupyingEntity}
-                        </p>
-                        {sch.unitName && sch.unitName !== sch.unitCode && (
-                          <p className={`text-[11px] text-slate-500`}>
-                            {sch.unitName}
-                          </p>
-                        )}
-                      </div>
-
-                      {/* Location & Frequency */}
-                      <div className="grid grid-cols-2 gap-2 text-[11px] pt-2 border-t border-slate-200/60 ">
-                        <div>
-                          <span className="text-slate-500 font-medium">الموقع: </span>
-                          <span className="font-bold">{sch.governorate} - {sch.field}</span>
-                        </div>
-                        <div>
-                          <span className="text-slate-500 font-medium">التكرار: </span>
-                          <span className="font-bold text-brand-700">{getFrequencyLabel(sch.frequency, sch.customIntervalDays)}</span>
-                        </div>
-                        <div>
-                          <span className="text-slate-500 font-medium">تاريخ البدء: </span>
-                          <span className="font-mono font-bold">{toArabicDigits(sch.lastInspectionDate)}</span>
-                        </div>
-                        <div>
-                          <span className="text-slate-500 font-medium">الموعد القادم: </span>
-                          <span className={`font-mono font-bold ${sch.status === 'overdue' ? 'text-rose-600 font-black' : 'text-slate-800'}`}>
-                            {toArabicDigits(sch.nextDueDate)}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Performer & Report */}
-                      <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-200/60 text-[11px]">
-                        <div>
-                          {p ? (
-                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold border ${p.roleBadgeClass}`}>
-                              <UserCheck className="w-3 h-3" />
-                              <span>{p.userName || p.roleBadgeText}</span>
-                            </span>
-                          ) : (
-                            <span className="text-slate-500 text-[10px]">
-                              {sch.inspectorName ? `المكلف: ${sch.inspectorName.replace(/\s*\([^)]*\)/g, '').trim()}` : 'لم يُنجز بعد'}
-                            </span>
-                          )}
-                        </div>
-
-                        <div>
-                          {sch.reportFileName || sch.reportFileUrl ? (
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const ext = sch.reportFileName?.split('.').pop() || 'pdf';
-                                setPreviewAttachment({
-                                  id: 'insp-main-' + sch.id,
-                                  name: sch.reportFileName || 'تقرير_الكشف.pdf',
-                                  type: ext,
-                                  url: sch.reportFileUrl || '#',
-                                  uploadedAt: sch.lastInspectionDate || getServerIsoDateOnly(),
-                                  size: '1.5 MB',
-                                });
-                              }}
-                              className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10.5px] font-bold border cursor-pointer bg-emerald-50 text-emerald-800 border-emerald-200`}
-                            >
-                              <Eye className="w-3 h-3" />
-                              <span>تقرير</span>
-                            </button>
-                          ) : null}
-                        </div>
-                      </div>
-
-                      {/* Actions Bar */}
-                      <div className="flex flex-wrap items-center justify-end gap-1.5 pt-2 border-t border-slate-200/60 ">
-                        {sch.status !== 'completed' && (
-                          <button
-                            onClick={() => {
-                              const todayStr = getServerIsoDateOnly();
-                              setShowCompleteModal(sch);
-                              setCompleteDate(todayStr);
-                              setMaintDate(todayStr);
-                              setCompletePerformedByName(sch.performedByName || '');
-                              if (matchedUnit) {
-                                setCompleteGrade(matchedUnit.conditionGrade);
-                              }
-                            }}
-                            className="bg-emerald-600 hover:bg-emerald-500 text-white font-black px-3 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow cursor-pointer min-h-[38px]"
-                          >
-                            <CheckSquare className="w-3.5 h-3.5" />
-                            <span>إنجاز الكشف</span>
-                          </button>
-                        )}
-                        {matchedUnit && (
-                          <button
-                            onClick={() => {
-                              setShowUnitArchiveModal(matchedUnit);
-                              setArchiveModalTab('inspections');
-                            }}
-                            className={`px-3 py-2 rounded-xl border text-xs font-bold flex items-center gap-1.5 transition cursor-pointer min-h-[38px] bg-brand-50 text-brand-800 border-brand-200 hover:bg-brand-100`}
-                            title="الأرشيف"
-                          >
-                            <Archive className="w-3.5 h-3.5" />
-                            <span>الأرشيف</span>
-                          </button>
-                        )}
-                        <button
-                          onClick={() => handleOpenEdit(sch)}
-                          className={`p-2 rounded-xl border transition cursor-pointer min-h-[38px] min-w-[38px] flex items-center justify-center bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200`}
-                          title="تعديل الموعد والتكرار"
-                        >
-                          <Edit3 className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => setDeleteConfirmSchedule(sch)}
-                          className={`p-2 rounded-xl border transition cursor-pointer min-h-[38px] min-w-[38px] flex items-center justify-center bg-red-50 hover:bg-red-100 text-red-600 border-red-200`}
-                          title="حذف جدول الكشف الدوري"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Desktop Table View (hidden md:block) */}
-              <div className="hidden md:block overflow-x-auto">
-                <table className="w-full text-right text-xs">
-                <thead className={`font-bold border-b bg-slate-100 text-slate-700 border-slate-200`}>
-                  <tr>
-                    <th className="p-3.5">رمز المنشأة والجهة الشاغلة</th>
-                    <th className="p-3.5">المحافظة والحقل</th>
-                    <th className="p-3.5">عنوان ومسمى الكشف</th>
-                    <th className="p-3.5">تاريخ البدء والتكرار</th>
-                    <th className="p-3.5">الموعد القادم المستحق</th>
-                    <th className="p-3.5">حالة الكشف</th>
-                    <th className="p-3.5">مُنفِّذ الكشف</th>
-                    <th className="p-3.5 text-center">التقرير</th>
-                    <th className="p-3.5 text-center">الإجراءات والتوثيق</th>
-                  </tr>
-                </thead>
-                <tbody className={`divide-y divide-slate-200/80 bg-card`}>
+              <Table
+                head={[
+                  'رمز المنشأة والجهة الشاغلة',
+                  'المحافظة والحقل',
+                  'عنوان ومسمى الكشف',
+                  'تاريخ البدء والتكرار',
+                  'الموعد القادم المستحق',
+                  'حالة الكشف',
+                  'مُنفِّذ الكشف',
+                  'التقرير',
+                  'الإجراءات والتوثيق',
+                ]}
+              >
                   {filteredSchedules.map((sch) => {
                     const matchedUnit = units.find((u) => u.code === sch.unitCode);
                     const occupyingEntity = matchedUnit
@@ -1320,7 +1057,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                     return (
                       <tr key={sch.id} className={`transition hover:bg-brand-50`}>
                         {/* Facility Code and Occupying Entity (Stacked) */}
-                        <td className="p-3.5 font-medium">
+                        <Td className="font-medium">
                           <div className={`font-mono font-bold text-xs text-brand-700`}>
                             {toArabicDigits(sch.unitCode)}
                           </div>
@@ -1337,27 +1074,27 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                               {getConditionGradeBadge(sch.conditionGradeGiven || matchedUnit.conditionGrade)}
                             </div>
                           )}
-                        </td>
+                        </Td>
 
                         {/* Gov & Field */}
-                        <td className="p-3.5">
+                        <Td>
                           <div className={`font-bold text-xs text-slate-800`}>
                             {sch.governorate}
                           </div>
                           <div className={`text-[11px] mt-0.5 text-slate-500`}>
                             حقل {sch.field}
                           </div>
-                        </td>
+                        </Td>
 
                         {/* Title */}
-                        <td className="p-3.5">
+                        <Td>
                           <div className={`font-bold text-slate-900`}>
                             {sch.title}
                           </div>
-                        </td>
+                        </Td>
 
                         {/* Start Date & Frequency */}
-                        <td className="p-3.5">
+                        <Td>
                           <div className={`font-mono text-slate-700`}>
                             بدء: {toArabicDigits(sch.lastInspectionDate)}
                           </div>
@@ -1366,10 +1103,10 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                               {getFrequencyLabel(sch.frequency, sch.customIntervalDays)}
                             </span>
                           </div>
-                        </td>
+                        </Td>
 
                         {/* Next Due Date */}
-                        <td className="p-3.5">
+                        <Td>
                           <div className={`font-mono font-bold text-xs ${sch.status === 'overdue' ? ('text-red-600 font-black') : 'text-slate-900 font-bold'}`}>
                             {toArabicDigits(sch.nextDueDate)}
                           </div>
@@ -1378,13 +1115,13 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                               غير مكتمل - مستحق المعاينة!
                             </div>
                           )}
-                        </td>
+                        </Td>
 
                         {/* Status */}
-                        <td className="p-3.5">{getStatusBadge(sch.status)}</td>
+                        <Td>{getStatusBadge(sch.status)}</Td>
 
                         {/* Performed By */}
-                        <td className="p-3.5 whitespace-nowrap">
+                        <Td className="whitespace-nowrap">
                           {sch.performedByName || (sch.status === 'completed' && sch.inspectorName) ? (
                             (() => {
                               const p = getPerformerDisplay(sch.performedByName, sch.inspectorName, users, sch.status === 'completed');
@@ -1449,10 +1186,10 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                               )}
                             </div>
                           )}
-                        </td>
+                        </Td>
 
                         {/* Uploaded Report */}
-                        <td className="p-3.5 text-center whitespace-nowrap">
+                        <Td className="text-center whitespace-nowrap">
                           {sch.reportFileName || sch.reportFileUrl ? (
                             <button
                               type="button"
@@ -1478,10 +1215,10 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                           ) : (
                             <span className={`text-[10px] text-slate-400`}>لا يوجد تقرير</span>
                           )}
-                        </td>
+                        </Td>
 
                         {/* Actions */}
-                        <td className="p-3.5">
+                        <Td>
                           <div className="flex items-center justify-center gap-1.5">
                             {/* Complete Inspection Button - Hidden if inspection is already completed & documented */}
                             {sch.status !== 'completed' && (
@@ -1537,15 +1274,13 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>
                           </div>
-                        </td>
+                        </Td>
                       </tr>
                     );
                   })}
-                </tbody>
-              </table>
+              </Table>
             </div>
-          </div>
-        )}
+          )}
         </div>
       ) : (
         /* 2. HIERARCHY TREE VIEW BY GOVERNORATE & OILFIELD */
@@ -1654,29 +1389,24 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
       )}
 
       {/* MODAL 1: ADD NEW PERIODIC INSPECTION */}
-      {showAddModal && (
-        <div className={`fixed inset-0 z-50 backdrop-blur-sm flex items-center justify-center p-2.5 sm:p-4 overflow-y-auto bg-slate-900/40`}>
-          <div className={`rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 w-full max-w-5xl space-y-4 sm:space-y-5 shadow-2xl relative my-2 sm:my-6 border max-h-[94vh] flex flex-col bg-card border-slate-200 text-slate-900`}>
-            <div className={`flex items-center justify-between border-b pb-3 shrink-0 border-slate-200`}>
-              <div className="flex items-center gap-2.5 sm:gap-3">
-                <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center font-bold shrink-0 bg-brand-100 border border-brand-200 text-brand-700`}>
-                  <CalendarCheck className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className={`font-bold text-sm sm:text-base text-slate-900`}>
-                    جدولة وتثبيت موعد كشف دوري جديد
-                  </h3>
-                  <p className={`text-[11px] sm:text-xs text-slate-500`}>
-                    تحديد تاريخ البدء بالتكرار وحساب تاريخ الاستحقاق القادم تلقائياً
-                  </p>
-                </div>
-              </div>
-              <button onClick={() => setShowAddModal(false)} className={`p-1.5 rounded-lg cursor-pointer text-slate-400 hover:text-slate-700 hover:bg-slate-100`}>
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleCreateScheduleSubmit} className="space-y-4 text-xs overflow-y-auto pr-1 flex-1">
+      <Modal
+        open={!!showAddModal}
+        wide
+        staticBackdrop
+        icon={CalendarCheck}
+        title="جدولة وتثبيت موعد كشف دوري جديد"
+        onClose={() => setShowAddModal(false)}
+        footer={
+          <>
+            <Button type="submit" form="add-inspection-form" variant="primary" icon={CalendarCheck}>
+              حفظ وتثبيت جدول الكشف
+            </Button>
+            <Button onClick={() => setShowAddModal(false)}>إلغاء</Button>
+          </>
+        }
+      >
+        {showAddModal && (
+        <form id="add-inspection-form" onSubmit={handleCreateScheduleSubmit} className="space-y-4 text-xs">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 items-start">
                 
                 {/* RIGHT COLUMN: UNIT PICKER */}
@@ -1774,7 +1504,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                         value={unitSearch}
                         onChange={(e) => setUnitSearch(e.target.value)}
                         placeholder="تصفية / بحث عن وحدة بالاسم أو الكود..."
-                        className={`w-full pr-9 pl-3 py-2 rounded-xl text-xs font-bold outline-none border bg-card border-slate-200 text-slate-900 focus:border-brand-600`}
+                        className={`${fieldLook} w-full pr-9 pl-3`}
                       />
                     </div>
                   )}
@@ -2078,7 +1808,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                     <select
                       value={newUnitCode}
                       onChange={(e) => setNewUnitCode(e.target.value)}
-                      className={`w-full rounded-xl p-3 font-bold outline-none cursor-pointer border bg-card border-slate-200 text-slate-900 focus:border-brand-600`}
+                      className={`${fieldLook} w-full cursor-pointer`}
                     >
                       {units.map((u) => (
                         <option key={u.code} value={u.code}>
@@ -2104,7 +1834,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                         type="date"
                         value={newStartDate}
                         onChange={(e) => handleStartDateChange(e.target.value)}
-                        className={`w-full rounded-xl p-2.5 font-bold outline-none border bg-card border-slate-200 text-slate-900 focus:border-brand-600`}
+                        className={`${fieldLook} w-full`}
                         required
                       />
                     </div>
@@ -2116,7 +1846,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                       <select
                         value={newFrequency}
                         onChange={(e) => handleFrequencyChange(e.target.value as InspectionFrequency)}
-                        className={`w-full rounded-xl p-2.5 font-bold outline-none cursor-pointer border bg-card border-slate-200 text-slate-900 focus:border-brand-600`}
+                        className={`${fieldLook} w-full cursor-pointer`}
                       >
                         <option value="monthly">1 شهر (شهري - 30 يوم)</option>
                         <option value="quarterly">3 أشهر (ربع سنوي - 90 يوم)</option>
@@ -2140,7 +1870,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                             setNewCustomDays(val);
                             updateCalculatedNextDate(newStartDate, 'custom', val);
                           }}
-                          className={`w-full rounded-xl p-2.5 font-bold outline-none border bg-card border-slate-200 text-slate-900`}
+                          className={`${fieldLook} w-full`}
                         />
                       </div>
                     )}
@@ -2155,7 +1885,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                       type="date"
                       value={newNextDate}
                       readOnly
-                      className={`w-full rounded-xl p-2.5 font-bold outline-none border cursor-not-allowed bg-slate-100 border-slate-200 text-slate-700`}
+                      className={`${fieldLook} w-full`}
                     />
                   </div>
 
@@ -2168,59 +1898,37 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                       onChange={(e) => setNewNotes(e.target.value)}
                       rows={2}
                       placeholder="سجل أية ملاحظات عامة..."
-                      className={`w-full rounded-xl p-2.5 outline-none border bg-card border-slate-200 text-slate-900`}
+                      className={`${fieldLook} w-full h-auto min-h-20`}
                     />
                   </div>
                 </div>
 
               </div>
 
-              <div className={`flex flex-col-reverse sm:flex-row items-center justify-end gap-2.5 sm:gap-3 pt-3 border-t shrink-0 border-slate-200`}>
-                <button
-                  type="button"
-                  onClick={() => setShowAddModal(false)}
-                  className={`w-full sm:w-auto px-4 py-2.5 rounded-xl font-bold transition cursor-pointer min-h-[42px] flex items-center justify-center bg-slate-100 text-slate-700 hover:bg-slate-200`}
-                >
-                  إلغاء
-                </button>
-                <button
-                  type="submit"
-                  className="w-full sm:w-auto px-6 py-2.5 bg-brand-700 text-on-brand rounded-xl font-black hover:bg-brand-800 shadow-md transition cursor-pointer min-h-[42px] flex items-center justify-center gap-2"
-                >
-                  <CalendarCheck className="w-4 h-4" />
-                  <span>حفظ وتثبيت جدول الكشف الدوري</span>
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+        </form>
+        )}
+      </Modal>
+
 
       {/* MODAL 2: COMPLETE INSPECTION & UPLOAD REPORT & GRADE A-B-C-D & MAINTENANCE TRIGGER */}
-      {showCompleteModal && (
-        <div className={`fixed inset-0 z-50 backdrop-blur-sm flex items-center justify-center p-2.5 sm:p-5 overflow-y-auto bg-slate-900/40`}>
-          <div className={`rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 w-full max-w-6xl space-y-3.5 shadow-2xl relative border max-h-[96vh] flex flex-col justify-between my-auto bg-card border-slate-200 text-slate-900`}>
-            {/* Header */}
-            <div className={`flex items-center justify-between border-b pb-2.5 shrink-0 border-slate-200`}>
-              <div className="flex items-center gap-2.5 sm:gap-3">
-                <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold shrink-0 bg-emerald-100 border border-emerald-200 text-emerald-700`}>
-                  <CheckSquare className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className={`font-bold text-sm sm:text-base leading-tight text-slate-900`}>
-                    توثيق وإنجاز الكشف المعاين
-                  </h3>
-                  <p className={`text-[11px] sm:text-xs text-slate-500`}>
-                    {showCompleteModal.unitCode} - {showCompleteModal.title}
-                  </p>
-                </div>
-              </div>
-              <button onClick={() => setShowCompleteModal(null)} className={`p-1.5 cursor-pointer rounded-lg transition text-slate-400 hover:text-slate-700 hover:bg-slate-100`}>
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleCompleteSubmit} className="space-y-3.5 text-xs overflow-y-auto max-h-[calc(90vh-110px)] pr-1 pl-1 flex-1">
+      <Modal
+        open={!!showCompleteModal}
+        wide
+        staticBackdrop
+        icon={CheckSquare}
+        title="إنجاز الكشف وتوثيق التقرير"
+        onClose={() => setShowCompleteModal(null)}
+        footer={
+          <>
+            <Button type="submit" form="complete-inspection-form" variant="primary" icon={CheckSquare}>
+              حفظ إنجاز الكشف
+            </Button>
+            <Button onClick={() => setShowCompleteModal(null)}>إلغاء</Button>
+          </>
+        }
+      >
+        {showCompleteModal && (
+        <form id="complete-inspection-form" onSubmit={handleCompleteSubmit} className="space-y-4 text-xs">
               {/* ROW 1: HORIZONTAL TOP PARAMETERS GRID (4 COLUMNS) */}
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-3 items-stretch">
                 {/* Column 1: Date */}
@@ -2232,7 +1940,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                     type="date"
                     value={completeDate}
                     onChange={(e) => setCompleteDate(e.target.value)}
-                    className={`w-full rounded-xl px-3 py-2 font-bold outline-none border min-h-[42px] bg-slate-50 border-slate-200 text-slate-900 focus:border-emerald-500`}
+                    className={`${fieldLook} w-full`}
                     required
                   />
                 </div>
@@ -2245,7 +1953,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                   <select
                     value={completeGrade}
                     onChange={(e) => setCompleteGrade(e.target.value as ConditionGrade)}
-                    className={`w-full rounded-xl px-3 py-2 font-bold outline-none cursor-pointer border min-h-[42px] bg-slate-50 border-slate-200 text-slate-900 focus:border-emerald-500`}
+                    className={`${fieldLook} w-full cursor-pointer`}
                   >
                     <option value="A">درجة A (حالة ممتازة)</option>
                     <option value="B">درجة B (حالة جيدة)</option>
@@ -2263,7 +1971,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                     <select
                       value={completePerformedByName}
                       onChange={(e) => setCompletePerformedByName(e.target.value)}
-                      className={`w-full rounded-xl px-3 py-2 font-bold outline-none border cursor-pointer text-xs min-h-[42px] bg-slate-50 border-slate-200 text-slate-900 focus:border-emerald-500`}
+                      className={`${fieldLook} w-full cursor-pointer`}
                     >
                       <optgroup label="المستخدمون المعتمدون في النظام">
                         {(users && users.length > 0 ? users : INITIAL_USERS).map((u) => (
@@ -2284,7 +1992,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                       value={completePerformedByName}
                       onChange={(e) => setCompletePerformedByName(e.target.value)}
                       placeholder="أو اكتب اسم مخصص لمُنفّذ الكشف..."
-                      className={`w-full rounded-lg px-2.5 py-1.5 text-[11px] font-bold outline-none border min-h-[38px] bg-card border-slate-200 text-slate-900 focus:border-emerald-500`}
+                      className={`${fieldLook} w-full`}
                     />
                   </div>
                 </div>
@@ -2376,7 +2084,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                     onChange={(e) => setCompleteFindings(e.target.value)}
                     placeholder="سجل أية عيوب، ملاحظات إنشائية، أو أضرار ميكانيكية تم مشاهدتها..."
                     rows={2}
-                    className={`w-full rounded-xl p-2.5 outline-none border resize-none bg-slate-50 border-slate-200 text-slate-900 focus:border-emerald-500`}
+                    className={`${fieldLook} w-full resize-none h-auto min-h-20`}
                     required
                   />
                 </div>
@@ -2391,7 +2099,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                     onChange={(e) => setCompleteRecommendations(e.target.value)}
                     placeholder="سجل توصيات السلامة والتوجيهات الفنية المطلوبة..."
                     rows={2}
-                    className={`w-full rounded-xl p-2.5 outline-none border resize-none bg-slate-50 border-slate-200 text-slate-900 focus:border-emerald-500`}
+                    className={`${fieldLook} w-full resize-none h-auto min-h-20`}
                   />
                 </div>
               </div>
@@ -2428,7 +2136,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                           value={maintIssue}
                           onChange={(e) => setMaintIssue(e.target.value)}
                           placeholder="مثال: تصليح تسرب أسطح أو استبدال مضخات"
-                          className={`w-full rounded-lg px-2.5 py-1.5 font-bold outline-none border bg-card border-slate-200 text-slate-900`}
+                          className={`${fieldLook} w-full`}
                           required={createMaintenance}
                         />
                       </div>
@@ -2441,7 +2149,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                           type="date"
                           value={maintDate}
                           onChange={(e) => setMaintDate(e.target.value)}
-                          className={`w-full rounded-lg px-2.5 py-1.5 font-bold font-mono outline-none border bg-card border-slate-200 text-slate-900`}
+                          className={`${fieldLook} w-full font-mono`}
                           required={createMaintenance}
                         />
                       </div>
@@ -2453,7 +2161,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                         <select
                           value={maintPriority}
                           onChange={(e) => setMaintPriority(e.target.value as any)}
-                          className={`w-full rounded-lg px-2 py-1.5 font-bold outline-none border bg-card border-slate-200 text-slate-900`}
+                          className={`${fieldLook} w-full`}
                         >
                           <option value="critical">حرج (طارئ)</option>
                           <option value="normal">عادي</option>
@@ -2468,7 +2176,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                         <select
                           value={maintDept || (activeMaintenanceDepts[0]?.nameAr || '')}
                           onChange={(e) => setMaintDept(e.target.value)}
-                          className={`w-full rounded-lg px-2.5 py-1.5 font-bold outline-none border cursor-pointer bg-card border-slate-200 text-slate-900`}
+                          className={`${fieldLook} w-full cursor-pointer`}
                           required={createMaintenance}
                         >
                           {activeMaintenanceDepts.map((d) => (
@@ -2505,51 +2213,30 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
               </div>
 
               {/* ROW 4: ACTION BUTTONS (FOOTER) */}
-              <div className={`flex flex-col-reverse sm:flex-row items-center justify-end gap-2.5 sm:gap-3 pt-3 border-t shrink-0 border-slate-200`}>
-                <button
-                  type="button"
-                  onClick={() => setShowCompleteModal(null)}
-                  className={`w-full sm:w-auto px-4 py-2.5 rounded-xl font-bold transition cursor-pointer min-h-[42px] flex items-center justify-center bg-slate-100 text-slate-700 hover:bg-slate-200`}
-                >
-                  إلغاء
-                </button>
-                <button
-                  type="submit"
-                  className="w-full sm:w-auto px-6 py-2.5 bg-emerald-600 text-white rounded-xl font-black hover:bg-emerald-700 shadow-md shadow-emerald-600/20 transition cursor-pointer flex items-center justify-center gap-2 min-h-[42px]"
-                >
-                  <CheckSquare className="w-4 h-4" />
-                  <span>حفظ وإنجاز الكشف وتثبيت النتائج</span>
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+        </form>
+        )}
+      </Modal>
+
 
       {/* MODAL 3: EDIT SCHEDULE */}
-      {showEditModal && (
-        <div className={`fixed inset-0 z-50 backdrop-blur-sm flex items-center justify-center p-2.5 sm:p-4 overflow-y-auto bg-slate-900/40`}>
-          <div className={`rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 w-full max-w-5xl space-y-4 sm:space-y-5 shadow-2xl relative my-2 sm:my-6 border max-h-[94vh] flex flex-col bg-card border-slate-200 text-slate-900`}>
-            <div className={`flex items-center justify-between border-b pb-3 shrink-0 border-slate-200`}>
-              <div className="flex items-center gap-2.5 sm:gap-3">
-                <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center font-bold shrink-0 bg-brand-100 border border-brand-200 text-brand-700`}>
-                  <Edit3 className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className={`font-bold text-sm sm:text-base text-slate-900`}>
-                    تعديل معلومات وتفاصيل جدولة الكشف الدوري
-                  </h3>
-                  <p className={`text-[11px] sm:text-xs text-slate-500`}>
-                    رمز السجل: {showEditModal.id}
-                  </p>
-                </div>
-              </div>
-              <button onClick={() => setShowEditModal(null)} className={`p-1.5 rounded-lg cursor-pointer text-slate-400 hover:text-slate-700 hover:bg-slate-100`}>
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleEditSubmit} className="space-y-4 text-xs overflow-y-auto pr-1 flex-1">
+      <Modal
+        open={!!showEditModal}
+        wide
+        staticBackdrop
+        icon={Edit3}
+        title="تعديل جدول الكشف الدوري"
+        onClose={() => setShowEditModal(null)}
+        footer={
+          <>
+            <Button type="submit" form="edit-inspection-form" variant="primary" icon={CheckSquare}>
+              حفظ التعديلات
+            </Button>
+            <Button onClick={() => setShowEditModal(null)}>إلغاء</Button>
+          </>
+        }
+      >
+        {showEditModal && (
+        <form id="edit-inspection-form" onSubmit={handleEditSubmit} className="space-y-4 text-xs">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 items-start">
 
                 {/* RIGHT COLUMN: LOCKED UNIT INFORMATION */}
@@ -2619,7 +2306,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                           setEditLastDate(e.target.value);
                           updateEditCalculatedNextDate(e.target.value, editFrequency, editCustomDays);
                         }}
-                        className={`w-full rounded-xl p-2.5 font-bold outline-none border bg-card border-slate-200 text-slate-900 focus:border-brand-600`}
+                        className={`${fieldLook} w-full`}
                       />
                     </div>
 
@@ -2634,7 +2321,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                           setEditFrequency(freq);
                           updateEditCalculatedNextDate(editLastDate, freq, editCustomDays);
                         }}
-                        className={`w-full rounded-xl p-2.5 font-bold outline-none cursor-pointer border bg-card border-slate-200 text-slate-900 focus:border-brand-600`}
+                        className={`${fieldLook} w-full cursor-pointer`}
                       >
                         <option value="monthly">1 شهر (شهري - 30 يوم)</option>
                         <option value="quarterly">3 أشهر (ربع سنوي - 90 يوم)</option>
@@ -2658,7 +2345,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                             setEditCustomDays(val);
                             updateEditCalculatedNextDate(editLastDate, 'custom', val);
                           }}
-                          className={`w-full rounded-xl p-2.5 font-bold outline-none border bg-card border-slate-200 text-slate-900 focus:border-brand-600`}
+                          className={`${fieldLook} w-full`}
                         />
                       </div>
                     )}
@@ -2673,7 +2360,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                       type="date"
                       value={editNextDate}
                       onChange={(e) => setEditNextDate(e.target.value)}
-                      className={`w-full rounded-xl p-2.5 font-bold outline-none border bg-brand-50 border-brand-200 text-brand-800 focus:border-brand-600`}
+                      className={`${fieldLook} w-full`}
                       required
                     />
                   </div>
@@ -2688,7 +2375,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                         value={editAssignedTeam}
                         onChange={(e) => setEditAssignedTeam(e.target.value)}
                         placeholder="اسم الفريق المكلف..."
-                        className={`w-full rounded-xl p-2.5 font-bold outline-none border bg-card border-slate-200 text-slate-900 focus:border-brand-600`}
+                        className={`${fieldLook} w-full`}
                       />
                     </div>
 
@@ -2700,7 +2387,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                         <select
                           value={editInspectorName}
                           onChange={(e) => setEditInspectorName(e.target.value)}
-                          className={`w-full rounded-xl px-3 py-2 font-bold outline-none border cursor-pointer text-xs bg-card border-slate-200 text-slate-900 focus:border-brand-600`}
+                          className={`${fieldLook} w-full cursor-pointer`}
                         >
                           <option value="">-- اختر المستخدم أو حدد صفته --</option>
                           <optgroup label="المستخدمون في النظام">
@@ -2721,7 +2408,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                           value={editInspectorName}
                           onChange={(e) => setEditInspectorName(e.target.value)}
                           placeholder="أو اكتب اسماً مخصصاً..."
-                          className={`w-full rounded-lg px-2.5 py-1 text-[11px] font-bold outline-none border bg-card border-slate-200 text-slate-900 focus:border-brand-600`}
+                          className={`${fieldLook} w-full`}
                         />
                       </div>
                     </div>
@@ -2736,33 +2423,17 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                       onChange={(e) => setEditNotes(e.target.value)}
                       rows={2}
                       placeholder="أدخل أية ملاحظات تفصيلية هنا..."
-                      className={`w-full rounded-xl p-2.5 outline-none border bg-card border-slate-200 text-slate-900`}
+                      className={`${fieldLook} w-full h-auto min-h-20`}
                     />
                   </div>
                 </div>
 
               </div>
 
-              <div className={`flex flex-col-reverse sm:flex-row items-center justify-end gap-2.5 sm:gap-3 pt-3 border-t shrink-0 border-slate-200`}>
-                <button
-                  type="button"
-                  onClick={() => setShowEditModal(null)}
-                  className={`w-full sm:w-auto px-4 py-2.5 rounded-xl font-bold transition cursor-pointer min-h-[42px] flex items-center justify-center bg-slate-100 text-slate-700 hover:bg-slate-200`}
-                >
-                  إلغاء
-                </button>
-                <button
-                  type="submit"
-                  className="w-full sm:w-auto px-6 py-2.5 bg-brand-700 text-on-brand rounded-xl font-black hover:bg-brand-800 shadow-md transition cursor-pointer min-h-[42px] flex items-center justify-center gap-2"
-                >
-                  <Edit3 className="w-4 h-4" />
-                  <span>حفظ وتحديث معلومات الجدول</span>
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+        </form>
+        )}
+      </Modal>
+
 
       {/* MODAL 4: FULL UNIT ARCHIVE MODAL (ARCHIVE OF ALL INSPECTIONS & MAINTENANCE FOR A UNIT) */}
       {showUnitArchiveModal && (
@@ -3463,7 +3134,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                 <select
                   value={maintNewStatus}
                   onChange={(e) => setMaintNewStatus(e.target.value as MaintenanceStatus)}
-                  className={`w-full rounded-xl p-2.5 font-bold outline-none border text-xs sm:text-sm bg-slate-50 border-slate-200 text-slate-900`}
+                  className={`${fieldLook} w-full`}
                 >
                   <option value="completed">تمت المعالجة و الانجاز</option>
                   <option value="rejected">تم رفض طلب الصيانة</option>
@@ -3479,7 +3150,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                   type="date"
                   value={maintCompletedDate}
                   onChange={(e) => setMaintCompletedDate(e.target.value)}
-                  className={`w-full rounded-xl p-2.5 font-mono font-bold outline-none border text-xs sm:text-sm bg-slate-50 border-slate-200 text-slate-900`}
+                  className={`${fieldLook} w-full font-mono`}
                 />
               </div>
 
@@ -3492,7 +3163,7 @@ export const PeriodicInspectionView: React.FC<PeriodicInspectionViewProps> = ({
                   onChange={(e) => setMaintResolutionNotes(e.target.value)}
                   placeholder="سجل التفاصيل الفنية لأعمال الإصلاح والصيانة المنفذة..."
                   rows={3}
-                  className={`w-full rounded-xl p-2.5 outline-none border text-xs sm:text-sm leading-relaxed bg-slate-50 border-slate-200 text-slate-900`}
+                  className={`${fieldLook} w-full h-auto min-h-20`}
                 />
               </div>
 

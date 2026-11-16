@@ -169,9 +169,9 @@ export function Select({ children, ...props }: SelectHTMLAttributes<HTMLSelectEl
   );
 }
 
-export function Field({ label, hint, children, required }: { label: string; hint?: string; children: ReactNode; required?: boolean }) {
+export function Field({ label, hint, children, required, className }: { label: string; hint?: string; children: ReactNode; required?: boolean; className?: string }) {
   return (
-    <label className="block">
+    <label className={cx("block", className)}>
       <span className="mb-1.5 block text-[13px] font-semibold text-slate-700">
         {label}
         {required && <span className="text-rose-600"> *</span>}
@@ -369,8 +369,12 @@ export function EmptyState({ text, icon: Icon = Inbox, children }: { text: React
   );
 }
 
-export function Td({ children, className }: { children?: ReactNode; className?: string }) {
-  return <td className={cx("px-4 py-2.5 align-middle", className)}>{children}</td>;
+export function Td({ children, className, colSpan, title }: { children?: ReactNode; className?: string; colSpan?: number; title?: string }) {
+  return (
+    <td colSpan={colSpan} title={title} className={cx("px-4 py-2.5 align-middle", className)}>
+      {children}
+    </td>
+  );
 }
 
 export function Spinner() {

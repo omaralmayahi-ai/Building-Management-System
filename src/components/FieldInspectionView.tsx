@@ -1,4 +1,5 @@
 import { calculateNextDueDate } from '../utils/inspectionSchedule';
+import { Badge, Button, Modal, PageHeader, fieldLook } from './ui';
 import { getServerIsoDateOnly } from '../services/serverTime';
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import {
@@ -264,34 +265,20 @@ export const FieldInspectionView: React.FC<FieldInspectionViewProps> = ({
 
   return (
     <div className="w-full max-w-2xl mx-auto px-3 py-4 sm:py-6 space-y-4 font-sans antialiased text-right" dir="rtl">
-      {/* Header Banner - Field Inspector Mobile */}
-      <div
-        className={`rounded-2xl p-4 sm:p-5 border shadow-xl flex items-center justify-between gap-3 transition-colors bg-card border-slate-200 text-slate-900 shadow-slate-200/60`}
-      >
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-brand-100 border border-brand-200 text-brand-700 flex items-center justify-center font-black shadow-inner shrink-0">
-            <ClipboardCheck className="w-6 h-6" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="font-black text-base sm:text-lg tracking-tight">نظام الكشف الميداني السريع</h1>
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-brand-100 text-brand-700 border border-brand-200">
-                QR Scanner
-              </span>
-            </div>
-            <p className={`text-xs mt-0.5 text-slate-600`}>
-              معاينة الكرفانات والمنشآت وتوثيق الحالة الإنشائية بالصور والملاحظات
-            </p>
-          </div>
-        </div>
-
-        {currentUser && (
-          <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200 text-xs font-bold text-slate-600">
-            <UserCheck className="w-4 h-4 text-emerald-600" />
-            <span>{currentUser.name}</span>
-          </div>
-        )}
-      </div>
+      {/* الترويسة */}
+      <PageHeader
+        icon={ClipboardCheck}
+        title="الكشف الميداني السريع"
+        description="معاينة الوحدات وتوثيق الحالة بالصور والملاحظات بعد مسح رمز QR"
+        actions={
+          currentUser && (
+            <Badge tone="green">
+              <UserCheck className="h-3.5 w-3.5" aria-hidden />
+              {currentUser.name}
+            </Badge>
+          )
+        }
+      />
 
       {/* Success Notification */}
       {submitSuccessMsg && (
@@ -465,28 +452,22 @@ export const FieldInspectionView: React.FC<FieldInspectionViewProps> = ({
           <div
             className={`rounded-2xl p-4 sm:p-5 border shadow-xl space-y-4 transition-colors bg-card border-slate-200 text-slate-900`}
           >
-            {/* Header / Back */}
-            <div className="flex items-center justify-between border-b pb-3 border-slate-200 ">
+            {/* ترويسة الاستمارة */}
+            <div className="flex items-center justify-between gap-2 border-b border-slate-200 pb-3">
               <div className="space-y-0.5">
-                <h2 className="text-base sm:text-lg font-black text-brand-700">
-                  استمارة الكشف الفني الميداني
-                </h2>
-                <p className="text-xs text-slate-500">{currentUnit.code} • {currentUnit.name}</p>
+                <h2 className="text-base font-black text-slate-900 sm:text-lg">استمارة الكشف الفني الميداني</h2>
+                <p className="text-xs text-slate-500">
+                  <span className="font-mono">{currentUnit.code}</span> • {currentUnit.name}
+                </p>
               </div>
-
-              <button
-                type="button"
-                onClick={() => setViewMode('overview')}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition flex items-center gap-1 cursor-pointer bg-slate-100 hover:bg-slate-200 border-slate-300 text-slate-700`}
-              >
-                <span>رجوع</span>
-                <ChevronLeft className="w-4 h-4" />
-              </button>
+              <Button size="sm" icon={ChevronLeft} onClick={() => setViewMode('overview')}>
+                رجوع
+              </Button>
             </div>
 
             {submitError && (
-              <div className="p-3 rounded-xl bg-red-500/15 border border-red-500/30 text-red-600 text-xs flex items-center gap-2">
-                <AlertTriangle className="w-4 h-4 shrink-0" />
+              <div role="alert" className="flex items-center gap-2 rounded-lg border border-rose-200 bg-rose-50 p-3 text-xs text-rose-800">
+                <AlertTriangle className="h-4 w-4 shrink-0" aria-hidden />
                 <span>{submitError}</span>
               </div>
             )}
@@ -545,7 +526,7 @@ export const FieldInspectionView: React.FC<FieldInspectionViewProps> = ({
                 value={findings}
                 onChange={(e) => setFindings(e.target.value)}
                 placeholder="سجل أية عيوب، ملاحظات إنشائية، حالة الجدران والأسقف، أو أضرار ميكانيكية تم مشاهدتها..."
-                className={`w-full rounded-xl p-3 text-xs sm:text-sm focus:outline-none transition border bg-slate-50 border-slate-300 text-slate-900 focus:border-brand-600 focus:bg-card`}
+                className={`${fieldLook} w-full h-auto min-h-20`}
               />
             </div>
 
@@ -559,7 +540,7 @@ export const FieldInspectionView: React.FC<FieldInspectionViewProps> = ({
                 value={recommendations}
                 onChange={(e) => setRecommendations(e.target.value)}
                 placeholder="سجل التوصيات الهندسية، إجراءات السلامة، والتوجيهات الفنية المطلوبة..."
-                className={`w-full rounded-xl p-3 text-xs sm:text-sm focus:outline-none transition border bg-slate-50 border-slate-300 text-slate-900 focus:border-brand-600 focus:bg-card`}
+                className={`${fieldLook} w-full h-auto min-h-20`}
               />
             </div>
 
@@ -573,7 +554,7 @@ export const FieldInspectionView: React.FC<FieldInspectionViewProps> = ({
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="أي ملاحظات تنظيمية أو تنسيقية مع مسؤولي الموقع..."
-                className={`w-full rounded-xl px-3 py-2 text-xs focus:outline-none transition border bg-slate-50 border-slate-300 text-slate-900 focus:border-brand-600`}
+                className={`${fieldLook} w-full`}
               />
             </div>
 
@@ -701,24 +682,14 @@ export const FieldInspectionView: React.FC<FieldInspectionViewProps> = ({
               )}
             </div>
 
-            {/* Submit Button */}
-            <div className="pt-2 space-y-2">
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full py-3.5 px-4 rounded-xl font-black text-sm sm:text-base bg-emerald-500 hover:bg-emerald-400 text-on-brand shadow-lg hover:shadow-emerald-500/25 transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 active:scale-[0.99]"
-              >
-                <CheckCircle2 className="w-5 h-5" />
-                <span>{isSubmitting ? 'جاري حفظ التقرير...' : 'حفظ واعتماد تقرير الكشف الميداني'}</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setViewMode('overview')}
-                className={`w-full py-2.5 px-4 rounded-xl font-bold text-xs border transition text-center cursor-pointer bg-slate-100 hover:bg-slate-200 border-slate-300 text-slate-700`}
-              >
+            {/* أزرار الحفظ */}
+            <div className="space-y-2 pt-2">
+              <Button type="submit" variant="primary" icon={CheckCircle2} loading={isSubmitting} className="h-12 w-full text-sm">
+                حفظ واعتماد تقرير الكشف الميداني
+              </Button>
+              <Button onClick={() => setViewMode('overview')} disabled={isSubmitting} className="w-full">
                 إلغاء
-              </button>
+              </Button>
             </div>
           </div>
         </form>
@@ -744,24 +715,17 @@ export const FieldInspectionView: React.FC<FieldInspectionViewProps> = ({
         />
       )}
 
-      {/* FULL PREVIEW MODAL FOR IMAGES / ATTACHMENTS */}
-      {previewItem && (
-        <div className="fixed inset-0 z-50 bg-card/90 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 animate-fadeIn">
-          <div className="bg-card border border-slate-200 rounded-3xl p-4 sm:p-5 w-full max-w-3xl space-y-4 shadow-2xl flex flex-col max-h-[92vh]">
-            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
-              <div className="flex items-center gap-2">
-                <ImageIcon className="w-5 h-5 text-brand-700" />
-                <h3 className="font-bold text-sm sm:text-base text-slate-900">{previewItem.title}</h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setPreviewItem(null)}
-                className="p-1.5 rounded-xl bg-slate-100 text-slate-500 hover:text-slate-900 transition cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
+      {/* معاينة المرفق */}
+      <Modal
+        open={!!previewItem}
+        icon={ImageIcon}
+        title={previewItem?.title ?? ''}
+        wide
+        onClose={() => setPreviewItem(null)}
+        footer={<Button variant="primary" onClick={() => setPreviewItem(null)}>إغلاق</Button>}
+      >
+        {previewItem && (
+          <>
             <div className="flex-1 overflow-auto rounded-2xl bg-black/50 border border-slate-200 flex items-center justify-center p-2 min-h-[260px]">
               {previewItem.url.startsWith('data:image/') ||
               previewItem.fileName.match(/\.(jpeg|jpg|png|webp|gif|svg)$/i) ? (
@@ -780,27 +744,17 @@ export const FieldInspectionView: React.FC<FieldInspectionViewProps> = ({
               )}
             </div>
 
-            <div className="flex items-center justify-between pt-2 border-t border-slate-200">
-              <a
-                href={previewItem.url}
-                download={previewItem.fileName}
-                className="px-4 py-2 bg-brand-700 hover:bg-brand-800 text-on-brand font-bold rounded-xl text-xs flex items-center gap-1.5 transition cursor-pointer shadow-md"
-              >
-                <Download className="w-4 h-4" />
-                <span>تنزيل الملف</span>
-              </a>
-
-              <button
-                type="button"
-                onClick={() => setPreviewItem(null)}
-                className="px-4 py-2 bg-slate-100 hover:bg-slate-100 text-slate-600 font-bold rounded-xl text-xs transition cursor-pointer"
-              >
-                إغلاق
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+            <a
+              href={previewItem.url}
+              download={previewItem.fileName}
+              className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-brand-700 px-4 py-2 text-xs font-bold text-on-brand hover:bg-brand-800"
+            >
+              <Download className="h-4 w-4" aria-hidden />
+              <span>تنزيل الملف</span>
+            </a>
+          </>
+        )}
+      </Modal>
 
       {/* In-App QR Scan Choices Modal (Location / Inspection / Maintenance) */}
       {scannedUnitForChoice && (

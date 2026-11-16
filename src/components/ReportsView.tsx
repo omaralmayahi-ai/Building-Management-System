@@ -1,4 +1,5 @@
 import { getServerIsoDateOnly } from '../services/serverTime';
+import { Badge, Button, Card, EmptyState, PageHeader, Table, Tabs, Td, fieldLookSm } from './ui';
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import {
   FileText,
@@ -2705,67 +2706,41 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
       </div>
       {/* Main Screen Control Bar & Header (Hidden on Print) */}
       <div className="reports-screen-ui print:hidden space-y-5">
-        <div className={`p-4 md:p-5 rounded-2xl border bg-card border-slate-200 shadow-sm space-y-4`}>
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-4">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-brand-50 border border-brand-200 text-brand-700 flex items-center justify-center shrink-0 shadow-inner">
-              <FileText className="w-6 h-6" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className={`text-xl font-black text-slate-900`}>
-                  التقارير
-                </h2>
-                <span className="bg-brand-100 text-brand-700 text-xs font-bold px-2.5 py-0.5 rounded-full border border-brand-200">
-                  {companyName}
-                </span>
-              </div>
-              <p className={`text-xs mt-1 text-slate-500`}>
-                تقارير معتمدة لنتائج الكشف الدوري، بلاغات الصيانة، وحصر تقييم جودة الأصول
-              </p>
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex flex-wrap items-center gap-2 print:hidden relative w-full sm:w-auto">
-            {printSuccessFeedback && (
-              <div className="absolute -top-9 left-0 sm:left-auto sm:right-0 bg-brand-700 text-on-brand text-[11px] font-black px-3 py-1 rounded-lg shadow-lg flex items-center gap-1.5 animate-bounce z-20 border border-brand-200">
-                <Printer className="w-3.5 h-3.5" />
-                <span>{printSuccessFeedback}</span>
-              </div>
-            )}
-
-            <button
-              onClick={handleExportCSV}
-              className={`flex-1 sm:flex-initial justify-center font-bold px-3.5 py-2.5 rounded-xl text-xs flex items-center gap-1.5 transition border cursor-pointer min-h-[40px] bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100`}
-              title="تصدير جدول السجلات الحالية كملف Excel / CSV"
-            >
-              <Download className="w-4 h-4 shrink-0" />
-              <span>تصدير ملف إكسل</span>
-            </button>
-
-            {/* Preview Pages Button Group */}
-            <div className="relative inline-flex items-stretch rounded-xl shadow-sm flex-1 sm:flex-initial">
-              {/* Primary Preview Button */}
-              <button
-                type="button"
-                onClick={() => handlePrintAction('preview')}
-                className="w-full justify-center font-black px-3.5 sm:px-4 py-2.5 rounded-r-xl text-xs flex items-center gap-2 transition border border-l-0 cursor-pointer bg-brand-700 text-on-brand border-brand-200 hover:bg-brand-800 active:scale-95 shadow-sm select-none min-h-[40px]"
-                title="معاينة الصفحات والتحقق من التنسيق الرسمي قبل الطباعة"
-              >
-                <Eye className="w-4 h-4 shrink-0" />
-                <span className="truncate">معاينة الصفحات</span>
-              </button>
-
-              {/* Options Dropdown Trigger */}
-              <button
-                type="button"
-                onClick={() => setShowPrintDropdown((prev) => !prev)}
-                className="px-2.5 py-2.5 rounded-l-xl text-xs font-bold transition border border-r-0 border-brand-200 bg-brand-700 hover:bg-brand-800 text-on-brand cursor-pointer flex items-center justify-center min-h-[40px]"
-                title="خيارات إضافية"
-              >
-                <ChevronDown className={`w-3.5 h-3.5 transition-transform ${showPrintDropdown ? 'rotate-180' : ''}`} />
-              </button>
+        <Card className="p-4 md:p-5">
+          <PageHeader
+            icon={FileText}
+            title="التقارير"
+            description="تقارير الكشف الدوري وبلاغات الصيانة وحصر الأصول وتقييمها"
+            actions={
+              <>
+                {printSuccessFeedback && (
+                  <Badge tone="green">
+                    <Printer className="h-3.5 w-3.5" aria-hidden />
+                    {printSuccessFeedback}
+                  </Badge>
+                )}
+                <Button icon={Download} onClick={handleExportCSV} title="تصدير جدول السجلات الحالية كملف Excel / CSV">
+                  تصدير ملف إكسل
+                </Button>
+                <div className="relative inline-flex items-stretch">
+                  <Button
+                    variant="primary"
+                    icon={Eye}
+                    onClick={() => handlePrintAction('preview')}
+                    className="rounded-l-none"
+                    title="معاينة الصفحات والتحقق من التنسيق الرسمي قبل الطباعة"
+                  >
+                    معاينة الصفحات
+                  </Button>
+                  <Button
+                    variant="primary"
+                    onClick={() => setShowPrintDropdown((prev) => !prev)}
+                    className="rounded-r-none border-r border-brand-800 px-2.5"
+                    title="خيارات إضافية"
+                    aria-label="خيارات الطباعة"
+                  >
+                    <ChevronDown className={`h-3.5 w-3.5 transition-transform ${showPrintDropdown ? 'rotate-180' : ''}`} aria-hidden />
+                  </Button>
 
               {/* Dropdown Backdrop & Menu */}
               {showPrintDropdown && (
@@ -2803,17 +2778,12 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                   </div>
                 </>
               )}
-            </div>
-
-            <button
-              onClick={handleResetFilters}
-              title="إعادة ضبط الفلاتر"
-              className={`p-2.5 rounded-xl text-xs flex items-center justify-center transition border cursor-pointer min-h-[40px] shrink-0 bg-slate-100 text-slate-600 border-slate-300 hover:bg-slate-200`}
-            >
-              <RotateCcw className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
+                </div>
+                <Button icon={RotateCcw} onClick={handleResetFilters} title="إعادة ضبط الفلاتر" aria-label="إعادة ضبط الفلاتر" />
+              </>
+            }
+          />
+        </Card>
 
         {/* Report Domain Category Tabs */}
         {isRoleMaintenance ? (
@@ -2839,72 +2809,17 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
             </div>
           </div>
         ) : (
-          <div className="flex items-center gap-1.5 sm:gap-2 pb-2 text-xs font-bold overflow-x-auto no-scrollbar scroll-smooth">
-            <button
-              onClick={() => setActiveTab('all')}
-              className={`px-3 sm:px-4 py-2 rounded-xl flex items-center gap-1.5 sm:gap-2 transition cursor-pointer shrink-0 ${
-                activeTab === 'all'
-                  ? 'bg-brand-700 text-on-brand font-black shadow'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-              }`}
-            >
-              <Layers className="w-4 h-4" />
-              <span>التقرير الشامل التجميعي</span>
-              <span className="bg-card/20 px-1.5 py-0.5 rounded text-[10px]">{toArabicDigits(totalFilteredRecords)}</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab('inspections')}
-              className={`px-4 py-2 rounded-xl flex items-center gap-2 whitespace-nowrap transition cursor-pointer shrink-0 ${
-                activeTab === 'inspections'
-                  ? 'bg-brand-700 text-on-brand font-black shadow'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-              }`}
-            >
-              <CalendarCheck className="w-4 h-4" />
-              <span>الكشوفات والمعاينة الدورية</span>
-              <span className="bg-card/20 px-1.5 py-0.5 rounded text-[10px]">{toArabicDigits(filteredInspections.length)}</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab('maintenance')}
-              className={`px-4 py-2 rounded-xl flex items-center gap-2 whitespace-nowrap transition cursor-pointer shrink-0 ${
-                activeTab === 'maintenance'
-                  ? 'bg-brand-700 text-on-brand font-black shadow'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-              }`}
-            >
-              <Wrench className="w-4 h-4" />
-              <span>الصيانة ومتابعتها</span>
-              <span className="bg-card/20 px-1.5 py-0.5 rounded text-[10px]">{toArabicDigits(filteredMaintenance.length)}</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab('units')}
-              className={`px-4 py-2 rounded-xl flex items-center gap-2 whitespace-nowrap transition cursor-pointer shrink-0 ${
-                activeTab === 'units'
-                  ? 'bg-brand-700 text-on-brand font-black shadow'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-              }`}
-            >
-              <Box className="w-4 h-4" />
-              <span>الأصول والوحدات</span>
-              <span className="bg-card/20 px-1.5 py-0.5 rounded text-[10px]">{toArabicDigits(filteredUnits.length)}</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab('decommissioned')}
-              className={`px-4 py-2 rounded-xl flex items-center gap-2 whitespace-nowrap transition cursor-pointer shrink-0 ${
-                activeTab === 'decommissioned'
-                  ? 'bg-rose-600 text-white font-black shadow'
-                  : 'bg-rose-50 text-rose-800 border border-rose-200 hover:bg-rose-100'
-              }`}
-            >
-              <Archive className="w-4 h-4" />
-              <span>سجل الوحدات المشطوبة والمجمدة</span>
-              <span className="bg-black/20 px-1.5 py-0.5 rounded text-[10px]">{toArabicDigits(decommissionedUnits.length)}</span>
-            </button>
-          </div>
+          <Tabs
+            value={activeTab}
+            onChange={setActiveTab}
+            tabs={[
+              { key: 'all', label: 'التقرير الشامل', icon: Layers, count: totalFilteredRecords },
+              { key: 'inspections', label: 'الكشوفات الدورية', icon: CalendarCheck, count: filteredInspections.length },
+              { key: 'maintenance', label: 'الصيانة ومتابعتها', icon: Wrench, count: filteredMaintenance.length },
+              { key: 'units', label: 'الأصول والوحدات', icon: Box, count: filteredUnits.length },
+              { key: 'decommissioned', label: 'الوحدات المشطوبة', icon: Archive, count: decommissionedUnits.length },
+            ]}
+          />
         )}
 
         {/* Dynamic Multi-Filters Panel */}
@@ -2988,7 +2903,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2.5 pt-2 border-t border-slate-200">
             {/* Search Keyword */}
             <div className="space-y-1 sm:col-span-2">
-              <label className={`text-[11px] font-bold text-slate-600`}>بحث بالنص / الكود / التشكيل:</label>
+              <label className="mb-1 block text-[11px] font-bold text-slate-700">بحث بالنص / الكود / التشكيل:</label>
               <div className="relative">
                 <Search className="w-3.5 h-3.5 absolute right-2.5 top-3 text-slate-500" />
                 <input
@@ -2996,14 +2911,14 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                   value={searchKeyword}
                   onChange={(e) => setSearchKeyword(e.target.value)}
                   placeholder="ابحث بالرمز، الاسم، التشكيل، الفحص، المقاول..."
-                  className={`w-full pr-8 pl-3 py-2 text-xs rounded-lg border outline-none transition min-h-[38px] bg-card border-slate-300 text-slate-800 focus:border-brand-600`}
+                  className={`${fieldLookSm} w-full pr-8 pl-3`}
                 />
               </div>
             </div>
 
             {/* Org Entity / Department Select */}
             <div className="space-y-1">
-              <label className={`text-[11px] font-bold text-slate-600`}>التشكيل / الجهة الشاغلة:</label>
+              <label className="mb-1 block text-[11px] font-bold text-slate-700">التشكيل / الجهة الشاغلة:</label>
               <div className="flex items-center gap-1.5">
                 <button
                   type="button"
@@ -3039,11 +2954,11 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
 
             {/* Governorate Select */}
             <div className="space-y-1">
-              <label className={`text-[11px] font-bold text-slate-600`}>المحافظة:</label>
+              <label className="mb-1 block text-[11px] font-bold text-slate-700">المحافظة:</label>
               <select
                 value={selectedGovernorate}
                 onChange={(e) => handleGovernorateChange(e.target.value)}
-                className={`w-full px-2.5 py-2 text-xs rounded-lg border outline-none transition min-h-[38px] bg-card border-slate-300 text-slate-800`}
+                className={`${fieldLookSm} w-full`}
               >
                 <option value="all">كافة المحافظات</option>
                 {activeGovernoratesList.map((g) => (
@@ -3056,11 +2971,11 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
 
             {/* Field Select */}
             <div className="space-y-1">
-              <label className={`text-[11px] font-bold text-slate-600`}>الحقل النفطي:</label>
+              <label className="mb-1 block text-[11px] font-bold text-slate-700">الحقل النفطي:</label>
               <select
                 value={selectedField}
                 onChange={(e) => setSelectedField(e.target.value)}
-                className={`w-full px-2.5 py-2 text-xs rounded-lg border outline-none transition min-h-[38px] bg-card border-slate-300 text-slate-800`}
+                className={`${fieldLookSm} w-full`}
               >
                 <option value="all">جميع الحقول</option>
                 {displayedOilfieldsList.map((f) => (
@@ -3074,7 +2989,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
             {/* Occupancy / Vacancy Filter (Shown for All & Units) */}
             {(activeTab === 'all' || activeTab === 'units') && (
               <div className="space-y-1">
-                <label className={`text-[11px] font-bold text-slate-600`}>حالة الإشغال / الغرف الشاغرة:</label>
+                <label className="mb-1 block text-[11px] font-bold text-slate-700">حالة الإشغال / الغرف الشاغرة:</label>
                 <select
                   value={selectedOccupancyFilter}
                   onChange={(e) => setSelectedOccupancyFilter(e.target.value as any)}
@@ -3095,11 +3010,11 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
             {/* Condition Grade (Shown for All, Inspections, Units) */}
             {(activeTab === 'all' || activeTab === 'inspections' || activeTab === 'units') && (
               <div className="space-y-1">
-                <label className={`text-[11px] font-bold text-slate-600`}>التقييم الإنشائي:</label>
+                <label className="mb-1 block text-[11px] font-bold text-slate-700">التقييم الإنشائي:</label>
                 <select
                   value={selectedGrade}
                   onChange={(e) => setSelectedGrade(e.target.value)}
-                  className={`w-full px-2.5 py-2 text-xs rounded-lg border outline-none transition min-h-[38px] bg-card border-slate-300 text-slate-800`}
+                  className={`${fieldLookSm} w-full`}
                 >
                   <option value="all">جميع الدرجات</option>
                   <option value="A">الدرجة A - ممتاز</option>
@@ -3113,11 +3028,11 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
             {/* Inspection Status Filter (Shown for All & Inspections) */}
             {(activeTab === 'all' || activeTab === 'inspections') && (
               <div className="space-y-1">
-                <label className={`text-[11px] font-bold text-slate-600`}>حالة الكشف الدوري:</label>
+                <label className="mb-1 block text-[11px] font-bold text-slate-700">حالة الكشف الدوري:</label>
                 <select
                   value={selectedInspectionStatus}
                   onChange={(e) => setSelectedInspectionStatus(e.target.value)}
-                  className={`w-full px-2.5 py-2 text-xs rounded-lg border outline-none transition min-h-[38px] bg-card border-slate-300 text-slate-800`}
+                  className={`${fieldLookSm} w-full`}
                 >
                   <option value="all">جميع حالات الكشف</option>
                   <option value="completed">مكتمل وموثق</option>
@@ -3130,11 +3045,11 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
             {/* Maintenance Status Filter (Shown for All & Maintenance) */}
             {(activeTab === 'all' || activeTab === 'maintenance') && (
               <div className="space-y-1">
-                <label className={`text-[11px] font-bold text-slate-600`}>حالة الصيانة:</label>
+                <label className="mb-1 block text-[11px] font-bold text-slate-700">حالة الصيانة:</label>
                 <select
                   value={selectedMaintenanceStatus}
                   onChange={(e) => setSelectedMaintenanceStatus(e.target.value)}
-                  className={`w-full px-2.5 py-2 text-xs rounded-lg border outline-none transition min-h-[38px] bg-card border-slate-300 text-slate-800`}
+                  className={`${fieldLookSm} w-full`}
                 >
                   <option value="all">جميع حالات الصيانة</option>
                   <option value="completed">منجز</option>
@@ -3147,23 +3062,23 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
 
             {/* Date From */}
             <div className="space-y-1">
-              <label className={`text-[11px] font-bold text-slate-600`}>من تاريخ:</label>
+              <label className="mb-1 block text-[11px] font-bold text-slate-700">من تاريخ:</label>
               <input
                 type="date"
                 value={dateFrom}
                 onChange={(e) => setDateFrom(e.target.value)}
-                className={`w-full px-2 py-2 text-xs rounded-lg border outline-none transition min-h-[38px] bg-card border-slate-300 text-slate-800`}
+                className={`${fieldLookSm} w-full`}
               />
             </div>
 
             {/* Date To */}
             <div className="space-y-1">
-              <label className={`text-[11px] font-bold text-slate-600`}>إلى تاريخ:</label>
+              <label className="mb-1 block text-[11px] font-bold text-slate-700">إلى تاريخ:</label>
               <input
                 type="date"
                 value={dateTo}
                 onChange={(e) => setDateTo(e.target.value)}
-                className={`w-full px-2 py-2 text-xs rounded-lg border outline-none transition min-h-[38px] bg-card border-slate-300 text-slate-800`}
+                className={`${fieldLookSm} w-full`}
               />
             </div>
           </div>
@@ -3197,7 +3112,6 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
             ))}
           </div>
         </div>
-      </div>
 
       {/* Main Content Tables */}
 
@@ -3220,158 +3134,39 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
             </div>
           ) : (
             <div>
-              {/* Mobile Cards for Periodic Inspections */}
-              <div className="md:hidden space-y-3">
-                {filteredInspections.map((item) => (
-                  <div
-                    key={item.id}
-                    className={`p-3 rounded-xl border space-y-2.5 transition bg-card border-slate-200 shadow-xs`}
-                  >
-                    {/* Header */}
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className="font-mono font-bold text-xs text-brand-700">{toArabicDigits(item.unitCode)}</span>
-                          <span className={`text-[10px] text-slate-500`}>
-                            {translateField(item.field)} / {translateGovernorate(item.governorate)}
-                          </span>
-                        </div>
-                        <h4 className={`font-extrabold text-xs sm:text-sm mt-0.5 text-slate-900`}>
-                          {item.unitName || 'غير مسمى'}
-                        </h4>
-                        <div className="flex items-center gap-1.5 mt-1 flex-wrap">
-                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold bg-brand-50 text-brand-800 border border-brand-200`}>
-                            {item.title} ({item.frequency === 'monthly' ? 'شهري' : item.frequency === 'quarterly' ? 'ربع سنوي' : 'سنوي'})
-                          </span>
-                          {item.conditionGradeGiven && (
-                            <span className="font-mono font-bold text-[10px] px-1.5 py-0.5 bg-slate-100 text-brand-700 border border-slate-200 rounded">
-                              الدرجة {item.conditionGradeGiven}
-                            </span>
-                          )}
-                        </div>
-                      </div>
+              <Table
+                head={[
+                  'بيانات المنشأة والموقع',
+                  'نوع ودورية الكشف',
+                  'تاريخ الكشف السابق',
+                  'التاريخ القادم',
+                  'القائم بالكشف',
+                  'الحالة والتصنيف',
+                  'الملاحظات والنتائج',
+                  'التوصيات والإجراءات',
+                  'المرفقات / الصور',
+                ]}
+              >
 
-                      <div className="shrink-0">
-                        <span
-                          className={`px-2 py-0.5 rounded text-[10px] font-bold inline-block ${
-                            item.status === 'completed'
-                              ? 'bg-emerald-500/20 text-emerald-600 border border-emerald-500/30'
-                              : item.status === 'overdue'
-                              ? 'bg-red-500/20 text-red-600 border border-red-500/30'
-                              : 'bg-brand-100 text-brand-700 border border-brand-200'
-                          }`}
-                        >
-                          {item.status === 'completed' ? 'مكتمل وموثق' : item.status === 'overdue' ? 'متأخر' : 'مجدول'}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Dates Grid */}
-                    <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-slate-200/60 ">
-                      <div>
-                        <span className="text-slate-500 text-[10px] block">الكشف السابق:</span>
-                        <span className="font-mono text-[11px] font-medium">{toArabicDigits(item.lastInspectionDate || 'غير مسجل')}</span>
-                      </div>
-                      <div>
-                        <span className="text-slate-500 text-[10px] block">الموعد القادم:</span>
-                        <span className="font-mono text-[11px] font-bold text-sky-600">{toArabicDigits(item.nextDueDate)}</span>
-                      </div>
-                    </div>
-
-                    {/* Inspector */}
-                    <div className="flex items-center justify-between text-xs pt-2 border-t border-slate-200/60 ">
-                      <span className="text-slate-500 text-[10px]">القائم بالكشف:</span>
-                      <span className="font-semibold text-xs">
-                        {getCleanInspectorName(item.inspectorName, item.performedByName, users)}
-                      </span>
-                    </div>
-
-                    {/* Findings & Notes */}
-                    {(item.findings || item.notes) && (
-                      <div className={`p-2.5 rounded-xl text-xs space-y-1 bg-slate-50 border border-slate-200`}>
-                        <span className="font-bold text-[10px] text-slate-500 block">الملاحظات والنتائج:</span>
-                        <p className={`text-[11px] leading-relaxed text-slate-800`}>
-                          {item.findings || item.notes}
-                        </p>
-                      </div>
-                    )}
-
-                    {/* Recommendations */}
-                    {item.recommendations && (
-                      <div className={`p-2.5 rounded-xl text-xs space-y-1 bg-brand-50 border border-brand-200 text-brand-800`}>
-                        <span className="font-bold text-[10px] opacity-80 block">التوصيات والإجراءات:</span>
-                        <p className="text-[11px] leading-relaxed font-semibold">
-                          {item.recommendations}
-                        </p>
-                      </div>
-                    )}
-
-                    {/* Attachment Preview */}
-                    <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between">
-                      <span className="text-slate-500 text-[10px]">المرفق:</span>
-                      {item.reportFileName || item.reportFileUrl ? (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const ext = item.reportFileName?.split('.').pop() || 'pdf';
-                            setPreviewAttachment({
-                              id: 'rep-live-insp-' + item.id,
-                              name: item.reportFileName || 'تقرير_الكشف.pdf',
-                              type: ext,
-                              url: item.reportFileUrl || '#',
-                              uploadedAt: item.lastInspectionDate || getServerIsoDateOnly(),
-                              size: '1.5 MB',
-                            });
-                          }}
-                          className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition cursor-pointer border min-h-[38px] bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100`}
-                        >
-                          <Eye className="w-3.5 h-3.5" />
-                          <span>معاينة التقرير المرفق</span>
-                        </button>
-                      ) : (
-                        <span className="text-slate-500 text-[10px]">لا يوجد مرفق</span>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Desktop Table View */}
-              <div className="hidden md:block overflow-x-auto">
-                <table className="w-full text-right text-xs">
-                  <thead className={`border-b bg-slate-100 border-slate-200 text-slate-700 font-bold`}>
-                    <tr>
-                      <th className="p-2.5 min-w-[140px]">بيانات المنشأة والموقع</th>
-                      <th className="p-2.5">نوع ودورية الكشف</th>
-                      <th className="p-2.5">تاريخ الكشف السابق</th>
-                      <th className="p-2.5">التاريخ القادم</th>
-                      <th className="p-2.5">القائم بالكشف</th>
-                      <th className="p-2.5">الحالة والتصنيف</th>
-                      <th className="p-2.5">الملاحظات والنتائج</th>
-                      <th className="p-2.5">التوصيات والإجراءات</th>
-                      <th className="p-2.5 text-center">المرفقات / الصور</th>
-                    </tr>
-                  </thead>
-                  <tbody className={`divide-y divide-slate-200 text-slate-800`}>
                     {filteredInspections.map((item) => (
                       <tr key={item.id} className={'hover:bg-slate-50'}>
-                        <td className="p-2.5 leading-snug whitespace-nowrap">
+                        <Td className="leading-snug whitespace-nowrap">
                           <div className="font-mono font-bold text-brand-700">{toArabicDigits(item.unitCode)}</div>
                           <div className={`font-bold text-slate-900`}>{item.unitName || 'غير مسمى'}</div>
                           <div className={`text-[11px] text-slate-500`}>
                             {translateField(item.field)} / {translateGovernorate(item.governorate)}
                           </div>
-                        </td>
-                        <td className="p-2.5 whitespace-nowrap">
+                        </Td>
+                        <Td className="whitespace-nowrap">
                           <span className="font-semibold">{item.title}</span>
                           <div className="text-[10px] text-slate-500">{item.frequency === 'monthly' ? 'شهري' : item.frequency === 'quarterly' ? 'ربع سنوي' : 'سنوي'}</div>
-                        </td>
-                        <td className="p-2.5 font-mono whitespace-nowrap">{toArabicDigits(item.lastInspectionDate || 'غير مسجل')}</td>
-                        <td className="p-2.5 font-mono whitespace-nowrap font-bold text-sky-600">{toArabicDigits(item.nextDueDate)}</td>
-                        <td className="p-2.5 whitespace-nowrap font-semibold">
+                        </Td>
+                        <Td className="font-mono whitespace-nowrap">{toArabicDigits(item.lastInspectionDate || 'غير مسجل')}</Td>
+                        <Td className="font-mono whitespace-nowrap font-bold text-sky-600">{toArabicDigits(item.nextDueDate)}</Td>
+                        <Td className="whitespace-nowrap font-semibold">
                           {getCleanInspectorName(item.inspectorName, item.performedByName, users)}
-                        </td>
-                        <td className="p-2.5 whitespace-nowrap">
+                        </Td>
+                        <Td className="whitespace-nowrap">
                           <span
                             className={`px-2 py-0.5 rounded text-[10px] font-bold ${
                               item.status === 'completed'
@@ -3388,14 +3183,14 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                               الدرجة {item.conditionGradeGiven}
                             </span>
                           )}
-                        </td>
-                        <td className="p-2.5 max-w-xs text-[11px] text-slate-600 truncate" title={item.findings || item.notes}>
+                        </Td>
+                        <Td className="max-w-xs text-[11px] text-slate-600 truncate" title={item.findings || item.notes}>
                           {item.findings || item.notes || 'لا توجد ملاحظات'}
-                        </td>
-                        <td className="p-2.5 max-w-xs text-[11px] font-semibold text-brand-700 truncate" title={item.recommendations}>
+                        </Td>
+                        <Td className="max-w-xs text-[11px] font-semibold text-brand-700 truncate" title={item.recommendations}>
                           {item.recommendations || 'لا توجد توصيات'}
-                        </td>
-                        <td className="p-2.5 text-center whitespace-nowrap">
+                        </Td>
+                        <Td className="text-center whitespace-nowrap">
                           {item.reportFileName || item.reportFileUrl ? (
                             <button
                               type="button"
@@ -3419,12 +3214,10 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                           ) : (
                             <span className="text-slate-500 text-[10px]">لا يوجد</span>
                           )}
-                        </td>
+                        </Td>
                       </tr>
                     ))}
-                  </tbody>
-                </table>
-              </div>
+              </Table>
             </div>
           )}
         </div>
@@ -3449,160 +3242,36 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
             </div>
           ) : (
             <div>
-              {/* Mobile Cards View for Maintenance */}
-              <div className="md:hidden space-y-3">
-                {filteredMaintenance.map((req) => {
-                  const reqAttachments: ReportAttachment[] =
-                    req.attachments && req.attachments.length > 0
-                      ? req.attachments
-                      : req.attachmentUrl || req.attachmentName
-                      ? [
-                          {
-                            id: `rep-live-maint-${req.id}`,
-                            name: req.attachmentName || 'صورة_البلاغ.jpg',
-                            url: req.attachmentUrl,
-                            type: 'image/jpeg',
-                          },
-                        ]
-                      : [];
+              <Table
+                head={[
+                  'رقم الطلب',
+                  'رمز المنشأة',
+                  'جهة الصيانة',
+                  'وصف العطل / البلاغ',
+                  'درجة الأهمية',
+                  'محرر الطلب',
+                  'تاريخ البلاغ',
+                  'تاريخ الإنجاز / الإلغاء',
+                  'المدة (بالأيام)',
+                  'المرفق / الصورة',
+                  'الحالة الحالية',
+                ]}
+              >
 
-                  return (
-                    <div
-                      key={req.id}
-                      className={`p-3 rounded-xl border space-y-2.5 transition bg-card border-slate-200 shadow-xs`}
-                    >
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-mono font-bold text-xs text-brand-700">#{toArabicDigits(req.id)}</span>
-                          <span className="font-mono font-bold text-xs text-slate-500">({toArabicDigits(req.unitCode)})</span>
-                          {req.roomCode && (
-                            <span className="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 border border-emerald-500/30 text-[9px] font-mono font-bold">
-                              غرفة: {toArabicDigits(req.roomCode)}
-                            </span>
-                          )}
-                        </div>
-                        <span
-                          className={`px-2 py-0.5 rounded text-[10px] font-bold shrink-0 ${
-                            req.priority === 'critical'
-                              ? 'bg-red-500/20 text-red-600 border border-red-500/30'
-                              : req.priority === 'normal'
-                              ? 'bg-brand-100 text-brand-700 border border-brand-200'
-                              : 'bg-slate-100 text-slate-600'
-                          }`}
-                        >
-                          {req.priority === 'critical' ? 'حرج جدًا' : req.priority === 'normal' ? 'متوسط' : 'منخفض'}
-                        </span>
-                      </div>
-
-                      <div>
-                        <h4 className={`font-bold text-xs leading-relaxed text-slate-900`}>
-                          {req.issue}
-                        </h4>
-                        <span className={`inline-block mt-1 px-2 py-0.5 rounded-lg text-[10px] font-bold border bg-brand-50 text-brand-800 border-brand-200`}>
-                          {req.maintenanceDepartment || 'الصيانة العامة'}
-                        </span>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-slate-200/60 ">
-                        <div>
-                          <span className="text-slate-500 text-[10px] block">محرر الطلب:</span>
-                          <span className="font-semibold text-[11px]">{getCleanReporterName(req.reportedBy)}</span>
-                        </div>
-                        <div>
-                          <span className="text-slate-500 text-[10px] block">تاريخ البلاغ:</span>
-                          <span className="font-mono text-[11px]">{formatDateOnly(req.createdAt)}</span>
-                        </div>
-                        <div>
-                          <span className="text-slate-500 text-[10px] block">الإنجاز / الإلغاء:</span>
-                          <span className="font-mono text-[11px]">{getCompletionOrCancellationDate(req.completedAt, req.status)}</span>
-                        </div>
-                        <div>
-                          <span className="text-slate-500 text-[10px] block">المدة:</span>
-                          <span className="font-bold text-[11px] text-brand-700">{calculateMaintenanceDurationDays(req.createdAt, req.completedAt, req.status)}</span>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-200/60 ">
-                        <div>
-                          {reqAttachments.length > 0 ? (
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setPreviewAttachment({
-                                  attachments: reqAttachments.map((a, i) => ({
-                                    id: a.id || `rep-live-maint-${req.id}-${i}`,
-                                    name: a.name || `صورة_${i + 1}.jpg`,
-                                    type: a.type || 'image/jpeg',
-                                    url: a.url || req.attachmentUrl || '#',
-                                    uploadDate: formatDateOnly(req.createdAt),
-                                    category: `صورة بلاغ صيانة`,
-                                  })),
-                                  initialIndex: 0,
-                                  unitCode: req.unitCode,
-                                });
-                              }}
-                              className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition cursor-pointer border min-h-[38px] bg-brand-50 text-brand-800 border-brand-200 hover:bg-brand-100`}
-                            >
-                              <Eye className="w-3.5 h-3.5" />
-                              <span>معاينة المرفق ({toArabicDigits(reqAttachments.length)})</span>
-                            </button>
-                          ) : (
-                            <span className="text-slate-500 text-[10px]">لا يوجد مرفق</span>
-                          )}
-                        </div>
-
-                        <div>
-                          {req.status === 'completed' ? (
-                            <span className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-emerald-500/20 text-emerald-600 border border-emerald-500/30">منجز</span>
-                          ) : req.status === 'rejected' ? (
-                            <span className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-rose-500/20 text-rose-600 border border-rose-500/30">مرفوض</span>
-                          ) : req.status === 'cancelled' ? (
-                            <span className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-slate-500/20 text-slate-500 border border-slate-500/30">ملغى</span>
-                          ) : req.status === 'overdue' ? (
-                            <span className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-red-500/20 text-red-600 border border-red-500/30">متأخر</span>
-                          ) : (
-                            <span className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-brand-100 text-brand-700 border border-brand-200">قيد المعالجة</span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Desktop Table View */}
-              <div className="hidden md:block overflow-x-auto">
-                <table className="w-full text-right text-xs">
-                  <thead className={`border-b bg-slate-100 border-slate-200 text-slate-700 font-bold`}>
-                    <tr>
-                      <th className="p-2.5">رقم الطلب</th>
-                      <th className="p-2.5">رمز المنشأة</th>
-                      <th className="p-2.5">جهة الصيانة</th>
-                      <th className="p-2.5">وصف العطل / البلاغ</th>
-                      <th className="p-2.5">درجة الأهمية</th>
-                      <th className="p-2.5">محرر الطلب</th>
-                      <th className="p-2.5">تاريخ البلاغ</th>
-                      <th className="p-2.5">تاريخ الإنجاز / الإلغاء</th>
-                      <th className="p-2.5">المدة (بالأيام)</th>
-                      <th className="p-2.5 text-center">المرفق / الصورة</th>
-                      <th className="p-2.5">الحالة الحالية</th>
-                    </tr>
-                  </thead>
-                  <tbody className={`divide-y divide-slate-200 text-slate-800`}>
                     {filteredMaintenance.map((req) => (
                     <tr key={req.id} className={'hover:bg-slate-50'}>
-                      <td className="p-2.5 font-mono font-bold text-brand-700 whitespace-nowrap">{toArabicDigits(req.id)}</td>
-                      <td className="p-2.5 leading-snug whitespace-nowrap">
+                      <Td className="font-mono font-bold text-brand-700 whitespace-nowrap">{toArabicDigits(req.id)}</Td>
+                      <Td className="leading-snug whitespace-nowrap">
                         <div className="font-mono font-bold text-brand-700">{toArabicDigits(req.unitCode)}</div>
                         {req.roomCode && (
                           <div className="inline-block mt-0.5 px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 border border-emerald-500/30 text-[9px] font-mono font-bold">
                             🚪 غرفة: {toArabicDigits(req.roomCode)}
                           </div>
                         )}
-                      </td>
-                      <td className="p-2.5 font-semibold text-brand-700 whitespace-nowrap">{req.maintenanceDepartment || 'الصيانة العامة'}</td>
-                      <td className="p-2.5 font-bold max-w-xs">{req.issue}</td>
-                      <td className="p-2.5 whitespace-nowrap">
+                      </Td>
+                      <Td className="font-semibold text-brand-700 whitespace-nowrap">{req.maintenanceDepartment || 'الصيانة العامة'}</Td>
+                      <Td className="font-bold max-w-xs">{req.issue}</Td>
+                      <Td className="whitespace-nowrap">
                         <span
                           className={`px-2 py-0.5 rounded text-[10px] font-bold ${
                             req.priority === 'critical'
@@ -3614,14 +3283,14 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                         >
                           {req.priority === 'critical' ? 'حرج جدًا' : req.priority === 'normal' ? 'متوسط' : 'منخفض'}
                         </span>
-                      </td>
-                      <td className="p-2.5 whitespace-nowrap font-semibold">
+                      </Td>
+                      <Td className="whitespace-nowrap font-semibold">
                         {getCleanReporterName(req.reportedBy)}
-                      </td>
-                      <td className="p-2.5 font-mono whitespace-nowrap">{formatDateOnly(req.createdAt)}</td>
-                      <td className="p-2.5 font-mono whitespace-nowrap">{getCompletionOrCancellationDate(req.completedAt, req.status)}</td>
-                      <td className="p-2.5 font-bold text-brand-700 whitespace-nowrap">{calculateMaintenanceDurationDays(req.createdAt, req.completedAt, req.status)}</td>
-                      <td className="p-2.5 text-center whitespace-nowrap">
+                      </Td>
+                      <Td className="font-mono whitespace-nowrap">{formatDateOnly(req.createdAt)}</Td>
+                      <Td className="font-mono whitespace-nowrap">{getCompletionOrCancellationDate(req.completedAt, req.status)}</Td>
+                      <Td className="font-bold text-brand-700 whitespace-nowrap">{calculateMaintenanceDurationDays(req.createdAt, req.completedAt, req.status)}</Td>
+                      <Td className="text-center whitespace-nowrap">
                         {(() => {
                           const reqAttachments: ReportAttachment[] =
                             req.attachments && req.attachments.length > 0
@@ -3733,8 +3402,8 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                             </div>
                           );
                         })()}
-                      </td>
-                      <td className="p-2.5 whitespace-nowrap font-bold">
+                      </Td>
+                      <Td className="whitespace-nowrap font-bold">
                         {req.status === 'completed' ? (
                           <span className="text-emerald-600">منجز</span>
                         ) : req.status === 'rejected' ? (
@@ -3746,12 +3415,10 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                         ) : (
                           <span className="text-brand-700">قيد المعالجة</span>
                         )}
-                      </td>
+                      </Td>
                     </tr>
                   ))}
-              </tbody>
-            </table>
-          </div>
+              </Table>
         </div>
       )}
     </div>
@@ -3792,206 +3459,54 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
             </div>
           )}
 
-          {/* Mobile Cards for Units & Infrastructure Inventory */}
-          <div className="md:hidden space-y-3">
-            {filteredUnits.length === 0 ? (
-              <div className="p-6 text-center text-slate-500 text-xs font-semibold">
-                لا توجد وحدات هندسية تطابق معايير الفلترة المحددة.
-              </div>
-            ) : (
-              filteredUnits.map((u) => {
-                const stats = getUnitOccupancyStats(u, selectedOrgEntity);
-                return (
-                  <div
-                    key={u.id}
-                    className={`p-3.5 rounded-xl border space-y-3 transition bg-card border-slate-200 shadow-xs`}
-                  >
-                    {/* Header: Code + Asset + Type + Condition Grade */}
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className="font-mono font-bold text-xs text-brand-700">
-                            {toArabicDigits(u.code)}
-                          </span>
-                          {u.fixedAssetCode && (
-                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border bg-indigo-50 text-indigo-700 border-indigo-200`}>
-                              أصل: {u.fixedAssetCode}
-                            </span>
-                          )}
-                          <span className={`text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600`}>
-                            {translateUnitType(u.type)}
-                          </span>
-                        </div>
-                        <h4 className={`font-black text-sm mt-1 leading-snug text-slate-900`}>
-                          {u.name}
-                        </h4>
-                      </div>
+          <Table
+            head={[
+              'رمز المنشأة',
+              'اسم المنشأة',
+              'المحافظة والحقل',
+              'التقييم الإنشائي',
+              'الجهة الشاغلة',
+              selectedOrgEntity !== 'all' ? 'الغرف الشاغلة للتشكيل' : 'الغرف المشغولة',
+              'الغرف الشاغرة (فارغة)',
+              'إجمالي الغرف',
+              'سنة الإنشاء',
+              'المساحة (م²)',
+              'المعدات',
+            ]}
+          >
 
-                      <span
-                        className={`px-2.5 py-1 rounded-lg text-[10px] font-black shrink-0 ${
-                          u.conditionGrade === 'A'
-                            ? 'bg-emerald-500/20 text-emerald-600 border border-emerald-500/30'
-                            : u.conditionGrade === 'B'
-                            ? 'bg-blue-500/20 text-blue-600 border border-blue-500/30'
-                            : u.conditionGrade === 'C'
-                            ? 'bg-brand-100 text-brand-700 border border-brand-200'
-                            : 'bg-red-500/20 text-red-600 border border-red-500/30'
-                        }`}
-                      >
-                        الدرجة {u.conditionGrade}
-                      </span>
-                    </div>
-
-                    {/* Location & Occupants Grid */}
-                    <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-slate-200/60 ">
-                      <div>
-                        <span className="text-slate-500 text-[10px] block">المحافظة والحقل:</span>
-                        <span className={`font-bold text-[11px] block mt-0.5 text-slate-800`}>
-                          {translateGovernorate(u.governorate) || u.governorate}
-                        </span>
-                        <span className="text-[10px] text-slate-500 block">
-                          {translateField(u.field) || u.field}
-                        </span>
-                      </div>
-                      <div>
-                        <span className="text-slate-500 text-[10px] block">الجهة الشاغلة:</span>
-                        {selectedOrgEntity !== 'all' ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-brand-50 text-brand-700 border border-brand-200 mt-0.5">
-                            <span className="w-1.5 h-1.5 rounded-full bg-brand-700 shrink-0" />
-                            <span className="truncate">{selectedOrgEntity}</span>
-                          </span>
-                        ) : stats.allOccupants && stats.allOccupants.length > 0 ? (
-                          <div className="space-y-0.5 mt-0.5">
-                            {stats.allOccupants.slice(0, 2).map((occ: string, oIdx: number) => (
-                              <div key={oIdx} className="text-[11px] font-semibold truncate flex items-center gap-1">
-                                <span className="w-1.5 h-1.5 rounded-full bg-brand-700 shrink-0" />
-                                <span className="truncate">{occ}</span>
-                              </div>
-                            ))}
-                            {stats.allOccupants.length > 2 && (
-                              <span className="text-[10px] text-slate-500 block font-mono">
-                                +{toArabicDigits(stats.allOccupants.length - 2)} تشكيلات أخرى
-                              </span>
-                            )}
-                          </div>
-                        ) : (
-                          <span className="font-semibold text-slate-500 text-[11px] block mt-0.5">
-                            {stats.entity || 'عام / غير محدد'}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Occupancy Stats 3-Box Grid */}
-                    <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-200/60 text-center">
-                      <div className={`p-2 rounded-lg border ${
-                        selectedOrgEntity !== 'all'
-                          ? 'bg-brand-50 border-brand-200'
-                          : 'bg-emerald-500/10 border-emerald-500/20'
-                      }`}>
-                        <span className="text-[10px] text-slate-500 block font-bold">
-                          {selectedOrgEntity !== 'all' ? 'غرف التشكيل' : 'المشغولة'}
-                        </span>
-                        <span className="text-xs font-black font-mono text-emerald-600 ">
-                          {toArabicDigits(stats.occupiedRoomsCount)} غرفة
-                        </span>
-                      </div>
-
-                      <div className={`p-2 rounded-lg border ${
-                        stats.vacantRoomsCount > 0
-                          ? 'bg-brand-100 text-brand-800 border-brand-200 font-bold'
-                          : 'bg-slate-100 text-slate-500 border-slate-200 '
-                      }`}>
-                        <span className="text-[10px] opacity-80 block font-bold">الشاغرة (فارغة)</span>
-                        <span className="text-xs font-black font-mono">
-                          {stats.vacantRoomsCount > 0 ? `${toArabicDigits(stats.vacantRoomsCount)} فارغة` : '0'}
-                        </span>
-                      </div>
-
-                      <div className="p-2 rounded-lg border border-slate-200 bg-slate-50 ">
-                        <span className="text-[10px] text-slate-500 block font-bold">إجمالي الغرف</span>
-                        <span className="text-xs font-black font-mono text-slate-700 ">
-                          {toArabicDigits(stats.totalRooms)} غرفة
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Specs: Year, Area, Equipment */}
-                    <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-200/60 text-[11px] font-mono">
-                      <div>
-                        <span className="text-slate-500 text-[10px] block">سنة الإنشاء:</span>
-                        <span className="font-bold text-slate-700 ">{toArabicDigits(u.constructionYear)}</span>
-                      </div>
-                      <div>
-                        <span className="text-slate-500 text-[10px] block">المساحة:</span>
-                        <span className="font-bold text-slate-700 ">{toArabicDigits(u.totalAreaSqM)} م²</span>
-                      </div>
-                      <div>
-                        <span className="text-slate-500 text-[10px] block">المعدات:</span>
-                        <span className="font-bold text-slate-700 ">{toArabicDigits(u.equipment.length)} معدة</span>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })
-            )}
-          </div>
-
-          {/* Desktop Table View */}
-          <div className="hidden md:block overflow-x-auto">
-            <table className="w-full text-right text-xs">
-              <thead className={`border-b bg-slate-100 border-slate-200 text-slate-700 font-bold`}>
-                <tr>
-                  <th className="p-2.5">رمز المنشأة</th>
-                  <th className="p-2.5">اسم المنشأة</th>
-                  <th className="p-2.5">المحافظة والحقل</th>
-                  <th className="p-2.5">التقييم الإنشائي</th>
-                  <th className="p-2.5">الجهة الشاغلة</th>
-                  <th className="p-2.5 text-center font-black text-emerald-600 ">
-                    {selectedOrgEntity !== 'all' ? 'الغرف الشاغلة للتشكيل' : 'الغرف المشغولة'}
-                  </th>
-                  <th className="p-2.5 text-center font-black text-brand-700 ">
-                    الغرف الشاغرة (فارغة)
-                  </th>
-                  <th className="p-2.5 text-center">إجمالي الغرف</th>
-                  <th className="p-2.5">سنة الإنشاء</th>
-                  <th className="p-2.5">المساحة (م²)</th>
-                  <th className="p-2.5">المعدات</th>
-                </tr>
-              </thead>
-              <tbody className={`divide-y divide-slate-200 text-slate-800`}>
                 {filteredUnits.length === 0 ? (
                   <tr>
-                    <td colSpan={11} className="p-6 text-center text-slate-500 font-semibold">
+                    <Td colSpan={11} className="p-6 text-center text-slate-500 font-semibold">
                       لا توجد وحدات هندسية تطابق معايير الفلترة المحددة.
-                    </td>
+                    </Td>
                   </tr>
                 ) : (
                   filteredUnits.map((u) => {
                     const stats = getUnitOccupancyStats(u, selectedOrgEntity);
                     return (
                       <tr key={u.id} className={'hover:bg-slate-50'}>
-                        <td className="p-2.5 font-mono font-bold whitespace-nowrap">
+                        <Td className="font-mono font-bold whitespace-nowrap">
                           <div className="text-brand-700">{toArabicDigits(u.code)}</div>
                           {u.fixedAssetCode && (
                             <div className="text-[10px] text-indigo-600 font-bold mt-0.5">
                               أصل: {u.fixedAssetCode}
                             </div>
                           )}
-                        </td>
-                        <td className="p-2.5 font-bold whitespace-nowrap">
+                        </Td>
+                        <Td className="font-bold whitespace-nowrap">
                           <div>{u.name}</div>
                           <span className="text-[10px] text-slate-500 font-normal">{translateUnitType(u.type)}</span>
-                        </td>
-                        <td className="p-2.5 whitespace-nowrap">
+                        </Td>
+                        <Td className="whitespace-nowrap">
                           <div className={`font-bold text-xs text-slate-800`}>
                             {translateGovernorate(u.governorate) || u.governorate}
                           </div>
                           <div className={`text-[11px] text-slate-500`}>
                             {translateField(u.field) || u.field}
                           </div>
-                        </td>
-                        <td className="p-2.5 whitespace-nowrap">
+                        </Td>
+                        <Td className="whitespace-nowrap">
                           <span
                             className={`px-2 py-0.5 rounded text-[10px] font-black ${
                               u.conditionGrade === 'A'
@@ -4005,8 +3520,8 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                           >
                             الدرجة {u.conditionGrade}
                           </span>
-                        </td>
-                        <td className="p-2.5">
+                        </Td>
+                        <Td>
                           {selectedOrgEntity !== 'all' ? (
                             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-brand-50 text-brand-700 border border-brand-200">
                               <span className="w-1.5 h-1.5 rounded-full bg-brand-700 shrink-0" />
@@ -4028,8 +3543,8 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                           ) : (
                             <span className="font-semibold text-slate-500 text-xs">{stats.entity || 'عام / غير محدد'}</span>
                           )}
-                        </td>
-                        <td className="p-2.5 whitespace-nowrap text-center">
+                        </Td>
+                        <Td className="whitespace-nowrap text-center">
                           <div className="inline-flex flex-col items-center">
                             <span className={`px-2.5 py-0.5 rounded text-[11px] font-black font-mono border ${
                               selectedOrgEntity !== 'all'
@@ -4048,8 +3563,8 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                               </span>
                             )}
                           </div>
-                        </td>
-                        <td className="p-2.5 whitespace-nowrap text-center">
+                        </Td>
+                        <Td className="whitespace-nowrap text-center">
                           <div className="inline-flex flex-col items-center">
                             <span className={`px-2.5 py-0.5 rounded text-[11px] font-black font-mono border ${
                               stats.vacantRoomsCount > 0
@@ -4074,22 +3589,20 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                               </span>
                             )}
                           </div>
-                        </td>
-                        <td className="p-2.5 font-mono text-center text-slate-500 whitespace-nowrap">
+                        </Td>
+                        <Td className="font-mono text-center text-slate-500 whitespace-nowrap">
                           {toArabicDigits(stats.totalRooms)} غرفة
-                        </td>
-                        <td className="p-2.5 font-mono whitespace-nowrap">{toArabicDigits(u.constructionYear)}</td>
-                        <td className="p-2.5 font-mono whitespace-nowrap">{toArabicDigits(u.totalAreaSqM)} م²</td>
-                        <td className="p-2.5 text-[11px] text-slate-500 whitespace-nowrap font-mono">
+                        </Td>
+                        <Td className="font-mono whitespace-nowrap">{toArabicDigits(u.constructionYear)}</Td>
+                        <Td className="font-mono whitespace-nowrap">{toArabicDigits(u.totalAreaSqM)} م²</Td>
+                        <Td className="text-[11px] text-slate-500 whitespace-nowrap font-mono">
                           {toArabicDigits(u.equipment.length)} معدة
-                        </td>
+                        </Td>
                       </tr>
                     );
                   })
                 )}
-              </tbody>
-            </table>
-          </div>
+          </Table>
         </div>
       )}
 
@@ -4106,127 +3619,50 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
             <span className="text-[11px] text-rose-600 font-mono font-bold self-start sm:self-auto">الاصول المشطوبة و المجمدة</span>
           </div>
 
-          {/* Mobile Cards for Decommissioned Units */}
-          <div className="md:hidden space-y-3">
-            {decommissionedUnits.length === 0 ? (
-              <div className="p-6 text-center text-slate-500 text-xs font-semibold">
-                لا توجد منشآت مشطوبة أو مجمدة حالياً بالنظام.
-              </div>
-            ) : (
-              decommissionedUnits.map((u) => (
-                <div
-                  key={u.id}
-                  className={`p-3.5 rounded-xl border space-y-2.5 transition bg-rose-50/40 border-rose-200 shadow-xs`}
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="font-mono font-bold text-xs text-rose-600">
-                          {toArabicDigits(u.code)}
-                        </span>
-                        {u.fixedAssetCode && (
-                          <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border bg-indigo-50 text-indigo-700 border-indigo-200`}>
-                            أصل: {u.fixedAssetCode}
-                          </span>
-                        )}
-                      </div>
-                      <h4 className={`font-black text-sm mt-1 leading-snug text-slate-900`}>
-                        {u.name}
-                      </h4>
-                    </div>
+          <Table
+            head={[
+              'رمز المنشأة',
+              'اسم المنشأة المشطوبة',
+              'الحقل / المحافظة',
+              'الجهة السابقة',
+              'الحالة الحالية',
+              'تاريخ الشطب',
+              'سبب الشطب والتجميد التوثيقي',
+            ]}
+          >
 
-                    <span className="px-2.5 py-1 rounded-lg text-[10px] font-black bg-rose-600 text-white flex items-center gap-1 shrink-0">
-                      <Archive className="w-3 h-3" />
-                      <span>مشطوبة ومجمدة</span>
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-rose-200/60 ">
-                    <div>
-                      <span className="text-slate-500 text-[10px] block">الحقل / المحافظة:</span>
-                      <span className={`font-bold text-[11px] block mt-0.5 text-slate-800`}>
-                        {translateField(u.field)} / {translateGovernorate(u.governorate)}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-slate-500 text-[10px] block">الجهة السابقة:</span>
-                      <span className={`font-bold text-[11px] block mt-0.5 text-slate-800`}>
-                        {u.department || '-'}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-rose-200/60 ">
-                    <div>
-                      <span className="text-slate-500 text-[10px] block">سنة الإنشاء:</span>
-                      <span className="font-mono text-[11px] font-bold">{toArabicDigits(u.constructionYear)}</span>
-                    </div>
-                    <div>
-                      <span className="text-slate-500 text-[10px] block">تاريخ الشطب والتجميد:</span>
-                      <span className="font-mono text-[11px] font-black text-brand-700">{toArabicDigits(u.decommissionedAt || '2026')}</span>
-                    </div>
-                  </div>
-
-                  <div className={`p-2.5 rounded-xl text-xs space-y-1 bg-card border border-rose-200 text-slate-800`}>
-                    <span className="font-bold text-[10px] text-rose-600 block">سبب الشطب والتجميد التوثيقي:</span>
-                    <p className="text-[11px] leading-relaxed font-semibold">
-                      {u.decommissionReason || 'تم الشطب بموجب محضر الفحص الفني والإنشائي ولجان الجرد'}
-                    </p>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-
-          {/* Desktop Table View */}
-          <div className="hidden md:block overflow-x-auto">
-            <table className="w-full text-right text-xs">
-              <thead className={`border-b bg-slate-100 border-slate-200 text-slate-700 font-bold`}>
-                <tr>
-                  <th className="p-2.5">رمز المنشأة</th>
-                  <th className="p-2.5">اسم المنشأة المشطوبة</th>
-                  <th className="p-2.5">الحقل / المحافظة</th>
-                  <th className="p-2.5">الجهة السابقة</th>
-                  <th className="p-2.5">الحالة الحالية</th>
-                  <th className="p-2.5">تاريخ الشطب</th>
-                  <th className="p-2.5">سبب الشطب والتجميد التوثيقي</th>
-                </tr>
-              </thead>
-              <tbody className={`divide-y divide-slate-200 text-slate-800`}>
                 {decommissionedUnits.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="p-6 text-center text-slate-500 font-semibold">
+                    <Td colSpan={7} className="p-6 text-center text-slate-500 font-semibold">
                       لا توجد منشآت مشطوبة أو مجمدة حالياً بالنظام.
-                    </td>
+                    </Td>
                   </tr>
                 ) : (
                   decommissionedUnits.map((u) => (
                     <tr key={u.id} className={'hover:bg-rose-50/50'}>
-                      <td className="p-2.5 font-mono font-bold whitespace-nowrap">
+                      <Td className="font-mono font-bold whitespace-nowrap">
                         <div className="text-rose-600">{toArabicDigits(u.code)}</div>
                         {u.fixedAssetCode && (
                           <div className="text-[10px] text-indigo-600 font-bold mt-0.5">
                             أصل: {u.fixedAssetCode}
                           </div>
                         )}
-                      </td>
-                      <td className="p-2.5 font-bold whitespace-nowrap">{u.name}</td>
-                      <td className="p-2.5 text-slate-500 whitespace-nowrap">{u.field} / {u.governorate}</td>
-                      <td className="p-2.5 text-slate-500 whitespace-nowrap">{u.department}</td>
-                      <td className="p-2.5 whitespace-nowrap">
+                      </Td>
+                      <Td className="font-bold whitespace-nowrap">{u.name}</Td>
+                      <Td className="text-slate-500 whitespace-nowrap">{u.field} / {u.governorate}</Td>
+                      <Td className="text-slate-500 whitespace-nowrap">{u.department}</Td>
+                      <Td className="whitespace-nowrap">
                         <span className="px-2 py-0.5 rounded text-[10px] font-black bg-rose-600 text-white flex items-center gap-1 w-fit">
                           <Archive className="w-3 h-3" />
                           <span>مشطوبة ومجمدة</span>
                         </span>
-                      </td>
-                      <td className="p-2.5 font-mono whitespace-nowrap font-bold text-brand-700">{toArabicDigits(u.decommissionedAt || '2026')}</td>
-                      <td className="p-2.5 max-w-md text-slate-600 font-semibold">{u.decommissionReason || 'تم الشطب بموجب محضر الفحص الفني والإنشائي'}</td>
+                      </Td>
+                      <Td className="font-mono whitespace-nowrap font-bold text-brand-700">{toArabicDigits(u.decommissionedAt || '2026')}</Td>
+                      <Td className="max-w-md text-slate-600 font-semibold">{u.decommissionReason || 'تم الشطب بموجب محضر الفحص الفني والإنشائي'}</Td>
                     </tr>
                   ))
                 )}
-              </tbody>
-            </table>
-          </div>
+          </Table>
         </div>
       )}
       </div>
