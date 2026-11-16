@@ -64,6 +64,7 @@ import {
   getServerDateFormatted,
   getServerDateTimeFormatted,
 } from '../utils/arabicUtils';
+import { h } from '../utils/sanitize';
 
 // تُحمَّل عند الطلب (4-ل)
 const AttachmentViewerModalLazy = lazy(() => import('./AttachmentViewerModal').then((m) => ({ default: m.AttachmentViewerModal })));
@@ -1455,20 +1456,20 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
  <tr style="${bg}">
  <td style="text-align: center; font-weight: bold; font-family: monospace;">${toArabicDigits(item.indexInSection + 1)}</td>
  <td style="line-height: 1.45;">
- <div style="font-weight: bold; font-family: monospace; color: #78350f; font-size: 8.5pt;">${toArabicDigits(i.unitCode)}</div>
- <div style="font-weight: bold; color: #0f172a; font-size: 8.5pt;">${i.unitName || i.title || '-'}</div>
- <div style="font-size: 7.5pt; color: #64748b;">${translateField(i.field)} / ${translateGovernorate(i.governorate)}</div>
+ <div style="font-weight: bold; font-family: monospace; color: #78350f; font-size: 8.5pt;">${h(toArabicDigits(i.unitCode))}</div>
+ <div style="font-weight: bold; color: #0f172a; font-size: 8.5pt;">${h(i.unitName || i.title)}</div>
+ <div style="font-size: 7.5pt; color: #64748b;">${h(translateField(i.field))} / ${h(translateGovernorate(i.governorate))}</div>
  </td>
- <td><b>${translateInspectionType(i.inspectionType)}</b> <span style="font-size: 8pt; color: #475569;">(${translateFrequency(i.frequency)})</span></td>
- <td style="font-family: monospace; color: #475569;">${toArabicDigits(i.lastInspectionDate || 'غير مسجل')}</td>
- <td style="font-family: monospace; font-weight: bold; color: #0369a1;">${toArabicDigits(i.nextDueDate)}</td>
- <td style="font-weight: 600; color: #0f172a;">${getCleanInspectorName(i.inspectorName, i.performedByName, users)}</td>
+ <td><b>${h(translateInspectionType(i.inspectionType))}</b> <span style="font-size: 8pt; color: #475569;">(${h(translateFrequency(i.frequency))})</span></td>
+ <td style="font-family: monospace; color: #475569;">${h(toArabicDigits(i.lastInspectionDate || 'غير مسجل'))}</td>
+ <td style="font-family: monospace; font-weight: bold; color: #0369a1;">${h(toArabicDigits(i.nextDueDate))}</td>
+ <td style="font-weight: 600; color: #0f172a;">${h(getCleanInspectorName(i.inspectorName, i.performedByName, users))}</td>
  <td style="text-align: center; font-weight: 600; color: #0f172a;">
- ${translateInspectionStatus(i.status)}${i.conditionGradeGiven ? ` - الدرجة ${i.conditionGradeGiven}` : ''}
+ ${h(translateInspectionStatus(i.status))}${i.conditionGradeGiven ? ` - الدرجة ${h(i.conditionGradeGiven)}` : ''}
  </td>
- <td style="font-size: 8pt; color: #334155;">${i.findings || i.notes || '-'}</td>
- <td style="font-size: 8pt; color: #78350f; font-weight: 600;">${i.recommendations || '-'}</td>
- <td style="text-align: center; font-size: 8pt;">${i.reportFileName ? `📎 ${i.reportFileName}` : (i.reportFileUrl ? '📎 ملف مرفق' : '-')}</td>
+ <td style="font-size: 8pt; color: #334155;">${h(i.findings || i.notes)}</td>
+ <td style="font-size: 8pt; color: #78350f; font-weight: 600;">${h(i.recommendations)}</td>
+ <td style="text-align: center; font-size: 8pt;">${i.reportFileName ? `📎 ${h(i.reportFileName)}` : (i.reportFileUrl ? '📎 ملف مرفق' : '-')}</td>
           </tr>
         `;
       });
@@ -1502,32 +1503,32 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
         rows += `
  <tr style="${bg}">
  <td style="text-align: center; font-weight: bold; font-family: monospace;">${toArabicDigits(item.indexInSection + 1)}</td>
- <td style="font-weight: bold; font-family: monospace; color: #78350f;">${toArabicDigits(m.id)}</td>
+ <td style="font-weight: bold; font-family: monospace; color: #78350f;">${h(toArabicDigits(m.id))}</td>
  <td style="line-height: 1.45;">
- <div style="font-weight: bold; font-family: monospace; color: #78350f; font-size: 8.5pt;">${toArabicDigits(m.unitCode)}</div>
+ <div style="font-weight: bold; font-family: monospace; color: #78350f; font-size: 8.5pt;">${h(toArabicDigits(m.unitCode))}</div>
  ${m.roomCode ? `
                 <div style="display: inline-block; background-color: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; border-radius: 3px; padding: 1px 4px; font-size: 7.5pt; font-weight: bold; font-family: monospace; margin-top: 2px;">
-                  🚪 غرفة: ${toArabicDigits(m.roomCode)}
+                  🚪 غرفة: ${h(toArabicDigits(m.roomCode))}
                 </div>
               ` : ''}
  </td>
- <td style="font-weight: bold; color: #78350f;">${m.maintenanceDepartment || 'الصيانة العامة'}</td>
- <td style="font-weight: 600; color: #0f172a;">${m.issue}</td>
- <td>${translateField(m.field)}</td>
- <td style="text-align: center; font-weight: bold;">${translatePriority(m.priority)}</td>
- <td style="font-weight: 600; color: #0f172a;">${getCleanReporterName(m.reportedBy)}</td>
- <td style="font-family: monospace;">${formatDateOnly(m.createdAt)}</td>
- <td style="font-family: monospace;">${getCompletionOrCancellationDate(m.completedAt, m.status)}</td>
+ <td style="font-weight: bold; color: #78350f;">${h(m.maintenanceDepartment || 'الصيانة العامة')}</td>
+ <td style="font-weight: 600; color: #0f172a;">${h(m.issue)}</td>
+ <td>${h(translateField(m.field))}</td>
+ <td style="text-align: center; font-weight: bold;">${h(translatePriority(m.priority))}</td>
+ <td style="font-weight: 600; color: #0f172a;">${h(getCleanReporterName(m.reportedBy))}</td>
+ <td style="font-family: monospace;">${h(formatDateOnly(m.createdAt))}</td>
+ <td style="font-family: monospace;">${h(getCompletionOrCancellationDate(m.completedAt, m.status))}</td>
  <td style="text-align: center; font-size: 8pt;">${
  m.attachments && m.attachments.length > 1
  ? `📷 ${toArabicDigits(m.attachments.length)} مرفقات`
                 : m.attachmentName
-                ? `📷 ${m.attachmentName}`
+                ? `📷 ${h(m.attachmentName)}`
  : m.attachmentUrl
  ? '📷 صورة مرفقة'
  : '-'
  }</td>
- <td style="text-align: center; font-weight: bold; color: #78350f;">${translateMaintenanceStatus(m.status)}</td>
+ <td style="text-align: center; font-weight: bold; color: #78350f;">${h(translateMaintenanceStatus(m.status))}</td>
  </tr>
  `;
       });
@@ -1565,24 +1566,24 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
  <tr style="${bg}">
  <td style="text-align: center; font-weight: bold; font-family: monospace;">${toArabicDigits(item.indexInSection + 1)}</td>
  <td style="font-weight: bold; font-family: monospace; color: #78350f;">
- <div>${toArabicDigits(u.code)}</div>
- ${u.fixedAssetCode ? `<div style="font-size: 10px; color: #4338ca; font-weight: bold; margin-top: 2px;">أصل: ${u.fixedAssetCode}</div>` : ''}
+ <div>${h(toArabicDigits(u.code))}</div>
+ ${u.fixedAssetCode ? `<div style="font-size: 10px; color: #4338ca; font-weight: bold; margin-top: 2px;">أصل: ${h(u.fixedAssetCode)}</div>` : ''}
  </td>
- <td style="font-weight: bold; color: #0f172a;">${u.name}</td>
+ <td style="font-weight: bold; color: #0f172a;">${h(u.name)}</td>
  <td>
- <div style="font-weight: bold; color: #0f172a;">${translateGovernorate(u.governorate) || u.governorate}</div>
- <div style="font-size: 8.5pt; color: #64748b;">${translateField(u.field) || u.field}</div>
+ <div style="font-weight: bold; color: #0f172a;">${h(translateGovernorate(u.governorate) || u.governorate)}</div>
+ <div style="font-size: 8.5pt; color: #64748b;">${h(translateField(u.field) || u.field)}</div>
  </td>
- <td>${translateUnitType(u.type)}</td>
+ <td>${h(translateUnitType(u.type))}</td>
  <td style="font-weight: 600; font-size: 8.5pt;">
- ${stats.allOccupants && stats.allOccupants.length > 0 ? stats.allOccupants.map((occ: string) => `<div style="margin-bottom: 2px;">• ${occ}</div>`).join('') : (stats.entity || 'عام / غير محدد')}
+ ${stats.allOccupants && stats.allOccupants.length > 0 ? stats.allOccupants.map((occ: string) => `<div style="margin-bottom: 2px;">• ${h(occ)}</div>`).join('') : h(stats.entity || 'عام / غير محدد')}
  </td>
  <td style="text-align: center; font-weight: bold; font-family: monospace; color: #059669;">${toArabicDigits(stats.occupiedRoomsCount)}</td>
  <td style="text-align: center; font-weight: bold; font-family: monospace; color: #d97706;">${stats.vacantRoomsCount > 0 ? `${toArabicDigits(stats.vacantRoomsCount)} فارغة` : '0'}</td>
  <td style="text-align: center; font-family: monospace;">${toArabicDigits(stats.totalRooms)}</td>
- <td style="font-family: monospace;">${toArabicDigits(u.constructionYear)}</td>
- <td style="font-family: monospace;">${u.totalAreaSqM ? `${toArabicDigits(u.totalAreaSqM)} م²` : '-'}</td>
- <td style="text-align: center; font-weight: 600; color: #0f172a;">${formatGradeArabic(u.conditionGrade)}</td>
+ <td style="font-family: monospace;">${h(toArabicDigits(u.constructionYear))}</td>
+ <td style="font-family: monospace;">${u.totalAreaSqM ? `${h(toArabicDigits(u.totalAreaSqM))} م²` : '-'}</td>
+ <td style="text-align: center; font-weight: 600; color: #0f172a;">${h(formatGradeArabic(u.conditionGrade))}</td>
  </tr>
  `;
       });
@@ -1618,13 +1619,13 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
       rows += `
  <tr style="${bg}">
  <td style="text-align: center; font-weight: bold; font-family: monospace;">${toArabicDigits(item.indexInSection + 1)}</td>
- <td style="font-weight: bold; font-family: monospace; color: #9f1239;">${toArabicDigits(d.code)}</td>
- <td style="font-weight: bold; color: #0f172a;">${d.name}</td>
- <td>${translateField(d.field)} / ${translateGovernorate(d.governorate)}</td>
- <td>${d.department}</td>
- <td style="font-family: monospace;">${toArabicDigits(d.constructionYear)}</td>
- <td style="font-family: monospace; font-weight: bold; color: #881337;">${toArabicDigits(d.decommissionedAt || '2026')}</td>
- <td style="font-size: 8pt;">${d.decommissionReason || 'محضر لجان فنية وشطب هندسي'}</td>
+ <td style="font-weight: bold; font-family: monospace; color: #9f1239;">${h(toArabicDigits(d.code))}</td>
+ <td style="font-weight: bold; color: #0f172a;">${h(d.name)}</td>
+ <td>${h(translateField(d.field))} / ${h(translateGovernorate(d.governorate))}</td>
+ <td>${h(d.department)}</td>
+ <td style="font-family: monospace;">${h(toArabicDigits(d.constructionYear))}</td>
+ <td style="font-family: monospace; font-weight: bold; color: #881337;">${h(toArabicDigits(d.decommissionedAt || '2026'))}</td>
+ <td style="font-size: 8pt;">${h(d.decommissionReason || 'محضر لجان فنية وشطب هندسي')}</td>
  <td style="text-align: center; font-weight: bold; color: #9f1239;">مشطوبة ومجمدة</td>
  </tr>
  `;
@@ -1675,29 +1676,29 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
       const pageHeader = isFirstPage ? `
         <div class="official-header">
           <div class="header-right">
-            ${logoUrl ? `<img src="${logoUrl}" alt="Logo" class="logo-img" />` : `<div class="logo-fallback">${companyName.slice(0, 2)}</div>`}
+            ${logoUrl ? `<img src="${logoUrl}" alt="Logo" class="logo-img" />` : `<div class="logo-fallback">${h(companyName.slice(0, 2))}</div>`}
             <div>
-              <div class="country-line">${countryName} - ${ministryName}</div>
-              <div class="company-line">${companyName}</div>
-              <div class="system-line">${systemName}</div>
+              <div class="country-line">${h(countryName)} - ${h(ministryName)}</div>
+              <div class="company-line">${h(companyName)}</div>
+              <div class="system-line">${h(systemName)}</div>
             </div>
           </div>
           <div class="header-left">
-            <div>تاريخ الطباعة: <b>${currentDateFormatted}</b></div>
-            <div>نوع التقرير: <b style="color: #78350f;">${reportTitle}</b></div>
+            <div>تاريخ الطباعة: <b>${h(currentDateFormatted)}</b></div>
+            <div>نوع التقرير: <b style="color: #78350f;">${h(reportTitle)}</b></div>
             <div>إجمالي السجلات: <b>${toArabicDigits(totalFilteredRecords)}</b></div>
           </div>
         </div>
         <div class="filters-banner">
-          <b>الفلاتر المطبقة: </b> <span>${activeFiltersSummary}</span>
+          <b>الفلاتر المطبقة: </b> <span>${h(activeFiltersSummary)}</span>
         </div>
         <div class="kpi-grid">
           ${reportKpis
             .map(
               (kpi) => `
             <div class="kpi-box">
-              <div class="kpi-label">${kpi.label}</div>
-              <div class="kpi-val" style="color: ${kpi.color};">${kpi.textValue || toArabicDigits(kpi.value ?? 0)}</div>
+              <div class="kpi-label">${h(kpi.label)}</div>
+              <div class="kpi-val" style="color: ${h(kpi.color)};">${h(kpi.textValue || toArabicDigits(kpi.value ?? 0))}</div>
             </div>
           `
             )
@@ -1706,17 +1707,17 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
       ` : `
  <div class="continuation-header">
  <div>
- <b>${companyName}</b> | <span style="color: #78350f; font-weight: bold;">${reportTitle}</span>
- ${page.sectionNumberText ? ` - <b>${page.sectionNumberText}: ${page.sectionTitle}</b>` : ''}
+ <b>${h(companyName)}</b> | <span style="color: #78350f; font-weight: bold;">${h(reportTitle)}</span>
+ ${page.sectionNumberText ? ` - <b>${h(page.sectionNumberText)}: ${h(page.sectionTitle)}</b>` : ''}
           </div>
-          <div>تاريخ الطباعة: <b>${printTimestamp}</b></div>
+          <div>تاريخ الطباعة: <b>${h(printTimestamp)}</b></div>
         </div>
       `;
 
       const sectionBadge = `
         <div class="section-banner">
           <div class="section-title">
-            ${page.sectionNumberText ? `${page.sectionNumberText}: ` : ''}${page.sectionTitle}
+            ${page.sectionNumberText ? `${h(page.sectionNumberText)}: ` : ''}${h(page.sectionTitle)}
             ${page.totalPagesInSection > 1 ? `<span style="font-size: 8.5pt; color: #78350f; margin-right: 6px;">(صفحة ${toArabicDigits(page.pageIndexInSection)} من ${toArabicDigits(page.totalPagesInSection)} لهذا القسم)</span>` : ''}
           </div>
           <div class="section-count">عرض ${toArabicDigits(page.items.length)} من إجمالي ${toArabicDigits(page.totalSectionRecords)} سجل</div>
@@ -1748,7 +1749,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
 <html lang="ar" dir="rtl">
 <head>
  <meta charset="utf-8">
- <title>${reportTitle} - ${companyName}</title>
+ <title>${h(reportTitle)} - ${h(companyName)}</title>
  <meta name="viewport" content="width=device-width, initial-scale=1.0">
  <style>
  @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap');
@@ -1984,7 +1985,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
 <body>
  <div class="top-action-bar">
  <div style="font-weight: 900; font-size: 14px; display: flex; align-items: center; gap: 8px;">
- <span>📑 وثيقة التقرير الرسمي: ${reportTitle}</span>
+ <span>📑 وثيقة التقرير الرسمي: ${h(reportTitle)}</span>
  <span style="background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 4px; font-size: 11px;">${toArabicDigits(totalPages)} صفحات A4</span>
  </div>
  <div style="display: flex; align-items: center; gap: 10px;">

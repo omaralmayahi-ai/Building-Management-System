@@ -1,6 +1,7 @@
 import { UnitAsset, Room, SystemBranding } from '../types';
 import { getServerDateDDMMYYYY, toArabicDigits } from './arabicUtils';
 import { isRoomVacant } from './unitAndRoomCodeUtils';
+import { h } from './sanitize';
 
 export type CardPrintSize = 'compact' | 'medium' | 'full';
 
@@ -94,7 +95,7 @@ export function renderOccupantsBadgesHtml(
           (entity) => `
         <div class="${badgeClass}">
           <span class="badge-icon">${iconSvg}</span>
-          <span class="badge-text">${entity}</span>
+          <span class="badge-text">${h(entity)}</span>
         </div>
       `
         )
@@ -133,23 +134,23 @@ export function generateCompactRoomCardHtml(
       <div class="c-table">
         <div class="c-row c-alt">
           <span class="c-lbl">اسم المنشأة:</span>
-          <span class="c-val c-bold c-truncate">${unit.name}</span>
+          <span class="c-val c-bold c-truncate">${h(unit.name)}</span>
         </div>
         <div class="c-row">
           <span class="c-lbl">رمز المنشأة:</span>
-          <span class="c-val c-mono c-blue">${unit.code}</span>
+          <span class="c-val c-mono c-blue">${h(unit.code)}</span>
         </div>
         <div class="c-row c-alt">
           <span class="c-lbl">رمز الأصل:</span>
-          <span class="c-val c-mono c-purple">${unit.fixedAssetCode || 'غير مسجل'}</span>
+          <span class="c-val c-mono c-purple">${h(unit.fixedAssetCode || 'غير مسجل')}</span>
         </div>
         <div class="c-row">
           <span class="c-lbl">رقم الطابق:</span>
-          <span class="c-val c-green c-bold">${floor}</span>
+          <span class="c-val c-green c-bold">${h(floor)}</span>
         </div>
         <div class="c-row c-highlight">
           <span class="c-lbl c-amber">رمز الغرفة:</span>
-          <span class="c-val c-mono c-amber c-bold-lg">${roomCode}</span>
+          <span class="c-val c-mono c-amber c-bold-lg">${h(roomCode)}</span>
         </div>
         <div class="c-row c-row-occupants c-alt">
           <div class="c-occupants-hdr">
@@ -193,7 +194,7 @@ export function generateCompactUnitCardHtml(
 
       <div class="c-code-box-wrap">
         <span class="c-code-lbl">رمز المنشأة</span>
-        <div class="c-code-box">${unit.code}</div>
+        <div class="c-code-box">${h(unit.code)}</div>
       </div>
 
       <div class="c-qr-wrap">
@@ -203,23 +204,23 @@ export function generateCompactUnitCardHtml(
       <div class="c-table">
         <div class="c-row c-alt">
           <span class="c-lbl">اسم المنشأة:</span>
-          <span class="c-val c-bold c-truncate">${unit.name}</span>
+          <span class="c-val c-bold c-truncate">${h(unit.name)}</span>
         </div>
         <div class="c-row">
           <span class="c-lbl">رمز الأصل:</span>
-          <span class="c-val c-mono c-purple">${unit.fixedAssetCode || 'غير مسجل'}</span>
+          <span class="c-val c-mono c-purple">${h(unit.fixedAssetCode || 'غير مسجل')}</span>
         </div>
         <div class="c-row c-alt">
           <span class="c-lbl">الموقع الميداني:</span>
-          <span class="c-val c-amber c-bold">${unit.governorate} • ${unit.field}</span>
+          <span class="c-val c-amber c-bold">${h(unit.governorate)} • ${h(unit.field)}</span>
         </div>
         <div class="c-row">
           <span class="c-lbl">المساحة / الطوابق:</span>
-          <span class="c-val c-green">${area} (ط ${unit.floorsCount || 1})</span>
+          <span class="c-val c-green">${h(area)} (ط ${h(unit.floorsCount || 1)})</span>
         </div>
         <div class="c-row c-alt">
           <span class="c-lbl">الإحداثيات:</span>
-          <span class="c-val c-mono c-blue c-truncate">${coords}</span>
+          <span class="c-val c-mono c-blue c-truncate">${h(coords)}</span>
         </div>
         <div class="c-row c-row-occupants">
           <div class="c-occupants-hdr">
@@ -262,29 +263,29 @@ export function generateMediumRoomCardHtml(
       <div class="m-body">
         <div class="m-qr-box">
           <img class="m-qr-img" src="${common.qrDataUrl}" alt="Room QR" />
-          <div class="m-code-badge">${roomCode}</div>
+          <div class="m-code-badge">${h(roomCode)}</div>
         </div>
 
         <div class="m-table">
           <div class="m-row m-alt">
             <span class="m-lbl">اسم المنشأة:</span>
-            <span class="m-val m-bold">${unit.name}</span>
+            <span class="m-val m-bold">${h(unit.name)}</span>
           </div>
           <div class="m-row">
             <span class="m-lbl">رمز المنشأة:</span>
-            <span class="m-val m-mono m-blue">${unit.code}</span>
+            <span class="m-val m-mono m-blue">${h(unit.code)}</span>
           </div>
           <div class="m-row m-alt">
             <span class="m-lbl">رمز الأصل:</span>
-            <span class="m-val m-mono m-purple">${unit.fixedAssetCode || 'غير مسجل'}</span>
+            <span class="m-val m-mono m-purple">${h(unit.fixedAssetCode || 'غير مسجل')}</span>
           </div>
           <div class="m-row">
             <span class="m-lbl">رقم الطابق:</span>
-            <span class="m-val m-green m-bold">${floor}</span>
+            <span class="m-val m-green m-bold">${h(floor)}</span>
           </div>
           <div class="m-row m-highlight">
             <span class="m-lbl m-amber">رمز الغرفة:</span>
-            <span class="m-val m-mono m-amber m-bold-lg">${roomCode}</span>
+            <span class="m-val m-mono m-amber m-bold-lg">${h(roomCode)}</span>
           </div>
           <div class="m-row m-row-occupants m-alt">
             <div class="m-occupants-hdr">
@@ -329,34 +330,34 @@ export function generateMediumUnitCardHtml(
 
       <div class="m-body">
         <div class="m-qr-box">
-          <div class="m-unit-code-box">${unit.code}</div>
+          <div class="m-unit-code-box">${h(unit.code)}</div>
           <img class="m-qr-img" src="${common.qrDataUrl}" alt="Unit QR" />
         </div>
 
         <div class="m-table">
           <div class="m-row m-alt">
             <span class="m-lbl">اسم المنشأة:</span>
-            <span class="m-val m-bold">${unit.name}</span>
+            <span class="m-val m-bold">${h(unit.name)}</span>
           </div>
           <div class="m-row">
             <span class="m-lbl">رمز المنشأة:</span>
-            <span class="m-val m-mono m-blue">${unit.code}</span>
+            <span class="m-val m-mono m-blue">${h(unit.code)}</span>
           </div>
           <div class="m-row m-alt">
             <span class="m-lbl">رمز الأصل:</span>
-            <span class="m-val m-mono m-purple">${unit.fixedAssetCode || 'غير مسجل'}</span>
+            <span class="m-val m-mono m-purple">${h(unit.fixedAssetCode || 'غير مسجل')}</span>
           </div>
           <div class="m-row">
             <span class="m-lbl">الموقع الميداني:</span>
-            <span class="m-val m-amber m-bold">${unit.governorate} • ${unit.field}</span>
+            <span class="m-val m-amber m-bold">${h(unit.governorate)} • ${h(unit.field)}</span>
           </div>
           <div class="m-row m-alt">
             <span class="m-lbl">المساحة / الطوابق:</span>
-            <span class="m-val m-green">${area} • ${unit.floorsCount || 1} طوابق</span>
+            <span class="m-val m-green">${h(area)} • ${h(unit.floorsCount || 1)} طوابق</span>
           </div>
           <div class="m-row">
             <span class="m-lbl">الإحداثيات:</span>
-            <span class="m-val m-mono m-blue">${coords}</span>
+            <span class="m-val m-mono m-blue">${h(coords)}</span>
           </div>
           <div class="m-row m-row-occupants m-alt">
             <div class="m-occupants-hdr">
@@ -404,23 +405,23 @@ export function generateFullRoomCardHtml(
       <div class="f-table">
         <div class="f-row f-alt">
           <span class="f-lbl">اسم المنشأة:</span>
-          <span class="f-val f-bold">${unit.name}</span>
+          <span class="f-val f-bold">${h(unit.name)}</span>
         </div>
         <div class="f-row">
           <span class="f-lbl">رمز المنشأة:</span>
-          <span class="f-val f-mono f-blue">${unit.code}</span>
+          <span class="f-val f-mono f-blue">${h(unit.code)}</span>
         </div>
         <div class="f-row f-alt">
           <span class="f-lbl">رمز الأصل:</span>
-          <span class="f-val f-mono f-purple">${unit.fixedAssetCode || 'غير مسجل'}</span>
+          <span class="f-val f-mono f-purple">${h(unit.fixedAssetCode || 'غير مسجل')}</span>
         </div>
         <div class="f-row">
           <span class="f-lbl">رقم الطابق:</span>
-          <span class="f-val f-green f-bold">${floor}</span>
+          <span class="f-val f-green f-bold">${h(floor)}</span>
         </div>
         <div class="f-row f-highlight">
           <span class="f-lbl f-amber">رمز الغرفة:</span>
-          <span class="f-val f-mono f-amber f-bold-lg">${roomCode}</span>
+          <span class="f-val f-mono f-amber f-bold-lg">${h(roomCode)}</span>
         </div>
         <div class="f-row f-row-occupants f-alt">
           <div class="f-occupants-hdr">
@@ -462,7 +463,7 @@ export function generateFullUnitCardHtml(
 
       <div class="f-code-section">
         <span class="f-code-lbl">رمز المنشأة</span>
-        <div class="f-code-box">${unit.code}</div>
+        <div class="f-code-box">${h(unit.code)}</div>
       </div>
 
       <div class="f-qr-wrap">
@@ -472,27 +473,27 @@ export function generateFullUnitCardHtml(
       <div class="f-table">
         <div class="f-row f-alt">
           <span class="f-lbl">اسم المنشأة:</span>
-          <span class="f-val f-bold">${unit.name}</span>
+          <span class="f-val f-bold">${h(unit.name)}</span>
         </div>
         <div class="f-row">
           <span class="f-lbl">رمز المنشأة:</span>
-          <span class="f-val f-mono f-blue">${unit.code}</span>
+          <span class="f-val f-mono f-blue">${h(unit.code)}</span>
         </div>
         <div class="f-row f-alt">
           <span class="f-lbl">رمز الأصل:</span>
-          <span class="f-val f-mono f-purple">${unit.fixedAssetCode || 'غير مسجل'}</span>
+          <span class="f-val f-mono f-purple">${h(unit.fixedAssetCode || 'غير مسجل')}</span>
         </div>
         <div class="f-row">
           <span class="f-lbl">الموقع الميداني:</span>
-          <span class="f-val f-amber f-bold">${unit.governorate} • ${unit.field}</span>
+          <span class="f-val f-amber f-bold">${h(unit.governorate)} • ${h(unit.field)}</span>
         </div>
         <div class="f-row f-alt">
           <span class="f-lbl">المساحة الإجمالية:</span>
-          <span class="f-val f-green">${area} • عدد الطوابق: ${unit.floorsCount || 1}</span>
+          <span class="f-val f-green">${h(area)} • عدد الطوابق: ${h(unit.floorsCount || 1)}</span>
         </div>
         <div class="f-row">
           <span class="f-lbl">الإحداثيات الجغرافية:</span>
-          <span class="f-val f-mono f-blue">${coords}</span>
+          <span class="f-val f-mono f-blue">${h(coords)}</span>
         </div>
         <div class="f-row f-row-occupants f-alt">
           <div class="f-occupants-hdr">
