@@ -120,6 +120,15 @@ export default defineConfig(() => {
               if (id.includes('lucide-react')) {
                 return 'vendor-lucide';
               }
+              if (id.includes('html2canvas')) {
+                return 'vendor-html2canvas';
+              }
+              if (id.includes('html5-qrcode')) {
+                return 'vendor-qrscan';
+              }
+              if (id.includes('jsqr') || id.includes('qrcode')) {
+                return 'vendor-qrcode';
+              }
               if (id.includes('motion')) {
                 return 'vendor-motion';
               }
